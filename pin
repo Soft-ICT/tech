@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ব্যক্তিগত ফোনবুক - যোগাযোগের তালিকা</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #f0f4f8;
+            color: #2d3748;
+            margin: 0;
+            padding: 15px;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .header-section {
+            text-align: center;
+            border-bottom: 3px solid #3182ce;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        h1 {
+            color: #1a365d;
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+        .stats-badge {
+            display: inline-block;
+            background-color: #ebf8ff;
+            color: #2b6cb0;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .search-container {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+        }
+        .search-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .search-box {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #cbd5e0;
+            border-radius: 6px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+            background-color: #ffffff !important;
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+            user-select: text !important;
+            pointer-events: auto !important;
+        }
+        .search-box:focus {
+            border-color: #3182ce;
+        }
+        
+        .filter-select {
+            padding: 12px;
+            font-size: 15px;
+            border: 2px solid #cbd5e0;
+            border-radius: 6px;
+            background-color: white;
+            cursor: pointer;
+            outline: none;
+            min-width: 160px;
+        }
+        .filter-select:focus {
+            border-color: #3182ce;
+        }
+        
+        .add-contact-btn {
+            background-color: #38a169;
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            transition: background 0.2s;
+            height: 48px;
+        }
+        .add-contact-btn:hover {
+            background-color: #2f855a;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background-color: #2b6cb0;
+            color: white;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background-color: #fcfdfd;
+        }
+        tr:hover {
+            background-color: #f7fafc;
+        }
+        .no-result {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            color: #e53e3e;
+            font-weight: bold;
+            font-size: 16px;
+            background: #fff5f5;
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+        .phone-link {
+            color: #2b6cb0;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .phone-link:hover {
+            text-decoration: underline;
+        }
+        .empty-field {
+            color: #a0aec0;
+            font-style: italic;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .btn-edit {
+            background: #ecc94b;
+            color: #744210;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .btn-edit:hover {
+            background: #d69e2e;
+        }
+        .btn-delete {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .btn-delete:hover {
+            background: #c53030;
+        }
+
+        @media screen and (max-width: 768px) {
+            body { padding: 5px; }
+            .container { padding: 15px; }
+            .search-row { flex-direction: column; gap: 10px; align-items: stretch; }
+            .filter-select, .add-contact-btn { width: 100%; justify-content: center; }
+            table, thead, tbody, th, td, tr { display: block; }
+            thead tr { position: absolute; top: -9999px; left: -9999px; }
+            tr { border: 1px solid #cbd5e0; margin-bottom: 15px; border-radius: 8px; padding: 8px; background: #fff; }
+            td { border: none; border-bottom: 1px solid #edf2f7; position: relative; padding-left: 45%; text-align: right; font-size: 15px; }
+            td:last-child { border-bottom: none; }
+            td:before { position: absolute; left: 12px; width: 40%; padding-right: 10px; white-space: nowrap; text-align: left; font-weight: bold; color: #4a5568; }
+            td:nth-of-type(1):before { content: "নাম:"; }
+            td:nth-of-type(2):before { content: "মোবাইল নম্বর:"; }
+            td:nth-of-type(3):before { content: "টেলিফোন (Tel):"; }
+            td:nth-of-type(4):before { content: "কর্মস্থল/পদবী:"; }
+            td:nth-of-type(5):before { content: "অ্যাকশন:"; }
+            .action-buttons { justify-content: flex-end; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- অ্যাপ লোড হওয়ার সাথে সাথে এই লক স্ক্রিনটি ভেসে উঠবে এবং পাসওয়ার্ড ছাড়া সরবে না -->
+<div id="appLockScreen" style="display:flex; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(26, 54, 93, 0.99); z-index:999999; align-items:center; justify-content:center;">
+    <div style="background:#ffffff; padding:35px 30px; border-radius:16px; width:90%; max-width:400px; text-align:center; box-shadow:0 15px 35px rgba(0,0,0,0.4); border-top:6px solid #e53e3e;">
+        <i class="fa-solid fa-shield-halved" style="font-size: 50px; color: #e53e3e; margin-bottom: 20px;"></i>
+        <h2 style="margin:0 0 10px 0; color:#1a365d; font-size: 22px;">ব্যক্তিগত ফোনবুক লক</h2>
+        <p style="color:#718096; font-size:14px; margin-bottom:25px; line-height: 1.5;">এই অ্যাপের তথ্যগুলো সুরক্ষিত। প্রবেশ করতে ৪ ডিজিটের সঠিক সিক্রেট পিন দিন।</p>
+        
+        <input type="password" id="lockPinInput" maxlength="4" placeholder="••••" autocomplete="off" style="width:100%; padding:15px; font-size:24px; text-align:center; letter-spacing:10px; border:2px solid #cbd5e0; border-radius:8px; margin-bottom:15px; outline:none; font-weight: bold; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+        <div id="lockErrorMsg" style="color:#e53e3e; font-size:14px; margin-bottom:15px; display:none; font-weight:bold;">❌ ভুল পিন! আবার চেষ্টা করুন।</div>
+        
+        <button id="lockSubmitBtn" style="width:100%; padding:14px; background:#3182ce; color:white; border:none; border-radius:8px; font-size:16px; font-weight:bold; cursor:pointer; transition: background 0.2s;">
+            <i class="fa-solid fa-unlock"></i> আনলক করুন
+        </button>
+    </div>
+</div>
+
+<div class="container">
+    <div class="header-section">
+        <h1>ব্যক্তিগত ফোনবুক</h1>
+        <div class="stats-badge">সর্বমোট সদস্য সংখ্যা: <span id="totalCount">০</span> জন</div>
+    </div>
+    
+    <div class="search-container">
+        <div class="search-row">
+            <select id="searchFilter" class="filter-select" onchange="filterTable()">
+                <option value="name" selected>শুধু নাম (Name)</option>
+                <option value="number">শুধু মোবাইল (Number)</option>
+                <option value="tel">শুধু টেলিফোন (Tel)</option>
+                <option value="workplace">শুধু কর্মস্থল (Workplace)</option>
+                <option value="all">সব তথ্য একসাথে</option>
+            </select>
+            
+            <input type="text" id="searchInput" class="search-box" oninput="filterTable()" placeholder="নাম লিখে খুঁজুন...">
+            
+            <button class="add-contact-btn" onclick="openAddContactDialog()">
+                <i class="fa-solid fa-user-plus"></i> নতুন কন্টাক্ট
+            </button>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table id="contactsTable">
+            <thead>
+                <tr>
+                    <th style="width: 25%;">নাম (Name)</th>
+                    <th style="width: 20%;">মোবাইল নম্বর (Number)</th>
+                    <th style="width: 15%;">টেলিফোন (Tel)</th>
+                    <th style="width: 25%;">কর্মস্থল/পদবী (Workplace)</th>
+                    <th style="width: 15%;">ব্যবস্থাপনা (Action)</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <tr>
+                    <td colspan="5" style="text-align:center; padding:30px; color:#2b6cb0;">
+                        <i class="fa-solid fa-spinner fa-spin"></i> ডাটাবেজ থেকে তালিকা লোড হচ্ছে...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div id="noResult" class="no-result">দুঃখিত, কোনো তথ্য খুঁজে পাওয়া যায়নি!</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script>
+    // রাইট ক্লিক ও কীবোর্ড শর্টকাট লক
+    document.addEventListener('contextmenu', event => event.preventDefault()); 
+    document.onkeydown = function(e) {
+        if (e.keyCode == 123 || 
+            (e.ctrlKey && e.shiftKey && ['I','C','J'].includes(String.fromCharCode(e.keyCode))) || 
+            (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0))) {
+            return false;
+        }
+    };
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBCnqpIJqMWTI_qXv96hyVs6_UV_60s3Mc",
+        authDomain: "qrt-team.firebaseapp.com",
+        databaseURL: "https://qrt-team-default-rtdb.firebaseio.com/",
+        projectId: "qrt-team",
+        storageBucket: "qrt-team.appspot.com"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    const contactsRef = database.ref('contacts');
+
+    let currentContactsData = [];
+    const SECRET_PIN = "2580"; // কাস্টম সিকিউর পিন
+
+    // অ্যাপ লোড হওয়ার সাথে সাথে লকের ইনপুট ফিল্ডে ফোকাস করা এবং ভেরিফিকেশন লজিক সক্রিয় করা
+    window.addEventListener('DOMContentLoaded', () => {
+        const lockScreen = document.getElementById('appLockScreen');
+        const pinInput = document.getElementById('lockPinInput');
+        const errorMsg = document.getElementById('lockErrorMsg');
+        const submitBtn = document.getElementById('lockSubmitBtn');
+
+        pinInput.focus();
+
+        function verifyAppPin() {
+            if (pinInput.value === SECRET_PIN) {
+                lockScreen.style.style.setProperty('display', 'none', 'important');
+                lockScreen.remove(); // সঠিক পাসওয়ার্ড দিলে স্ক্রিন থেকে লক ডায়লগ চিরতরে রিমুভ হয়ে যাবে
+            } else {
+                errorMsg.style.display = 'block';
+                pinInput.value = '';
+                pinInput.focus();
+            }
+        }
+
+        submitBtn.onclick = verifyAppPin;
+        pinInput.onkeydown = function(e) {
+            if (e.key === 'Enter') verifyAppPin();
+        };
+
+        // অফলাইন ডেটা লোড
+        const localData = localStorage.getItem('offline_contacts_backup');
+        if (localData) {
+            currentContactsData = JSON.parse(localData);
+            renderTableData(currentContactsData);
+        }
+    });
+
+    // ফায়ারবেস লাইভ লিসেনার
+    contactsRef.on('value', (snapshot) => {
+        if (snapshot.exists()) {
+            let contactsArray = [];
+            snapshot.forEach((childSnapshot) => {
+                contactsArray.push({
+                    key: childSnapshot.key,
+                    ...childSnapshot.val()
+                });
+            });
+            currentContactsData = contactsArray;
+            localStorage.setItem('offline_contacts_backup', JSON.stringify(contactsArray));
+            renderTableData(currentContactsData);
+        } else {
+            if(navigator.onLine) {
+                const tableBody = document.getElementById("tableBody");
+                tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#a0aec0;">ডাটাবেজে কোনো তথ্য নেই!</td></tr>`;
+                document.getElementById("totalCount").textContent = "০";
+                localStorage.removeItem('offline_contacts_backup');
+                currentContactsData = [];
+            }
+        }
+    }, (error) => {
+        console.log("নেটওয়ার্ক সমস্যা। অফলাইন ব্যাকআপ সচল আছে।");
+    });
+
+    // টেবিল ডেটা জেনারেট করার মেইন ফাংশন
+    function renderTableData(dataList) {
+        const tableBody = document.getElementById("tableBody");
+        if(!tableBody) return;
+        
+        tableBody.innerHTML = "";
+        let count = 0;
+
+        dataList.forEach((data) => {
+            count++;
+            const telOutput = (data.telephone === "নেই" || !data.telephone) 
+                ? '<span class="empty-field">—</span>' 
+                : `<a href="tel:${data.telephone}" class="phone-link">${data.telephone}</a>`;
+
+            const row = `<tr>
+                <td><strong>${data.name}</strong></td>
+                <td><a href="tel:${data.phone}" class="phone-link">${data.phone}</a></td>
+                <td>${telOutput}</td>
+                <td>${data.workplace}</td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-edit" onclick="editContact('${data.key}', '${data.name}', '${data.phone}', '${data.telephone}', '${data.workplace}')"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button class="btn-delete" onclick="deleteContact('${data.key}')"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </td>
+            </tr>`;
+            tableBody.insertAdjacentHTML('beforeend', row);
+        });
+
+        document.getElementById("totalCount").textContent = count;
+        document.getElementById("noResult").style.display = "none";
+    }
+
+    // রিয়েল-টাইম সার্চ ইঞ্জিন
+    function filterTable() {
+        const filterType = document.getElementById('searchFilter').value;
+        const input = document.getElementById('searchInput');
+        const query = input.value.toLowerCase().trim();
+        
+        if(filterType === 'name') input.placeholder = 'নাম লিখে খুঁজুন...';
+        else if(filterType === 'number') input.placeholder = 'মোবাইল নম্বর লিখে খুঁজুন...';
+        else if(filterType === 'tel') input.placeholder = 'টেলিফোন নম্বর লিখে খুঁজুন...';
+        else if(filterType === 'workplace') input.placeholder = 'কর্মস্থল বা পদবী লিখে খুঁজুন...';
+        else input.placeholder = 'যেকোনো তথ্য লিখে খুঁজুন...';
+        
+        if (currentContactsData.length === 0) return;
+
+        const filteredData = currentContactsData.filter(data => {
+            const name = (data.name || "").toLowerCase();
+            const phone = (data.phone || "").toLowerCase();
+            const telephone = (data.telephone || "").toLowerCase();
+            const workplace = (data.workplace || "").toLowerCase();
+
+            if (filterType === 'name') return name.includes(query);
+            if (filterType === 'number') return phone.includes(query);
+            if (filterType === 'tel') return telephone.includes(query);
+            if (filterType === 'workplace') return workplace.includes(query);
+            if (filterType === 'all') {
+                return name.includes(query) || phone.includes(query) || telephone.includes(query) || workplace.includes(query);
+            }
+            return true;
+        });
+
+        renderTableData(filteredData);
+        document.getElementById("totalCount").textContent = filteredData.length;
+
+        const noResult = document.getElementById("noResult");
+        if (filteredData.length === 0 && query !== "") {
+            noResult.style.display = "block";
+        } else {
+            noResult.style.display = "none";
+        }
+    }
+
+    // নতুন কন্টাক্ট যোগ করার ফাংশন
+    function openAddContactDialog() {
+        const name = prompt("সদস্যের নাম লিখুন:");
+        if (!name) return;
+        const phone = prompt("মোবাইল নম্বর লিখুন:");
+        if (!phone) return;
+        const telephone = prompt("টেলিফোন নম্বর লিখুন (না থাকলে ফাঁকা রাখুন বা 'নেই' লিখুন):") || "নেই";
+        const workplace = prompt("কর্মস্থল বা পদবি লিখুন:");
+        if (!workplace) return;
+
+        contactsRef.push({
+            name: name.trim(),
+            phone: phone.trim(),
+            telephone: telephone.trim(),
+            workplace: workplace.trim(),
+            timestamp: Date.now(),
+            pin: 2580 
+        }).then(() => {
+            alert('তথ্যটি সফলভাবে অনলাইন ডাটাবেজে যোগ হয়েছে!');
+        }).catch((error) => {
+            console.error(error);
+            alert('ত্রুটি: ডাটাবেজে সেভ করা যায়নি!');
+        });
+    }
+
+    // তথ্য সংশোধন করার ফাংশন
+    function editContact(key, currentName, currentPhone, currentTel, currentWork) {
+        const newName = prompt("সদস্যের সংশোধিত নাম লিখুন:", currentName);
+        if (!newName) return;
+        const newPhone = prompt("সংশোধিত মোবাইল নম্বর লিখুন:", currentPhone);
+        if (!newPhone) return;
+        const newTel = prompt("সংশোধিত টেলিফোন নম্বর লিখুন:", currentTel) || "নেই";
+        const newWork = prompt("সংশোধিত কর্মস্থল বা পদবি লিখুন:", currentWork);
+        if (!newWork) return;
+
+        database.ref('contacts/' + key).update({
+            name: newName.trim(),
+            phone: newPhone.trim(),
+            telephone: newTel.trim(),
+            workplace: newWork.trim(),
+            lastUpdated: Date.now(),
+            pin: 2580 
+        }).then(() => {
+            alert("তথ্যটি সফলভাবে আপডেট করা হয়েছে!");
+        }).catch((error) => {
+            console.error(error);
+            alert("ত্রুটি: আপডেট করা সম্ভব হয়নি।");
+        });
+    }
+
+    // তথ্য চিরতরে মুছে ফেলার ফাংশন 
+    function deleteContact(key) {
+        const confirmDelete = confirm("আপনি কি নিশ্চিতভাবে এই তথ্যটি ডাটাবেজ থেকে ডিলিট করতে চান?");
+        if (confirmDelete) {
+            database.ref('contacts/' + key).remove()
+            .then(() => {
+                alert("তথ্যটি সফলভাবে ডাটাবেজ থেকে মুছে ফেলা হয়েছে।");
+            }).catch((error) => {
+                console.error(error);
+                alert("ত্রুটি: ডিলিট করা সম্ভব হয়নি।");
+            });
+        }
+    }
+</script>
+
+</body>
+</html>
+
