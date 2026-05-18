@@ -215,7 +215,7 @@
 </head>
 <body>
 
-<!-- অ্যাপ লোড হওয়ার সাথে সাথে এই লক স্ক্রিনটি ভেসে উঠবে এবং পাসওয়ার্ড ছাড়া সরবে না -->
+<!-- অ্যাপ লোড লক স্ক্রিন - যা সঠিক পাসওয়ার্ড ছাড়া কোনোভাবেই সরবে না -->
 <div id="appLockScreen" style="display:flex; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(26, 54, 93, 0.99); z-index:999999; align-items:center; justify-content:center;">
     <div style="background:#ffffff; padding:35px 30px; border-radius:16px; width:90%; max-width:400px; text-align:center; box-shadow:0 15px 35px rgba(0,0,0,0.4); border-top:6px solid #e53e3e;">
         <i class="fa-solid fa-shield-halved" style="font-size: 50px; color: #e53e3e; margin-bottom: 20px;"></i>
@@ -306,9 +306,9 @@
     const contactsRef = database.ref('contacts');
 
     let currentContactsData = [];
-    const SECRET_PIN = "2580"; // কাস্টম সিকিউর পিন
+    const SECRET_PIN = "2580"; // কাস্টম নতুন পিন কোড
 
-    // অ্যাপ লোড হওয়ার সাথে সাথে লকের ইনপুট ফিল্ডে ফোকাস করা এবং ভেরিফিকেশন লজিক সক্রিয় করা
+    // ১. অ্যাপ লোডের সময় অফলাইন ব্যাকআপ এবং স্থায়ী লকস্ক্রিন অ্যাক্টিভেশন লজিক
     window.addEventListener('DOMContentLoaded', () => {
         const lockScreen = document.getElementById('appLockScreen');
         const pinInput = document.getElementById('lockPinInput');
@@ -319,8 +319,8 @@
 
         function verifyAppPin() {
             if (pinInput.value === SECRET_PIN) {
-                lockScreen.style.style.setProperty('display', 'none', 'important');
-                lockScreen.remove(); // সঠিক পাসওয়ার্ড দিলে স্ক্রিন থেকে লক ডায়লগ চিরতরে রিমুভ হয়ে যাবে
+                lockScreen.style.setProperty('display', 'none', 'important');
+                lockScreen.remove(); // সঠিক পাসওয়ার্ড দিলে লক স্ক্রিন পুরোপুরি রিমুভ হবে
             } else {
                 errorMsg.style.display = 'block';
                 pinInput.value = '';
@@ -333,7 +333,6 @@
             if (e.key === 'Enter') verifyAppPin();
         };
 
-        // অফলাইন ডেটা লোড
         const localData = localStorage.getItem('offline_contacts_backup');
         if (localData) {
             currentContactsData = JSON.parse(localData);
@@ -400,7 +399,7 @@
         document.getElementById("noResult").style.display = "none";
     }
 
-    // রিয়েল-টাইম সার্চ ইঞ্জিন
+    // ২. শক্তিশালী রিয়েল-টাইম সার্চ ইঞ্জিন (লক-ফ্রি)
     function filterTable() {
         const filterType = document.getElementById('searchFilter').value;
         const input = document.getElementById('searchInput');
@@ -441,7 +440,7 @@
         }
     }
 
-    // নতুন কন্টাক্ট যোগ করার ফাংশন
+    // ৩. নতুন কন্টাক্ট যোগ করার ফাংশন (পিন প্যারামিটার 2580 করা হয়েছে)
     function openAddContactDialog() {
         const name = prompt("সদস্যের নাম লিখুন:");
         if (!name) return;
@@ -451,6 +450,7 @@
         const workplace = prompt("কর্মস্থল বা পদবি লিখুন:");
         if (!workplace) return;
 
+        // ডেটাবেজ রুলস পাস করানোর জন্য অবজেক্টের ভেতরেও pin: 2580 পাঠানো হচ্ছে
         contactsRef.push({
             name: name.trim(),
             phone: phone.trim(),
@@ -462,11 +462,11 @@
             alert('তথ্যটি সফলভাবে অনলাইন ডাটাবেজে যোগ হয়েছে!');
         }).catch((error) => {
             console.error(error);
-            alert('ত্রুটি: ডাটাবেজে সেভ করা যায়নি!');
+            alert('ত্রুটি: ডাটাবেজে সেভ করা যায়নি! ফায়ারবেস সিকিউরিটি রুলস চেক করুন।');
         });
     }
 
-    // তথ্য সংশোধন করার ফাংশন
+    // ৪. তথ্য সংশোধন করার সিকিউর ফাংশন (পিন প্যারামিটার 2580 করা হয়েছে)
     function editContact(key, currentName, currentPhone, currentTel, currentWork) {
         const newName = prompt("সদস্যের সংশোধিত নাম লিখুন:", currentName);
         if (!newName) return;
@@ -476,6 +476,7 @@
         const newWork = prompt("সংশোধিত কর্মস্থল বা পদবি লিখুন:", currentWork);
         if (!newWork) return;
 
+        // আপডেট রিকোয়েস্ট ভ্যালিডেশনের জন্য pin: 2580 পাঠানো হচ্ছে
         database.ref('contacts/' + key).update({
             name: newName.trim(),
             phone: newPhone.trim(),
@@ -491,7 +492,7 @@
         });
     }
 
-    // তথ্য চিরতরে মুছে ফেলার ফাংশন 
+    // ৫. তথ্য চিরতরে মুছে ফেলার ফাংশন 
     function deleteContact(key) {
         const confirmDelete = confirm("আপনি কি নিশ্চিতভাবে এই তথ্যটি ডাটাবেজ থেকে ডিলিট করতে চান?");
         if (confirmDelete) {
@@ -508,4 +509,3 @@
 
 </body>
 </html>
-
