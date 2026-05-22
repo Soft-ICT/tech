@@ -1,1 +1,259 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Image Slider with Links</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* স্লাইডার কন্টেইনার */
+        .slider-container {
+            position: relative;
+            width: 80%;
+            max-width: 800px;
+            height: 450px;
+            overflow: hidden;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        /* স্লাইড ট্রানজিশন */
+        .slides {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .slide-wrapper {
+            min-width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .slide-wrapper a {
+            display: block;
+            width: 100%;
+            height: 100%;
+            text-decoration: none;
+        }
+
+        .slide-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* ক্যাপশন স্টাইল */
+        .caption {
+            position: absolute;
+            bottom: 40px;
+            left: 30px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 18px;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+
+        .slide-wrapper a:hover .caption {
+            background: #007aff;
+            transform: translateY(-5px);
+        }
+
+        /* নেভিগেশন বাটন (Arrows) */
+        .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .nav-btn:hover {
+            background: #007aff;
+            color: #fff;
+        }
+
+        .prev { left: 20px; }
+        .next { right: 20px; }
+
+        /* ডট ইন্ডিকেটরস */
+        .dots-container {
+            position: absolute;
+            bottom: 15px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dot.active {
+            background: #007aff;
+            width: 28px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="slider-container">
+        <!-- স্লাইডসমূহ -->
+        <div class="slides" id="slides">
+            
+            <!-- স্লাইড ১ -->
+            <div class="slide-wrapper">
+                <a href="https://example.com/nature" target="_blank">
+                    <img src="https://picsum.photos/800/450?random=1" alt="Nature">
+                    <div class="caption">প্রকৃতির সৌন্দর্য দেখুন 🌳</div>
+                </a>
+            </div>
+
+            <!-- স্লাইড ২ -->
+            <div class="slide-wrapper">
+                <a href="https://example.com/ocean" target="_blank">
+                    <img src="https://picsum.photos/800/450?random=2" alt="Ocean">
+                    <div class="caption">নীল সমুদ্রের মায়াবী রূপ 🌊</div>
+                </a>
+            </div>
+
+            <!-- স替えড ৩ -->
+            <div class="slide-wrapper">
+                <a href="https://example.com/mountains" target="_blank">
+                    <img src="https://picsum.photos/800/450?random=3" alt="Mountains">
+                    <div class="caption">পাহাড়ের চূড়ায় অ্যাডভেঞ্চার 🏔️</div>
+                </a>
+            </div>
+
+            <!-- স্লাইড ৪ -->
+            <div class="slide-wrapper">
+                <a href="https://example.com/stars" target="_blank">
+                    <img src="https://picsum.photos/800/450?random=4" alt="Stars">
+                    <div class="caption">রাতের আকাশের তারা 🌌</div>
+                </a>
+            </div>
+
+        </div>
+
+        <!-- কন্ট্রোল বাটন -->
+        <button class="nav-btn prev" id="prevBtn">&#10094;</button>
+        <button class="nav-btn next" id="nextBtn">&#10095;</button>
+
+        <!-- ডট ইন্ডিকেটর -->
+        <div class="dots-container" id="dotsContainer"></div>
+    </div>
+
+    <script>
+        const slides = document.getElementById('slides');
+        const slideItems = document.querySelectorAll('.slide-wrapper');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const dotsContainer = document.getElementById('dotsContainer');
+
+        let currentIndex = 0;
+        const totalSlides = slideItems.length;
+        let autoSlideInterval;
+
+        // ডট তৈরি করা
+        function createDots() {
+            for (let i = 0; i < totalSlides; i++) {
+                const dot = document.createElement('div');
+                dot.classList.add('dot');
+                if (i === 0) dot.classList.add('active');
+                dot.addEventListener('click', () => {
+                    goToSlide(i);
+                    resetAutoSlide();
+                });
+                dotsContainer.appendChild(dot);
+            }
+        }
+
+        // নির্দিষ্ট স্লাইডে যাওয়া
+        function goToSlide(index) {
+            if (index < 0) {
+                currentIndex = totalSlides - 1;
+            } else if (index >= totalSlides) {
+                currentIndex = 0;
+            } else {
+                currentIndex = index;
+            }
+            
+            // স্লাইড অ্যানিমেশন মুভমেন্ট
+            slides.style.transform = `translateX(-${currentIndex * 100}%)`;
+            
+            // ডট আপডেট করা
+            const dots = document.querySelectorAll('.dot');
+            dots.forEach((dot, idx) => {
+                dot.classList.toggle('active', idx === currentIndex);
+            });
+        }
+
+        // পরবর্তী এবং পূর্ববর্তী স্লাইড হ্যান্ডলার
+        nextBtn.addEventListener('click', () => {
+            goToSlide(currentIndex + 1);
+            resetAutoSlide();
+        });
+
+        prevBtn.addEventListener('click', () => {
+            goToSlide(currentIndex - 1);
+            resetAutoSlide();
+        });
+
+        // অটো স্লাইড চালু করা
+        function startAutoSlide() {
+            autoSlideInterval = setInterval(() => {
+                goToSlide(currentIndex + 1);
+            }, 4000); // প্রতি ৪ সেকেন্ড পর পর পরিবর্তন হবে
+        }
+
+        function resetAutoSlide() {
+            clearInterval(autoSlideInterval);
+            startAutoSlide();
+        }
+
+        // ইনিশিয়াল কল
+        createDots();
+        startAutoSlide();
+    </script>
+
+</body>
+</html>
 
