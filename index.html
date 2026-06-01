@@ -164,23 +164,7 @@
 
         .action-buttons {
             display: flex;
-            gap: 6px;
-        }
-        .btn-save-phone {
-            background: #3182ce;
-            color: white;
-            border: none;
-            padding: 6px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .btn-save-phone:hover {
-            background: #2b6cb0;
+            gap: 8px;
         }
         .btn-edit {
             background: #ecc94b;
@@ -207,6 +191,20 @@
         }
         .btn-delete:hover {
             background: #c53030;
+        }
+        /* নতুন বাটন স্টাইল */
+        .btn-save {
+            background: #3182ce;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .btn-save:hover {
+            background: #2b6cb0;
         }
 
         @media screen and (max-width: 768px) {
@@ -262,8 +260,8 @@
                     <th style="width: 25%;">নাম (Name)</th>
                     <th style="width: 20%;">মোবাইল নম্বর (Number)</th>
                     <th style="width: 15%;">টেলিফোন (Tel)</th>
-                    <th style="width: 20%;">কর্মস্থল/পদবী (Workplace)</th>
-                    <th style="width: 20%;">ব্যবস্থাপনা (Action)</th>
+                    <th style="width: 25%;">কর্মস্থল/পদবী (Workplace)</th>
+                    <th style="width: 15%;">ব্যবস্থাপনা (Action)</th>
                 </tr>
             </thead>
             <tbody id="tableBody">
@@ -305,7 +303,7 @@
     const database = firebase.database();
     const contactsRef = database.ref('contacts');
 
-    // গ্লোবাল অ্যারে (সার্চ ইঞ্জিন এর জন্য)
+    // গলোবাল অ্যারে (সার্চ ইঞ্জিন এর জন্য)
     let currentContactsData = [];
 
     // ১. অ্যাপ লোডের সময় অফলাইন ব্যাকআপ থাকলে আগে লোড হবে
@@ -357,12 +355,7 @@
                 ? '<span class="empty-field">—</span>' 
                 : `<a href="tel:${data.telephone}" class="phone-link">${data.telephone}</a>`;
 
-            // জাভাস্ক্রিপ্ট স্ট্রিং এস্কেপিং হ্যান্ডেল করা
-            const safeName = (data.name || "").replace(/'/g, "\\'");
-            const safePhone = (data.phone || "").replace(/'/g, "\\'");
-            const safeTel = (data.telephone || "").replace(/'/g, "\\'");
-            const safeWork = (data.workplace || "").replace(/'/g, "\\'");
-
+            // ফর্মে সেভ বাটনের জন্য ডেটা অ্যাসাইন করা হচ্ছে
             const row = `<tr>
                 <td><strong>${data.name}</strong></td>
                 <td><a href="tel:${data.phone}" class="phone-link">${data.phone}</a></td>
@@ -370,15 +363,9 @@
                 <td>${data.workplace}</td>
                 <td>
                     <div class="action-buttons">
-                        <button class="btn-save-phone" onclick="saveToDeviceContacts('${safeName}', '${safePhone}', '${safeTel}', '${safeWork}')" title="ফোনে সেভ করুন">
-                            <i class="fa-solid fa-user-plus"></i> সেভ
-                        </button>
-                        <button class="btn-edit" onclick="editContact('${data.key}', '${safeName}', '${safePhone}', '${safeTel}', '${safeWork}')">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                        </button>
-                        <button class="btn-delete" onclick="deleteContact('${data.key}')">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
+                        <button class="btn-save" title="ফোনে সেভ করুন" onclick="saveToDevice('${data.name}', '${data.phone}', '${data.telephone}', '${data.workplace}')"><i class="fa-solid fa-user-plus"></i></button>
+                        <button class="btn-edit" onclick="editContact('${data.key}', '${data.name}', '${data.phone}', '${data.telephone}', '${data.workplace}')"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button class="btn-delete" onclick="deleteContact('${data.key}')"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 </td>
             </tr>`;
@@ -398,7 +385,7 @@
         if(filterType === 'name') input.placeholder = 'নাম লিখে খুঁজুন...';
         else if(filterType === 'number') input.placeholder = 'মোবাইল নম্বর লিখে খুঁজুন...';
         else if(filterType === 'tel') input.placeholder = 'টেলিফোন নম্বর লিখে খুঁজুন...';
-        else if(filterType === 'workplace') input.placeholder = 'কর্মস্থল বা পদবী লিখে খুঁজুন...';
+        else if(filterType === 'workplace') input.placeholder = 'कर्मस्थल বা পদবী লিখে খুঁজুন...';
         else input.placeholder = 'যেকোনো তথ্য লিখে খুঁজুন...';
         
         if (currentContactsData.length === 0) return;
@@ -430,7 +417,39 @@
         }
     }
 
-    // ৩. নতুন কন্টাক্ট যোগ করার ফাংশন (যা সিকিউরিটি রুল পাস করবে)
+    // নতুন ফাংশন: ফোনে কন্টাক্ট সেভ করার মেকানিজম (vCard জেনারেটর)
+    function saveToDevice(name, phone, tel, workplace) {
+        let cleanTel = (tel === "নেই" || !tel) ? "" : tel;
+        
+        // vCard টেক্সট ফরম্যাট তৈরি (যা অ্যান্ড্রয়েড এবং আইফোনে কন্টাক্ট অ্যাপ দ্বারা সরাসরি রিড হয়)
+        let vcard = "BEGIN:VCARD\n" +
+                    "VERSION:3.0\n" +
+                    "FN:" + name + "\n" +
+                    "ORG:" + workplace + "\n" +
+                    "TEL;TYPE=CELL:" + phone + "\n";
+        
+        if(cleanTel !== "") {
+            vcard += "TEL;TYPE=WORK,VOICE:" + cleanTel + "\n";
+        }
+        
+        vcard += "END:VCARD";
+
+        // ব্লব (Blob) ফাইল এবং ডাউনলোড লিঙ্ক তৈরি
+        const blob = new Blob([vcard], { type: "text/vcard;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        
+        const newLink = document.createElement("a");
+        newLink.download = name + ".vcf";
+        newLink.href = url;
+        
+        // লিঙ্কে ক্লিক ট্রিগার করে ফাইল ডাউনলোড শুরু করা
+        document.body.appendChild(newLink);
+        newLink.click();
+        document.body.removeChild(newLink);
+        URL.revokeObjectURL(url);
+    }
+
+    // ৩. নতুন কন্টাক্ট যোগ করার ফাংশন
     function openAddContactDialog() {
         const userPin = prompt("নতুন তথ্য অনলাইন ডাটাবেজে সংরক্ষণ করতে ৪ ডিজিটের সিক্রেট পিন দিন:");
         
@@ -461,7 +480,7 @@
         }
     }
 
-    // ৪. তথ্য সংশোধন করার সিকিউর ফাংশন (যা সিকিউরিটি রুল পাস করবে)
+    // ৪. তথ্য সংশোধন করার সিকিউর ফাংশন
     function editContact(key, currentName, currentPhone, currentTel, currentWork) {
         const userPin = prompt("তথ্যটি এডিট বা সংশোধন করতে সিক্রেট পিন দিন:");
         if (userPin === "1379") {
@@ -491,7 +510,7 @@
         }
     }
 
-    // ৫. তথ্য চিরতরে মুছে ফেলার ফাংশন 
+    // ৫. তথ্য চিরতরে মুছে ফেলা
     function deleteContact(key) {
         const userPin = prompt("সদস্যের তথ্য ডাটাবেজ থেকে চিরতরে মুছে ফেলতে পিন দিন:");
         if (userPin === "1379") {
@@ -507,43 +526,6 @@
             }
         } else if (userPin !== null) {
             alert("ভুল পিন! তথ্য ডিলিট করার অনুমতি নেই।");
-        }
-    }
-
-    // ৬. সরাসরি অ্যান্ড্রয়েডের ডিফল্ট 'New Contact' স্ক্রিন ওপেন করার সিকিউর ইনটেন্ট মেকানিজম
-    function saveToDeviceContacts(name, phone, tel, workplace) {
-        const cleanPhone = phone.trim();
-        const companyName = workplace ? workplace.trim() : '';
-
-        // অ্যান্ড্রয়েড ওএস-এর জন্য সিস্টেম ইনটেন্ট স্ট্রিং জেনারেট করা
-        const androidIntent = `intent:#Intent;` +
-                              `action=android.intent.action.INSERT;` +
-                              `type=vnd.android.cursor.dir/contact;` +
-                              `S.name=${encodeURIComponent(name.trim())};` +
-                              `S.phone=${encodeURIComponent(cleanPhone)};` +
-                              (tel && tel !== "নেই" && tel.trim() !== "" ? `S.secondary_phone=${encodeURIComponent(tel.trim())};` : '') +
-                              `S.company=${encodeURIComponent(companyName)};` + 
-                              `end`;
-
-        // ইউজার ডিভাইস অ্যান্ড্রয়েড হলে ইনটেন্ট ট্রিগার হবে
-        if (/Android/i.test(navigator.userAgent)) {
-            window.location.href = androidIntent;
-        } else {
-            // পিসি বা আইফোনের জন্য অটোমেটিক vCard (.vcf) ফাইল জেনারেশন ব্যাকআপ
-            let vcardData = `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nTEL;TYPE=CELL:${phone}\n`;
-            if (tel && tel !== "নেই") vcardData += `TEL;TYPE=WORK,VOICE:${tel}\n`;
-            if (workplace) vcardData += `ORG:${workplace}\n`;
-            vcardData += "END:VCARD";
-
-            const blob = new Blob([vcardData], { type: "text/vcard;charset=utf-8;" });
-            const url = URL.createObjectURL(blob);
-            const newLink = document.createElement("a");
-            newLink.download = `${name.replace(/\s+/g, '_')}.vcf`;
-            newLink.href = url;
-            document.body.appendChild(newLink);
-            newLink.click();
-            document.body.removeChild(newLink);
-            URL.revokeObjectURL(url);
         }
     }
 </script>
