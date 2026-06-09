@@ -209,21 +209,21 @@
             background: #2b6cb0;
         }
 
-        /* সর্বোচ্চ সিকিউরড ডাইনামিক ওয়াটারমার্ক স্টাইল */
+        /* ওয়াটারমার্ক সাইজ বড় এবং বোল্ড করা হয়েছে */
         .watermark-container {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none; /* পেজের কোনো বাটন ক্লিকে সমস্যা করবে না */
-            z-index: 99999; /* মোবাইল কার্ডের ওপরে দেখানোর জন্য */
+            pointer-events: none;
+            z-index: 99999;
             overflow: hidden;
-            opacity: 0.04; /* জলছাপের ঘনত্ব (বেশি হালকা লাগলে ০.০৫ করতে পারেন) */
+            opacity: 0.05; /* হালকা ভাব (প্রয়োজনে বাড়িয়ে ০.০৬ বা ০.০৭ করতে পারেন) */
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr); /* গ্রিড কমানো হয়েছে যাতে লেখা ছড়াতে পারে */
             grid-template-rows: repeat(4, 1fr);
-            padding: 20px;
+            padding: 10px;
         }
         .watermark-item {
             display: flex;
@@ -231,12 +231,13 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            font-size: 13px;
-            font-weight: bold;
+            font-size: 18px; /* ডেস্কটপে বেশ বড় দেখাবে */
+            font-weight: 800; /* এক্সট্রা বোল্ড */
             color: #000000;
-            transform: rotate(-25deg);
+            transform: rotate(-20deg);
             white-space: nowrap;
-            line-height: 1.5;
+            line-height: 1.6;
+            letter-spacing: 0.5px;
         }
 
         @media screen and (max-width: 768px) {
@@ -257,13 +258,13 @@
             td:nth-of-type(5):before { content: "অ্যাকশন:"; }
             .action-buttons { justify-content: flex-end; }
 
-            /* মোবাইলে গ্রিড লেআউট রিকনফিগার */
+            /* মোবাইলেও বড় সাইজ নিশ্চিত করা হলো */
             .watermark-container {
                 grid-template-columns: repeat(2, 1fr);
                 grid-template-rows: repeat(4, 1fr);
             }
             .watermark-item {
-                font-size: 11px;
+                font-size: 14px; /* স্ক্রিনশটের চেয়ে অনেক বড় ও স্পষ্ট দেখাবে */
             }
         }
     </style>
@@ -346,11 +347,9 @@
 
     let currentContactsData = [];
     
-    // ইউজার ট্র্যাকিং ভেরিয়েবল
-    let userLiveIP = "IP Loading...";
-    let userLiveNetwork = "Network Loading...";
+    // গ্লোবাল আইপি ডাটা হোল্ডার
+    let userLiveIP = "IP লোড হচ্ছে...";
 
-    // অ্যাপ লোড ইনিশিয়ালাইজেশন
     window.addEventListener('DOMContentLoaded', () => {
         const localData = localStorage.getItem('offline_contacts_backup');
         if (localData) {
@@ -358,10 +357,10 @@
             renderTableData(currentContactsData);
         }
         
-        // প্রথমে ব্যবহারকারীর আইপি ডাটা আনা হবে এবং ওয়াটারমার্ক রেন্ডার হবে
+        // ট্র্যাকিং এপিআই কল
         fetchUserNetworkDetails();
         
-        // প্রতি ১ মিনিটে কারেন্ট সময় আপডেট করার মেকানিজম
+        // প্রতি ১ মিনিটে লাইভ টাইমস্ট্যাম্প আপডেট করার জন্য
         setInterval(createDynamicWatermark, 60000); 
     });
 
@@ -427,7 +426,7 @@
         document.getElementById("noResult").style.display = "none";
     }
 
-    // সার্চ লজিক
+    // সার্চ ফিল্টার লজিক
     function filterTable() {
         const filterType = document.getElementById('searchFilter').value;
         const input = document.getElementById('searchInput');
@@ -468,7 +467,7 @@
         }
     }
 
-    // কন্টাক্ট ফোনে vCard হিসেবে ডাউনলোড করার ফাংশন
+    // কন্টাক্ট ফোনে সেভ করার মেকানিজম (vCard)
     function saveToDevice(name, phone, tel, workplace) {
         let cleanTel = (tel === "নেই" || !tel) ? "" : tel;
         let vcard = "BEGIN:VCARD\n" +
@@ -523,7 +522,7 @@
         }
     }
 
-        // তথ্য সংশোধন করার ফাংশন
+    // তথ্য সংশোধন করার ফাংশন
     function editContact(key, currentName, currentPhone, currentTel, currentWork) {
         const userPin = prompt("তথ্যটি এডিট বা সংশোধন করতে সিক্রেট পিন দিন:");
         if (userPin === "1379") {
@@ -572,24 +571,32 @@
         }
     }
 
-    // ইউজারের লাইভ আইপি এবং নেটওয়ার্কের তথ্য ফ্রিতে সংগ্রহ করার ফাংশন
+    // ডাবল ট্র্যাকিং মেকানিজম (যাতে কোনোভাবেই আইপি ফেইল না করে)
     function fetchUserNetworkDetails() {
+        // ১ম চয়েস: পূর্ণাঙ্গ এপিআই (ISP সহ)
         fetch('https://ipapi.co/json/')
             .then(response => response.json())
             .then(data => {
-                userLiveIP = `IP: ${data.ip}`;
-                userLiveNetwork = data.org ? data.org.substring(0, 22) : (data.city || "Unknown ISP");
-                createDynamicWatermark(); // ডাটা পাওয়ার সাথে সাথে জলছাপ জেনারেট হবে
-            })
-            .catch(error => {
-                console.log("নেটওয়ার্ক API লোড করা যায়নি, ডিফল্ট মুড একটিভ।");
-                userLiveIP = "IP: Protected";
-                userLiveNetwork = "Private Network";
+                let ispName = data.org ? data.org.substring(0, 20) : (data.city || "LIVE NETWORK");
+                userLiveIP = `${ispName} \n IP: ${data.ip}`;
                 createDynamicWatermark();
+            })
+            .catch(() => {
+                // ২য় চয়েস (ব্যাকআপ): ১মটি ব্লক হলে এটি শুধুমাত্র টেক্সট আইপি ১০০% বের করবেই
+                fetch('https://api.ipify.org?format=json')
+                    .then(res => res.json())
+                    .then(data => {
+                        userLiveIP = `ONLINE USER \n IP: ${data.ip}`;
+                        createDynamicWatermark();
+                    })
+                    .catch(() => {
+                        userLiveIP = "MY PHONEBOOK \n SECURE USER";
+                        createDynamicWatermark();
+                    });
             });
     }
 
-    // ডাইনামিক ওয়াটারমার্ক জেনারেটর (ইউজারের নিজস্ব ডিভাইসে লাইভ রেন্ডার হবে)
+    // ডাইনামিক ওয়াটারমার্ক রেন্ডারিং
     function createDynamicWatermark() {
         const oldWatermark = document.getElementById('appWatermark');
         if (oldWatermark) oldWatermark.remove();
@@ -598,19 +605,18 @@
         container.id = 'appWatermark';
         container.className = 'watermark-container';
 
-        // বাংলা কারেন্ট ডেট-টাইম জেনারেটর
         const now = new Date();
-        const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+        const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true };
         const liveTime = now.toLocaleDateString('bn-BD', options);
 
-        // এখানে ইউজারের ডাইনামিক লাইভ ডাটাগুলো সেট করা হচ্ছে
+        // বড় সাইজ ও স্পষ্ট লেআউটের জন্য কন্টেন্ট টেমপ্লেট
         const watermarkText = `
-            <div style="color: #2b6cb0; font-size: 12px; margin-bottom: 2px;">${userLiveNetwork}</div>
-            <div>${userLiveIP}</div>
-            <div style="font-size: 10px; opacity: 0.8; margin-top: 2px;">${liveTime}</div>
+            <div style="line-height: 1.4;">${userLiveIP}</div>
+            <div style="font-size: 11px; font-weight: 600; opacity: 0.7; margin-top: 4px;">${liveTime}</div>
         `;
 
-        const totalItems = window.innerWidth > 768 ? 12 : 8;
+        // গ্রিড আইটেম সংখ্যা স্ক্রিন সাইজ অনুযায়ী
+        const totalItems = window.innerWidth > 768 ? 8 : 6;
 
         for (let i = 0; i < totalItems; i++) {
             const item = document.createElement('div');
