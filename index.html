@@ -19,6 +19,7 @@
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
+            position: relative;
         }
         .container {
             max-width: 1200px;
@@ -27,7 +28,8 @@
             padding: 25px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            transition: filter 0.2s ease;
+            position: relative;
+            z-index: 1; /* যাতে ওয়াটারমার্কের উপরে মেইন কন্টেন্ট থাকে */
         }
         .header-section {
             text-align: center;
@@ -117,7 +119,6 @@
 
         .table-responsive {
             overflow-x: auto;
-            transition: filter 0.15s ease-in-out;
         }
         table {
             width: 100%;
@@ -208,6 +209,36 @@
             background: #2b6cb0;
         }
 
+        /* ডাইনামিক ওয়াটারমার্ক স্টাইল */
+        .watermark-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* ক্লিক বা স্ক্রোল আটকে যাবে না */
+            z-index: 0; /* কন্টেন্টের পেছনে থাকবে */
+            overflow: hidden;
+            opacity: 0.04; /* অত্যন্ত হালকা দেখানোর জন্য */
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            padding: 20px;
+        }
+        .watermark-item {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: #000000;
+            transform: rotate(-25deg);
+            white-space: nowrap;
+            line-height: 1.6;
+        }
+
         @media screen and (max-width: 768px) {
             body { padding: 5px; }
             .container { padding: 15px; }
@@ -222,22 +253,23 @@
             td:nth-of-type(1):before { content: "নাম:"; }
             td:nth-of-type(2):before { content: "মোবাইল নম্বর:"; }
             td:nth-of-type(3):before { content: "টেলিফোন (Tel):"; }
-            td:nth-of-type(4):before { content: "কর্মস্থল/পদবী:"; }
+            td:nth-of-type(4):before { content: "कर्मस्थल/পদবী:"; }
             td:nth-of-type(5):before { content: "অ্যাকশন:"; }
             .action-buttons { justify-content: flex-end; }
-        }
 
-        /* প্রিন্ট বা পিডিএফ করার চেষ্টা করলে পুরো পেজ হাইড করার সিকিউরিটি */
-        @media print {
-            body {
-                display: none !important;
+            .watermark-container {
+                grid-template-columns: repeat(2, 1fr);
+                grid-template-rows: repeat(4, 1fr);
+            }
+            .watermark-item {
+                font-size: 11px;
             }
         }
     </style>
 </head>
 <body>
 
-<div class="container" id="mainContainer">
+<div class="container">
     <div class="header-section">
         <h1>ব্যক্তিগত ফোনবুক</h1>
         <div class="stats-badge">সর্বমোট সদস্য সংখ্যা: <span id="totalCount">০</span> জন</div>
@@ -261,7 +293,7 @@
         </div>
     </div>
 
-    <div class="table-responsive" id="tableWrapper">
+    <div class="table-responsive">
         <table id="contactsTable">
             <thead>
                 <tr>
@@ -299,9 +331,216 @@
         }
     };
 
-    // স্ক্রিনশট ও ডেটা কপি সুরক্ষার ট্রিকস (Blur Mechanism)
-    document.addEventListener('keyup', (e) => {
-        if (e.key === 'PrintScreen' || e.keyCode == 44) {
+    const firebaseConfig = {
+        apiKey: "AIzaSyBCnqpIJqMWTI_qXv96hyVs6_UV_60s3Mc",
+        authDomain: "qrt-team.firebaseapp.com",
+        databaseURL: "https://qrt-team-default-rtdb.firebaseio.com/",
+        projectId: "qrt-team",
+        storageBucket: "qrt-team.appspot.com"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    const contactsRef = database.ref('contacts');
+
+    let currentContactsData = [];
+
+    // অফলাইন ব্যাকআপ লোড করা
+    window.addEventListener('DOMContentLoaded', () => {
+        const localData = localStorage.getItem('offline_contacts_backup');
+        if (localData) {
+            currentContactsData = JSON.parse(localData);
+            renderTableData(currentContactsData);
+        }
+        // ওয়াটারমার্ক জেনারেট করা
+        createDynamicWatermark();
+        setInterval(createDynamicWatermark, 60000); // প্রতি ১ মিনিটে লাইভ টাইম আপডেট হবে
+    });
+
+    window.addEventListener('resize', createDynamicWatermark);
+
+    // ফায়ারবেস লাইভ লিসেনার
+    contactsRef.on('value', (snapshot) => {
+        if (snapshot.exists()) {
+            let contactsArray = [];
+            snapshot.forEach((childSnapshot) => {
+                contactsArray.push({
+                    key: childSnapshot.key,
+                    ...childSnapshot.val()
+                });
+            });
+            currentContactsData = contactsArray;
+            localStorage.setItem('offline_contacts_backup', JSON.stringify(contactsArray));
+            renderTableData(currentContactsData);
+        } else {
+            if(navigator.onLine) {
+                const tableBody = document.getElementById("tableBody");
+                tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#a0aec0;">ডাটাবেজে কোনো তথ্য নেই!</td></tr>`;
+                document.getElementById("totalCount").textContent = "০";
+                localStorage.removeItem('offline_contacts_backup');
+                currentContactsData = [];
+            }
+        }
+    }, (error) => {
+        console.log("নেটওয়ার্ক সমস্যা। অফলাইন ব্যাকআপ সচল আছে।");
+    });
+
+    // টেবিল রেন্ডার ফাংশন
+    function renderTableData(dataList) {
+        const tableBody = document.getElementById("tableBody");
+        if(!tableBody) return;
+        
+        tableBody.innerHTML = "";
+        let count = 0;
+
+        dataList.forEach((data) => {
+            count++;
+            const telOutput = (data.telephone === "নেই" || !data.telephone) 
+                ? '<span class="empty-field">—</span>' 
+                : `<a href="tel:${data.telephone}" class="phone-link">${data.telephone}</a>`;
+
+            const row = `<tr>
+                <td><strong>${data.name}</strong></td>
+                <td><a href="tel:${data.phone}" class="phone-link">${data.phone}</a></td>
+                <td>${telOutput}</td>
+                <td>${data.workplace}</td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-save" title="ফোনে সেভ করুন" onclick="saveToDevice('${data.name}', '${data.phone}', '${data.telephone}', '${data.workplace}')"><i class="fa-solid fa-user-plus"></i></button>
+                        <button class="btn-edit" onclick="editContact('${data.key}', '${data.name}', '${data.phone}', '${data.telephone}', '${data.workplace}')"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button class="btn-delete" onclick="deleteContact('${data.key}')"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </td>
+            </tr>`;
+            tableBody.insertAdjacentHTML('beforeend', row);
+        });
+
+        document.getElementById("totalCount").textContent = count;
+        document.getElementById("noResult").style.display = "none";
+    }
+
+    // রিয়েল-টাইম সার্চ ইঞ্জিন
+    function filterTable() {
+        const filterType = document.getElementById('searchFilter').value;
+        const input = document.getElementById('searchInput');
+        const query = input.value.toLowerCase().trim();
+        
+        if(filterType === 'name') input.placeholder = 'নাম লিখে খুঁজুন...';
+        else if(filterType === 'number') input.placeholder = 'মোবাইল নম্বর লিখে খুঁজুন...';
+        else if(filterType === 'tel') input.placeholder = 'টেলিফোন নম্বর লিখে খুঁজুন...';
+        else if(filterType === 'workplace') input.placeholder = 'কর্মস্থল বা পদবী লিখে খুঁজুন...';
+        else input.placeholder = 'যেকোনো তথ্য লিখে খুঁজুন...';
+        
+        if (currentContactsData.length === 0) return;
+
+        const filteredData = currentContactsData.filter(data => {
+            const name = (data.name || "").toLowerCase();
+            const phone = (data.phone || "").toLowerCase();
+            const telephone = (data.telephone || "").toLowerCase();
+            const workplace = (data.workplace || "").toLowerCase();
+
+            if (filterType === 'name') return name.includes(query);
+            if (filterType === 'number') return phone.includes(query);
+            if (filterType === 'tel') return telephone.includes(query);
+            if (filterType === 'workplace') return workplace.includes(query);
+            if (filterType === 'all') {
+                return name.includes(query) || phone.includes(query) || telephone.includes(query) || workplace.includes(query);
+            }
+            return true;
+        });
+
+        renderTableData(filteredData);
+        document.getElementById("totalCount").textContent = filteredData.length;
+
+        const noResult = document.getElementById("noResult");
+        if (filteredData.length === 0 && query !== "") {
+            noResult.style.display = "block";
+        } else {
+            noResult.style.display = "none";
+        }
+    }
+
+    // ফোনে কন্টাক্ট সেভ করার মেকানিজম (vCard)
+    function saveToDevice(name, phone, tel, workplace) {
+        let cleanTel = (tel === "নেই" || !tel) ? "" : tel;
+        let vcard = "BEGIN:VCARD\n" +
+                    "VERSION:3.0\n" +
+                    "FN:" + name + "\n" +
+                    "ORG:" + workplace + "\n" +
+                    "TEL;TYPE=CELL:" + phone + "\n";
+        
+        if(cleanTel !== "") {
+            vcard += "TEL;TYPE=WORK,VOICE:" + cleanTel + "\n";
+        }
+        vcard += "END:VCARD";
+
+        const blob = new Blob([vcard], { type: "text/vcard;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const newLink = document.createElement("a");
+        newLink.download = name + ".vcf";
+        newLink.href = url;
+        document.body.appendChild(newLink);
+        newLink.click();
+        document.body.removeChild(newLink);
+        URL.revokeObjectURL(url);
+    }
+
+    // নতুন কন্টাক্ট যোগ করার ফাংশন
+    function openAddContactDialog() {
+        const userPin = prompt("নতুন তথ্য অনলাইন ডাটাবেজে সংরক্ষণ করতে ৪ ডিজিটের সিক্রেট পিন দিন:");
+        if (userPin === "1379") {
+            const name = prompt("সদস্যের নাম লিখুন:");
+            if (!name) return;
+            const phone = prompt("মোবাইল নম্বর লিখুন:");
+            if (!phone) return;
+            const telephone = prompt("টেলিফোন নম্বর লিখুন (না থাকলে ফাঁকা রাখুন বা 'নেই' লিখুন):") || "নেই";
+            const workplace = prompt("কর্মস্থল বা পদবি লিখুন:");
+            if (!workplace) return;
+
+            contactsRef.push({
+                name: name.trim(),
+                phone: phone.trim(),
+                telephone: telephone.trim(),
+                workplace: workplace.trim(),
+                timestamp: Date.now(),
+                pin: 1379 
+            }).then(() => {
+                alert('তথ্যটি সফলভাবে অনলাইন ডাটাবেজে যোগ হয়েছে!');
+            }).catch((error) => {
+                console.error(error);
+                alert('ত্রুটি: ডাটাবেজে সেভ করা যায়নি!');
+            });
+        } else if (userPin !== null) {
+            alert("ভুল পিন! কন্টাক্ট যোগ করার পারমিশন নেই।");
+        }
+    }
+
+    // তথ্য সংশোধন করার ফাংশন
+    function editContact(key, currentName, currentPhone, currentTel, currentWork) {
+        const userPin = prompt("তথ্যটি এডিট বা সংশোধন করতে সিক্রেট পিন দিন:");
+        if (userPin === "1379") {
+            const newName = prompt("সদস্যের সংশোধিত নাম লিখুন:", currentName);
+            if (!newName) return;
+            const newPhone = prompt("সংশোধিত মোবাইল নম্বর লিখুন:", currentPhone);
+            if (!newPhone) return;
+            const newTel = prompt("সংশোধিত টেলিফোন নম্বর লিখুন:", currentTel) || "নেই";
+            const newWork = prompt("সংশোধিত কর্মস্থল বা পদবি লিখুন:", currentWork);
+            if (!newWork) return;
+
+            database.ref('contacts/' + key).update({
+                name: newName.trim(),
+                phone: newPhone.trim(),
+                telephone: newTel.trim(),
+                workplace: newWork.trim(),
+                lastUpdated: Date.now(),
+                pin: 1379 
+            }).then(() => {
+                alert("তথ্যটি সফলভাবে আপডেট করা হয়েছে!");
+            }).catch((error) => {
+                console.error(error);
+                alert("ত্রুটি: আপডেট করা সম্ভব হয়নি।");
+            });
+        } else if (userPin !==      if (e.key === 'PrintScreen' || e.keyCode == 44) {
             navigator.clipboard.writeText(''); // ক্লিপবোর্ড ডেটা মুছে ফেলা
             triggerScreenBlur();
         }
