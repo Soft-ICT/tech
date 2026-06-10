@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ব্যক্তিগত ফোনবুক - যোগাযোগের তালিকা</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         * {
             box-sizing: border-box;
@@ -21,6 +22,40 @@
             user-select: none;
             position: relative;
         }
+        /* লগইন উইন্ডো স্টাইল */
+        #loginOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f4f8;
+            z-index: 999999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        .login-box h2 {
+            color: #1a365d;
+            margin-bottom: 10px;
+            font-size: 22px;
+        }
+        .login-box p {
+            color: #718096;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+        
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -30,6 +65,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             position: relative;
             z-index: 1;
+            display: none; /* লগইন না হওয়া পর্যন্ত লুকানো থাকবে */
         }
         .header-section {
             text-align: center;
@@ -209,7 +245,7 @@
             background: #2b6cb0;
         }
 
-        /* ওয়াটারমার্ক সাইজ বড় এবং বোল্ড করা হয়েছে */
+        /* ট্র্যাকিং ওয়াটারমার্ক গ্রিড */
         .watermark-container {
             position: fixed;
             top: 0;
@@ -219,9 +255,9 @@
             pointer-events: none;
             z-index: 99999;
             overflow: hidden;
-            opacity: 0.05; /* হালকা ভাব (প্রয়োজনে বাড়িয়ে ০.০৬ বা ০.০৭ করতে পারেন) */
+            opacity: 0.05; 
             display: grid;
-            grid-template-columns: repeat(2, 1fr); /* গ্রিড কমানো হয়েছে যাতে লেখা ছড়াতে পারে */
+            grid-template-columns: repeat(2, 1fr);
             grid-template-rows: repeat(4, 1fr);
             padding: 10px;
         }
@@ -231,13 +267,12 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            font-size: 18px; /* ডেস্কটপে বেশ বড় দেখাবে */
-            font-weight: 800; /* এক্সট্রা বোল্ড */
-            color: #000000;
-            transform: rotate(-20deg);
+            font-size: 14px; 
+            font-weight: 800;
+            color: #2b6cb0; 
+            transform: rotate(-25deg);
             white-space: nowrap;
-            line-height: 1.6;
-            letter-spacing: 0.5px;
+            line-height: 1.4;
         }
 
         @media screen and (max-width: 768px) {
@@ -257,21 +292,37 @@
             td:nth-of-type(4):before { content: "কর্মস্থল/পদবী:"; }
             td:nth-of-type(5):before { content: "অ্যাকশন:"; }
             .action-buttons { justify-content: flex-end; }
-
-            /* মোবাইলেও বড় সাইজ নিশ্চিত করা হলো */
-            .watermark-container {
-                grid-template-columns: repeat(2, 1fr);
-                grid-template-rows: repeat(4, 1fr);
-            }
-            .watermark-item {
-                font-size: 14px; /* স্ক্রিনশটের চেয়ে অনেক বড় ও স্পষ্ট দেখাবে */
-            }
+            .watermark-item { font-size: 11px; }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div id="loginOverlay">
+    <div class="login-box">
+        <i class="fa-solid fa-address-book" style="font-size: 45px; color: #3182ce; margin-bottom: 15px;"></i>
+        <h2>ব্যক্তিগত ফোনবুক</h2>
+        <p>নিরাপত্তার স্বার্থে আপনার অফিশিয়াল গুগল বা জিমেইল অ্যাকাউন্ট দিয়ে ভেরিফাই করে প্রবেশ করুন।</p>
+        
+        <div style="display: flex; justify-content: center;">
+            <div id="g_id_onload"
+                 data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
+                 data-callback="handleCredentialResponse"
+                 data-auto_prompt="false">
+            </div>
+            <div class="g_id_signin"
+                 data-type="standard"
+                 data-size="large"
+                 data-theme="outline"
+                 data-text="sign_in_with"
+                 data-shape="rectangular"
+                 data-logo_alignment="left">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container" id="appContainer">
     <div class="header-section">
         <h1>ব্যক্তিগত ফোনবুক</h1>
         <div class="stats-badge">সর্বমোট সদস্য সংখ্যা: <span id="totalCount">০</span> জন</div>
@@ -346,9 +397,8 @@
     const contactsRef = database.ref('contacts');
 
     let currentContactsData = [];
-    
-    // গ্লোবাল আইপি ডাটা হোল্ডার
-    let userLiveIP = "IP লোড হচ্ছে...";
+    let trackedUserName = "";
+    let trackedUserEmail = "";
 
     window.addEventListener('DOMContentLoaded', () => {
         const localData = localStorage.getItem('offline_contacts_backup');
@@ -357,14 +407,55 @@
             renderTableData(currentContactsData);
         }
         
-        // ট্র্যাকিং এপিআই কল
-        fetchUserNetworkDetails();
+        // আগে থেকে লগইন করা আছে কিনা চেক
+        checkExistingSession();
         
-        // প্রতি ১ মিনিটে লাইভ টাইমস্ট্যাম্প আপডেট করার জন্য
         setInterval(createDynamicWatermark, 60000); 
     });
 
     window.addEventListener('resize', createDynamicWatermark);
+
+    // পূর্বে লগইন করা সেশন চেক ফাংশন
+    function checkExistingSession() {
+        const savedName = localStorage.getItem('google_user_name');
+        const savedEmail = localStorage.getItem('google_user_email');
+        
+        if (savedName && savedEmail) {
+            trackedUserName = savedName;
+            trackedUserEmail = savedEmail;
+            
+            // লগইন স্ক্রিন লুকিয়ে অ্যাপ ওপেন করুন
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'block';
+            createDynamicWatermark();
+        }
+    }
+
+    // গুগল ভেরিফিকেশন রেসপন্স হ্যান্ডলার (JWT Token Decoder)
+    function handleCredentialResponse(response) {
+        // গুগলের পাঠানো এনক্রিপ্টেড ডাটা ডিকোড করার মেকানিজম
+        const base64Url = response.credential.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        const googleUserData = JSON.parse(jsonPayload);
+        
+        // আসল তথ্য এক্সট্র্যাক্ট করা হলো
+        trackedUserName = googleUserData.name;         // গুগলের আসল ফুল নেম
+        trackedUserEmail = googleUserData.email;       // আসল জিমেইল আইডি
+        
+        // ব্রাউজারে পার্মানেন্ট লক করা হলো যেন পেজ রিফ্রেশ করলেও সেশন না হারায়
+        localStorage.setItem('google_user_name', trackedUserName);
+        localStorage.setItem('google_user_email', trackedUserEmail);
+        
+        // অ্যাপ ইন্টারফেস আনলক
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('appContainer').style.display = 'block';
+        
+        createDynamicWatermark();
+    }
 
     // ফায়ারবেস লাইভ লিসেনার
     contactsRef.on('value', (snapshot) => {
@@ -392,7 +483,7 @@
         console.log("নেটওয়ার্ক সমস্যা। অফলাইন ব্যাকআপ সচল আছে।");
     });
 
-    // টেবিল রেন্ডার ফাংশন
+    // টেবিল ডেটা জেনারেট করার মেইন ফাংশন
     function renderTableData(dataList) {
         const tableBody = document.getElementById("tableBody");
         if(!tableBody) return;
@@ -426,7 +517,7 @@
         document.getElementById("noResult").style.display = "none";
     }
 
-    // সার্চ ফিল্টার লজিক
+// শক্তিশালী রিয়েল-টাইম সার্চ ইঞ্জিন
     function filterTable() {
         const filterType = document.getElementById('searchFilter').value;
         const input = document.getElementById('searchInput');
@@ -435,7 +526,7 @@
         if(filterType === 'name') input.placeholder = 'নাম লিখে খুঁজুন...';
         else if(filterType === 'number') input.placeholder = 'মোবাইল নম্বর লিখে খুঁজুন...';
         else if(filterType === 'tel') input.placeholder = 'টেলিফোন নম্বর লিখে খুঁজুন...';
-        else if(filterType === 'workplace') input.placeholder = 'কর্মস্থল বা পদবী লিখে খুঁজুন...';
+        else if(filterType === 'workplace') input.placeholder = 'কর্মस्थल বা পদবী লিখে খুঁজুন...';
         else input.placeholder = 'যেকোনো তথ্য লিখে খুঁজুন...';
         
         if (currentContactsData.length === 0) return;
@@ -467,7 +558,7 @@
         }
     }
 
-    // কন্টাক্ট ফোনে সেভ করার মেকানিজম (vCard)
+    // কন্টাক্ট সেভ করার মেকানিজম (vCard)
     function saveToDevice(name, phone, tel, workplace) {
         let cleanTel = (tel === "নেই" || !tel) ? "" : tel;
         let vcard = "BEGIN:VCARD\n" +
@@ -475,7 +566,6 @@
                     "FN:" + name + "\n" +
                     "ORG:" + workplace + "\n" +
                     "TEL;TYPE=CELL:" + phone + "\n";
-        
         if(cleanTel !== "") {
             vcard += "TEL;TYPE=WORK,VOICE:" + cleanTel + "\n";
         }
@@ -492,7 +582,7 @@
         URL.revokeObjectURL(url);
     }
 
-    // নতুন কন্টাক্ট যোগ করার ফাংশন
+    // নতুন কন্টাক্ট যোগ
     function openAddContactDialog() {
         const userPin = prompt("নতুন তথ্য অনলাইন ডাটাবেজে সংরক্ষণ করতে ৪ ডিজিটের সিক্রেট পিন দিন:");
         if (userPin === "1379") {
@@ -501,7 +591,7 @@
             const phone = prompt("মোবাইল নম্বর লিখুন:");
             if (!phone) return;
             const telephone = prompt("টেলিফোন নম্বর লিখুন (না থাকলে ফাঁকা রাখুন বা 'নেই' লিখুন):") || "নেই";
-            const workplace = prompt("কর্মস্থল বা পদবি লিখুন:");
+            const workplace = prompt("কর্মस्थल বা পদবি লিখুন:");
             if (!workplace) return;
 
             contactsRef.push({
@@ -522,7 +612,7 @@
         }
     }
 
-    // তথ্য সংশোধন করার ফাংশন
+    // তথ্য সংশোধন
     function editContact(key, currentName, currentPhone, currentTel, currentWork) {
         const userPin = prompt("তথ্যটি এডিট বা সংশোধন করতে সিক্রেট পিন দিন:");
         if (userPin === "1379") {
@@ -571,33 +661,10 @@
         }
     }
 
-    // ডাবল ট্র্যাকিং মেকানিজম (যাতে কোনোভাবেই আইপি ফেইল না করে)
-    function fetchUserNetworkDetails() {
-        // ১ম চয়েস: পূর্ণাঙ্গ এপিআই (ISP সহ)
-        fetch('https://ipapi.co/json/')
-            .then(response => response.json())
-            .then(data => {
-                let ispName = data.org ? data.org.substring(0, 20) : (data.city || "LIVE NETWORK");
-                userLiveIP = `${ispName} \n IP: ${data.ip}`;
-                createDynamicWatermark();
-            })
-            .catch(() => {
-                // ২য় চয়েস (ব্যাকআপ): ১মটি ব্লক হলে এটি শুধুমাত্র টেক্সট আইপি ১০০% বের করবেই
-                fetch('https://api.ipify.org?format=json')
-                    .then(res => res.json())
-                    .then(data => {
-                        userLiveIP = `ONLINE USER \n IP: ${data.ip}`;
-                        createDynamicWatermark();
-                    })
-                    .catch(() => {
-                        userLiveIP = "MY PHONEBOOK \n SECURE USER";
-                        createDynamicWatermark();
-                    });
-            });
-    }
-
-    // ডাইনামিক ওয়াটারমার্ক রেন্ডারিং
+    // ১০০% ফুলপ্রুফ ওয়াটারমার্ক জেনারেটর (আসল গুগল ডাটা দিয়ে রেন্ডার হয়)
     function createDynamicWatermark() {
+        if(!trackedUserEmail) return;
+        
         const oldWatermark = document.getElementById('appWatermark');
         if (oldWatermark) oldWatermark.remove();
 
@@ -609,13 +676,13 @@
         const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true };
         const liveTime = now.toLocaleDateString('bn-BD', options);
 
-        // বড় সাইজ ও স্পষ্ট লেআউটের জন্য কন্টেন্ট টেমপ্লেট
+        // ওয়াটারমার্কে সরাসরি ইউজারের অরিজিনাল জিমেইল নাম ও ইমেইল বসানো হচ্ছে
         const watermarkText = `
-            <div style="line-height: 1.4;">${userLiveIP}</div>
-            <div style="font-size: 11px; font-weight: 600; opacity: 0.7; margin-top: 4px;">${liveTime}</div>
+            <div style="font-weight: 800; letter-spacing: 0.3px;">${trackedUserName}</div>
+            <div style="font-size: 11px; font-weight: 600; opacity: 0.9; margin-top: 1px;">${trackedUserEmail}</div>
+            <div style="font-size: 10px; font-weight: bold; opacity: 0.7;">${liveTime}</div>
         `;
 
-        // গ্রিড আইটেম সংখ্যা স্ক্রিন সাইজ অনুযায়ী
         const totalItems = window.innerWidth > 768 ? 8 : 6;
 
         for (let i = 0; i < totalItems; i++) {
