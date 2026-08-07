@@ -351,7 +351,7 @@
                     <th style="width: 25%;">নাম (Name)</th>
                     <th style="width: 20%;">মোবাইল নম্বর (Number)</th>
                     <th style="width: 15%;">টেলিফোন (Tel)</th>
-                    <th style="width: 25%;">কর্মস্থল/পদবী (Workplace)</th>
+                    <th style="width: 25%;">পদবী/কর্মস্থল (Workplace)</th>
                     <th style="width: 15%;">ব্যবস্থাপনা (Action)</th>
                 </tr>
             </thead>
@@ -584,7 +584,7 @@
             const phone = prompt("মোবাইল নম্বর লিখুন:");
             if (!phone) return;
             const telephone = prompt("টেলিফোন নম্বর লিখুন (না থাকলে ফাঁকা রাখুন বা 'নেই' লিখুন):") || "নেই";
-            const workplace = prompt("কর্মক্ষেত্র বা পদবি লিখুন:");
+            const workplace = prompt("পদবী বা কর্মক্ষেত্র লিখুন:");
             if (!workplace) return;
 
             contactsRef.push({
@@ -616,7 +616,7 @@
             const newPhone = prompt("সংশোধিত মোবাইল নম্বর লিখুন:", currentPhone);
             if (!newPhone) return;
             const newTel = prompt("সংশোধিত টেলিফোন নম্বর লিখুন:", currentTel) || "নেই";
-            const newWork = prompt("সংশোধিত কর্মস্থল বা পদবি লিখুন:", currentWork);
+            const newWork = prompt("সংশোধিত পদবী বা কর্মস্থল লিখুন:", currentWork);
             if (!newWork) return;
 
             contactsRef.child(key).update({
