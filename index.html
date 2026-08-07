@@ -22,7 +22,6 @@
             user-select: none;
             position: relative;
         }
-        /* লগইন উইন্ডো স্টাইল */
         #loginOverlay {
             position: fixed;
             top: 0;
@@ -65,7 +64,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             position: relative;
             z-index: 1;
-            display: none; /* লগইন না হওয়া পর্যন্ত লুকানো থাকবে */
+            display: none;
         }
         .header-section {
             text-align: center;
@@ -245,7 +244,6 @@
             background: #2b6cb0;
         }
 
-        /* ট্র্যাকিং ওয়াটারমার্ক গ্রিড */
         .watermark-container {
             position: fixed;
             top: 0;
@@ -374,7 +372,6 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <script>
-    // রাইট ক্লিক ও কীবোর্ড শর্টকাট লক
     document.addEventListener('contextmenu', event => event.preventDefault()); 
     document.onkeydown = function(e) {
         if (e.keyCode == 123 || 
@@ -407,15 +404,12 @@
             renderTableData(currentContactsData);
         }
         
-        // আগে থেকে লগইন করা আছে কিনা চেক
         checkExistingSession();
-        
         setInterval(createDynamicWatermark, 60000); 
     });
 
     window.addEventListener('resize', createDynamicWatermark);
 
-    // পূর্বে লগইন করা সেশন চেক ফাংশন
     function checkExistingSession() {
         const savedName = localStorage.getItem('google_user_name');
         const savedEmail = localStorage.getItem('google_user_email');
@@ -424,16 +418,13 @@
             trackedUserName = savedName;
             trackedUserEmail = savedEmail;
             
-            // লগইন স্ক্রিন লুকিয়ে অ্যাপ ওপেন করুন
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('appContainer').style.display = 'block';
             createDynamicWatermark();
         }
     }
 
-    // গুগল ভেরিফিকেশন রেসপন্স হ্যান্ডলার (JWT Token Decoder)
     function handleCredentialResponse(response) {
-        // গুগলের পাঠানো এনক্রিপ্টেড ডাটা ডিকোড করার মেকানিজম
         const base64Url = response.credential.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
         const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
@@ -442,15 +433,12 @@
 
         const googleUserData = JSON.parse(jsonPayload);
         
-        // আসল তথ্য এক্সট্র্যাক্ট করা হলো
-        trackedUserName = googleUserData.name;         // গুগলের আসল ফুল নেম
-        trackedUserEmail = googleUserData.email;       // আসল জিমেইল আইডি
+        trackedUserName = googleUserData.name;         
+        trackedUserEmail = googleUserData.email;       
         
-        // ব্রাউজারে পার্মানেন্ট লক করা হলো যেন পেজ রিফ্রেশ করলেও সেশন না হারায়
         localStorage.setItem('google_user_name', trackedUserName);
         localStorage.setItem('google_user_email', trackedUserEmail);
         
-        // অ্যাপ ইন্টারফেস আনলক
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('appContainer').style.display = 'block';
         
@@ -471,25 +459,33 @@
             localStorage.setItem('offline_contacts_backup', JSON.stringify(contactsArray));
             renderTableData(currentContactsData);
         } else {
-            if(navigator.onLine) {
-                const tableBody = document.getElementById("tableBody");
-                tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#a0aec0;">ডাটাবেজে কোনো তথ্য নেই!</td></tr>`;
-                document.getElementById("totalCount").textContent = "০";
-                localStorage.removeItem('offline_contacts_backup');
-                currentContactsData = [];
-            }
+            const tableBody = document.getElementById("tableBody");
+            tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#a0aec0;">ডাটাবেজে কোনো তথ্য নেই!</td></tr>`;
+            document.getElementById("totalCount").textContent = "০";
+            localStorage.removeItem('offline_contacts_backup');
+            currentContactsData = [];
         }
     }, (error) => {
-        console.log("নেটওয়ার্ক সমস্যা। অফলাইন ব্যাকআপ সচল আছে।");
+        console.log("নেটওয়ার্ক সমস্যা। অফলাইন ব্যাকআপ সচল আছে।", error);
     });
 
-    // টেবিল ডেটা জেনারেট করার মেইন ফাংশন
+    function escapeHtml(str) {
+        if(!str) return '';
+        return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
     function renderTableData(dataList) {
         const tableBody = document.getElementById("tableBody");
         if(!tableBody) return;
         
         tableBody.innerHTML = "";
         let count = 0;
+
+        if (!dataList || dataList.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#a0aec0;">ডাটাবেজে কোনো তথ্য নেই!</td></tr>`;
+            document.getElementById("totalCount").textContent = "০";
+            return;
+        }
 
         dataList.forEach((data) => {
             count++;
@@ -504,8 +500,8 @@
                 <td>${data.workplace}</td>
                 <td>
                     <div class="action-buttons">
-                        <button class="btn-save" title="ফোনে সেভ করুন" onclick="saveToDevice('${data.name}', '${data.phone}', '${data.telephone}', '${data.workplace}')"><i class="fa-solid fa-user-plus"></i></button>
-                        <button class="btn-edit" onclick="editContact('${data.key}', '${data.name}', '${data.phone}', '${data.telephone}', '${data.workplace}')"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button class="btn-save" title="ফোনে সেভ করুন" onclick="saveToDevice('${escapeHtml(data.name)}', '${escapeHtml(data.phone)}', '${escapeHtml(data.telephone)}', '${escapeHtml(data.workplace)}')"><i class="fa-solid fa-user-plus"></i></button>
+                        <button class="btn-edit" onclick="editContact('${data.key}', '${escapeHtml(data.name)}', '${escapeHtml(data.phone)}', '${escapeHtml(data.telephone)}', '${escapeHtml(data.workplace)}')"><i class="fa-solid fa-pen-to-square"></i></button>
                         <button class="btn-delete" onclick="deleteContact('${data.key}')"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 </td>
@@ -517,7 +513,6 @@
         document.getElementById("noResult").style.display = "none";
     }
 
-// শক্তিশালী রিয়েল-টাইম সার্চ ইঞ্জিন
     function filterTable() {
         const filterType = document.getElementById('searchFilter').value;
         const input = document.getElementById('searchInput');
@@ -526,10 +521,8 @@
         if(filterType === 'name') input.placeholder = 'নাম লিখে খুঁজুন...';
         else if(filterType === 'number') input.placeholder = 'মোবাইল নম্বর লিখে খুঁজুন...';
         else if(filterType === 'tel') input.placeholder = 'টেলিফোন নম্বর লিখে খুঁজুন...';
-        else if(filterType === 'workplace') input.placeholder = 'কর্মस्थल বা পদবী লিখে খুঁজুন...';
+        else if(filterType === 'workplace') input.placeholder = 'কর্মস্থল বা পদবী লিখে খুঁজুন...';
         else input.placeholder = 'যেকোনো তথ্য লিখে খুঁজুন...';
-        
-        if (currentContactsData.length === 0) return;
 
         const filteredData = currentContactsData.filter(data => {
             const name = (data.name || "").toLowerCase();
@@ -548,7 +541,6 @@
         });
 
         renderTableData(filteredData);
-        document.getElementById("totalCount").textContent = filteredData.length;
 
         const noResult = document.getElementById("noResult");
         if (filteredData.length === 0 && query !== "") {
@@ -558,7 +550,6 @@
         }
     }
 
-    // কন্টাক্ট সেভ করার মেকানিজম (vCard)
     function saveToDevice(name, phone, tel, workplace) {
         let cleanTel = (tel === "নেই" || !tel) ? "" : tel;
         let vcard = "BEGIN:VCARD\n" +
@@ -582,10 +573,12 @@
         URL.revokeObjectURL(url);
     }
 
-    // নতুন কন্টাক্ট যোগ
+    // নতুন কন্টাক্ট যোগ (পিন সহ ফায়ারবেসে সেভ হবে)
     function openAddContactDialog() {
         const userPin = prompt("নতুন তথ্য অনলাইন ডাটাবেজে সংরক্ষণ করতে ৪ ডিজিটের সিক্রেট পিন দিন:");
-        if (userPin === "1379") {
+        const numPin = parseInt(userPin);
+        
+        if (numPin === 1379 || numPin === 2580) {
             const name = prompt("সদস্যের নাম লিখুন:");
             if (!name) return;
             const phone = prompt("মোবাইল নম্বর লিখুন:");
@@ -600,7 +593,7 @@
                 telephone: telephone.trim(),
                 workplace: workplace.trim(),
                 timestamp: Date.now(),
-                pin: 1379 
+                pin: numPin 
             }).then(() => {
                 alert('তথ্যটি সফলভাবে অনলাইন ডাটাবেজে যোগ হয়েছে!');
             }).catch((error) => {
@@ -612,10 +605,12 @@
         }
     }
 
-    // তথ্য সংশোধন
+    // তথ্য সংশোধন (পিন আপডেট সহ)
     function editContact(key, currentName, currentPhone, currentTel, currentWork) {
         const userPin = prompt("তথ্যটি এডিট বা সংশোধন করতে সিক্রেট পিন দিন:");
-        if (userPin === "1379") {
+        const numPin = parseInt(userPin);
+        
+        if (numPin === 1379 || numPin === 2580) {
             const newName = prompt("সদস্যের সংশোধিত নাম লিখুন:", currentName);
             if (!newName) return;
             const newPhone = prompt("সংশোধিত মোবাইল নম্বর লিখুন:", currentPhone);
@@ -624,13 +619,13 @@
             const newWork = prompt("সংশোধিত কর্মস্থল বা পদবি লিখুন:", currentWork);
             if (!newWork) return;
 
-            database.ref('contacts/' + key).update({
+            contactsRef.child(key).update({
                 name: newName.trim(),
                 phone: newPhone.trim(),
                 telephone: newTel.trim(),
                 workplace: newWork.trim(),
                 lastUpdated: Date.now(),
-                pin: 1379 
+                pin: numPin
             }).then(() => {
                 alert("তথ্যটি সফলভাবে আপডেট করা হয়েছে!");
             }).catch((error) => {
@@ -642,18 +637,30 @@
         }
     }
 
-    // তথ্য মুছে ফেলা
+    // তথ্য মুছে ফেলা (ফায়ারবেস রুলস ভ্যালিডেশনের সুবিধার্থে পিন পাস করানো হচ্ছে)
     function deleteContact(key) {
+        if (!key) {
+            alert("ত্রুটি: আইটেম নির্বাচন করা সম্ভব হয়নি।");
+            return;
+        }
+
         const userPin = prompt("সদস্যের তথ্য ডাটাবেজ থেকে চিরতরে মুছে ফেলতে পিন দিন:");
-        if (userPin === "1379") {
+        const numPin = parseInt(userPin);
+
+        if (numPin === 1379 || numPin === 2580) {
             const confirmDelete = confirm("আপনি কি নিশ্চিতভাবে এই তথ্যটি ডাটাবেজ থেকে ডিলিট করতে চান?");
             if (confirmDelete) {
-                database.ref('contacts/' + key).remove()
+                // রুলসে পিন চেক করানোর জন্য আগে পিন আপডেট করে রিমুভ নিশ্চিত করা হচ্ছে
+                contactsRef.child(key).update({ pin: numPin })
+                .then(() => {
+                    return contactsRef.child(key).remove();
+                })
                 .then(() => {
                     alert("তথ্যটি সফলভাবে ডাটাবেজ থেকে মুছে ফেলা হয়েছে।");
-                }).catch((error) => {
-                    console.error(error);
-                    alert("ত্রুটি: ডিলিট করা সম্ভব হয়নি।");
+                })
+                .catch((error) => {
+                    console.error("Delete Error: ", error);
+                    alert("ত্রুটি: ডিলিট করা সম্ভব হয়নি। ফায়ারবেস রুলস পুনরায় চেক করুন।");
                 });
             }
         } else if (userPin !== null) {
@@ -661,7 +668,6 @@
         }
     }
 
-    // ১০০% ফুলপ্রুফ ওয়াটারমার্ক জেনারেটর (আসল গুগল ডাটা দিয়ে রেন্ডার হয়)
     function createDynamicWatermark() {
         if(!trackedUserEmail) return;
         
@@ -676,7 +682,6 @@
         const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true };
         const liveTime = now.toLocaleDateString('bn-BD', options);
 
-        // ওয়াটারমার্কে সরাসরি ইউজারের অরিজিনাল জিমেইল নাম ও ইমেইল বসানো হচ্ছে
         const watermarkText = `
             <div style="font-weight: 800; letter-spacing: 0.3px;">${trackedUserName}</div>
             <div style="font-size: 11px; font-weight: 600; opacity: 0.9; margin-top: 1px;">${trackedUserEmail}</div>
