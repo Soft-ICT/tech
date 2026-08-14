@@ -1,4 +1,5 @@
-const CACHE_NAME = 'phonebook-v1.2';
+// sw.js ফাইলের ভেতরে এভাবে আপডেট করুন
+const CACHE_NAME = 'phonebook-v1.2'; // <--- এখানে v1.2 করে দিন
 
 const urlsToCache = [
   './',
@@ -6,9 +7,9 @@ const urlsToCache = [
   './manifest.json?v=1.2'
 ];
 
-// Install Event
+// Install Event - পুরাতন ক্যাশ মুছে নতুন ক্যাশ তৈরি করা
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
+  self.skipWaiting(); // নতুন সার্ভিস ওয়ার্কার সাথে সাথে একটিভ হবে
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(urlsToCache);
@@ -16,7 +17,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Activate Event
+// Activate Event - পুরোনো ক্যাশ ডিলিট করার সবচেয়ে গুরুত্বপূর্ণ অংশ
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -24,7 +25,7 @@ self.addEventListener('activate', (event) => {
         cacheNames.map((cache) => {
           if (cache !== CACHE_NAME) {
             console.log('পুরোনো ক্যাশ মুছে ফেলা হচ্ছে:', cache);
-            return caches.delete(cache);
+            return caches.delete(cache); // পুরোনো v1.1 বা আগের ক্যাশ মুছে যাবে
           }
         })
       );
@@ -40,4 +41,3 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
-
