@@ -1,0 +1,21 @@
+{
+  "short_name": "ফোনবুক",
+  "name": "এমটি ফোনবুক",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3059/3059502.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3059/3059502.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "./mtcontacts.html",
+  "background_color": "#f4f6f9",
+  "theme_color": "#0d6efd",
+  "display": "standalone"
+}
+
