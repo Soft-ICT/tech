@@ -1,10 +1,10 @@
 // sw.js ফাইলের ভেতরে এভাবে আপডেট করুন
-const CACHE_NAME = 'phonebook-v1.2'; // <--- এখানে v1.2 করে দিন
+const CACHE_NAME = 'phonebook-v1.1'; // <--- এখানে v1.1 করে দিন
 
 const urlsToCache = [
   './',
   './index.html',
-  './manifest.json?v=1.2'
+  './manifest.json?v=1.1'
 ];
 
 // Install Event - পুরাতন ক্যাশ মুছে নতুন ক্যাশ তৈরি করা
@@ -25,7 +25,7 @@ self.addEventListener('activate', (event) => {
         cacheNames.map((cache) => {
           if (cache !== CACHE_NAME) {
             console.log('পুরোনো ক্যাশ মুছে ফেলা হচ্ছে:', cache);
-            return caches.delete(cache); // পুরোনো v1.1 বা আগের ক্যাশ মুছে যাবে
+            return caches.delete(cache); // পুরোনো v1.0 বা আগের ক্যাশ মুছে যাবে
           }
         })
       );
