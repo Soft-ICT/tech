@@ -4,6 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>সিকিউর রিয়েল-টাইম ফোন বুক</title>
+
+    <!-- PWA Manifest & Theme Link -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d6efd">
+
+    <!-- Service Worker Register Script -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker নিবন্ধিত হয়েছে:', reg))
+                    .catch(err => console.log('Service Worker ত্রুটি:', err));
+            });
+        }
+    </script>
+
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
         body { background-color: #f4f6f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; }
@@ -178,6 +194,10 @@
     };
 
     firebase.initializeApp(firebaseConfig);
+    
+    // ফায়ারবেস অফলাইন হ্যান্ডলিং সক্রিয়করণ
+    firebase.database().goOnline();
+
     const database = firebase.database();
     const auth = firebase.auth();
     const contactsRef = database.ref("mtcontacts");
