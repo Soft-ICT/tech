@@ -3,7 +3,7 @@ const CACHE_NAME = 'phonebook-v1.2'; // <--- এখানে v1.2 করে দ�
 
 const urlsToCache = [
   './',
-  './index.html',
+  './mtcontacts.html',
   './manifest.json?v=1.2'
 ];
 
