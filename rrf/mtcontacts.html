@@ -114,6 +114,417 @@
         .search-box { width: 100%; }
         .search-box input { border: 1px solid #0d6efd; background-color: #ffffff; padding: 12px 16px; border-radius: 10px; box-shadow: 0 2px 6px rgba(13,110,253,0.05); text-align: center; }
         
+        /* কন্টাক্ট লিস্ট এলাকা (শুধু এটি স্ক্রল হবে) */
+        .contact-scroll-area {
+            overflow-y: auto;
+            flex-grow: 1;
+            padding-top: 10px;
+            padding-right: 4px;
+            width: 100%;
+        }
+
+        ul { list-style: none; padding: 0; margin: 0; }
+        
+        /* কন্টাক্ট কার্ড স্টাইল */
+        .contact-card { background: #ffffff; border: 1px solid #e9ecef; padding: 16px; margin-bottom: 12px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); position: relative; }
+        
+        .admin-pinned-card { border: 1.5px solid #0d6efd; background-color: #f8faff; }
+        /* পিন ব্যাজ */
+        .pin-badge { position: absolute; top: 12px; right: 12px; font-size: 14px; }
+        
+        .contact-name { font-size: 16px; font-weight: 700; color: #212529; margin: 0 0 10px 0; padding-right: 30px; }
+        
+        .contact-details { color: #495057; font-size: 14px; margin-bottom: 14px; line-height: 1.7; }
+        .contact-details span { color: #212529; font-weight: 600; }
+        .contact-designation { color: #0d6efd; font-weight: 600; }
+
+        /* কল বাটন গ্রিড */
+        .action-row { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 8px; 
+            border-top: 1px dashed #e9ecef; 
+            padding-top: 12px; 
+        }
+
+        /* অ্যাডমিন বাটন এক লাইনে */
+        .admin-action-row { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 8px; 
+            margin-top: 8px;
+        }
+
+        .btn-action { 
+            width: 100%; 
+            height: 38px;
+            text-decoration: none; 
+            border: none;
+            border-radius: 8px; 
+            font-size: 13px; 
+            font-weight: 600; 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 4px; 
+            transition: background 0.2s; 
+            cursor: pointer;
+            box-sizing: border-box;
+            white-space: nowrap;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        .btn-disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-call-mobile { background-color: #d1e7dd; color: #0f5132; }
+        .btn-call-mobile:hover:not(.btn-disabled) { background-color: #badbcc; }
+        
+        .btn-call-tel { background-color: #cff4fc; color: #055160; }
+        .btn-call-tel:hover:not(.btn-disabled) { background-color: #b6effb; }
+
+        .btn-edit { background-color: #fff3cd; color: #664d03; }
+        .btn-edit:hover { background-color: #ffe69c; }
+
+        .btn-delete { background-color: #f8d7da; color: #842029; }
+        .btn-delete:hover { background-color: #f5c2c7; }
+
+        .btn-pin { background-color: #e2e3e5; color: #383d41; }
+        .btn-pin:hover { background-color: #d6d8db; }
+        .btn-pin.active-pin { background-color: #0d6efd; color: #fff; }
+        .btn-pin.active-pin:hover { background-color: #0b5ed7; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- অফলাইন সতর্কবার্তা -->
+    <div id="offlineStatus" class="offline-status">⚠️ ইন্টারনেট নেই! ক্যাশড ডেটা দেখানো হচ্ছে।</div>
+
+    <!-- ফিক্সড হেডার, অ্যাডমিন প্যানেল ও সার্চ সেকশন (সেন্টার পজিশন) -->
+    <div class="fixed-top-section">
+        <!-- ১. শিরোনাম সেকশন -->
+        <div class="title-group">
+            <h2>📱 এমটি ফোনবুক - আরআরএফ</h2>
+        </div>
+
+        <!-- ২. অ্যাডমিন লগইন/মোড বাটন -->
+        <button class="admin-toggle-btn" id="adminToggleBtn" onclick="toggleAdminView()">🔑 অ্যাডমিন লগইন</button>
+
+        <!-- ৩. অ্যাডমিন প্যানেল -->
+        <div id="adminSection" class="admin-panel" style="display: none;">
+            <!-- লগইন ফর্ম -->
+            <div id="loginForm">
+                <h3>🔐 অ্যাডমিন লগইন</h3>
+                <div class="input-group">
+                    <input type="email" id="adminEmail" placeholder="ইমেইল...">
+                </div>
+                <div class="input-group">
+                    <input type="password" id="adminPassword" placeholder="পাসওয়ার্ড...">
+                </div>
+                <button class="btn-login" onclick="loginAdmin()">লগইন করুন</button>
+            </div>
+
+            <!-- কন্টাক্ট যোগ/এডিট করার ফর্ম -->
+            <div id="addContactForm" style="display: none;">
+                <h3 id="formTitle">➕ নতুন কন্টাক্ট যোগ করুন</h3>
+                <input type="hidden" id="editKeyInput">
+                <div class="input-group">
+                    <input type="text" id="nameInput" placeholder="নাম *">
+                </div>
+                <div class="input-group">
+                    <input type="text" id="mobileInput" placeholder="মোবাইল * (বাধ্যতামূলক)">
+                </div>
+                <div class="input-group">
+                    <input type="text" id="telephoneInput" placeholder="টেলিফোন (ঐচ্ছিক)">
+                </div>
+                <div class="input-group">
+                    <input type="text" id="desigInput" placeholder="পদবি">
+                </div>
+                <button class="btn-add" id="saveBtn" onclick="addContact()">ডাটাবেজে সেভ করুন</button>
+                <button class="btn-update" id="updateBtn" onclick="updateContact()">আপডেট করুন</button>
+                <button class="btn-cancel" id="cancelBtn" onclick="resetForm()">বাতিল করুন</button>
+                <button class="btn-logout" onclick="logoutAdmin()">লগআউট</button>
+            </div>
+        </div>
+
+        <!-- ৪. সার্চ বক্স (অনুসন্ধান প্যানেল) -->
+        <div class="search-box">
+            <input type="text" id="searchInput" onkeyup="searchContact()" placeholder="🔍 নাম, মোবাইল বা পদবি দিয়ে খুঁজুন...">
+        </div>
+    </div>
+
+    <!-- কন্টাক্ট লিস্ট এলাকা (শুধু এটি স্ক্রল হবে) -->
+    <div class="contact-scroll-area">
+        <ul id="contactList"></ul>
+    </div>
+</div>
+
+<!-- Firebase SDK (Version 8) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+<script>
+    // ফায়ারবেস কনফিগারেশন
+    const firebaseConfig = {
+        apiKey: "AIzaSyBCnqpIJqMWTI_qXv96hyVs6_UV_60s3Mc",
+        authDomain: "qrt-team.firebaseapp.com",
+        databaseURL: "https://qrt-team-default-rtdb.firebaseio.com",
+        projectId: "qrt-team"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    
+    // ফায়ারবেস অফলাইন ক্যাশ
+    firebase.database().goOnline();
+
+    const database = firebase.database();
+    const auth = firebase.auth();
+    const contactsRef = database.ref("mtcontacts");
+
+    let currentUser = null;
+    let currentData = null;
+
+    // অনলাইন/অফলাইন স্ট্যাটাস মনিটর
+    function checkOnlineStatus() {
+        const offlineBar = document.getElementById("offlineStatus");
+        if (!navigator.onLine) {
+            offlineBar.style.display = "block";
+            loadLocalCache();
+        } else {
+            offlineBar.style.display = "none";
+        }
+    }
+
+    window.addEventListener('online', checkOnlineStatus);
+    window.addEventListener('offline', checkOnlineStatus);
+
+    // অথেটিকেশন স্টেট চেক
+    auth.onAuthStateChanged((user) => {
+        currentUser = user;
+        if (user) {
+            document.getElementById("loginForm").style.display = "none";
+            document.getElementById("addContactForm").style.display = "block";
+            document.getElementById("adminToggleBtn").innerText = "🔓 অ্যাডমিন মোড";
+        } else {
+            document.getElementById("loginForm").style.display = "block";
+            document.getElementById("addContactForm").style.display = "none";
+            document.getElementById("adminToggleBtn").innerText = "🔑 অ্যাডমিন লগইন";
+        }
+        renderContacts();
+    });
+
+    function toggleAdminView() {
+        const adminSection = document.getElementById("adminSection");
+        adminSection.style.display = (adminSection.style.display === "none") ? "block" : "none";
+    }
+
+    // অ্যাডমিন লগইন
+    function loginAdmin() {
+        if (!navigator.onLine) {
+            alert("লগইন করার জন্য ইন্টারনেট সংযোগ প্রয়োজন!");
+            return;
+        }
+        const email = document.getElementById("adminEmail").value;
+        const pass = document.getElementById("adminPassword").value;
+
+        auth.signInWithEmailAndPassword(email, pass)
+            .then(() => {
+                alert("সার্ভারে সফলভাবে লগইন হয়েছে!");
+                document.getElementById("adminPassword").value = "";
+            })
+            .catch((error) => {
+                alert("লগইন ব্যর্থ হয়েছে: " + error.message);
+            });
+    }
+
+    // লগআউট
+    function logoutAdmin() {
+        auth.signOut().then(() => {
+            alert("লগআউট হয়েছে!");
+            document.getElementById("adminSection").style.display = "none";
+            resetForm();
+        });
+    }
+
+    // কন্টাক্ট যোগ করা
+    function addContact() {
+        if (!currentUser) return;
+
+        const name = document.getElementById("nameInput").value.trim();
+        const mobile = document.getElementById("mobileInput").value.trim();
+        const telephone = document.getElementById("telephoneInput").value.trim();
+        const designation = document.getElementById("desigInput").value.trim();
+
+        if (name === "" || mobile === "") {
+            alert("দয়া করে নাম ও মোবাইল নম্বর প্রদান করুন! (মোবাইল নম্বর বাধ্যতামূলক)");
+            return;
+        }
+
+        contactsRef.push({
+            name: name,
+            mobile: mobile,
+            telephone: telephone || "নেই",
+            designation: designation || "উল্লেখ নেই",
+            pinned: false,
+            createdAt: Date.now()
+        }).then(() => {
+            resetForm();
+            alert("কন্টাক্ট সেভ হয়েছে!");
+        }).catch((error) => {
+            alert("অনুমতি নেই: " + error.message);
+        });
+    }
+
+    // কন্টাক্ট এডিটের জন্য প্রস্তুত করা
+    function editContact(key) {
+        if (!currentUser) return;
+
+        const contact = currentData[key];
+        if (!contact) return;
+
+        document.getElementById("adminSection").style.display = "block";
+        document.getElementById("formTitle").innerText = "✏️ কন্টাক্ট এডিট করুন";
+        
+        document.getElementById("editKeyInput").value = key;
+        document.getElementById("nameInput").value = contact.name || "";
+        document.getElementById("mobileInput").value = contact.mobile || "";
+        document.getElementById("telephoneInput").value = (contact.telephone !== "নেই" && contact.telephone !== "N/A") ? contact.telephone : "";
+        document.getElementById("desigInput").value = (contact.designation !== "উল্লেখ নেই") ? contact.designation : "";
+
+        document.getElementById("saveBtn").style.display = "none";
+        document.getElementById("updateBtn").style.display = "block";
+        document.getElementById("cancelBtn").style.display = "block";
+    }
+
+    // কন্টাক্ট আপডেট করা
+    function updateContact() {
+        if (!currentUser) return;
+
+        const key = document.getElementById("editKeyInput").value;
+        const name = document.getElementById("nameInput").value.trim();
+        const mobile = document.getElementById("mobileInput").value.trim();
+        const telephone = document.getElementById("telephoneInput").value.trim();
+        const designation = document.getElementById("desigInput").value.trim();
+
+        if (!key || name === "" || mobile === "") {
+            alert("দয়া করে নাম ও মোবাইল নম্বর প্রদান করুন! (মোবাইল নম্বর বাধ্যতামূলক)");
+            return;
+        }
+
+        database.ref("mtcontacts/" + key).update({
+            name: name,
+            mobile: mobile,
+            telephone: telephone || "নেই",
+            designation: designation || "উল্লেখ নেই"
+        }).then(() => {
+            resetForm();
+            alert("কন্টাক্ট সফলভাবে আপডেট হয়েছে!");
+        }).catch((error) => {
+            alert("আপডেট ব্যর্থ হয়েছে: " + error.message);
+        });
+    }
+
+    // পিন/আনপিন টগল করার ফাংশন
+    function togglePin(key, currentPinnedStatus) {
+        if (!currentUser) return;
+
+        database.ref("mtcontacts/" + key).update({
+            pinned: !currentPinnedStatus
+        }).catch((error) => {
+            alert("পিন পরিবর্তন করতে সমস্যা হয়েছে: " + error.message);
+        });
+    }
+
+    // ফর্ম রিসেট
+    function resetForm() {
+        document.getElementById("editKeyInput").value = "";
+        document.getElementById("nameInput").value = "";
+        document.getElementById("mobileInput").value = "";
+        document.getElementById("telephoneInput").value = "";
+        document.getElementById("desigInput").value = "";
+
+        document.getElementById("formTitle").innerText = "➕ নতুন কন্টাক্ট যোগ করুন";
+        document.getElementById("saveBtn").style.display = "block";
+        document.getElementById("updateBtn").style.display = "none";
+        document.getElementById("cancelBtn").style.display = "none";
+    }
+
+    // অনলাইনে ডাটাবেজ থেকে ডাটা আনা ও ক্যাশ করা
+    contactsRef.on("value", (snapshot) => {
+        currentData = snapshot.val();
+        if (currentData) {
+            localStorage.setItem("phonebook_contacts", JSON.stringify(currentData));
+        }
+        renderContacts();
+    });
+
+    // অফলাইনে লোকাল ক্যাশ থেকে ডাটা লোড করা
+    function loadLocalCache() {
+        const cached = localStorage.getItem("phonebook_contacts");
+        if (cached) {
+            currentData = JSON.parse(cached);
+            renderContacts();
+        }
+    }
+
+    // লং-প্রেস হ্যান্ডলার তৈরি করার ফাংশন (WhatsApp Redirection)
+    function attachLongPressHandler(element, rawNumber, isMobile) {
+        if (!rawNumber || rawNumber === "নেই" || rawNumber === "N/A") return;
+
+        let pressTimer = null;
+        let isLongPress = false;
+
+        const startPress = (e) => {
+            isLongPress = false;
+            pressTimer = setTimeout(() => {
+                isLongPress = true;
+                
+                // শুধুমাত্র নম্বরগুলো (ডিজিট) ফিল্টার করা
+                let cleanNumber = rawNumber.replace(/\D/g, '');
+
+                // বাংলাদেশের নাম্বার ফরম্যাটিং স্ট্যান্ডার্ডাইজেশন (যদি প্রয়োজন হয়)
+                if (cleanNumber.length === 11 && cleanNumber.startsWith('0')) {
+                    cleanNumber = '88' + cleanNumber;
+                }
+
+                if (cleanNumber) {
+                    const waUrl = `https://wa.me/${cleanNumber}`;
+                    window.open(waUrl, '_blank');
+                } else {
+                    alert("হোয়াটসঅ্যাপে যোগাযোগ করার মতো সঠিক নাম্বার পাওয়া যায়নি!");
+                }
+            }, 800); // ৮০০ মিলিসেকেন্ড চাপ দিয়ে রাখলে লং-প্রেস ট্রিগার হবে
+        };
+
+        const cancelPress = () => {
+            if (pressTimer) clearTimeout(pressTimer);
+        };
+
+        // মাউস ও টাচ ইভেন্ট বাইন্ডিং
+        element.addEventListener('mousedown', startPress);
+        element.addEventListener('touchstart', startPress, { passive: true });
+
+        element.addEventListener('mouseup', cancelPress);
+        element.addEventListener('mouseleave', cancelPress);
+        element.addEventListener('touchend', cancelPress);
+        element.addEventListener('touchcancel', cancelPress);
+
+        // সাধারণ ক্লিকে হোয়াটসঅ্যাপ যাতে ওপেন না হয়ে নরমাল কল যায়
+        element.addEventListener('click'        .btn-add { width: 100%; padding: 10px; background-color: #198754; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .btn-update { width: 100%; padding: 10px; background-color: #0d6efd; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: none; }
+        .btn-cancel { width: 100%; margin-top: 6px; padding: 8px; background-color: #e2e3e5; color: #41464b; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: none; }
+        .btn-login { width: 100%; padding: 10px; background-color: #0d6efd; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .btn-logout { width: 100%; margin-top: 8px; background: #6c757d; color: white; border: none; padding: 8px; border-radius: 8px; cursor: pointer; }
+
+        .search-box { width: 100%; }
+        .search-box input { border: 1px solid #0d6efd; background-color: #ffffff; padding: 12px 16px; border-radius: 10px; box-shadow: 0 2px 6px rgba(13,110,253,0.05); text-align: center; }
+        
         /* কন্টাক্ট লিস্ট এলাকা (যা স্ক্রল হবে) */
         .contact-scroll-area {
             overflow-y: auto;
