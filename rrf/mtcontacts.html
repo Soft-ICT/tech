@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>সিকিউর রিয়েল-টাইম ফোন বুক</title>
+
+    <!-- PWA Manifest & Theme Link (Version added to prevent caching) -->
+    <link rel="manifest" href="manifest.json?v=1.5">
+    <meta name="theme-color" content="#0d6efd">
+
+    <!-- Service Worker Register Script with Cache Buster -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                // v=1.1 যোগ করা হয়েছে যাতে গিটহাব আপডেটের পর ব্রাউজার নতুন সার্ভিস ওয়ার্কার লোড করে
+                navigator.serviceWorker.register('./sw.js?v=1.5')
+                    .then(reg => {
+                        console.log('Service Worker নিবন্ধিত হয়েছে:', reg);
+                        // নতুন আপডেট থাকলে স্বয়ংক্রিয়ভাবে আপডেট করবে
+                        reg.onupdatefound = () => {
+                            const installingWorker = reg.installing;
+                            installingWorker.onstatechange = () => {
+                                if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    window.location.reload();
+                                }
+                            };
+                        };
+                    })
+                    .catch(err => console.log('Service Worker ত্রুটি:', err));
+            });
+        }
+    </script>
+
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        body { 
+            background-color: #f4f6f9; 
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-start; 
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 15px; 
+        }
+
+        .container { 
+            background: #ffffff; 
+            width: 100%; 
+            max-width: 480px; 
+            padding: 20px; 
+            border-radius: 16px; 
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08); 
+            position: relative; 
+            display: flex;
+            flex-direction: column;
+            max-height: 95vh;
+            overflow: hidden;
+        }
+        
+        /* অফলাইন ইন্ডিকেটর */
+        .offline-status { display: none; background-color: #dc3545; color: white; text-align: center; padding: 6px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-bottom: 15px; }
+
+        /* ফিক্সড হেডার ও সার্চ সেকশন */
+        .fixed-top-section {
+            position: sticky;
+            top: 0;
+            background: #ffffff;
+            z-index: 10;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .title-group { 
+            width: 100%;
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        h2 { 
+            margin: 0; 
+            color: #1a1d20; 
+            font-size: 20px; 
+            font-weight: 700; 
+            text-align: center;
+        }
+
+        .subtitle { 
+            font-size: 14px; 
+            color: #0d6efd; 
+            font-weight: 700; 
+            margin-top: 4px; 
+        }
+        
+        .admin-toggle-btn { 
+            background: #e9ecef; 
+            color: #495057; 
+            border: none; 
+            padding: 8px 18px; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            font-size: 13px; 
+            font-weight: 600; 
+            transition: all 0.2s;
+            margin-bottom: 10px;
+        }
+        .admin-toggle-btn:hover { background: #dee2e6; }
+        
+        .admin-panel { 
+            width: 100%;
+            background: #f8f9fa; 
+            padding: 16px; 
+            border-radius: 12px; 
+            margin-bottom: 12px; 
+            border: 1px solid #e9ecef; 
+            max-height: 350px; 
+            overflow-y: auto; 
+        }
+        .admin-panel h3 { margin-top: 0; font-size: 15px; color: #343a40; text-align: center; }
+        .input-group { margin-bottom: 12px; }
+        input { width: 100%; padding: 10px 14px; border: 1px solid #ced4da; border-radius: 8px; outline: none; font-size: 14px; transition: border-color 0.2s; text-align: center; }
+        input:focus { border-color: #0d6efd; }
+        
+        .btn-add { width: 100%; padding: 10px; background-color: #198754; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .btn-update { width: 100%; padding: 10px; background-color: #0d6efd; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: none; }
+        .btn-cancel { width: 100%; margin-top: 6px; padding: 8px; background-color: #e2e3e5; color: #41464b; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: none; }
+        .btn-login { width: 100%; padding: 10px; background-color: #0d6efd; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .btn-logout { width: 100%; margin-top: 8px; background: #6c757d; color: white; border: none; padding: 8px; border-radius: 8px; cursor: pointer; }
+
+        .search-box { width: 100%; }
+        .search-box input { border: 1px solid #0d6efd; background-color: #ffffff; padding: 12px 16px; border-radius: 10px; box-shadow: 0 2px 6px rgba(13,110,253,0.05); text-align: center; }
+        
+        /* কন্টাক্ট লিস্ট এলাকা */
+        .contact-scroll-area {
+            overflow-y: auto;
+            flex-grow: 1;
+            padding-top: 10px;
+            padding-right: 4px;
+            width: 100%;
+        }
+
+        ul { list-style: none; padding: 0; margin: 0; }
+        
+        /* কন্টাক্ট কার্ড স্টাইল */
+        .contact-card { background: #ffffff; border: 1px solid #e9ecef; padding: 16px; margin-bottom: 12px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); position: relative; }
+        
+        .admin-pinned-card { border: 1.5px solid #0d6efd; background-color: #f8faff; }
+        .pin-badge { position: absolute; top: 12px; right: 12px; font-size: 14px; }
+
+        /* প্রোফাইল হেডার ও পিকচার স্টাইল (ছবি সাইজ 60px করা হয়েছে) */
+        .contact-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .profile-img {
+            width: 60px;  /* 60px প্রস্থ */
+            height: 60px; /* 60px উচ্চতা */
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #0d6efd;
+            background-color: #e9ecef;
+            flex-shrink: 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+        }
+        
+        .contact-name { font-size: 16.5px; font-weight: 700; color: #212529; margin: 0 0 2px 0; }
+        
+        .contact-details { color: #495057; font-size: 14px; margin-bottom: 14px; line-height: 1.7; }
+        .contact-details span { color: #212529; font-weight: 600; }
+        .contact-designation { color: #0d6efd; font-weight: 600; display: inline-block; }
+
+        /* কল বাটন গ্রিড */
+        .action-row { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 8px; 
+            border-top: 1px dashed #e9ecef; 
+            padding-top: 12px; 
+        }
+
+        /* অ্যাডমিন বাটন এক লাইনে */
+        .admin-action-row { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 8px; 
+            margin-top: 8px;
+        }
+
+        .btn-action { 
+            width: 100%; 
+            height: 38px;
+            text-decoration: none; 
+            border: none;
+            border-radius: 8px; 
+            font-size: 13px; 
+            font-weight: 600; 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 4px; 
+            transition: background 0.2s; 
+            cursor: pointer;
+            box-sizing: border-box;
+            white-space: nowrap;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        .btn-disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-call-mobile { background-color: #d1e7dd; color: #0f5132; }
+        .btn-call-mobile:hover:not(.btn-disabled) { background-color: #badbcc; }
+        
+        .btn-call-tel { background-color: #cff4fc; color: #055160; }
+        .btn-call-tel:hover:not(.btn-disabled) { background-color: #b6effb; }
+
+        .btn-edit { background-color: #fff3cd; color: #664d03; }
+        .btn-edit:hover { background-color: #ffe69c; }
+
+        .btn-delete { background-color: #f8d7da; color: #842029; }
+        .btn-delete:hover { background-color: #f5c2c7; }
+
+        .btn-pin { background-color: #e2e3e5; color: #383d41; }
+        .btn-pin:hover { background-color: #d6d8db; }
+        .btn-pin.active-pin { background-color: #0d6efd; color: #fff; }
+        .btn-pin.active-pin:hover { background-color: #0b5ed7; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="offlineStatus" class="offline-status">⚠️ ইন্টারনেট নেই! ক্যাশড ডেটা দেখানো হচ্ছে।</div>
+
+    <div class="fixed-top-section">
+        <div class="title-group">
+            <h2>📱 মোটরযান শাখা - ফোন বুক</h2>
+            <span class="subtitle">আরআরএফ, রাজশাহী</span>
+        </div>
+
+        <button class="admin-toggle-btn" id="adminToggleBtn" onclick="toggleAdminView()">🔑 অ্যাডমিন লগইন</button>
+
+        <div id="adminSection" class="admin-panel" style="display: none;">
+            <div id="loginForm">
+                <h3>🔐 অ্যাডমিন লগইন</h3>
+                <div class="input-group">
+                    <input type="email" id="adminEmail" placeholder="ইমেইল...">
+                </div>
+                <div class="input-group">
+                    <input type="password" id="adminPassword" placeholder="পাসওয়ার্ড...">
+                </div>
+                <button class="btn-login" onclick="loginAdmin()">লগইন করুন</button>
+            </div>
+
+            <div id="addContactForm" style="display: none;">
+                <h3 id="formTitle">➕ নতুন কন্টাক্ট যোগ করুন</h3>
+                <input type="hidden" id="editKeyInput">
+                <div class="input-group">
+                    <input type="text" id="nameInput" placeholder="নাম *">
+                </div>
+                <div class="input-group">
+                    <input type="text" id="mobileInput" placeholder="মোবাইল * (বাধ্যতামূলক)">
+                </div>
+                <div class="input-group">
+                    <input type="text" id="telephoneInput" placeholder="টেলিফোন (ঐচ্ছিক)">
+                </div>
+                <div class="input-group">
+                    <input type="text" id="desigInput" placeholder="পদবি">
+                </div>
+                <div class="input-group">
+                    <input type="url" id="imageInput" placeholder="ছবি URL (ঐচ্ছিক)">
+                </div>
+                <button class="btn-add" id="saveBtn" onclick="addContact()">ডাটাবেজে সেভ করুন</button>
+                <button class="btn-update" id="updateBtn" onclick="updateContact()">আপডেট করুন</button>
+                <button class="btn-cancel" id="cancelBtn" onclick="resetForm(true)">বাতিল করুন</button>
+                <button class="btn-logout" onclick="logoutAdmin()">লগআউট</button>
+            </div>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="searchInput" onkeyup="searchContact()" placeholder="🔍 নাম, মোবাইল বা পদবি দিয়ে খুঁজুন...">
+        </div>
+    </div>
+
+    <div class="contact-scroll-area">
+        <ul id="contactList"></ul>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBCnqpIJqMWTI_qXv96hyVs6_UV_60s3Mc",
+        authDomain: "qrt-team.firebaseapp.com",
+        databaseURL: "https://qrt-team-default-rtdb.firebaseio.com",
+        projectId: "qrt-team"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    firebase.database().goOnline();
+
+    const database = firebase.database();
+    const auth = firebase.auth();
+    const contactsRef = database.ref("mtcontacts");
+
+    // কাস্টম ডিফল্ট প্রোফাইল ইমেজের URL
+    const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
+    let currentUser = null;
+    let currentData = null;
+
+    function checkOnlineStatus() {
+        const offlineBar = document.getElementById("offlineStatus");
+        if (!navigator.onLine) {
+            offlineBar.style.display = "block";
+            loadLocalCache();
+        } else {
+            offlineBar.style.display = "none";
+        }
+    }
+
+    window.addEventListener('online', checkOnlineStatus);
+    window.addEventListener('offline', checkOnlineStatus);
+
+    auth.onAuthStateChanged((user) => {
+        currentUser = user;
+        if (user) {
+            document.getElementById("loginForm").style.display = "none";
+            document.getElementById("addContactForm").style.display = "block";
+            document.getElementById("adminToggleBtn").innerText = "🔓 অ্যাডমিন মোড";
+        } else {
+            document.getElementById("loginForm").style.display = "block";
+            document.getElementById("addContactForm").style.display = "none";
+            document.getElementById("adminToggleBtn").innerText = "🔑 অ্যাডমিন লগইন";
+        }
+        renderContacts();
+    });
+
+    function toggleAdminView() {
+        const adminSection = document.getElementById("adminSection");
+        adminSection.style.display = (adminSection.style.display === "none") ? "block" : "none";
+    }
+
+    function closeAdminForm() {
+        document.getElementById("adminSection").style.display = "none";
+    }
+
+    function loginAdmin() {
+        if (!navigator.onLine) {
+            alert("লগইন করার জন্য ইন্টারনেট সংযোগ প্রয়োজন!");
+            return;
+        }
+        const email = document.getElementById("adminEmail").value;
+        const pass = document.getElementById("adminPassword").value;
+
+        auth.signInWithEmailAndPassword(email, pass)
+            .then(() => {
+                alert("সার্ভারে সফলভাবে লগইন হয়েছে!");
+                document.getElementById("adminPassword").value = "";
+            })
+            .catch((error) => {
+                alert("লগইন ব্যর্থ হয়েছে: " + error.message);
+            });
+    }
+
+    function logoutAdmin() {
+        auth.signOut().then(() => {
+            alert("লগআউট হয়েছে!");
+            closeAdminForm();
+            resetForm();
+        });
+    }
+
+    function addContact() {
+        if (!currentUser) return;
+
+        const name = document.getElementById("nameInput").value.trim();
+        const mobile = document.getElementById("mobileInput").value.trim();
+        const telephone = document.getElementById("telephoneInput").value.trim();
+        const designation = document.getElementById("desigInput").value.trim();
+        const imageUrl = document.getElementById("imageInput").value.trim();
+
+        if (name === "" || mobile === "") {
+            alert("দয়া করে নাম ও মোবাইল নম্বর প্রদান করুন!");
+            return;
+        }
+
+        contactsRef.push({
+            name: name,
+            mobile: mobile,
+            telephone: telephone || "নেই",
+            designation: designation || "উল্লেখ নেই",
+            imageUrl: imageUrl || "",
+            pinned: false,
+            pinOrder: 0,
+            createdAt: Date.now()
+        }).then(() => {
+            resetForm();
+            closeAdminForm(); // সেভ হলে ফরম হাইড হবে
+            alert("কন্টাক্ট সেভ হয়েছে!");
+        }).catch((error) => {
+            alert("অনুমতি নেই: " + error.message);
+        });
+    }
+
+    function editContact(key) {
+        if (!currentUser) return;
+
+        const contact = currentData[key];
+        if (!contact) return;
+
+        document.getElementById("adminSection").style.display = "block";
+        document.getElementById("formTitle").innerText = "✏️ কন্টাক্ট এডিট করুন";
+        
+        document.getElementById("editKeyInput").value = key;
+        document.getElementById("nameInput").value = contact.name || "";
+        document.getElementById("mobileInput").value = contact.mobile || "";
+        document.getElementById("telephoneInput").value = (contact.telephone !== "নেই" && contact.telephone !== "N/A") ? contact.telephone : "";
+        document.getElementById("desigInput").value = (contact.designation !== "উল্লেখ নেই") ? contact.designation : "";
+        document.getElementById("imageInput").value = contact.imageUrl || "";
+
+        document.getElementById("saveBtn").style.display = "none";
+        document.getElementById("updateBtn").style.display = "block";
+        document.getElementById("cancelBtn").style.display = "block";
+
+        document.getElementById("adminSection").scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function updateContact() {
+        if (!currentUser) return;
+
+        const key = document.getElementById("editKeyInput").value;
+        const name = document.getElementById("nameInput").value.trim();
+        const mobile = document.getElementById("mobileInput").value.trim();
+        const telephone = document.getElementById("telephoneInput").value.trim();
+        const designation = document.getElementById("desigInput").value.trim();
+        const imageUrl = document.getElementById("imageInput").value.trim();
+
+        if (!key || name === "" || mobile === "") {
+            alert("দয়া করে নাম ও মোবাইল নম্বর প্রদান করুন!");
+            return;
+        }
+
+        database.ref("mtcontacts/" + key).update({
+            name: name,
+            mobile: mobile,
+            telephone: telephone || "নেই",
+            designation: designation || "উল্লেখ নেই",
+            imageUrl: imageUrl || ""
+        }).then(() => {
+            resetForm();
+            closeAdminForm(); // আপডেট হলে ফরম হাইড হবে
+            alert("কন্টাক্ট সফলভাবে আপডেট হয়েছে!");
+        }).catch((error) => {
+            alert("আপডেট ব্যর্থ হয়েছে: " + error.message);
+        });
+    }
+
+    // =========================================================
+    // PIN SYSTEM
+    // প্রথম PIN = 1, দ্বিতীয় PIN = 2, তৃতীয় PIN = 3...
+    // আনপিন করলে তার পুরোনো পজিশন বাতিল হবে এবং
+    // বাকি PIN করা ডাটাগুলো 1, 2, 3... হিসেবে আবার সাজবে।
+    // =========================================================
+
+    let pinMigrationRunning = false;
+    let pinOperationRunning = false;
+
+    function getPinnedContactsInOrder(excludeKey = null) {
+        const list = [];
+
+        if (!currentData) return list;
+
+        Object.keys(currentData).forEach((key) => {
+            if (key === excludeKey) return;
+
+            const contact = currentData[key];
+            if (!contact || contact.pinned !== true) return;
+
+            const order = Number(contact.pinOrder);
+
+            list.push({
+                key: key,
+                contact: contact,
+                order: Number.isFinite(order) && order > 0
+                    ? order
+                    : Number.MAX_SAFE_INTEGER
+            });
+        });
+
+        list.sort((a, b) => {
+            if (a.order !== b.order) {
+                return a.order - b.order;
+            }
+
+            const createdA = Number(a.contact.createdAt) || 0;
+            const createdB = Number(b.contact.createdAt) || 0;
+
+            if (createdA !== createdB) {
+                return createdA - createdB;
+            }
+
+            return String(a.key).localeCompare(String(b.key));
+        });
+
+        return list;
+    }
+
+    function getNextPinOrder() {
+        const pinned = getPinnedContactsInOrder();
+        return pinned.length + 1;
+    }
+
+    function togglePin(key, currentPinnedStatus) {
+        if (!currentUser || pinOperationRunning) return;
+
+        if (!currentData || !currentData[key]) return;
+
+        pinOperationRunning = true;
+
+        // =====================================================
+        // UNPIN
+        // =====================================================
+        if (currentPinnedStatus) {
+
+            // যে ডাটাটি আনপিন করা হচ্ছে সেটি বাদ দিয়ে
+            // বাকি PIN করা ডাটাগুলো তাদের আগের PIN ক্রমে নেওয়া হবে।
+            const remainingPinned = getPinnedContactsInOrder(key);
+
+            const updates = {};
+
+            // আনপিন করা ডাটার PIN position সম্পূর্ণ বাতিল
+            updates["mtcontacts/" + key + "/pinned"] = false;
+            updates["mtcontacts/" + key + "/pinOrder"] = 0;
+
+            // বাকি PIN করা ডাটাগুলোকে নতুন করে 1, 2, 3...
+            remainingPinned.forEach((item, index) => {
+                updates[
+                    "mtcontacts/" + item.key + "/pinOrder"
+                ] = index + 1;
+            });
+
+            database.ref().update(updates)
+                .then(() => {
+                    console.log("PIN position পুনরায় 1,2,3... হিসেবে সাজানো হয়েছে।");
+                })
+                .catch((error) => {
+                    alert("আনপিন করতে সমস্যা হয়েছে: " + error.message);
+                })
+                .finally(() => {
+                    pinOperationRunning = false;
+                });
+
+            return;
+        }
+
+        // =====================================================
+        // NEW PIN
+        // =====================================================
+
+        // বর্তমানে থাকা PIN করা ডাটাগুলো আগে তাদের ক্রম অনুযায়ী নেওয়া হবে।
+        const currentlyPinned = getPinnedContactsInOrder();
+        const nextOrder = currentlyPinned.length + 1;
+
+        database.ref("mtcontacts/" + key).update({
+            pinned: true,
+            pinOrder: nextOrder
+        })
+            .then(() => {
+                console.log("নতুন PIN position:", nextOrder);
+            })
+            .catch((error) => {
+                alert("পিন করতে সমস্যা হয়েছে: " + error.message);
+            })
+            .finally(() => {
+                pinOperationRunning = false;
+            });
+    }
+
+    // পুরোনো PIN করা ডাটার pinOrder না থাকলে
+    // তাদের বর্তমান PIN ক্রম অনুযায়ী 1,2,3... দেওয়া হবে।
+    function migrateOldPinnedContacts() {
+
+        if (pinMigrationRunning || !currentData) return;
+
+        const pinned = [];
+        const missingPinned = [];
+        let maxPinOrder = 0;
+
+        Object.keys(currentData).forEach((key) => {
+            const contact = currentData[key];
+
+            if (!contact || contact.pinned !== true) return;
+
+            const order = Number(contact.pinOrder);
+
+            if (Number.isFinite(order) && order > 0) {
+                maxPinOrder = Math.max(maxPinOrder, order);
+
+                pinned.push({
+                    key: key,
+                    order: order,
+                    createdAt: Number(contact.createdAt) || 0
+                });
+            } else {
+                missingPinned.push(key);
+            }
+        });
+
+        if (missingPinned.length === 0) return;
+
+        pinMigrationRunning = true;
+
+        pinned.sort((a, b) => {
+            if (a.order !== b.order) return a.order - b.order;
+            if (a.createdAt !== b.createdAt) return a.createdAt - b.createdAt;
+            return String(a.key).localeCompare(String(b.key));
+        });
+
+        const updates = {};
+        let nextOrder = maxPinOrder + 1;
+
+        missingPinned.forEach((key) => {
+            updates["mtcontacts/" + key + "/pinOrder"] = nextOrder;
+            nextOrder++;
+        });
+
+        database.ref().update(updates)
+            .then(() => {
+                pinMigrationRunning = false;
+            })
+            .catch((error) => {
+                pinMigrationRunning = false;
+                console.log("পুরোনো PIN সিরিয়াল আপডেট হয়নি:", error);
+            });
+    }
+
+    function resetForm(shouldClose = false) {
+        document.getElementById("editKeyInput").value = "";
+        document.getElementById("nameInput").value = "";
+        document.getElementById("mobileInput").value = "";
+        document.getElementById("telephoneInput").value = "";
+        document.getElementById("desigInput").value = "";
+        document.getElementById("imageInput").value = "";
+
+        document.getElementById("formTitle").innerText = "➕ নতুন কন্টাক্ট যোগ করুন";
+        document.getElementById("saveBtn").style.display = "block";
+        document.getElementById("updateBtn").style.display = "none";
+        document.getElementById("cancelBtn").style.display = "none";
+
+        if (shouldClose) {
+            closeAdminForm();
+        }
+    }
+
+    contactsRef.on("value", (snapshot) => {
+        currentData = snapshot.val();
+        if (currentData) {
+            localStorage.setItem("phonebook_contacts", JSON.stringify(currentData));
+        }
+        renderContacts();
+    });
+
+    function loadLocalCache() {
+        const cached = localStorage.getItem("phonebook_contacts");
+        if (cached) {
+            currentData = JSON.parse(cached);
+            renderContacts();
+        }
+    }
+
+    // স্মার্ট কল এবং লং-প্রেস হোয়াটসঅ্যাপ হ্যান্ডলার
+    function attachSmartCallAndWhatsApp(element, rawNumber) {
+        if (!rawNumber || rawNumber === "নেই" || rawNumber === "N/A") return;
+
+        let pressTimer = null;
+        let isLongPress = false;
+
+        const startPress = (e) => {
+            isLongPress = false;
+
+            pressTimer = setTimeout(() => {
+                isLongPress = true;
+
+                if (navigator.vibrate) {
+                    navigator.vibrate(60);
+                }
+
+                let cleanNumber = rawNumber.replace(/\D/g, '');
+
+                if (cleanNumber.length === 11 && cleanNumber.startsWith('0')) {
+                    cleanNumber = '88' + cleanNumber;
+                }
+
+                if (cleanNumber) {
+                    // বর্তমান ফোনবুকের অবস্থান/history ধরে রেখে WhatsApp খুলবে
+                    savePhonebookState();
+
+                    window.open(
+                        `https://wa.me/${cleanNumber}`,
+                        '_blank'
+                    );
+                } else {
+                    alert("সঠিক নাম্বার পাওয়া যায়নি!");
+                }
+            }, 600);
+        };
+
+        const cancelPress = () => {
+            if (pressTimer) {
+                clearTimeout(pressTimer);
+                pressTimer = null;
+            }
+        };
+
+        element.addEventListener('mousedown', startPress);
+        element.addEventListener('touchstart', startPress, { passive: true });
+
+        element.addEventListener('mouseup', cancelPress);
+        element.addEventListener('mouseleave', cancelPress);
+        element.addEventListener('touchend', cancelPress);
+        element.addEventListener('touchcancel', cancelPress);
+
+        element.addEventListener('click', (e) => {
+            e.preventDefault();
+
+            if (!isLongPress) {
+                let cleanNumber = rawNumber.replace(/\D/g, '');
+
+                if (cleanNumber) {
+                    /*
+                     * সবচেয়ে গুরুত্বপূর্ণ পরিবর্তন:
+                     * tel: এ যাওয়ার আগে একটি history entry তৈরি করা হচ্ছে।
+                     *
+                     * ফলে Android/Chrome/PWA-তে Dialer থেকে ফিরে
+                     * Back দিলে ফোনবুকের history entry পাওয়া যাবে,
+                     * সরাসরি সাইট বন্ধ হওয়ার সম্ভাবনা কমবে।
+                     */
+                    savePhonebookState();
+
+                    history.pushState(
+                        {
+                            phonebookCall: true,
+                            time: Date.now()
+                        },
+                        '',
+                        window.location.href
+                    );
+
+                    const callLink = document.createElement('a');
+                    callLink.href = `tel:${cleanNumber}`;
+                    callLink.style.display = 'none';
+                    callLink.setAttribute('aria-hidden', 'true');
+
+                    document.body.appendChild(callLink);
+                    callLink.click();
+
+                    setTimeout(() => {
+                        if (callLink.parentNode) {
+                            callLink.parentNode.removeChild(callLink);
+                        }
+                    }, 1500);
+                }
+            }
+
+            isLongPress = false;
+        });
+    }
+
+    /*
+     * ফোনবুকের বর্তমান অবস্থান সংরক্ষণ
+     */
+    function savePhonebookState() {
+        try {
+            const area = document.querySelector('.contact-scroll-area');
+            const search = document.getElementById('searchInput');
+
+            sessionStorage.setItem(
+                'phonebook_state_v2',
+                JSON.stringify({
+                    scrollTop: area ? area.scrollTop : 0,
+                    searchText: search ? search.value : '',
+                    time: Date.now()
+                })
+            );
+        } catch (e) {
+            console.log('State save error:', e);
+        }
+    }
+
+    /*
+     * Dialer/অন্য অ্যাপ থেকে ফিরে এলে ফোনবুকের অবস্থান ফিরিয়ে আনা
+     */
+    function restorePhonebookState() {
+        try {
+            const saved = sessionStorage.getItem('phonebook_state_v2');
+
+            if (!saved) return;
+
+            const state = JSON.parse(saved);
+
+            const area = document.querySelector('.contact-scroll-area');
+
+            if (area) {
+                area.scrollTop = Number(state.scrollTop) || 0;
+            }
+
+        } catch (e) {
+            console.log('State restore error:', e);
+        }
+    }
+
+    /*
+     * History entry-তে ফিরে এলে ফোনবুকের অবস্থান restore করবে
+     */
+    window.addEventListener('popstate', function () {
+        setTimeout(() => {
+            restorePhonebookState();
+        }, 100);
+    });
+
+    /*
+     * Dialer থেকে Chrome/PWA-তে ফিরে এলে
+     */
+    window.addEventListener('pageshow', function () {
+        setTimeout(() => {
+            restorePhonebookState();
+        }, 100);
+    });
+
+    document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible') {
+            setTimeout(() => {
+                restorePhonebookState();
+            }, 100);
+        }
+    });
+
+    function renderContacts() {
+        const contactList = document.getElementById("contactList");
+        contactList.innerHTML = "";
+
+        if (currentData) {
+            const sortedKeys = Object.keys(currentData).sort((a, b) => {
+
+                const contactA = currentData[a] || {};
+                const contactB = currentData[b] || {};
+
+                const pinnedA = contactA.pinned === true;
+                const pinnedB = contactB.pinned === true;
+
+                // PIN করা ডাটা সবসময় উপরে থাকবে
+                if (pinnedA && !pinnedB) return -1;
+                if (!pinnedA && pinnedB) return 1;
+
+                // দুইটিই PIN হলে PIN করার ক্রম অনুযায়ী সাজাবে
+                // ছোট pinOrder = আগে PIN করা = উপরের অবস্থান
+                if (pinnedA && pinnedB) {
+
+                    const orderA = Number(contactA.pinOrder);
+                    const orderB = Number(contactB.pinOrder);
+
+                    const safeA =
+                        Number.isFinite(orderA) && orderA > 0
+                            ? orderA
+                            : Number.MAX_SAFE_INTEGER;
+
+                    const safeB =
+                        Number.isFinite(orderB) && orderB > 0
+                            ? orderB
+                            : Number.MAX_SAFE_INTEGER;
+
+                    if (safeA !== safeB) {
+                        return safeA - safeB;
+                    }
+
+                    // একই order হলে স্থিরভাবে key অনুযায়ী সাজাবে
+                    return String(a).localeCompare(String(b));
+                }
+
+                // Unpinned ডাটার আগের স্বাভাবিক Firebase order বজায় থাকবে
+                return 0;
+            });
+
+            // পুরোনো PIN ডাটায় pinOrder না থাকলে একবার সিরিয়াল বসাবে
+            migrateOldPinnedContacts();
+
+            sortedKeys.forEach((key) => {
+                const contact = currentData[key];
+                const isPinned = contact.pinned || false;
+
+                const displayTel = (!contact.telephone || contact.telephone === "N/A" || contact.telephone === "নেই") ? "নেই" : contact.telephone;
+                const displayImg = (contact.imageUrl && contact.imageUrl.trim() !== "") ? contact.imageUrl : DEFAULT_AVATAR;
+
+                const adminBtnsHTML = currentUser ? 
+                    `<div class="admin-action-row">
+                        <button class="btn-action btn-edit" onclick="editContact('${key}')">✏️ এডিট</button>
+                        <button class="btn-action btn-delete" onclick="deleteContact('${key}')">🗑️ মুছুন</button>
+                        <button class="btn-action btn-pin ${isPinned ? 'active-pin' : ''}" onclick="togglePin('${key}', ${isPinned})">
+                            ${isPinned ? '📌 আনপিন' : '📌 পিন'}
+                        </button>
+                     </div>` : '';
+
+                const pinBadgeHTML = (currentUser && isPinned) ? `<span class="pin-badge">📌</span>` : '';
+
+                const li = document.createElement("li");
+                li.className = `contact-card ${currentUser && isPinned ? 'admin-pinned-card' : ''}`;
+                
+                li.innerHTML = `
+                    ${pinBadgeHTML}
+                    <div class="contact-header">
+                        <img src="${displayImg}" class="profile-img" alt="Profile" onerror="this.src='${DEFAULT_AVATAR}'">
+                        <div>
+                            <h3 class="contact-name">${contact.name}</h3>
+                            <span class="contact-designation" style="font-size: 13.5px;">${contact.designation || 'উল্লেখ নেই'}</span>
+                        </div>
+                    </div>
+                    <div class="contact-details">
+                        📱 মোবাইল: <span>${contact.mobile}</span><br>
+                        ☎️ টেলিফোন: <span>${displayTel}</span>
+                    </div>
+                    <div class="action-row">
+                        ${contact.mobile ? `<button id="mob_btn_${key}" class="btn-action btn-call-mobile">📞 মোবাইল কল</button>` : `<button class="btn-action btn-call-mobile btn-disabled" disabled>📞 মোবাইল কল</button>`}
+                        ${(displayTel !== "নেই") ? `<button id="tel_btn_${key}" class="btn-action btn-call-tel">☎️ টেলিফোন</button>` : `<button class="btn-action btn-call-tel btn-disabled" disabled>☎️ টেলিফোন</button>`}
+                    </div>
+                    ${adminBtnsHTML}
+                `;
+
+                contactList.appendChild(li);
+
+                if (contact.mobile) {
+                    const mobBtn = document.getElementById(`mob_btn_${key}`);
+                    if (mobBtn) attachSmartCallAndWhatsApp(mobBtn, contact.mobile);
+                }
+                if (displayTel !== "নেই") {
+                    const telBtn = document.getElementById(`tel_btn_${key}`);
+                    if (telBtn) attachSmartCallAndWhatsApp(telBtn, displayTel);
+                }
+            });
+        }
+    }
+
+    // আপডেট করা ডিলিট ফাংশন (কনফার্মেশন ও সফলতার নোটিফিকেশন সহ)
+    function deleteContact(key) {
+        if (!currentUser) return;
+
+        if (confirm("আপনি কি নিশ্চিত যে এই কন্টাক্টটি মুছে ফেলতে চান?")) {
+            database.ref("mtcontacts/" + key).remove()
+            .then(() => {
+                alert("কন্টাক্টটি সফলভাবে মুছে ফেলা হয়েছে!");
+            })
+            .catch((error) => {
+                alert("মুছে ফেলা সম্ভব হয়নি: " + error.message);
+            });
+        }
+    }
+
+    function searchContact() {
+        let filter = document.getElementById("searchInput").value.toLowerCase();
+        let li = document.getElementById("contactList").getElementsByTagName("li");
+
+        for (let i = 0; i < li.length; i++) {
+            let textContent = li[i].innerText.toLowerCase();
+            if (textContent.includes(filter)) {
+                li[i].style.display = "";
+            } else {
+                li[i].style.display = "none";
+            }
+        }
+    }
+
+    checkOnlineStatus();
+</script>
+
+</body>
+</html>
