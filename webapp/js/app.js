@@ -534,66 +534,66 @@ async function deleteData(id) {
 }
 
 /* =========================================
-   UPDATED MOVE DATA LOGIC
+   EASY & FAST MOVE DATA LOGIC (MODAL)
 ========================================= */
 
-async function moveData(id) {
-    const item = database.data.find(d => d.id === id);
+let targetMoveDataId = null;
+
+function moveData(dataId) {
+    targetMoveDataId = dataId;
+    const item = database.data.find(d => d.id === dataId);
     if (!item) return;
 
-    // ১. অন্য সব ক্যাটাগরি ফিল্টার করা (বর্তমান ক্যাটাগরি বাদে)
-    const availableCategories = database.categories.filter(c => c.id !== currentCategoryId);
-    if (availableCategories.length === 0) {
-        showToast("অন্য কোনো Category নেই ডাটা সরানোর জন্য");
-        return;
-    }
+    const catSelect = document.getElementById("moveCategorySelect");
+    const headSelect = document.getElementById("moveHeaderSelect");
+    if (!catSelect || !headSelect) return;
 
-    // ২. টার্গেট ক্যাটাগরি সিলেক্ট করা
-    let categoryListText = availableCategories.map((c, index) => `${index + 1}. ${c.name}`).join("\n");
-    const catChoice = prompt(`কোন Category তে সরাতে চান সংখ্যাটি লিখুন:\n\n${categoryListText}`);
+    // ১. সব ক্যাটাগরি ড্রপডাউনে সাজানো
+    catSelect.innerHTML = "";
+    database.categories.forEach(cat => {
+        const selected = cat.id === item.categoryId ? "selected" : "";
+        catSelect.innerHTML += `<option value="${cat.id}" ${selected}>📁 ${escapeHTML(cat.name)}</option>`;
+    });
 
-    if (!catChoice) return; // ক্যানসেল করলে বের হয়ে যাবে
+    // ২. সিলেক্ট করা ক্যাটাগরির হেডার লোড করার ফাংশন
+    const updateHeaderOptions = (selectedCatId) => {
+        headSelect.innerHTML = `<option value="">📄 সাধারণ Data (Header ছাড়া)</option>`;
+        const headers = database.headers.filter(h => h.categoryId === selectedCatId);
+        headers.forEach(h => {
+            const selected = (h.id === item.headerId && selectedCatId === item.categoryId) ? "selected" : "";
+            headSelect.innerHTML += `<option value="${h.id}" ${selected}>🏷️ ${escapeHTML(h.title)}</option>`;
+        });
+    };
 
-    const selectedCatIndex = parseInt(catChoice) - 1;
-    const targetCategory = availableCategories[selectedCatIndex];
+    // বর্তমান ক্যাটাগরির হেডার লোড
+    updateHeaderOptions(catSelect.value);
 
-    if (!targetCategory) {
-        showToast("সঠিক Category নির্বাচন করেননি");
-        return;
-    }
+    // ক্যাটাগরি চেঞ্জ করলে হেডার অপশন অটো চেঞ্জ হবে
+    catSelect.onchange = (e) => {
+        updateHeaderOptions(e.target.value);
+    };
 
-    // ৩. সিলেক্ট করা ক্যাটাগরির অন্তর্ভুক্ত হেডারগুলো খুঁজে বের করা
-    const targetHeaders = database.headers.filter(h => h.categoryId === targetCategory.id);
-
-    let chosenHeaderId = null;
-
-    if (targetHeaders.length > 0) {
-        // ৪. হেডার থাকলে হেডার বেছে নেওয়ার অপশন দেওয়া
-        let headerListText = "0. সাধারণ ডাটা (কোনো Header ছাড়া)\n";
-        headerListText += targetHeaders.map((h, index) => `${index + 1}. ${h.title}`).join("\n");
-
-        const headChoice = prompt(`"${targetCategory.name}" Category-এর কোন Header এ ডাটাটি রাখবেন?\n\n${headerListText}`);
-
-        if (headChoice === null) return; // ক্যানসেল করলে অপশন বাতিল
-
-        const selectedHeadIndex = parseInt(headChoice);
-        
-        if (selectedHeadIndex > 0 && selectedHeadIndex <= targetHeaders.length) {
-            chosenHeaderId = targetHeaders[selectedHeadIndex - 1].id;
-        } else {
-            chosenHeaderId = null; // ০ চাপলে বা ভুল ইনপুট দিলে সাধারণ ডাটা হিসেবে যাবে
-        }
-    }
-
-    // ৫. ডাটার ক্যাটাগরি এবং হেডার আইডি আপডেট ও ফায়ারবেসে সেভ
-    item.categoryId = targetCategory.id;
-    item.headerId = chosenHeaderId;
-
-    await saveDatabase();
-    renderCategoryDetails();
-    
-    showToast(`Data সফলভাবে "${targetCategory.name}" এ সরিয়ে নেওয়া হয়েছে`);
+    openModal("moveDataModal");
 }
+
+// Confirm Move Button Click Listener (setupEvents ফাংশনের ভেতরে একবার দিলেও হবে)
+document.getElementById("confirmMoveBtn")?.addEventListener("click", async () => {
+    if (!targetMoveDataId) return;
+
+    const item = database.data.find(d => d.id === targetMoveDataId);
+    const selectedCatId = document.getElementById("moveCategorySelect")?.value;
+    const selectedHeadId = document.getElementById("moveHeaderSelect")?.value;
+
+    if (item && selectedCatId) {
+        item.categoryId = selectedCatId;
+        item.headerId = selectedHeadId || null; // হেডার থাকলে সেট হবে, না থাকলে সাধারণ ডাটায় যাবে
+
+        await saveDatabase();
+        closeModal("moveDataModal");
+        renderCategoryDetails();
+        showToast("Data সফলভাবে স্থানান্তর করা হয়েছে");
+    }
+});
 
 
 /* =========================================
