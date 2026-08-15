@@ -115,14 +115,15 @@ function toggleTheme() {
 }
 
 /* =========================================
-   FIREBASE STORAGE LOGIC
+   FIREBASE STORAGE LOGIC (FIXED)
 ========================================= */
 
 async function loadDatabase() {
     if (!window.currentUser) return;
 
     try {
-        const targetPath = `webapp/user_data/${primaryAdminUid}`;
+        const targetUid = primaryAdminUid || window.currentUser.uid;
+        const targetPath = `webapp/user_data/${targetUid}`;
         const snapshot = await get(ref(db, targetPath));
 
         if (snapshot.exists()) {
@@ -149,10 +150,12 @@ async function saveDatabase() {
     }
 
     try {
-        await set(ref(db, `webapp/user_data/${window.currentUser.uid}`), database);
+        const targetUid = primaryAdminUid || window.currentUser.uid;
+        await set(ref(db, `webapp/user_data/${targetUid}`), database);
+        console.log("Data saved successfully!");
     } catch (error) {
         console.error("Database save error:", error);
-        showToast("ডাটা সেভ করতে সমস্যা হয়েছে");
+        showToast("ডাটা সেভ করতে সমস্যা হয়েছে: " + error.message);
     }
 }
 
@@ -366,7 +369,6 @@ function renderCategories() {
         );
     }
 
-    // Pinned First Sorting
     categoriesToShow.sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
 
     list.innerHTML = "";
@@ -427,7 +429,6 @@ function renderCategoryDetails() {
     container.innerHTML = "";
     const isAdmin = window.currentUserRole === "admin";
 
-    // Sub-Categories (Sorted by Pin)
     const subCategories = database.categories.filter(cat => cat.parentId === currentCategoryId);
     subCategories.sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
 
