@@ -33,11 +33,16 @@ watchAuth(async (user) => {
     }
 
     window.currentUser = user;
+    
+    // ১. ইউজারের রোল আগে কনফার্ম করা
     await checkUserRole(user.uid);
+    
+    // ২. মেইন অ্যাডমিনের UID বের করা
     await findPrimaryAdmin();
 
+    // ৩. UI আপডেট ও ডাটা লোড
     updateRoleUI();
-    loadDatabase();
+    await loadDatabase();
 });
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -54,6 +59,7 @@ async function checkUserRole(uid) {
             window.currentUserRole = "user";
         }
     } catch (err) {
+        console.error("Role check error:", err);
         window.currentUserRole = "user";
     }
 }
@@ -68,10 +74,10 @@ async function findPrimaryAdmin() {
             const admins = snapshot.val();
             primaryAdminUid = Object.keys(admins)[0];
         } else {
-            primaryAdminUid = window.currentUser.uid;
+            primaryAdminUid = window.currentUser ? window.currentUser.uid : null;
         }
     } catch (err) {
-        primaryAdminUid = window.currentUser.uid;
+        primaryAdminUid = window.currentUser ? window.currentUser.uid : null;
     }
 }
 
@@ -137,7 +143,10 @@ async function loadDatabase() {
 }
 
 async function saveDatabase() {
-    if (window.currentUserRole !== "admin") return;
+    if (window.currentUserRole !== "admin") {
+        showToast("শুধুমাত্র অ্যাডমিন ডাটা সেভ বা এডিট করতে পারবে");
+        return;
+    }
 
     try {
         await set(ref(db, `webapp/user_data/${window.currentUser.uid}`), database);
@@ -152,7 +161,7 @@ function generateId(prefix) {
 }
 
 /* =========================================
-   PIN TOGGLE FUNCTIONS
+   PIN / UNPIN LOGIC
 ========================================= */
 
 async function togglePinCategory(id) {
@@ -162,9 +171,11 @@ async function togglePinCategory(id) {
 
     cat.isPinned = !cat.isPinned;
     await saveDatabase();
+    
     if (currentCategoryId) renderCategoryDetails();
     else renderCategories();
-    showToast(cat.isPinned ? "Category পিন করা হয়েছে" : "Category আনপিন করা হয়েছে");
+    
+    showToast(cat.isPinned ? "Category পিন করা হয়েছে 📌" : "Category আনপিন করা হয়েছে 📍");
 }
 
 async function togglePinData(id) {
@@ -175,7 +186,8 @@ async function togglePinData(id) {
     item.isPinned = !item.isPinned;
     await saveDatabase();
     renderCategoryDetails();
-    showToast(item.isPinned ? "Data পিন করা হয়েছে" : "Data আনপিন করা হয়েছে");
+    
+    showToast(item.isPinned ? "Data পিন করা হয়েছে 📌" : "Data আনপিন করা হয়েছে 📍");
 }
 
 /* =========================================
@@ -335,7 +347,7 @@ async function deleteCategory(id) {
 }
 
 /* =========================================
-   RENDER LOGIC (WITH PIN SORTING)
+   RENDER LOGIC (WITH PIN SUPPORT)
 ========================================= */
 
 function renderCategories() {
@@ -354,7 +366,7 @@ function renderCategories() {
         );
     }
 
-    // Pinned First Sorting
+    // Pinned First Sorting (পিন করা আইটেম সবার আগে থাকবে)
     categoriesToShow.sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
 
     list.innerHTML = "";
@@ -388,7 +400,9 @@ function renderCategories() {
             </div>
             ${isAdmin ? `
             <div style="display: flex; gap: 8px;">
-                <button class="btn-pin-cat secondary-btn" style="padding: 4px 8px;">${category.isPinned ? '📍' : '📌'}</button>
+                <button class="btn-pin-cat secondary-btn" style="padding: 4px 8px;" title="${category.isPinned ? 'আনপিন করুন' : 'পিন করুন'}">
+                    ${category.isPinned ? '📍' : '📌'}
+                </button>
                 <button class="btn-edit-cat secondary-btn" style="padding: 4px 8px;">✏️</button>
                 <button class="btn-del-cat secondary-btn" style="padding: 4px 8px; color: red;">🗑️</button>
             </div>` : ''}
@@ -509,7 +523,9 @@ function createDataCardElement(item) {
         </div>
         ${isAdmin ? `
         <div style="display:flex; gap:6px;">
-            <button class="btn-pin-data secondary-btn" style="padding:2px 6px;">${item.isPinned ? '📍' : '📌'}</button>
+            <button class="btn-pin-data secondary-btn" style="padding:2px 6px;" title="${item.isPinned ? 'আনপিন করুন' : 'পিন করুন'}">
+                ${item.isPinned ? '📍' : '📌'}
+            </button>
             <button class="btn-move-data secondary-btn" style="padding:2px 6px;">📦 Move</button>
             <button class="btn-edit-data secondary-btn" style="padding:2px 6px;">✏️</button>
             <button class="btn-del-data secondary-btn" style="padding:2px 6px; color:red;">🗑️</button>
