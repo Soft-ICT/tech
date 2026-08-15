@@ -366,7 +366,7 @@ function renderCategories() {
         );
     }
 
-    // Pinned First Sorting (পিন করা আইটেম সবার আগে থাকবে)
+    // Pinned First Sorting
     categoriesToShow.sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
 
     list.innerHTML = "";
