@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="bn">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Register - My Data Manager</title>
+
+    <link
+        rel="stylesheet"
+        href="css/style.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="css/auth.css"
+    >
+
+</head>
+
+
+<body>
+
+<div class="auth-page">
+
+    <div class="auth-card">
+
+        <div class="auth-logo">
+            📚
+        </div>
+
+        <h1>Create Account</h1>
+
+        <p class="auth-subtitle">
+            নতুন User Account তৈরি করুন
+        </p>
+
+
+        <form id="registerForm">
+
+            <div class="form-group">
+
+                <label>
+                    নাম
+                </label>
+
+                <input
+                    id="registerName"
+                    type="text"
+                    placeholder="আপনার নাম"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Email
+                </label>
+
+                <input
+                    id="registerEmail"
+                    type="email"
+                    placeholder="আপনার Email"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Password
+                </label>
+
+                <input
+                    id="registerPassword"
+                    type="password"
+                    placeholder="কমপক্ষে ৬ অক্ষর"
+                    minlength="6"
+                    required
+                >
+
+            </div>
+
+
+            <p
+                id="registerError"
+                class="auth-error"
+            ></p>
+
+
+            <button
+                type="submit"
+                class="primary-btn auth-submit"
+            >
+                Register
+            </button>
+
+        </form>
+
+
+        <div class="auth-footer">
+
+            আগে থেকেই Account আছে?
+
+            <a href="login.html">
+                Login করুন
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script
+    type="module"
+    src="js/register.js"
+></script>
+
+</body>
+
+</html>
