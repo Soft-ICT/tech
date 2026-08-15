@@ -4,59 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Web App Dashboard</title>
-
-    <!-- Font Awesome CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
-    <!-- Custom CSS with Cache Control -->
-    <link rel="stylesheet" href="./style.css?v=2.0">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- Topbar Header -->
+    <!-- Header Section -->
     <header class="topbar">
         <h1 class="logo">My App</h1>
         <div class="topbar-actions">
-            <button id="searchBtn" class="icon-btn" title="Search"><i class="fa-solid fa-magnifying-glass"></i></button>
-            <button id="themeBtn" class="icon-btn" title="Toggle Theme"><i class="fa-solid fa-moon"></i></button>
-            <button id="logoutBtn" class="icon-btn" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></button>
+            <button id="searchBtn" class="icon-btn" title="Search">🔍</button>
+            <button id="themeBtn" class="icon-btn" title="Toggle Theme">🌙</button>
+            <button id="logoutBtn" class="icon-btn" title="Logout">🚪</button>
         </div>
     </header>
 
     <!-- Search Box -->
     <div id="searchBox" class="search-container hidden">
         <input type="text" id="searchInput" placeholder="Search categories, headers, data...">
-        <button id="clearSearch" class="small-btn"><i class="fa-solid fa-xmark"></i></button>
+        <button id="clearSearch" class="small-btn">❌</button>
     </div>
 
-    <!-- Main Content Container -->
+    <!-- Main Content -->
     <main class="container">
         
-        <!-- Category Top Action Bar -->
+        <!-- Category Top Info -->
         <div class="header-row">
             <h2>Categories</h2>
             <span id="categoryCount">0টি Category</span>
-            <button id="addCategoryBtn" class="primary-btn"><i class="fa-solid fa-plus"></i> Category</button>
+            <button id="addCategoryBtn" class="primary-btn">＋ Category</button>
         </div>
 
-        <!-- Category Grid/List -->
+        <!-- Category Grid / List -->
         <div id="categoryList" class="category-list"></div>
 
         <!-- Empty State -->
         <div id="emptyState" class="empty-state hidden">
-            <div class="empty-icon"><i class="fa-solid fa-folder-open"></i></div>
+            <div class="empty-icon">📁</div>
             <h2>কোনো Category পাওয়া যায়নি</h2>
             <p>নতুন একটি Category যোগ করে শুরু করুন।</p>
-            <button id="emptyAddBtn" class="primary-btn"><i class="fa-solid fa-plus"></i> Category তৈরি করুন</button>
+            <button id="emptyAddBtn" class="primary-btn">＋ Category তৈরি করুন</button>
         </div>
 
     </main>
 
-    <!-- Modal 1: Category Modal -->
+    <!-- Modal 1: Category Create/Edit Modal -->
     <div id="categoryModal" class="modal hidden">
         <div class="modal-content">
             <h3 id="categoryModalTitle">নতুন Category</h3>
-            <input type="text" id="categoryNameInput" placeholder="Category Name...">
+            <input type="text" id="categoryNameInput" placeholder="Category Name..." autofocus>
             <div class="modal-actions">
                 <button class="secondary-btn" data-close="categoryModal">বাতিল</button>
                 <button id="saveCategoryBtn" class="primary-btn">সেভ করুন</button>
@@ -72,15 +67,17 @@
                     <h2 id="detailsTitle">Category Name</h2>
                     <p id="detailsSubtitle" class="muted-text">0 Header • 0 Data</p>
                 </div>
-                <button class="icon-btn" data-close="detailsModal"><i class="fa-solid fa-xmark"></i></button>
+                <button class="icon-btn" data-close="detailsModal">✖</button>
             </div>
 
+            <!-- Sub-Category, Header, Data Action Toolbar -->
             <div class="section-toolbar">
-                <button id="addSubCategoryBtn" class="primary-btn"><i class="fa-solid fa-plus"></i> Sub-Category</button>
-                <button id="addHeaderBtn" class="primary-btn"><i class="fa-solid fa-plus"></i> Header</button>
-                <button id="addDataBtn" class="secondary-btn"><i class="fa-solid fa-plus"></i> Data</button>
+                <button id="addSubCategoryBtn" class="primary-btn">＋ Sub-Category</button>
+                <button id="addHeaderBtn" class="primary-btn">＋ Header</button>
+                <button id="addDataBtn" class="secondary-btn">＋ Data</button>
             </div>
 
+            <!-- Details Dynamic Content Area -->
             <div id="detailsContent" class="details-content"></div>
         </div>
     </div>
@@ -117,7 +114,6 @@
     <!-- Toast Notification -->
     <div id="toast" class="toast hidden"></div>
 
-    <!-- JS Module Link -->
-    <script type="module" src="./app.js?v=2.0"></script>
+    <script type="module" src="app.js"></script>
 </body>
 </html>
