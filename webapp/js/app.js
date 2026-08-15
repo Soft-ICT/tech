@@ -9,22 +9,17 @@ import { db } from "./firebase.js";
 
 "use strict";
 
-/*
- * ============================================================
- *  ADMIN UID
- * ============================================================
- *
- * এখানে Firebase Authentication থেকে পাওয়া
- * মূল Admin-এর UID বসাও।
- */
-const PRIMARY_ADMIN_UID = "YOUR_ADMIN_UID";
+/* =========================================================
+   MAIN ADMIN
+   ========================================================= */
+
+const ADMIN_UID =
+    "1nTNmVJZ2oQ7EcVruulZoQFXg7b2";
 
 
-/*
- * ============================================================
- *  DATABASE
- * ============================================================
- */
+/* =========================================================
+   LOCAL DATABASE
+   ========================================================= */
 
 let database = {
     categories: [],
@@ -39,11 +34,9 @@ let editingDataId = null;
 let targetMoveDataId = null;
 
 
-/*
- * ============================================================
- *  AUTH
- * ============================================================
- */
+/* =========================================================
+   AUTH
+   ========================================================= */
 
 watchAuth(async (user) => {
 
@@ -55,46 +48,51 @@ watchAuth(async (user) => {
     window.currentUser = user;
 
     /*
-     * Admin নির্ধারণ করা হচ্ছে UID দিয়ে।
+     * শুধু UID দেখে Admin নির্ধারণ।
      *
-     * User-এর কোনো আলাদা profile প্রয়োজন নেই।
+     * কোনো User profile দরকার নেই।
      */
     window.currentUserRole =
-        user.uid === PRIMARY_ADMIN_UID ? "admin" : "user";
+        user.uid === ADMIN_UID
+            ? "admin"
+            : "user";
 
+    console.log(
+        "Current UID:",
+        user.uid
+    );
 
-    /*
-     * UI অনুযায়ী Admin/User mode
-     */
+    console.log(
+        "Current Role:",
+        window.currentUserRole
+    );
+
     updateRoleUI();
 
-
-    /*
-     * Firebase থেকে Shared Data load
-     */
     await loadDatabase();
-});
-
-
-/*
- * ============================================================
- *  DOM READY
- * ============================================================
- */
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    setupEvents();
-    initTheme();
 
 });
 
 
-/*
- * ============================================================
- *  ROLE UI
- * ============================================================
- */
+/* =========================================================
+   DOM READY
+   ========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        setupEvents();
+
+        initTheme();
+
+    }
+);
+
+
+/* =========================================================
+   ROLE UI
+   ========================================================= */
 
 function updateRoleUI() {
 
@@ -102,7 +100,11 @@ function updateRoleUI() {
         window.currentUserRole === "admin";
 
 
-    const adminElements = [
+    /*
+     * Admin-only buttons
+     */
+
+    const adminButtons = [
         "addCategoryBtn",
         "emptyAddBtn",
         "addSubCategoryBtn",
@@ -111,21 +113,25 @@ function updateRoleUI() {
     ];
 
 
-    adminElements.forEach(id => {
+    adminButtons.forEach(id => {
 
-        const element =
+        const button =
             document.getElementById(id);
 
-        if (!element) return;
+        if (!button) return;
 
-        element.style.display =
-            isAdmin ? "" : "none";
+        button.style.display =
+            isAdmin
+                ? ""
+                : "none";
+
     });
 
 
     /*
-     * User-এর জন্য কোনো modal ব্যবহারযোগ্য থাকবে না
+     * User-এর জন্য Admin modal বন্ধ
      */
+
     if (!isAdmin) {
 
         [
@@ -135,11 +141,11 @@ function updateRoleUI() {
             "moveDataModal"
         ].forEach(id => {
 
-            const element =
+            const modal =
                 document.getElementById(id);
 
-            if (element) {
-                element.classList.add("hidden");
+            if (modal) {
+                modal.classList.add("hidden");
             }
 
         });
@@ -149,18 +155,9 @@ function updateRoleUI() {
 }
 
 
-/*
- * ============================================================
- *  LOAD SHARED DATABASE
- * ============================================================
- *
- * Admin এবং User দুজনেই একই Data দেখবে।
- *
- * Firebase path:
- *
- * webapp/shared_data
- *
- */
+/* =========================================================
+   LOAD SHARED DATA
+   ========================================================= */
 
 async function loadDatabase() {
 
@@ -171,7 +168,10 @@ async function loadDatabase() {
 
         const snapshot =
             await get(
-                ref(db, "webapp/shared_data")
+                ref(
+                    db,
+                    "webapp/shared_data"
+                )
             );
 
 
@@ -182,20 +182,28 @@ async function loadDatabase() {
 
 
             database = {
+
                 categories:
-                    Array.isArray(value.categories)
+                    Array.isArray(
+                        value.categories
+                    )
                         ? value.categories
                         : [],
 
                 headers:
-                    Array.isArray(value.headers)
+                    Array.isArray(
+                        value.headers
+                    )
                         ? value.headers
                         : [],
 
                 data:
-                    Array.isArray(value.data)
+                    Array.isArray(
+                        value.data
+                    )
                         ? value.data
                         : []
+
             };
 
         } else {
@@ -209,20 +217,18 @@ async function loadDatabase() {
         }
 
 
-        currentCategoryId = null;
-
         renderCategories();
 
 
     } catch (error) {
 
         console.error(
-            "Database load error:",
+            "Load error:",
             error
         );
 
         showToast(
-            "ডাটা লোড করা যায়নি"
+            "ডাটা লোড করা যায়নি"
         );
 
     }
@@ -230,23 +236,22 @@ async function loadDatabase() {
 }
 
 
-/*
- * ============================================================
- *  SAVE SHARED DATABASE
- * ============================================================
- *
- * শুধু Main Admin লিখতে পারবে।
- *
- */
+/* =========================================================
+   SAVE SHARED DATA
+   ========================================================= */
 
 async function saveDatabase() {
+
+    /*
+     * User কোনোভাবেই Save করতে পারবে না।
+     */
 
     if (
         window.currentUserRole !== "admin"
     ) {
 
         showToast(
-            "আপনার ডাটা পরিবর্তনের অনুমতি নেই"
+            "আপনার অনুমতি নেই"
         );
 
         return false;
@@ -265,7 +270,7 @@ async function saveDatabase() {
 
 
         showToast(
-            "ডাটা সংরক্ষিত হয়েছে"
+            "ডাটা সংরক্ষণ করা হয়েছে"
         );
 
 
@@ -279,169 +284,20 @@ async function saveDatabase() {
             error
         );
 
-
         showToast(
-            "ডাটা সেভ করতে সমস্যা হয়েছে"
+            "ডাটা সেভ করা যায়নি"
         );
-
 
         return false;
+
     }
 
 }
 
 
-/*
- * ============================================================
- *  CATEGORY
- * ============================================================
- */
-
-function openCategoryModal(categoryId = null) {
-
-    if (
-        window.currentUserRole !== "admin"
-    ) return;
-
-
-    editingCategoryId =
-        categoryId;
-
-
-    const input =
-        document.getElementById(
-            "categoryNameInput"
-        );
-
-
-    const title =
-        document.getElementById(
-            "categoryModalTitle"
-        );
-
-
-    if (categoryId) {
-
-        const category =
-            database.categories.find(
-                item =>
-                    item.id === categoryId
-            );
-
-
-        if (!category) return;
-
-
-        input.value =
-            category.name || "";
-
-
-        title.textContent =
-            "Category পরিবর্তন করুন";
-
-    } else {
-
-        input.value = "";
-
-
-        title.textContent =
-            "নতুন Category";
-
-    }
-
-
-    openModal(
-        "categoryModal"
-    );
-}
-
-
-/*
- * Category save
- */
-
-async function saveCategory() {
-
-    if (
-        window.currentUserRole !== "admin"
-    ) return;
-
-
-    const input =
-        document.getElementById(
-            "categoryNameInput"
-        );
-
-
-    const name =
-        input.value.trim();
-
-
-    if (!name) {
-
-        showToast(
-            "Category Name লিখুন"
-        );
-
-        return;
-    }
-
-
-    if (editingCategoryId) {
-
-        const category =
-            database.categories.find(
-                item =>
-                    item.id === editingCategoryId
-            );
-
-
-        if (category) {
-            category.name = name;
-        }
-
-
-    } else {
-
-        database.categories.push({
-
-            id: generateId(
-                "cat"
-            ),
-
-            name: name,
-
-            parentId: null,
-
-            createdAt:
-                Date.now()
-
-        });
-
-    }
-
-
-    if (
-        await saveDatabase()
-    ) {
-
-        closeModal(
-            "categoryModal"
-        );
-
-        editingCategoryId = null;
-
-        renderCategories();
-    }
-
-}
-
-
-/*
- * ============================================================
- *  CATEGORY LIST
- * ============================================================
- */
+/* =========================================================
+   RENDER CATEGORIES
+   ========================================================= */
 
 function renderCategories() {
 
@@ -450,12 +306,10 @@ function renderCategories() {
             "categoryList"
         );
 
-
     const empty =
         document.getElementById(
             "emptyState"
         );
-
 
     const count =
         document.getElementById(
@@ -468,8 +322,8 @@ function renderCategories() {
 
     const categories =
         database.categories.filter(
-            item =>
-                !item.parentId
+            category =>
+                !category.parentId
         );
 
 
@@ -516,12 +370,12 @@ function renderCategories() {
 
             card.innerHTML = `
 
-                <div class="category-card-content">
-
+                <div>
                     <h3>
-                        📂 ${escapeHtml(category.name)}
+                        📂 ${escapeHtml(
+                            category.name
+                        )}
                     </h3>
-
                 </div>
 
                 <div class="category-actions">
@@ -534,23 +388,24 @@ function renderCategories() {
 
                     ${
                         window.currentUserRole === "admin"
-                        ? `
-                        <button
-                            class="secondary-btn"
-                            data-edit-category="${category.id}">
-                            Edit
-                        </button>
+                            ? `
+                                <button
+                                    class="secondary-btn"
+                                    data-edit-category="${category.id}">
+                                    Edit
+                                </button>
 
-                        <button
-                            class="secondary-btn"
-                            data-delete-category="${category.id}">
-                            Delete
-                        </button>
-                        `
-                        : ""
+                                <button
+                                    class="secondary-btn"
+                                    data-delete-category="${category.id}">
+                                    Delete
+                                </button>
+                              `
+                            : ""
                     }
 
                 </div>
+
             `;
 
 
@@ -559,6 +414,10 @@ function renderCategories() {
         }
     );
 
+
+    /*
+     * Open
+     */
 
     list.querySelectorAll(
         "[data-open-category]"
@@ -577,6 +436,10 @@ function renderCategories() {
 
     });
 
+
+    /*
+     * Admin Edit/Delete
+     */
 
     if (
         window.currentUserRole === "admin"
@@ -622,36 +485,18 @@ function renderCategories() {
 }
 
 
-/*
- * ============================================================
- *  OPEN CATEGORY
- * ============================================================
- */
+/* =========================================================
+   OPEN CATEGORY
+   ========================================================= */
 
-function openCategory(categoryId) {
+function openCategory(id) {
 
-    currentCategoryId =
-        categoryId;
-
-
-    renderCategoryDetails();
-
-}
-
-
-/*
- * ============================================================
- *  CATEGORY DETAILS
- * ============================================================
- */
-
-function renderCategoryDetails() {
+    currentCategoryId = id;
 
     const main =
         document.getElementById(
             "mainDashboardView"
         );
-
 
     const details =
         document.getElementById(
@@ -659,24 +504,30 @@ function renderCategoryDetails() {
         );
 
 
-    const title =
-        document.getElementById(
-            "detailsTitle"
+    if (main) {
+        main.classList.add(
+            "hidden"
         );
+    }
 
 
-    const content =
-        document.getElementById(
-            "detailsContent"
+    if (details) {
+        details.classList.remove(
+            "hidden"
         );
+    }
 
 
-    if (
-        !main ||
-        !details ||
-        !content
-    ) return;
+    renderCategoryDetails();
 
+}
+
+
+/* =========================================================
+   CATEGORY DETAILS
+   ========================================================= */
+
+function renderCategoryDetails() {
 
     const category =
         database.categories.find(
@@ -687,30 +538,45 @@ function renderCategoryDetails() {
 
     if (!category) {
 
-        currentCategoryId = null;
-
-        renderCategories();
+        goBack();
 
         return;
     }
 
 
-    main.classList.add(
-        "hidden"
-    );
+    const title =
+        document.getElementById(
+            "detailsTitle"
+        );
 
 
-    details.classList.remove(
-        "hidden"
-    );
+    const subtitle =
+        document.getElementById(
+            "detailsSubtitle"
+        );
+
+
+    const content =
+        document.getElementById(
+            "detailsContent"
+        );
 
 
     if (title) {
-
         title.textContent =
             category.name;
+    }
+
+
+    if (subtitle) {
+
+        subtitle.textContent =
+            `${countCategoryItems(category.id)}টি Data`;
 
     }
+
+
+    if (!content) return;
 
 
     content.innerHTML = "";
@@ -749,46 +615,87 @@ function renderCategoryDetails() {
         subCategories.forEach(
             sub => {
 
-                const div =
+                const box =
                     document.createElement(
                         "div"
                     );
 
 
-                div.className =
+                box.className =
                     "category-card";
 
 
-                div.innerHTML = `
+                box.innerHTML = `
 
                     <h3>
-                        📁 ${escapeHtml(sub.name)}
+                        📁 ${escapeHtml(
+                            sub.name
+                        )}
                     </h3>
 
                     ${
                         window.currentUserRole === "admin"
-                        ? `
-                        <button
-                            class="secondary-btn"
-                            data-edit-category="${sub.id}">
-                            Edit
-                        </button>
+                            ? `
+                                <button
+                                    class="secondary-btn"
+                                    data-edit-sub="${sub.id}">
+                                    Edit
+                                </button>
 
-                        <button
-                            class="secondary-btn"
-                            data-delete-category="${sub.id}">
-                            Delete
-                        </button>
-                        `
-                        : ""
+                                <button
+                                    class="secondary-btn"
+                                    data-delete-sub="${sub.id}">
+                                    Delete
+                                </button>
+                              `
+                            : ""
                     }
+
                 `;
 
 
-                content.appendChild(div);
+                content.appendChild(
+                    box
+                );
 
             }
         );
+
+
+        content.querySelectorAll(
+            "[data-edit-sub]"
+        ).forEach(button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    openCategoryModal(
+                        button.dataset.editSub
+                    );
+
+                }
+            );
+
+        });
+
+
+        content.querySelectorAll(
+            "[data-delete-sub]"
+        ).forEach(button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    deleteCategory(
+                        button.dataset.deleteSub
+                    );
+
+                }
+            );
+
+        });
 
     }
 
@@ -819,9 +726,33 @@ function renderCategoryDetails() {
 
             section.innerHTML = `
 
-                <h3>
-                    ${escapeHtml(header.name)}
-                </h3>
+                <div class="section-header">
+
+                    <h3>
+                        ${escapeHtml(
+                            header.name
+                        )}
+                    </h3>
+
+                    ${
+                        window.currentUserRole === "admin"
+                            ? `
+                                <button
+                                    class="secondary-btn"
+                                    data-edit-header="${header.id}">
+                                    Edit
+                                </button>
+
+                                <button
+                                    class="secondary-btn"
+                                    data-delete-header="${header.id}">
+                                    Delete
+                                </button>
+                              `
+                            : ""
+                    }
+
+                </div>
 
             `;
 
@@ -838,7 +769,7 @@ function renderCategoryDetails() {
                 item => {
 
                     section.appendChild(
-                        createDataElement(item)
+                        createDataCard(item)
                     );
 
                 }
@@ -851,6 +782,46 @@ function renderCategoryDetails() {
 
         }
     );
+
+
+    /*
+     * Header events
+     */
+
+    content.querySelectorAll(
+        "[data-edit-header]"
+    ).forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                openHeaderModal(
+                    button.dataset.editHeader
+                );
+
+            }
+        );
+
+    });
+
+
+    content.querySelectorAll(
+        "[data-delete-header]"
+    ).forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                deleteHeader(
+                    button.dataset.deleteHeader
+                );
+
+            }
+        );
+
+    });
 
 
     /*
@@ -883,7 +854,7 @@ function renderCategoryDetails() {
             item => {
 
                 section.appendChild(
-                    createDataElement(item)
+                    createDataCard(item)
                 );
 
             }
@@ -899,54 +870,66 @@ function renderCategoryDetails() {
 }
 
 
-/*
- * ============================================================
- *  CREATE DATA ELEMENT
- * ============================================================
- */
+/* =========================================================
+   DATA CARD
+   ========================================================= */
 
-function createDataElement(item) {
+function createDataCard(item) {
 
-    const element =
+    const card =
         document.createElement(
             "div"
         );
 
 
-    element.className =
-        "data-card";
+    card.className =
+        "category-card";
 
 
-    element.innerHTML = `
+    card.innerHTML = `
 
-        <h4>
-            ${escapeHtml(item.title || "")}
-        </h4>
+        <div>
 
-        <p>
-            ${escapeHtml(item.description || "")}
-        </p>
+            <h3>
+                ${escapeHtml(
+                    item.title || ""
+                )}
+            </h3>
+
+            <p>
+                ${escapeHtml(
+                    item.description || ""
+                )}
+            </p>
+
+        </div>
 
         ${
             window.currentUserRole === "admin"
-            ? `
-            <div class="data-actions">
+                ? `
+                    <div>
 
-                <button
-                    class="secondary-btn"
-                    data-edit-data="${item.id}">
-                    Edit
-                </button>
+                        <button
+                            class="secondary-btn"
+                            data-edit-data="${item.id}">
+                            ✏️ Edit
+                        </button>
 
-                <button
-                    class="secondary-btn"
-                    data-delete-data="${item.id}">
-                    Delete
-                </button>
+                        <button
+                            class="secondary-btn"
+                            data-delete-data="${item.id}">
+                            🗑️ Delete
+                        </button>
 
-            </div>
-            `
-            : ""
+                        <button
+                            class="secondary-btn"
+                            data-move-data="${item.id}">
+                            ↔️ Move
+                        </button>
+
+                    </div>
+                  `
+                : ""
         }
 
     `;
@@ -956,55 +939,361 @@ function createDataElement(item) {
         window.currentUserRole === "admin"
     ) {
 
-        const edit =
-            element.querySelector(
-                "[data-edit-data]"
-            );
-
-
-        const remove =
-            element.querySelector(
-                "[data-delete-data]"
-            );
-
-
-        edit?.addEventListener(
+        card.querySelector(
+            "[data-edit-data]"
+        )?.addEventListener(
             "click",
-            () => editData(item.id)
+            () =>
+                openDataModal(item.id)
         );
 
 
-        remove?.addEventListener(
+        card.querySelector(
+            "[data-delete-data]"
+        )?.addEventListener(
             "click",
-            () => deleteData(item.id)
+            () =>
+                deleteData(item.id)
+        );
+
+
+        card.querySelector(
+            "[data-move-data]"
+        )?.addEventListener(
+            "click",
+            () =>
+                openMoveModal(item.id)
         );
 
     }
 
 
-    return element;
+    return card;
+
 }
 
 
-/*
- * ============================================================
- *  HEADER
- * ============================================================
- */
+/* =========================================================
+   CATEGORY MODAL
+   ========================================================= */
 
-function openHeaderModal() {
+function openCategoryModal(id = null) {
 
     if (
         window.currentUserRole !== "admin"
     ) return;
 
 
-    editingHeaderId = null;
+    editingCategoryId = id;
 
 
-    document.getElementById(
-        "headerNameInput"
-    ).value = "";
+    const input =
+        document.getElementById(
+            "categoryNameInput"
+        );
+
+
+    const title =
+        document.getElementById(
+            "categoryModalTitle"
+        );
+
+
+    if (id) {
+
+        const category =
+            database.categories.find(
+                item =>
+                    item.id === id
+            );
+
+
+        if (!category) return;
+
+
+        input.value =
+            category.name || "";
+
+
+        title.textContent =
+            category.parentId
+                ? "Sub-Category পরিবর্তন করুন"
+                : "Category পরিবর্তন করুন";
+
+
+    } else {
+
+        input.value = "";
+
+        title.textContent =
+            "নতুন Category";
+
+    }
+
+
+    openModal(
+        "categoryModal"
+    );
+
+}
+
+
+/* =========================================================
+   SAVE CATEGORY
+   ========================================================= */
+
+async function saveCategory() {
+
+    if (
+        window.currentUserRole !== "admin"
+    ) return;
+
+
+    const input =
+        document.getElementById(
+            "categoryNameInput"
+        );
+
+
+    const name =
+        input.value.trim();
+
+
+    if (!name) {
+
+        showToast(
+            "Category Name লিখুন"
+        );
+
+        return;
+    }
+
+
+    if (editingCategoryId) {
+
+        const category =
+            database.categories.find(
+                item =>
+                    item.id === editingCategoryId
+            );
+
+
+        if (category) {
+
+            category.name =
+                name;
+
+        }
+
+    } else {
+
+        database.categories.push({
+
+            id:
+                generateId("cat"),
+
+            name:
+                name,
+
+            parentId:
+                null,
+
+            createdAt:
+                Date.now()
+
+        });
+
+    }
+
+
+    if (
+        await saveDatabase()
+    ) {
+
+        closeModal(
+            "categoryModal"
+        );
+
+        editingCategoryId = null;
+
+        renderCategories();
+
+    }
+
+}
+
+
+/* =========================================================
+   SUB CATEGORY
+   ========================================================= */
+
+function openSubCategoryModal() {
+
+    if (
+        window.currentUserRole !== "admin"
+    ) return;
+
+
+    if (!currentCategoryId) {
+
+        showToast(
+            "আগে Category নির্বাচন করুন"
+        );
+
+        return;
+    }
+
+
+    editingCategoryId = null;
+
+
+    const input =
+        document.getElementById(
+            "categoryNameInput"
+        );
+
+
+    const title =
+        document.getElementById(
+            "categoryModalTitle"
+        );
+
+
+    input.value = "";
+
+    title.textContent =
+        "নতুন Sub-Category";
+
+
+    openModal(
+        "categoryModal"
+    );
+
+}
+
+
+/*
+ * saveCategory override for Sub-Category
+ */
+
+const originalSaveCategory =
+    saveCategory;
+
+
+/*
+ * নতুন Sub Category আলাদা function
+ */
+
+async function saveSubCategory() {
+
+    if (
+        window.currentUserRole !== "admin"
+    ) return;
+
+
+    const input =
+        document.getElementById(
+            "categoryNameInput"
+        );
+
+
+    const name =
+        input.value.trim();
+
+
+    if (!name) {
+
+        showToast(
+            "Sub-Category Name লিখুন"
+        );
+
+        return;
+    }
+
+
+    if (!currentCategoryId) {
+
+        showToast(
+            "Category নির্বাচন করুন"
+        );
+
+        return;
+    }
+
+
+    database.categories.push({
+
+        id:
+            generateId("sub"),
+
+        name:
+            name,
+
+        parentId:
+            currentCategoryId,
+
+        createdAt:
+            Date.now()
+
+    });
+
+
+    if (
+        await saveDatabase()
+    ) {
+
+        closeModal(
+            "categoryModal"
+        );
+
+        renderCategoryDetails();
+
+    }
+
+}
+
+
+/* =========================================================
+   HEADER MODAL
+   ========================================================= */
+
+function openHeaderModal(id = null) {
+
+    if (
+        window.currentUserRole !== "admin"
+    ) return;
+
+
+    editingHeaderId =
+        id;
+
+
+    const input =
+        document.getElementById(
+            "headerNameInput"
+        );
+
+
+    if (id) {
+
+        const header =
+            database.headers.find(
+                item =>
+                    item.id === id
+            );
+
+
+        if (!header) return;
+
+
+        input.value =
+            header.name || "";
+
+    } else {
+
+        input.value = "";
+
+    }
 
 
     openModal(
@@ -1013,6 +1302,10 @@ function openHeaderModal() {
 
 }
 
+
+/* =========================================================
+   SAVE HEADER
+   ========================================================= */
 
 async function saveHeader() {
 
@@ -1044,27 +1337,45 @@ async function saveHeader() {
     if (!currentCategoryId) {
 
         showToast(
-            "প্রথমে Category নির্বাচন করুন"
+            "Category নির্বাচন করুন"
         );
 
         return;
     }
 
 
-    database.headers.push({
+    if (editingHeaderId) {
 
-        id:
-            generateId("header"),
+        const header =
+            database.headers.find(
+                item =>
+                    item.id === editingHeaderId
+            );
 
-        name: name,
 
-        categoryId:
-            currentCategoryId,
+        if (header) {
+            header.name = name;
+        }
 
-        createdAt:
-            Date.now()
+    } else {
 
-    });
+        database.headers.push({
+
+            id:
+                generateId("header"),
+
+            name:
+                name,
+
+            categoryId:
+                currentCategoryId,
+
+            createdAt:
+                Date.now()
+
+        });
+
+    }
 
 
     if (
@@ -1075,6 +1386,8 @@ async function saveHeader() {
             "headerModal"
         );
 
+        editingHeaderId = null;
+
         renderCategoryDetails();
 
     }
@@ -1082,21 +1395,29 @@ async function saveHeader() {
 }
 
 
-/*
- * ============================================================
- *  DATA
- * ============================================================
- */
+/* =========================================================
+   DATA MODAL
+   ========================================================= */
 
-function openDataModal(dataId = null) {
+function openDataModal(id = null) {
 
     if (
         window.currentUserRole !== "admin"
     ) return;
 
 
+    if (!currentCategoryId) {
+
+        showToast(
+            "আগে Category নির্বাচন করুন"
+        );
+
+        return;
+    }
+
+
     editingDataId =
-        dataId;
+        id;
 
 
     const titleInput =
@@ -1111,12 +1432,12 @@ function openDataModal(dataId = null) {
         );
 
 
-    if (dataId) {
+    if (id) {
 
         const item =
             database.data.find(
                 data =>
-                    data.id === dataId
+                    data.id === id
             );
 
 
@@ -1139,7 +1460,9 @@ function openDataModal(dataId = null) {
     }
 
 
-    populateHeaderSelect();
+    populateHeaderSelect(
+        id
+    );
 
 
     openModal(
@@ -1149,7 +1472,11 @@ function openDataModal(dataId = null) {
 }
 
 
-function populateHeaderSelect() {
+/* =========================================================
+   HEADER SELECT
+   ========================================================= */
+
+function populateHeaderSelect(dataId) {
 
     const select =
         document.getElementById(
@@ -1164,37 +1491,74 @@ function populateHeaderSelect() {
         `<option value="">Header ছাড়া</option>`;
 
 
-    database.headers
-        .filter(
+    const headers =
+        database.headers.filter(
             header =>
-                header.categoryId === currentCategoryId
-        )
-        .forEach(
-            header => {
-
-                const option =
-                    document.createElement(
-                        "option"
-                    );
+                header.categoryId ===
+                currentCategoryId
+        );
 
 
-                option.value =
-                    header.id;
+    let selectedHeader =
+        "";
 
 
-                option.textContent =
-                    header.name;
+    if (dataId) {
+
+        const item =
+            database.data.find(
+                data =>
+                    data.id === dataId
+            );
 
 
-                select.appendChild(
-                    option
+        selectedHeader =
+            item?.headerId || "";
+
+    }
+
+
+    headers.forEach(
+        header => {
+
+            const option =
+                document.createElement(
+                    "option"
                 );
 
+
+            option.value =
+                header.id;
+
+
+            option.textContent =
+                header.name;
+
+
+            if (
+                header.id ===
+                selectedHeader
+            ) {
+
+                option.selected =
+                    true;
+
             }
-        );
+
+
+            select.appendChild(
+                option
+            );
+
+        }
+    );
 
 }
 
+
+/* =========================================================
+   SAVE DATA
+   ========================================================= */
 
 async function saveData() {
 
@@ -1203,32 +1567,27 @@ async function saveData() {
     ) return;
 
 
-    if (!currentCategoryId) {
-
-        showToast(
-            "Category নির্বাচন করুন"
-        );
-
-        return;
-    }
-
-
     const title =
         document.getElementById(
             "dataTitleInput"
-        ).value.trim();
+        )
+        .value
+        .trim();
 
 
     const description =
         document.getElementById(
             "dataDescriptionInput"
-        ).value.trim();
+        )
+        .value
+        .trim();
 
 
     const headerId =
         document.getElementById(
             "dataHeaderSelect"
-        ).value;
+        )
+        .value;
 
 
     if (!title) {
@@ -1246,7 +1605,8 @@ async function saveData() {
         const item =
             database.data.find(
                 data =>
-                    data.id === editingDataId
+                    data.id ===
+                    editingDataId
             );
 
 
@@ -1257,6 +1617,9 @@ async function saveData() {
 
             item.description =
                 description;
+
+            item.categoryId =
+                currentCategoryId;
 
             item.headerId =
                 headerId || null;
@@ -1307,29 +1670,9 @@ async function saveData() {
 }
 
 
-/*
- * ============================================================
- *  EDIT DATA
- * ============================================================
- */
-
-function editData(id) {
-
-    if (
-        window.currentUserRole !== "admin"
-    ) return;
-
-
-    openDataModal(id);
-
-}
-
-
-/*
- * ============================================================
- *  DELETE CATEGORY
- * ============================================================
- */
+/* =========================================================
+   DELETE CATEGORY
+   ========================================================= */
 
 async function deleteCategory(id) {
 
@@ -1340,32 +1683,60 @@ async function deleteCategory(id) {
 
     if (
         !confirm(
-            "এই Category এবং এর Data মুছে ফেলবেন?"
+            "এই Category এবং এর সব Data মুছে ফেলবেন?"
         )
     ) return;
+
+
+    /*
+     * মূল Category এবং Sub-category
+     */
+
+    const idsToDelete =
+        database.categories
+            .filter(
+                item =>
+                    item.id === id ||
+                    item.parentId === id
+            )
+            .map(
+                item =>
+                    item.id
+            );
 
 
     database.categories =
         database.categories.filter(
             item =>
-                item.id !== id &&
-                item.parentId !== id
-        );
-
-
-    database.headers =
-        database.headers.filter(
-            header =>
-                !(
-                    header.categoryId === id
+                !idsToDelete.includes(
+                    item.id
                 )
         );
 
 
+    /*
+     * Header delete
+     */
+
+    database.headers =
+        database.headers.filter(
+            header =>
+                !idsToDelete.includes(
+                    header.categoryId
+                )
+        );
+
+
+    /*
+     * Data delete
+     */
+
     database.data =
         database.data.filter(
             item =>
-                item.categoryId !== id
+                !idsToDelete.includes(
+                    item.categoryId
+                )
         );
 
 
@@ -1375,6 +1746,8 @@ async function deleteCategory(id) {
 
         currentCategoryId = null;
 
+        goBack();
+
         renderCategories();
 
     }
@@ -1382,11 +1755,66 @@ async function deleteCategory(id) {
 }
 
 
-/*
- * ============================================================
- *  DELETE DATA
- * ============================================================
- */
+/* =========================================================
+   DELETE HEADER
+   ========================================================= */
+
+async function deleteHeader(id) {
+
+    if (
+        window.currentUserRole !== "admin"
+    ) return;
+
+
+    if (
+        !confirm(
+            "এই Header মুছে ফেলবেন?"
+        )
+    ) return;
+
+
+    database.headers =
+        database.headers.filter(
+            header =>
+                header.id !== id
+        );
+
+
+    /*
+     * Header-এর Data থাকবে,
+     * তবে Header ছাড়া দেখাবে।
+     */
+
+    database.data.forEach(
+        item => {
+
+            if (
+                item.headerId === id
+            ) {
+
+                item.headerId =
+                    null;
+
+            }
+
+        }
+    );
+
+
+    if (
+        await saveDatabase()
+    ) {
+
+        renderCategoryDetails();
+
+    }
+
+}
+
+
+/* =========================================================
+   DELETE DATA
+   ========================================================= */
 
 async function deleteData(id) {
 
@@ -1420,227 +1848,217 @@ async function deleteData(id) {
 }
 
 
-/*
- * ============================================================
- *  EVENTS
- * ============================================================
- */
+/* =========================================================
+   MOVE DATA
+   ========================================================= */
 
-function setupEvents() {
+function openMoveModal(id) {
 
-    document.getElementById(
-        "logoutBtn"
-    )?.addEventListener(
-        "click",
-        () => {
-
-            if (
-                confirm(
-                    "আপনি কি লগআউট করতে চান?"
-                )
-            ) {
-
-                logoutUser();
-
-            }
-
-        }
-    );
+    if (
+        window.currentUserRole !== "admin"
+    ) return;
 
 
-    document.getElementById(
-        "themeBtn"
-    )?.addEventListener(
-        "click",
-        toggleTheme
-    );
+    targetMoveDataId =
+        id;
 
 
-    document.getElementById(
-        "addCategoryBtn"
-    )?.addEventListener(
-        "click",
-        () => openCategoryModal()
-    );
+    const categorySelect =
+        document.getElementById(
+            "moveCategorySelect"
+        );
 
 
-    document.getElementById(
-        "emptyAddBtn"
-    )?.addEventListener(
-        "click",
-        () => openCategoryModal()
-    );
+    const headerSelect =
+        document.getElementById(
+            "moveHeaderSelect"
+        );
 
 
-    document.getElementById(
-        "addHeaderBtn"
-    )?.addEventListener(
-        "click",
-        openHeaderModal
-    );
+    if (!categorySelect) return;
 
 
-    document.getElementById(
-        "addDataBtn"
-    )?.addEventListener(
-        "click",
-        () => openDataModal()
-    );
+    categorySelect.innerHTML =
+        "";
 
 
-    document.getElementById(
-        "saveCategoryBtn"
-    )?.addEventListener(
-        "click",
-        saveCategory
-    );
+    database.categories
+        .filter(
+            category =>
+                !category.parentId
+        )
+        .forEach(
+            category => {
+
+                const option =
+                    document.createElement(
+                        "option"
+                    );
 
 
-    document.getElementById(
-        "saveHeaderBtn"
-    )?.addEventListener(
-        "click",
-        saveHeader
-    );
+                option.value =
+                    category.id;
 
 
-    document.getElementById(
-        "saveDataBtn"
-    )?.addEventListener(
-        "click",
-        saveData
-    );
+                option.textContent =
+                    category.name;
 
 
-    document.getElementById(
-        "backToMainBtn"
-    )?.addEventListener(
-        "click",
-        () => {
-
-            currentCategoryId = null;
-
-            document
-                .getElementById(
-                    "categoryDetailsView"
-                )
-                ?.classList.add(
-                    "hidden"
-                );
-
-
-            document
-                .getElementById(
-                    "mainDashboardView"
-                )
-                ?.classList.remove(
-                    "hidden"
-                );
-
-
-            renderCategories();
-
-        }
-    );
-
-
-    /*
-     * Close buttons
-     */
-
-    document.querySelectorAll(
-        "[data-close]"
-    ).forEach(button => {
-
-        button.addEventListener(
-            "click",
-            () => {
-
-                closeModal(
-                    button.dataset.close
+                categorySelect.appendChild(
+                    option
                 );
 
             }
         );
 
-    });
 
-
-    /*
-     * Search
-     */
-
-    document.getElementById(
-        "searchBtn"
-    )?.addEventListener(
-        "click",
+    categorySelect.onchange =
         () => {
 
-            document
-                .getElementById(
-                    "searchBox"
-                )
-                ?.classList.toggle(
-                    "hidden"
-                );
+            populateMoveHeaders(
+                categorySelect.value
+            );
 
-        }
-    );
+        };
 
 
-    document.getElementById(
-        "clearSearch"
-    )?.addEventListener(
-        "click",
-        () => {
-
-            const input =
-                document.getElementById(
-                    "searchInput"
-                );
+    if (headerSelect) {
+        populateMoveHeaders(
+            categorySelect.value
+        );
+    }
 
 
-            if (input) {
-                input.value = "";
-            }
-
-
-            renderCategories();
-
-        }
-    );
-
-
-    document.getElementById(
-        "searchInput"
-    )?.addEventListener(
-        "input",
-        performSearch
+    openModal(
+        "moveDataModal"
     );
 
 }
 
 
-/*
- * ============================================================
- *  SEARCH
- * ============================================================
- */
+/* =========================================================
+   MOVE HEADER LIST
+   ========================================================= */
 
-function performSearch(event) {
+function populateMoveHeaders(
+    categoryId
+) {
 
-    const search =
-        event.target.value
-            .trim()
-            .toLowerCase();
+    const select =
+        document.getElementById(
+            "moveHeaderSelect"
+        );
 
 
-    if (!search) {
+    if (!select) return;
 
-        renderCategories();
 
-        return;
+    select.innerHTML =
+        `<option value="">Header ছাড়া</option>`;
+
+
+    database.headers
+        .filter(
+            header =>
+                header.categoryId ===
+                categoryId
+        )
+        .forEach(
+            header => {
+
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+
+                option.value =
+                    header.id;
+
+
+                option.textContent =
+                    header.name;
+
+
+                select.appendChild(
+                    option
+                );
+
+            }
+        );
+
+}
+
+
+/* =========================================================
+   CONFIRM MOVE
+   ========================================================= */
+
+async function confirmMove() {
+
+    if (
+        window.currentUserRole !== "admin"
+    ) return;
+
+
+    const categoryId =
+        document.getElementById(
+            "moveCategorySelect"
+        ).value;
+
+
+    const headerId =
+        document.getElementById(
+            "moveHeaderSelect"
+        ).value;
+
+
+    const item =
+        database.data.find(
+            data =>
+                data.id ===
+                targetMoveDataId
+        );
+
+
+    if (!item) return;
+
+
+    item.categoryId =
+        categoryId;
+
+
+    item.headerId =
+        headerId || null;
+
+
+    if (
+        await saveDatabase()
+    ) {
+
+        closeModal(
+            "moveDataModal"
+        );
+
+        targetMoveDataId = null;
+
+        renderCategoryDetails();
+
     }
+
+}
+
+
+/* =========================================================
+   SEARCH
+   ========================================================= */
+
+function performSearch() {
+
+    const input =
+        document.getElementById(
+            "searchInput"
+        );
 
 
     const list =
@@ -1655,22 +2073,54 @@ function performSearch(event) {
         );
 
 
-    if (!list) return;
+    if (!input || !list) return;
 
 
-    list.innerHTML = "";
+    const term =
+        input.value
+            .trim()
+            .toLowerCase();
+
+
+    if (!term) {
+
+        renderCategories();
+
+        return;
+
+    }
 
 
     const results =
         database.categories.filter(
             category => {
 
+                if (
+                    category.parentId
+                ) {
+                    return false;
+                }
+
+
                 const categoryMatch =
                     String(
                         category.name || ""
                     )
                     .toLowerCase()
-                    .includes(search);
+                    .includes(term);
+
+
+                const headerMatch =
+                    database.headers.some(
+                        header =>
+                            header.categoryId ===
+                                category.id &&
+                            String(
+                                header.name || ""
+                            )
+                            .toLowerCase()
+                            .includes(term)
+                    );
 
 
                 const dataMatch =
@@ -1678,14 +2128,14 @@ function performSearch(event) {
                         item =>
 
                             item.categoryId ===
-                            category.id &&
+                                category.id &&
 
                             (
                                 String(
                                     item.title || ""
                                 )
                                 .toLowerCase()
-                                .includes(search)
+                                .includes(term)
 
                                 ||
 
@@ -1693,18 +2143,22 @@ function performSearch(event) {
                                     item.description || ""
                                 )
                                 .toLowerCase()
-                                .includes(search)
+                                .includes(term)
                             )
                     );
 
 
                 return (
-                    !category.parentId &&
-                    (categoryMatch || dataMatch)
+                    categoryMatch ||
+                    headerMatch ||
+                    dataMatch
                 );
 
             }
         );
+
+
+    list.innerHTML = "";
 
 
     if (!results.length) {
@@ -1714,6 +2168,7 @@ function performSearch(event) {
         }
 
         return;
+
     }
 
 
@@ -1738,16 +2193,28 @@ function performSearch(event) {
             card.innerHTML = `
 
                 <h3>
-                    📂 ${escapeHtml(category.name)}
+                    📂 ${escapeHtml(
+                        category.name
+                    )}
                 </h3>
 
                 <button
-                    class="secondary-btn"
-                    data-search-open="${category.id}">
+                    class="secondary-btn">
                     Open
                 </button>
 
             `;
+
+
+            card.querySelector(
+                "button"
+            ).addEventListener(
+                "click",
+                () =>
+                    openCategory(
+                        category.id
+                    )
+            );
 
 
             list.appendChild(
@@ -1757,32 +2224,336 @@ function performSearch(event) {
         }
     );
 
+}
 
-    list.querySelectorAll(
-        "[data-search-open]"
-    ).forEach(button => {
 
-        button.addEventListener(
+/* =========================================================
+   EVENTS
+   ========================================================= */
+
+function setupEvents() {
+
+    /*
+     * Logout
+     */
+
+    document
+        .getElementById(
+            "logoutBtn"
+        )
+        ?.addEventListener(
             "click",
             () => {
 
-                openCategory(
-                    button.dataset.searchOpen
-                );
+                if (
+                    confirm(
+                        "আপনি কি লগআউট করতে চান?"
+                    )
+                ) {
+
+                    logoutUser();
+
+                }
 
             }
         );
 
-    });
+
+    /*
+     * Theme
+     */
+
+    document
+        .getElementById(
+            "themeBtn"
+        )
+        ?.addEventListener(
+            "click",
+            toggleTheme
+        );
+
+
+    /*
+     * Category
+     */
+
+    document
+        .getElementById(
+            "addCategoryBtn"
+        )
+        ?.addEventListener(
+            "click",
+            () =>
+                openCategoryModal()
+        );
+
+
+    document
+        .getElementById(
+            "emptyAddBtn"
+        )
+        ?.addEventListener(
+            "click",
+            () =>
+                openCategoryModal()
+        );
+
+
+    /*
+     * Sub Category
+     */
+
+    document
+        .getElementById(
+            "addSubCategoryBtn"
+        )
+        ?.addEventListener(
+            "click",
+            openSubCategoryModal
+        );
+
+
+    /*
+     * Header
+     */
+
+    document
+        .getElementById(
+            "addHeaderBtn"
+        )
+        ?.addEventListener(
+            "click",
+            () =>
+                openHeaderModal()
+        );
+
+
+    /*
+     * Data
+     */
+
+    document
+        .getElementById(
+            "addDataBtn"
+        )
+        ?.addEventListener(
+            "click",
+            () =>
+                openDataModal()
+        );
+
+
+    /*
+     * Save buttons
+     */
+
+    document
+        .getElementById(
+            "saveCategoryBtn"
+        )
+        ?.addEventListener(
+            "click",
+            () => {
+
+                /*
+                 * Category modal title দেখে
+                 * Sub-category কিনা বুঝবে।
+                 */
+
+                const title =
+                    document
+                        .getElementById(
+                            "categoryModalTitle"
+                        )
+                        ?.textContent || "";
+
+
+                if (
+                    title.includes(
+                        "Sub-Category"
+                    )
+                ) {
+
+                    saveSubCategory();
+
+                } else {
+
+                    saveCategory();
+
+                }
+
+            }
+        );
+
+
+    document
+        .getElementById(
+            "saveHeaderBtn"
+        )
+        ?.addEventListener(
+            "click",
+            saveHeader
+        );
+
+
+    document
+        .getElementById(
+            "saveDataBtn"
+        )
+        ?.addEventListener(
+            "click",
+            saveData
+        );
+
+
+    /*
+     * Move
+     */
+
+    document
+        .getElementById(
+            "confirmMoveBtn"
+        )
+        ?.addEventListener(
+            "click",
+            confirmMove
+        );
+
+
+    /*
+     * Back
+     */
+
+    document
+        .getElementById(
+            "backToMainBtn"
+        )
+        ?.addEventListener(
+            "click",
+            goBack
+        );
+
+
+    /*
+     * Search
+     */
+
+    document
+        .getElementById(
+            "searchBtn"
+        )
+        ?.addEventListener(
+            "click",
+            () => {
+
+                document
+                    .getElementById(
+                        "searchBox"
+                    )
+                    ?.classList.toggle(
+                        "hidden"
+                    );
+
+            }
+        );
+
+
+    document
+        .getElementById(
+            "searchInput"
+        )
+        ?.addEventListener(
+            "input",
+            performSearch
+        );
+
+
+    document
+        .getElementById(
+            "clearSearch"
+        )
+        ?.addEventListener(
+            "click",
+            () => {
+
+                const input =
+                    document.getElementById(
+                        "searchInput"
+                    );
+
+
+                if (input) {
+                    input.value = "";
+                }
+
+
+                renderCategories();
+
+            }
+        );
+
+
+    /*
+     * Close modal buttons
+     */
+
+    document
+        .querySelectorAll(
+            "[data-close]"
+        )
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    closeModal(
+                        button.dataset.close
+                    );
+
+                }
+            );
+
+        });
 
 }
 
 
-/*
- * ============================================================
- *  MODAL
- * ============================================================
- */
+/* =========================================================
+   BACK
+   ========================================================= */
+
+function goBack() {
+
+    currentCategoryId = null;
+
+
+    document
+        .getElementById(
+            "categoryDetailsView"
+        )
+        ?.classList.add(
+            "hidden"
+        );
+
+
+    document
+        .getElementById(
+            "mainDashboardView"
+        )
+        ?.classList.remove(
+            "hidden"
+        );
+
+
+    renderCategories();
+
+}
+
+
+/* =========================================================
+   MODAL
+   ========================================================= */
 
 function openModal(id) {
 
@@ -1806,11 +2577,9 @@ function closeModal(id) {
 }
 
 
-/*
- * ============================================================
- *  THEME
- * ============================================================
- */
+/* =========================================================
+   THEME
+   ========================================================= */
 
 function initTheme() {
 
@@ -1849,11 +2618,9 @@ function toggleTheme() {
 }
 
 
-/*
- * ============================================================
- *  UTILITIES
- * ============================================================
- */
+/* =========================================================
+   UTILITIES
+   ========================================================= */
 
 function generateId(prefix) {
 
@@ -1872,27 +2639,42 @@ function generateId(prefix) {
 
 function escapeHtml(value) {
 
-    return String(value ?? "")
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-        .replace(
-            /</g,
-            "&lt;"
-        )
-        .replace(
-            />/g,
-            "&gt;"
-        )
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-        .replace(
-            /'/g,
-            "&#039;"
-        );
+    return String(
+        value ?? ""
+    )
+    .replace(
+        /&/g,
+        "&amp;"
+    )
+    .replace(
+        /</g,
+        "&lt;"
+    )
+    .replace(
+        />/g,
+        "&gt;"
+    )
+    .replace(
+        /"/g,
+        "&quot;"
+    )
+    .replace(
+        /'/g,
+        "&#039;"
+    );
+
+}
+
+
+function countCategoryItems(
+    categoryId
+) {
+
+    return database.data.filter(
+        item =>
+            item.categoryId ===
+            categoryId
+    ).length;
 
 }
 
