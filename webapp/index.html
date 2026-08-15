@@ -9,8 +9,6 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/dark-mode.css">
     <link rel="stylesheet" href="css/responsive.css">
-    <link rel="manifest" href="manifest.json">
-    
 
     <!-- নাইট মোড কাজ করানোর জন্য প্রয়োজনীয় ইনলাইন CSS ইনজেকশন -->
     <style>
@@ -52,8 +50,9 @@
     </div>
 
     <div class="top-actions">
-        <button id="themeBtn" class="icon-btn">🌙</button>
-        <button id="searchBtn" class="icon-btn">🔍</button>
+        <button id="themeBtn" class="icon-btn" title="নাইট/ডে মোড">🌙</button>
+        <button id="searchBtn" class="icon-btn" title="সার্চ করুন">🔍</button>
+        <button id="logoutBtn" class="icon-btn" title="লগআউট">🚪</button>
     </div>
 
 </header>
@@ -85,6 +84,7 @@
                 <p id="categoryCount">0টি Category</p>
             </div>
 
+            <!-- Admin Action Button -->
             <button id="addCategoryBtn" class="primary-btn">
                 ＋ Category
             </button>
@@ -107,6 +107,7 @@
                 শুরু করতে একটি নতুন Category তৈরি করুন।
             </p>
 
+            <!-- Admin Action Button -->
             <button id="emptyAddBtn" class="primary-btn">
                 ＋ প্রথম Category তৈরি করুন
             </button>
@@ -127,7 +128,7 @@
             </div>
         </section>
 
-        <!-- Section Toolbar -->
+        <!-- Section Toolbar (Only Admin Will See Actions) -->
         <div class="section-toolbar" style="margin-bottom: 20px;">
             <button id="addSubCategoryBtn" class="primary-btn">
                 ＋ Sub-Category
