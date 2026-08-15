@@ -533,29 +533,68 @@ async function deleteData(id) {
     showToast("Data ডিলিট করা হয়েছে");
 }
 
+/* =========================================
+   UPDATED MOVE DATA LOGIC
+========================================= */
+
 async function moveData(id) {
     const item = database.data.find(d => d.id === id);
     if (!item) return;
 
+    // ১. অন্য সব ক্যাটাগরি ফিল্টার করা (বর্তমান ক্যাটাগরি বাদে)
     const availableCategories = database.categories.filter(c => c.id !== currentCategoryId);
     if (availableCategories.length === 0) {
         showToast("অন্য কোনো Category নেই ডাটা সরানোর জন্য");
         return;
     }
 
+    // ২. টার্গেট ক্যাটাগরি সিলেক্ট করা
     let categoryListText = availableCategories.map((c, index) => `${index + 1}. ${c.name}`).join("\n");
-    const choice = prompt(`কোন Category তে সরাতে চান সংখ্যাটি দিন:\n\n${categoryListText}`);
+    const catChoice = prompt(`কোন Category তে সরাতে চান সংখ্যাটি লিখুন:\n\n${categoryListText}`);
 
-    const selectedIndex = parseInt(choice) - 1;
-    if (!isNaN(selectedIndex) && availableCategories[selectedIndex]) {
-        item.categoryId = availableCategories[selectedIndex].id;
-        item.headerId = null; // Reset header connection on category change
+    if (!catChoice) return; // ক্যানসেল করলে বের হয়ে যাবে
 
-        await saveDatabase();
-        renderCategoryDetails();
-        showToast(`Data "${availableCategories[selectedIndex].name}" এ সরানো হয়েছে`);
+    const selectedCatIndex = parseInt(catChoice) - 1;
+    const targetCategory = availableCategories[selectedCatIndex];
+
+    if (!targetCategory) {
+        showToast("সঠিক Category নির্বাচন করেননি");
+        return;
     }
+
+    // ৩. সিলেক্ট করা ক্যাটাগরির অন্তর্ভুক্ত হেডারগুলো খুঁজে বের করা
+    const targetHeaders = database.headers.filter(h => h.categoryId === targetCategory.id);
+
+    let chosenHeaderId = null;
+
+    if (targetHeaders.length > 0) {
+        // ৪. হেডার থাকলে হেডার বেছে নেওয়ার অপশন দেওয়া
+        let headerListText = "0. সাধারণ ডাটা (কোনো Header ছাড়া)\n";
+        headerListText += targetHeaders.map((h, index) => `${index + 1}. ${h.title}`).join("\n");
+
+        const headChoice = prompt(`"${targetCategory.name}" Category-এর কোন Header এ ডাটাটি রাখবেন?\n\n${headerListText}`);
+
+        if (headChoice === null) return; // ক্যানসেল করলে অপশন বাতিল
+
+        const selectedHeadIndex = parseInt(headChoice);
+        
+        if (selectedHeadIndex > 0 && selectedHeadIndex <= targetHeaders.length) {
+            chosenHeaderId = targetHeaders[selectedHeadIndex - 1].id;
+        } else {
+            chosenHeaderId = null; // ০ চাপলে বা ভুল ইনপুট দিলে সাধারণ ডাটা হিসেবে যাবে
+        }
+    }
+
+    // ৫. ডাটার ক্যাটাগরি এবং হেডার আইডি আপডেট ও ফায়ারবেসে সেভ
+    item.categoryId = targetCategory.id;
+    item.headerId = chosenHeaderId;
+
+    await saveDatabase();
+    renderCategoryDetails();
+    
+    showToast(`Data সফলভাবে "${targetCategory.name}" এ সরিয়ে নেওয়া হয়েছে`);
 }
+
 
 /* =========================================
    UI HELPERS
