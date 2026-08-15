@@ -19,7 +19,6 @@ let database = {
 };
 
 let currentCategoryId = null;
-let editingCategoryId = null;
 
 /* =========================================
    AUTH WATCHER & INITIAL LOAD
@@ -39,7 +38,26 @@ watchAuth((user, role) => {
 
 document.addEventListener("DOMContentLoaded", () => {
     setupEvents();
+    initTheme();
 });
+
+/* =========================================
+   NIGHT / DARK MODE LOGIC
+========================================= */
+
+function initTheme() {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+        document.body.classList.add("dark-mode");
+    }
+}
+
+function toggleTheme() {
+    document.body.classList.toggle("dark-mode");
+    const isDark = document.body.classList.contains("dark-mode");
+    localStorage.setItem("theme", isDark ? "dark" : "light");
+    showToast(isDark ? "নাইট মোড অন করা হয়েছে" : "ডে মোড অন করা হয়েছে");
+}
 
 /* =========================================
    FIREBASE STORAGE LOGIC
@@ -57,11 +75,7 @@ async function loadDatabase() {
             if (!database.headers) database.headers = [];
             if (!database.data) database.data = [];
         } else {
-            database = {
-                categories: [],
-                headers: [],
-                data: []
-            };
+            database = { categories: [], headers: [], data: [] };
         }
 
         renderCategories();
@@ -78,7 +92,7 @@ async function saveDatabase() {
         await set(ref(db, "webapp/user_data/" + window.currentUser.uid), database);
     } catch (error) {
         console.error("Database save error:", error);
-        showToast("ফায়ারবেসে ডাটা সেভ করতে সমস্যা হয়েছে");
+        showToast("ডাটা সেভ করতে সমস্যা হয়েছে");
     }
 }
 
@@ -91,6 +105,9 @@ function generateId(prefix) {
 ========================================= */
 
 function setupEvents() {
+    // Night Mode Toggle
+    document.getElementById("themeBtn")?.addEventListener("click", toggleTheme);
+
     document.getElementById("addCategoryBtn")?.addEventListener("click", () => openCategoryModal(false));
     document.getElementById("emptyAddBtn")?.addEventListener("click", () => openCategoryModal(false));
     document.getElementById("addSubCategoryBtn")?.addEventListener("click", () => openCategoryModal(true));
@@ -102,7 +119,7 @@ function setupEvents() {
     document.getElementById("addHeaderBtn")?.addEventListener("click", openHeaderModal);
     document.getElementById("addDataBtn")?.addEventListener("click", openDataModal);
 
-    // Page Navigation Back Button
+    // Navigation Back Button
     document.getElementById("backToMainBtn")?.addEventListener("click", goBack);
 
     document.getElementById("searchBtn")?.addEventListener("click", toggleSearch);
@@ -110,9 +127,7 @@ function setupEvents() {
     document.getElementById("searchInput")?.addEventListener("input", renderCategories);
 
     document.querySelectorAll("[data-close]").forEach(btn => {
-        btn.addEventListener("click", () => {
-            closeModal(btn.dataset.close);
-        });
+        btn.addEventListener("click", () => closeModal(btn.dataset.close));
     });
 
     document.querySelectorAll(".modal").forEach(modal => {
@@ -161,15 +176,12 @@ function goBack() {
 }
 
 /* =========================================
-   CATEGORY & SUB-CATEGORY LOGIC
+   CATEGORY & SUB-CATEGORY CRUD
 ========================================= */
 
 function openCategoryModal(isSubCategory = false) {
-    editingCategoryId = null;
     const modalTitle = document.getElementById("categoryModalTitle");
-    if (modalTitle) {
-        modalTitle.textContent = isSubCategory ? "নতুন Sub-Category" : "নতুন Category";
-    }
+    if (modalTitle) modalTitle.textContent = isSubCategory ? "নতুন Sub-Category" : "নতুন Category";
 
     const input = document.getElementById("categoryNameInput");
     if (input) input.value = "";
@@ -187,33 +199,61 @@ async function saveCategory() {
         return;
     }
 
-    if (editingCategoryId) {
-        const category = database.categories.find(item => item.id === editingCategoryId);
-        if (category) {
-            category.name = name;
-        }
-    } else {
-        database.categories.push({
-            id: generateId("cat"),
-            name: name,
-            parentId: currentCategoryId ? currentCategoryId : null,
-            createdAt: Date.now()
-        });
-    }
+    database.categories.push({
+        id: generateId("cat"),
+        name: name,
+        parentId: currentCategoryId ? currentCategoryId : null,
+        createdAt: Date.now()
+    });
 
     await saveDatabase();
     closeModal("categoryModal");
 
-    if (currentCategoryId) {
-        renderCategoryDetails();
-    } else {
-        renderCategories();
-    }
+    if (currentCategoryId) renderCategoryDetails();
+    else renderCategories();
+    
     showToast("Category সেভ করা হয়েছে");
 }
 
+async function editCategory(id) {
+    const cat = database.categories.find(c => c.id === id);
+    if (!cat) return;
+
+    const newName = prompt("নতুন Category Name দিন:", cat.name);
+    if (newName && newName.trim() !== "") {
+        cat.name = newName.trim();
+        await saveDatabase();
+        if (currentCategoryId) renderCategoryDetails();
+        else renderCategories();
+        showToast("Category এডিট করা হয়েছে");
+    }
+}
+
+async function deleteCategory(id) {
+    if (!confirm("আপনি কি নিশ্চিত এই Category ডিলিট করতে চান? এর ভেতরের সব ডাটা মুছে যাবে!")) return;
+
+    // Recursive deletion function
+    function removeCategoryRecursively(catId) {
+        const subCats = database.categories.filter(c => c.parentId === catId);
+        subCats.forEach(sc => removeCategoryRecursively(sc.id));
+
+        database.categories = database.categories.filter(c => c.id !== catId);
+        database.headers = database.headers.filter(h => h.categoryId !== catId);
+        database.data = database.data.filter(d => d.categoryId !== catId);
+    }
+
+    removeCategoryRecursively(id);
+    await saveDatabase();
+
+    if (currentCategoryId === id) goBack();
+    else if (currentCategoryId) renderCategoryDetails();
+    else renderCategories();
+
+    showToast("Category ডিলিট করা হয়েছে");
+}
+
 /* =========================================
-   RENDER LOGIC
+   RENDER LOGIC (MAIN DASHBOARD)
 ========================================= */
 
 function renderCategories() {
@@ -247,23 +287,33 @@ function renderCategories() {
     categoriesToShow.forEach(category => {
         const card = document.createElement("div");
         card.className = "category-card";
-        card.style.cssText = "padding: 15px; border-radius: 8px; background: var(--card-bg, #fff); margin-bottom: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(0,0,0,0.1);";
+        card.style.cssText = "padding: 15px; border-radius: 8px; background: var(--card-bg, #fff); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(0,0,0,0.1);";
         
         const subCount = database.categories.filter(c => c.parentId === category.id).length;
         const dataCount = database.data.filter(d => d.categoryId === category.id).length;
 
         card.innerHTML = `
-            <div>
+            <div style="flex-grow: 1; cursor: pointer;" class="cat-click">
                 <h3 style="margin:0; font-size:16px;">📁 ${escapeHTML(category.name)}</h3>
                 <small style="color:gray;">${subCount} Sub-Categories • ${dataCount} Data</small>
             </div>
-            <span>➡️</span>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-edit-cat secondary-btn" style="padding: 4px 8px;">✏️</button>
+                <button class="btn-del-cat secondary-btn" style="padding: 4px 8px; color: red;">🗑️</button>
+            </div>
         `;
 
-        card.addEventListener("click", () => openCategory(category.id));
+        card.querySelector(".cat-click").addEventListener("click", () => openCategory(category.id));
+        card.querySelector(".btn-edit-cat").addEventListener("click", (e) => { e.stopPropagation(); editCategory(category.id); });
+        card.querySelector(".btn-del-cat").addEventListener("click", (e) => { e.stopPropagation(); deleteCategory(category.id); });
+
         list.appendChild(card);
     });
 }
+
+/* =========================================
+   RENDER LOGIC (CATEGORY DETAILS)
+========================================= */
 
 function renderCategoryDetails() {
     const container = document.getElementById("detailsContent");
@@ -271,8 +321,8 @@ function renderCategoryDetails() {
 
     container.innerHTML = "";
 
+    // Render Sub-Categories
     const subCategories = database.categories.filter(cat => cat.parentId === currentCategoryId);
-
     if (subCategories.length > 0) {
         const subWrapper = document.createElement("div");
         subWrapper.style.marginBottom = "20px";
@@ -280,29 +330,46 @@ function renderCategoryDetails() {
 
         subCategories.forEach(sub => {
             const item = document.createElement("div");
-            item.style.cssText = "padding: 12px 15px; background: rgba(0,0,0,0.04); border-radius: 6px; margin-bottom: 8px; cursor: pointer; display: flex; justify-content: space-between; font-weight: 500;";
-            item.innerHTML = `<span>📁 ${escapeHTML(sub.name)}</span> <span>➡️</span>`;
-            item.addEventListener("click", () => openCategory(sub.id));
+            item.style.cssText = "padding: 12px 15px; background: rgba(0,0,0,0.04); border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-weight: 500;";
+            item.innerHTML = `
+                <span style="cursor:pointer; flex-grow:1;" class="sub-click">📁 ${escapeHTML(sub.name)}</span>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-edit-sub secondary-btn" style="padding: 2px 6px;">✏️</button>
+                    <button class="btn-del-sub secondary-btn" style="padding: 2px 6px; color: red;">🗑️</button>
+                </div>
+            `;
+            item.querySelector(".sub-click").addEventListener("click", () => openCategory(sub.id));
+            item.querySelector(".btn-edit-sub").addEventListener("click", () => editCategory(sub.id));
+            item.querySelector(".btn-del-sub").addEventListener("click", () => deleteCategory(sub.id));
+
             subWrapper.appendChild(item);
         });
-
         container.appendChild(subWrapper);
     }
 
+    // Render Headers & Data
     const headers = database.headers.filter(h => h.categoryId === currentCategoryId);
     const categoryData = database.data.filter(d => d.categoryId === currentCategoryId);
 
     headers.forEach(header => {
         const headerBox = document.createElement("div");
         headerBox.style.cssText = "margin-bottom: 15px; padding: 12px; border: 1px dashed #ccc; border-radius: 6px;";
-        headerBox.innerHTML = `<h5 style="margin:0 0 10px 0; font-size: 15px;">🏷️ ${escapeHTML(header.title)}</h5>`;
+        headerBox.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h5 style="margin:0; font-size: 15px;">🏷️ ${escapeHTML(header.title)}</h5>
+                <div style="display:flex; gap:6px;">
+                    <button class="btn-edit-head secondary-btn" style="padding:2px 6px;">✏️</button>
+                    <button class="btn-del-head secondary-btn" style="padding:2px 6px; color:red;">🗑️</button>
+                </div>
+            </div>
+        `;
+
+        headerBox.querySelector(".btn-edit-head").addEventListener("click", () => editHeader(header.id));
+        headerBox.querySelector(".btn-del-head").addEventListener("click", () => deleteHeader(header.id));
 
         const headerItems = categoryData.filter(d => d.headerId === header.id);
         headerItems.forEach(item => {
-            const dataEl = document.createElement("div");
-            dataEl.style.cssText = "padding:10px; background:#fff; margin-bottom:6px; border-radius:4px; border:1px solid #eee;";
-            dataEl.innerHTML = `<strong>${escapeHTML(item.title)}</strong><p style="margin:4px 0 0 0; font-size:13px; color:#555;">${escapeHTML(item.description)}</p>`;
-            headerBox.appendChild(dataEl);
+            headerBox.appendChild(createDataCardElement(item));
         });
 
         container.appendChild(headerBox);
@@ -313,10 +380,7 @@ function renderCategoryDetails() {
         const noHeaderBox = document.createElement("div");
         noHeaderBox.innerHTML = `<h5 style="margin: 10px 0;">📄 সাধারণ Data</h5>`;
         noHeaderData.forEach(item => {
-            const dataEl = document.createElement("div");
-            dataEl.style.cssText = "padding:10px; background:#fff; margin-bottom:6px; border-radius:4px; border:1px solid #eee;";
-            dataEl.innerHTML = `<strong>${escapeHTML(item.title)}</strong><p style="margin:4px 0 0 0; font-size:13px; color:#555;">${escapeHTML(item.description)}</p>`;
-            noHeaderBox.appendChild(dataEl);
+            noHeaderBox.appendChild(createDataCardElement(item));
         });
         container.appendChild(noHeaderBox);
     }
@@ -326,8 +390,30 @@ function renderCategoryDetails() {
     }
 }
 
+function createDataCardElement(item) {
+    const dataEl = document.createElement("div");
+    dataEl.style.cssText = "padding:10px; background:var(--card-bg, #fff); margin-bottom:6px; border-radius:4px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:flex-start;";
+    dataEl.innerHTML = `
+        <div>
+            <strong>${escapeHTML(item.title)}</strong>
+            <p style="margin:4px 0 0 0; font-size:13px; color:#555;">${escapeHTML(item.description)}</p>
+        </div>
+        <div style="display:flex; gap:6px;">
+            <button class="btn-move-data secondary-btn" style="padding:2px 6px;">📦 Move</button>
+            <button class="btn-edit-data secondary-btn" style="padding:2px 6px;">✏️</button>
+            <button class="btn-del-data secondary-btn" style="padding:2px 6px; color:red;">🗑️</button>
+        </div>
+    `;
+
+    dataEl.querySelector(".btn-move-data").addEventListener("click", () => moveData(item.id));
+    dataEl.querySelector(".btn-edit-data").addEventListener("click", () => editData(item.id));
+    dataEl.querySelector(".btn-del-data").addEventListener("click", () => deleteData(item.id));
+
+    return dataEl;
+}
+
 /* =========================================
-   HEADER & DATA LOGIC
+   HEADER & DATA CRUD + MOVE LOGIC
 ========================================= */
 
 function openHeaderModal() {
@@ -352,6 +438,33 @@ async function saveHeader() {
     closeModal("headerModal");
     renderCategoryDetails();
     showToast("Header সেভ করা হয়েছে");
+}
+
+async function editHeader(id) {
+    const header = database.headers.find(h => h.id === id);
+    if (!header) return;
+
+    const newTitle = prompt("নতুন Header Name দিন:", header.title);
+    if (newTitle && newTitle.trim() !== "") {
+        header.title = newTitle.trim();
+        await saveDatabase();
+        renderCategoryDetails();
+        showToast("Header এডিট করা হয়েছে");
+    }
+}
+
+async function deleteHeader(id) {
+    if (!confirm("আপনি কি নিশ্চিত এই Header ডিলিট করতে চান? এর ভেতরের ডাটা সাধারণ ডাটাতে চলে যাবে।")) return;
+
+    database.headers = database.headers.filter(h => h.id !== id);
+    // Move associated data to no-header
+    database.data.forEach(d => {
+        if (d.headerId === id) d.headerId = null;
+    });
+
+    await saveDatabase();
+    renderCategoryDetails();
+    showToast("Header ডিলিট করা হয়েছে");
 }
 
 function openDataModal() {
@@ -392,6 +505,56 @@ async function saveData() {
     closeModal("dataModal");
     renderCategoryDetails();
     showToast("Data সেভ করা হয়েছে");
+}
+
+async function editData(id) {
+    const item = database.data.find(d => d.id === id);
+    if (!item) return;
+
+    const newTitle = prompt("নতুন Title দিন:", item.title);
+    if (newTitle === null) return;
+    const newDesc = prompt("নতুন বিবরণ দিন:", item.description);
+    if (newDesc === null) return;
+
+    item.title = newTitle.trim();
+    item.description = newDesc.trim();
+
+    await saveDatabase();
+    renderCategoryDetails();
+    showToast("Data এডিট করা হয়েছে");
+}
+
+async function deleteData(id) {
+    if (!confirm("আপনি কি নিশ্চিত এই Data ডিলিট করতে চান?")) return;
+
+    database.data = database.data.filter(d => d.id !== id);
+    await saveDatabase();
+    renderCategoryDetails();
+    showToast("Data ডিলিট করা হয়েছে");
+}
+
+async function moveData(id) {
+    const item = database.data.find(d => d.id === id);
+    if (!item) return;
+
+    const availableCategories = database.categories.filter(c => c.id !== currentCategoryId);
+    if (availableCategories.length === 0) {
+        showToast("অন্য কোনো Category নেই ডাটা সরানোর জন্য");
+        return;
+    }
+
+    let categoryListText = availableCategories.map((c, index) => `${index + 1}. ${c.name}`).join("\n");
+    const choice = prompt(`কোন Category তে সরাতে চান সংখ্যাটি দিন:\n\n${categoryListText}`);
+
+    const selectedIndex = parseInt(choice) - 1;
+    if (!isNaN(selectedIndex) && availableCategories[selectedIndex]) {
+        item.categoryId = availableCategories[selectedIndex].id;
+        item.headerId = null; // Reset header connection on category change
+
+        await saveDatabase();
+        renderCategoryDetails();
+        showToast(`Data "${availableCategories[selectedIndex].name}" এ সরানো হয়েছে`);
+    }
 }
 
 /* =========================================
