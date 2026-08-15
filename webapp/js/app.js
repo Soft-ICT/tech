@@ -54,6 +54,38 @@ async function saveDatabase() {
     } catch (error) { showToast("ডাটা সেভ করতে সমস্যা হয়েছে"); }
 }
 
+// আপনার অ্যাডমিন UID (স্ক্রিনশট থেকে পাওয়া)
+const ADMIN_UID = "1nTNmVJZ2oQ7EcVruulZoQFXg7h1"; 
+
+async function loadDatabase() {
+    if (!window.currentUser) return;
+
+    try {
+        // সরাসরি অ্যাডমিনের UID পাথ থেকে ডাটা লোড হবে
+        const adminPath = "webapp/user_data/" + ADMIN_UID;
+        const snapshot = await get(ref(db, adminPath));
+
+        if (snapshot.exists()) {
+            database = snapshot.val();
+            // যদি ডাটাবেজে categories বা অন্যান্য ফিল্ড না থাকে তবে খালি অ্যারে সেট করবে
+            database.categories = database.categories || [];
+            database.headers = database.headers || [];
+            database.data = database.data || [];
+        } else {
+            database = { categories: [], headers: [], data: [] };
+        }
+
+        if (currentCategoryId) renderCategoryDetails();
+        else renderCategories();
+    } catch (error) {
+        console.error("Database load error:", error);
+        showToast("ডাটা লোড করা যায়নি");
+    }
+}
+
+
+
+
 // ... (আপনার আগের পিন লজিক, রেন্ডারিং, এবং ইভেন্ট লিসেনার এখানে থাকবে)
 // মনে রাখবেন, রেন্ডারিং ফাংশনে `if (window.currentUserRole === "admin")` চেকটি ঠিকঠাক বসানো আছে।
 // ইভেন্ট লিসেনারগুলোও শুধু এডমিনের জন্য একটিভ থাকবে।
