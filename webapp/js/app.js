@@ -32,8 +32,9 @@ watchAuth((user, role) => {
     }
 
     window.currentUser = user;
-    window.currentUserRole = role;
+    window.currentUserRole = role || "user"; // 'admin' অথবা 'user'
 
+    updateRoleUI();
     loadDatabase();
 });
 
@@ -41,6 +42,27 @@ document.addEventListener("DOMContentLoaded", () => {
     setupEvents();
     initTheme();
 });
+
+/* =========================================
+   ROLE-BASED UI CONTROL
+========================================= */
+
+function updateRoleUI() {
+    const isAdmin = window.currentUserRole === "admin";
+
+    // এডমিন না হলে টপ বাটনসমূহ লুকাতে সাহায্য করবে
+    const addCatBtn = document.getElementById("addCategoryBtn");
+    const emptyAddBtn = document.getElementById("emptyAddBtn");
+    const addSubCatBtn = document.getElementById("addSubCategoryBtn");
+    const addHeaderBtn = document.getElementById("addHeaderBtn");
+    const addDataBtn = document.getElementById("addDataBtn");
+
+    if (addCatBtn) addCatBtn.style.display = isAdmin ? "inline-block" : "none";
+    if (emptyAddBtn) emptyAddBtn.style.display = isAdmin ? "inline-block" : "none";
+    if (addSubCatBtn) addSubCatBtn.style.display = isAdmin ? "inline-block" : "none";
+    if (addHeaderBtn) addHeaderBtn.style.display = isAdmin ? "inline-block" : "none";
+    if (addDataBtn) addDataBtn.style.display = isAdmin ? "inline-block" : "none";
+}
 
 /* =========================================
    NIGHT / DARK MODE LOGIC
@@ -79,7 +101,8 @@ async function loadDatabase() {
             database = { categories: [], headers: [], data: [] };
         }
 
-        renderCategories();
+        if (currentCategoryId) renderCategoryDetails();
+        else renderCategories();
     } catch (error) {
         console.error("Database load error:", error);
         showToast("ফায়ারবেস থেকে ডাটা লোড করা যায়নি");
@@ -99,6 +122,52 @@ async function saveDatabase() {
 
 function generateId(prefix) {
     return prefix + "_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7);
+}
+
+/* =========================================
+   PINNING & SORTING LOGIC
+========================================= */
+
+function getSortedItems(items = []) {
+    return [...items].sort((a, b) => {
+        // ১. পিন করা আইটেমগুলো সবার উপরে থাকবে
+        if (a.pinned && !b.pinned) return -1;
+        if (!a.pinned && b.pinned) return 1;
+
+        // ২. দুটিই পিন করা থাকলে: ১ম পিন করা আইটেম উপরে, ২য় পিন করা আইটেম তার নিচে
+        if (a.pinned && b.pinned) {
+            return (a.pinnedAt || 0) - (b.pinnedAt || 0);
+        }
+
+        // ৩. সাধারণ আইটেমের ক্ষেত্রে ডিফল্ট অর্ডার
+        return 0;
+    });
+}
+
+async function togglePin(type, id) {
+    if (window.currentUserRole !== "admin") return;
+
+    let item = null;
+    if (type === "category") item = database.categories.find(c => c.id === id);
+    else if (type === "header") item = database.headers.find(h => h.id === id);
+    else if (type === "data") item = database.data.find(d => d.id === id);
+
+    if (!item) return;
+
+    if (item.pinned) {
+        item.pinned = false;
+        delete item.pinnedAt;
+        showToast("পিন তুলে নেওয়া হয়েছে");
+    } else {
+        item.pinned = true;
+        item.pinnedAt = Date.now();
+        showToast("পিন করা হয়েছে");
+    }
+
+    await saveDatabase();
+
+    if (currentCategoryId) renderCategoryDetails();
+    else renderCategories();
 }
 
 /* =========================================
@@ -124,7 +193,10 @@ function setupEvents() {
 
     document.getElementById("searchBtn")?.addEventListener("click", toggleSearch);
     document.getElementById("clearSearch")?.addEventListener("click", clearSearch);
-    document.getElementById("searchInput")?.addEventListener("input", renderCategories);
+    document.getElementById("searchInput")?.addEventListener("input", () => {
+        if (currentCategoryId) renderCategoryDetails();
+        else renderCategories();
+    });
 
     document.querySelectorAll("[data-close]").forEach(btn => {
         btn.addEventListener("click", () => closeModal(btn.dataset.close));
@@ -180,6 +252,8 @@ function goBack() {
 ========================================= */
 
 function openCategoryModal(isSubCategory = false) {
+    if (window.currentUserRole !== "admin") return;
+
     const modalTitle = document.getElementById("categoryModalTitle");
     if (modalTitle) modalTitle.textContent = isSubCategory ? "নতুন Sub-Category" : "নতুন Category";
 
@@ -191,6 +265,8 @@ function openCategoryModal(isSubCategory = false) {
 }
 
 async function saveCategory() {
+    if (window.currentUserRole !== "admin") return;
+
     const input = document.getElementById("categoryNameInput");
     const name = input?.value.trim();
 
@@ -203,6 +279,7 @@ async function saveCategory() {
         id: generateId("cat"),
         name: name,
         parentId: currentCategoryId ? currentCategoryId : null,
+        pinned: false,
         createdAt: Date.now()
     });
 
@@ -216,6 +293,8 @@ async function saveCategory() {
 }
 
 async function editCategory(id) {
+    if (window.currentUserRole !== "admin") return;
+
     const cat = database.categories.find(c => c.id === id);
     if (!cat) return;
 
@@ -230,6 +309,8 @@ async function editCategory(id) {
 }
 
 async function deleteCategory(id) {
+    if (window.currentUserRole !== "admin") return;
+
     if (!confirm("আপনি কি নিশ্চিত এই Category ডিলিট করতে চান? এর ভেতরের সব ডাটা মুছে যাবে!")) return;
 
     function removeCategoryRecursively(catId) {
@@ -252,7 +333,7 @@ async function deleteCategory(id) {
 }
 
 /* =========================================
-   RENDER LOGIC
+   RENDER LOGIC (MAIN DASHBOARD)
 ========================================= */
 
 function renderCategories() {
@@ -260,6 +341,7 @@ function renderCategories() {
     const emptyState = document.getElementById("emptyState");
     const countElement = document.getElementById("categoryCount");
     const searchVal = document.getElementById("searchInput")?.value.trim().toLowerCase();
+    const isAdmin = window.currentUserRole === "admin";
 
     if (!list || !emptyState) return;
 
@@ -270,6 +352,8 @@ function renderCategories() {
             cat.name.toLowerCase().includes(searchVal)
         );
     }
+
+    categoriesToShow = getSortedItems(categoriesToShow); // Pin sorting
 
     list.innerHTML = "";
     if (countElement) countElement.textContent = `${categoriesToShow.length}টি Category`;
@@ -290,33 +374,56 @@ function renderCategories() {
         
         const subCount = database.categories.filter(c => c.parentId === category.id).length;
         const dataCount = database.data.filter(d => d.categoryId === category.id).length;
+        const pinIcon = category.pinned ? "📌" : "📍";
+
+        let actionButtonsHTML = "";
+        if (isAdmin) {
+            actionButtonsHTML = `
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-pin-cat secondary-btn" style="padding: 4px 8px;">${pinIcon}</button>
+                    <button class="btn-edit-cat secondary-btn" style="padding: 4px 8px;">✏️</button>
+                    <button class="btn-del-cat secondary-btn" style="padding: 4px 8px; color: red;">🗑️</button>
+                </div>
+            `;
+        }
 
         card.innerHTML = `
             <div style="flex-grow: 1; cursor: pointer;" class="cat-click">
-                <h3 style="margin:0; font-size:16px;">📁 ${escapeHTML(category.name)}</h3>
+                <h3 style="margin:0; font-size:16px;">${category.pinned ? "📌 " : ""}📁 ${escapeHTML(category.name)}</h3>
                 <small style="color:gray;">${subCount} Sub-Categories • ${dataCount} Data</small>
             </div>
-            <div style="display: flex; gap: 8px;">
-                <button class="btn-edit-cat secondary-btn" style="padding: 4px 8px;">✏️</button>
-                <button class="btn-del-cat secondary-btn" style="padding: 4px 8px; color: red;">🗑️</button>
-            </div>
+            ${actionButtonsHTML}
         `;
 
         card.querySelector(".cat-click").addEventListener("click", () => openCategory(category.id));
-        card.querySelector(".btn-edit-cat").addEventListener("click", (e) => { e.stopPropagation(); editCategory(category.id); });
-        card.querySelector(".btn-del-cat").addEventListener("click", (e) => { e.stopPropagation(); deleteCategory(category.id); });
+
+        if (isAdmin) {
+            card.querySelector(".btn-pin-cat")?.addEventListener("click", (e) => { e.stopPropagation(); togglePin("category", category.id); });
+            card.querySelector(".btn-edit-cat")?.addEventListener("click", (e) => { e.stopPropagation(); editCategory(category.id); });
+            card.querySelector(".btn-del-cat")?.addEventListener("click", (e) => { e.stopPropagation(); deleteCategory(category.id); });
+        }
 
         list.appendChild(card);
     });
 }
+
+/* =========================================
+   RENDER LOGIC (CATEGORY DETAILS)
+========================================= */
 
 function renderCategoryDetails() {
     const container = document.getElementById("detailsContent");
     if (!container) return;
 
     container.innerHTML = "";
+    const isAdmin = window.currentUserRole === "admin";
+    const searchVal = document.getElementById("searchInput")?.value.trim().toLowerCase();
 
-    const subCategories = database.categories.filter(cat => cat.parentId === currentCategoryId);
+    // Render Sub-Categories
+    let subCategories = database.categories.filter(cat => cat.parentId === currentCategoryId);
+    if (searchVal) subCategories = subCategories.filter(c => c.name.toLowerCase().includes(searchVal));
+    subCategories = getSortedItems(subCategories);
+
     if (subCategories.length > 0) {
         const subWrapper = document.createElement("div");
         subWrapper.style.marginBottom = "20px";
@@ -325,42 +432,80 @@ function renderCategoryDetails() {
         subCategories.forEach(sub => {
             const item = document.createElement("div");
             item.style.cssText = "padding: 12px 15px; background: rgba(0,0,0,0.04); border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-weight: 500;";
+            const pinIcon = sub.pinned ? "📌" : "📍";
+
+            let subActionsHTML = "";
+            if (isAdmin) {
+                subActionsHTML = `
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-pin-sub secondary-btn" style="padding: 2px 6px;">${pinIcon}</button>
+                        <button class="btn-edit-sub secondary-btn" style="padding: 2px 6px;">✏️</button>
+                        <button class="btn-del-sub secondary-btn" style="padding: 2px 6px; color: red;">🗑️</button>
+                    </div>
+                `;
+            }
+
             item.innerHTML = `
-                <span style="cursor:pointer; flex-grow:1;" class="sub-click">📁 ${escapeHTML(sub.name)}</span>
-                <div style="display: flex; gap: 8px;">
-                    <button class="btn-edit-sub secondary-btn" style="padding: 2px 6px;">✏️</button>
-                    <button class="btn-del-sub secondary-btn" style="padding: 2px 6px; color: red;">🗑️</button>
-                </div>
+                <span style="cursor:pointer; flex-grow:1;" class="sub-click">${sub.pinned ? "📌 " : ""}📁 ${escapeHTML(sub.name)}</span>
+                ${subActionsHTML}
             `;
             item.querySelector(".sub-click").addEventListener("click", () => openCategory(sub.id));
-            item.querySelector(".btn-edit-sub").addEventListener("click", () => editCategory(sub.id));
-            item.querySelector(".btn-del-sub").addEventListener("click", () => deleteCategory(sub.id));
+
+            if (isAdmin) {
+                item.querySelector(".btn-pin-sub")?.addEventListener("click", () => togglePin("category", sub.id));
+                item.querySelector(".btn-edit-sub")?.addEventListener("click", () => editCategory(sub.id));
+                item.querySelector(".btn-del-sub")?.addEventListener("click", () => deleteCategory(sub.id));
+            }
 
             subWrapper.appendChild(item);
         });
         container.appendChild(subWrapper);
     }
 
-    const headers = database.headers.filter(h => h.categoryId === currentCategoryId);
-    const categoryData = database.data.filter(d => d.categoryId === currentCategoryId);
+    // Render Headers & Data
+    let headers = database.headers.filter(h => h.categoryId === currentCategoryId);
+    headers = getSortedItems(headers);
+
+    let categoryData = database.data.filter(d => d.categoryId === currentCategoryId);
+    if (searchVal) {
+        categoryData = categoryData.filter(d => 
+            d.title.toLowerCase().includes(searchVal) || 
+            (d.description && d.description.toLowerCase().includes(searchVal))
+        );
+    }
 
     headers.forEach(header => {
         const headerBox = document.createElement("div");
         headerBox.style.cssText = "margin-bottom: 15px; padding: 12px; border: 1px dashed #ccc; border-radius: 6px;";
-        headerBox.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <h5 style="margin:0; font-size: 15px;">🏷️ ${escapeHTML(header.title)}</h5>
+        const pinIcon = header.pinned ? "📌" : "📍";
+
+        let headActionsHTML = "";
+        if (isAdmin) {
+            headActionsHTML = `
                 <div style="display:flex; gap:6px;">
+                    <button class="btn-pin-head secondary-btn" style="padding:2px 6px;">${pinIcon}</button>
                     <button class="btn-edit-head secondary-btn" style="padding:2px 6px;">✏️</button>
                     <button class="btn-del-head secondary-btn" style="padding:2px 6px; color:red;">🗑️</button>
                 </div>
+            `;
+        }
+
+        headerBox.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h5 style="margin:0; font-size: 15px;">${header.pinned ? "📌 " : ""}🏷️ ${escapeHTML(header.title)}</h5>
+                ${headActionsHTML}
             </div>
         `;
 
-        headerBox.querySelector(".btn-edit-head").addEventListener("click", () => editHeader(header.id));
-        headerBox.querySelector(".btn-del-head").addEventListener("click", () => deleteHeader(header.id));
+        if (isAdmin) {
+            headerBox.querySelector(".btn-pin-head")?.addEventListener("click", () => togglePin("header", header.id));
+            headerBox.querySelector(".btn-edit-head")?.addEventListener("click", () => editHeader(header.id));
+            headerBox.querySelector(".btn-del-head")?.addEventListener("click", () => deleteHeader(header.id));
+        }
 
-        const headerItems = categoryData.filter(d => d.headerId === header.id);
+        let headerItems = categoryData.filter(d => d.headerId === header.id);
+        headerItems = getSortedItems(headerItems);
+
         headerItems.forEach(item => {
             headerBox.appendChild(createDataCardElement(item));
         });
@@ -368,7 +513,9 @@ function renderCategoryDetails() {
         container.appendChild(headerBox);
     });
 
-    const noHeaderData = categoryData.filter(d => !d.headerId);
+    let noHeaderData = categoryData.filter(d => !d.headerId);
+    noHeaderData = getSortedItems(noHeaderData);
+
     if (noHeaderData.length > 0) {
         const noHeaderBox = document.createElement("div");
         noHeaderBox.innerHTML = `<h5 style="margin: 10px 0;">📄 সাধারণ Data</h5>`;
@@ -379,28 +526,43 @@ function renderCategoryDetails() {
     }
 
     if (subCategories.length === 0 && headers.length === 0 && categoryData.length === 0) {
-        container.innerHTML = `<p style="text-align:center; color:gray; margin-top:30px;">এটি একটি খালি ক্যাটাগরি। সাব-ক্যাটাগরি, হেডার অথবা ডাটা যোগ করুন।</p>`;
+        container.innerHTML = `<p style="text-align:center; color:gray; margin-top:30px;">কোনো তথ্য পাওয়া যায়নি।</p>`;
     }
 }
 
 function createDataCardElement(item) {
     const dataEl = document.createElement("div");
+    const isAdmin = window.currentUserRole === "admin";
+    const pinIcon = item.pinned ? "📌" : "📍";
+
     dataEl.style.cssText = "padding:10px; background:var(--card-bg, #fff); margin-bottom:6px; border-radius:4px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:flex-start;";
+
+    let actionButtonsHTML = "";
+    if (isAdmin) {
+        actionButtonsHTML = `
+            <div style="display:flex; gap:6px;">
+                <button class="btn-pin-data secondary-btn" style="padding:2px 6px;">${pinIcon}</button>
+                <button class="btn-move-data secondary-btn" style="padding:2px 6px;">📦 Move</button>
+                <button class="btn-edit-data secondary-btn" style="padding:2px 6px;">✏️</button>
+                <button class="btn-del-data secondary-btn" style="padding:2px 6px; color:red;">🗑️</button>
+            </div>
+        `;
+    }
+
     dataEl.innerHTML = `
         <div>
-            <strong>${escapeHTML(item.title)}</strong>
+            <strong>${item.pinned ? "📌 " : ""}${escapeHTML(item.title)}</strong>
             <p style="margin:4px 0 0 0; font-size:13px; color:#555;">${escapeHTML(item.description)}</p>
         </div>
-        <div style="display:flex; gap:6px;">
-            <button class="btn-move-data secondary-btn" style="padding:2px 6px;">📦 Move</button>
-            <button class="btn-edit-data secondary-btn" style="padding:2px 6px;">✏️</button>
-            <button class="btn-del-data secondary-btn" style="padding:2px 6px; color:red;">🗑️</button>
-        </div>
+        ${actionButtonsHTML}
     `;
 
-    dataEl.querySelector(".btn-move-data").addEventListener("click", () => openMoveModal(item.id));
-    dataEl.querySelector(".btn-edit-data").addEventListener("click", () => editData(item.id));
-    dataEl.querySelector(".btn-del-data").addEventListener("click", () => deleteData(item.id));
+    if (isAdmin) {
+        dataEl.querySelector(".btn-pin-data")?.addEventListener("click", () => togglePin("data", item.id));
+        dataEl.querySelector(".btn-move-data")?.addEventListener("click", () => openMoveModal(item.id));
+        dataEl.querySelector(".btn-edit-data")?.addEventListener("click", () => editData(item.id));
+        dataEl.querySelector(".btn-del-data")?.addEventListener("click", () => deleteData(item.id));
+    }
 
     return dataEl;
 }
@@ -410,12 +572,14 @@ function createDataCardElement(item) {
 ========================================= */
 
 function openHeaderModal() {
+    if (window.currentUserRole !== "admin") return;
     const input = document.getElementById("headerNameInput");
     if (input) input.value = "";
     openModal("headerModal");
 }
 
 async function saveHeader() {
+    if (window.currentUserRole !== "admin") return;
     const input = document.getElementById("headerNameInput");
     const title = input?.value.trim();
 
@@ -424,7 +588,8 @@ async function saveHeader() {
     database.headers.push({
         id: generateId("header"),
         categoryId: currentCategoryId,
-        title: title
+        title: title,
+        pinned: false
     });
 
     await saveDatabase();
@@ -434,6 +599,7 @@ async function saveHeader() {
 }
 
 async function editHeader(id) {
+    if (window.currentUserRole !== "admin") return;
     const header = database.headers.find(h => h.id === id);
     if (!header) return;
 
@@ -447,6 +613,7 @@ async function editHeader(id) {
 }
 
 async function deleteHeader(id) {
+    if (window.currentUserRole !== "admin") return;
     if (!confirm("আপনি কি নিশ্চিত এই Header ডিলিট করতে চান? এর ভেতরের ডাটা সাধারণ ডাটাতে চলে যাবে।")) return;
 
     database.headers = database.headers.filter(h => h.id !== id);
@@ -460,6 +627,7 @@ async function deleteHeader(id) {
 }
 
 function openDataModal() {
+    if (window.currentUserRole !== "admin") return;
     const titleInput = document.getElementById("dataTitleInput");
     const descInput = document.getElementById("dataDescriptionInput");
     const select = document.getElementById("dataHeaderSelect");
@@ -479,6 +647,7 @@ function openDataModal() {
 }
 
 async function saveData() {
+    if (window.currentUserRole !== "admin") return;
     const title = document.getElementById("dataTitleInput")?.value.trim();
     const desc = document.getElementById("dataDescriptionInput")?.value.trim();
     const headerId = document.getElementById("dataHeaderSelect")?.value;
@@ -490,7 +659,8 @@ async function saveData() {
         categoryId: currentCategoryId,
         headerId: headerId || null,
         title: title,
-        description: desc
+        description: desc,
+        pinned: false
     });
 
     await saveDatabase();
@@ -500,6 +670,7 @@ async function saveData() {
 }
 
 async function editData(id) {
+    if (window.currentUserRole !== "admin") return;
     const item = database.data.find(d => d.id === id);
     if (!item) return;
 
@@ -517,6 +688,7 @@ async function editData(id) {
 }
 
 async function deleteData(id) {
+    if (window.currentUserRole !== "admin") return;
     if (!confirm("আপনি কি নিশ্চিত এই Data ডিলিট করতে চান?")) return;
 
     database.data = database.data.filter(d => d.id !== id);
@@ -530,6 +702,7 @@ async function deleteData(id) {
 ========================================= */
 
 function openMoveModal(dataId) {
+    if (window.currentUserRole !== "admin") return;
     targetMoveDataId = dataId;
     const item = database.data.find(d => d.id === dataId);
     if (!item) return;
@@ -563,7 +736,7 @@ function openMoveModal(dataId) {
 }
 
 async function confirmMoveData() {
-    if (!targetMoveDataId) return;
+    if (window.currentUserRole !== "admin" || !targetMoveDataId) return;
 
     const item = database.data.find(d => d.id === targetMoveDataId);
     const selectedCatId = document.getElementById("moveCategorySelect")?.value;
@@ -599,7 +772,8 @@ function toggleSearch() {
 function clearSearch() {
     const input = document.getElementById("searchInput");
     if (input) input.value = "";
-    renderCategories();
+    if (currentCategoryId) renderCategoryDetails();
+    else renderCategories();
 }
 
 function showToast(msg) {
