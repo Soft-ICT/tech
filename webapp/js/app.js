@@ -36,9 +36,12 @@ watchAuth((user, role) => {
         return;
     }
 
+    console.log("Logged in:", user.email, "Role:", role);
+
     window.currentUser = user;
     window.currentUserRole = role;
 
+    // ইউজার কনফার্ম হওয়ার পর ফায়ারবেস থেকে ডাটা লোড হবে
     loadDatabase();
 });
 
@@ -267,7 +270,7 @@ async function saveCategory() {
         database.categories.push({
             id: generateId("cat"),
             name: name,
-            parentId: currentCategoryId ? currentCategoryId : null,
+            parentId: currentCategoryId || null, // বর্তমান কোনো ক্যাটাগরির ভেতরে থাকলে তার ID সেট হবে
             order: database.categories.length,
             pinned: false,
             createdAt: Date.now(),
@@ -281,9 +284,8 @@ async function saveCategory() {
 
     if (currentCategoryId) {
         renderCategoryDetails();
-    } else {
-        renderCategories();
     }
+    renderCategories();
 }
 
 async function deleteCategory(id) {
@@ -293,6 +295,7 @@ async function deleteCategory(id) {
     const confirmed = confirm(`"${category.name}" Category মুছে ফেলবেন?`);
     if (!confirmed) return;
 
+    // ক্যাটাগরি এবং তার সকল সাব-ক্যাটাগরি রিকার্সিভলি ফিল্টার করা
     function removeCategoryAndChildren(catId) {
         const children = database.categories.filter(item => item.parentId === catId);
         children.forEach(child => removeCategoryAndChildren(child.id));
@@ -318,7 +321,7 @@ async function deleteCategory(id) {
 }
 
 /* =========================================
-   CATEGORY RENDER (Root Level Only)
+   CATEGORY RENDER (Root Level)
 ========================================= */
 
 function renderCategories() {
@@ -329,7 +332,7 @@ function renderCategories() {
 
     let categories = [...database.categories];
 
-    // সার্চ না থাকলে মেইন স্ক্রিনে কেবল Root Category দেখাবে
+    // সার্চ না থাকলে ড্যাশবোর্ডে শুধু মূল (Root) ক্যাটাগরিগুলো দেখাবে
     if (!search) {
         categories = categories.filter(category => !category.parentId);
     }
@@ -428,22 +431,7 @@ function openCategory(id) {
 
     currentCategoryId = id;
 
-    // ব্যাক বাটনের ব্যবস্থা (যদি কোনো Parent Category থাকে)
-    const titleContainer = document.getElementById("detailsTitle");
-    if (category.parentId) {
-        titleContainer.innerHTML = `
-            <span id="backCatBtn" style="cursor:pointer; margin-right:8px;" title="Back">⬅️</span>
-            ${escapeHTML(category.name)}
-        `;
-        setTimeout(() => {
-            document.getElementById("backCatBtn")?.addEventListener("click", (e) => {
-                e.stopPropagation();
-                openCategory(category.parentId);
-            });
-        }, 50);
-    } else {
-        titleContainer.textContent = category.name;
-    }
+    document.getElementById("detailsTitle").textContent = category.name;
 
     const headers = database.headers.filter(item => item.categoryId === id);
     const data = database.data.filter(item => item.categoryId === id);
@@ -451,11 +439,7 @@ function openCategory(id) {
     document.getElementById("detailsSubtitle").textContent = `${headers.length} Header • ${data.length} Data`;
 
     renderCategoryDetails();
-
-    const detailsModal = document.getElementById("detailsModal");
-    if (detailsModal.classList.contains("hidden")) {
-        openModal("detailsModal");
-    }
+    openModal("detailsModal");
 }
 
 function renderCategoryDetails() {
@@ -783,11 +767,8 @@ function openModal(id) {
 
 function closeModal(id) {
     document.getElementById(id).classList.add("hidden");
-    
-    // মোডাল সম্পূর্ণ বন্ধ হলে স্টেট রিসেট হবে
     if (id === "detailsModal") {
         currentCategoryId = null;
-        renderCategories();
     }
 }
 
