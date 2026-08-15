@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Web App Dashboard</title>
 
-    <!-- Font Awesome CDN Link -->
+    <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="./style.css">
+    <!-- Custom CSS with Cache Control -->
+    <link rel="stylesheet" href="./style.css?v=2.0">
 </head>
 <body>
 
-    <!-- Header Section -->
+    <!-- Topbar Header -->
     <header class="topbar">
         <h1 class="logo">My App</h1>
         <div class="topbar-actions">
@@ -29,17 +29,17 @@
         <button id="clearSearch" class="small-btn"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
-    <!-- Main Content -->
+    <!-- Main Content Container -->
     <main class="container">
         
-        <!-- Category Top Info -->
+        <!-- Category Top Action Bar -->
         <div class="header-row">
             <h2>Categories</h2>
             <span id="categoryCount">0টি Category</span>
             <button id="addCategoryBtn" class="primary-btn"><i class="fa-solid fa-plus"></i> Category</button>
         </div>
 
-        <!-- Category Grid / List -->
+        <!-- Category Grid/List -->
         <div id="categoryList" class="category-list"></div>
 
         <!-- Empty State -->
@@ -52,11 +52,11 @@
 
     </main>
 
-    <!-- Modal 1: Category Create/Edit Modal -->
+    <!-- Modal 1: Category Modal -->
     <div id="categoryModal" class="modal hidden">
         <div class="modal-content">
             <h3 id="categoryModalTitle">নতুন Category</h3>
-            <input type="text" id="categoryNameInput" placeholder="Category Name..." autofocus>
+            <input type="text" id="categoryNameInput" placeholder="Category Name...">
             <div class="modal-actions">
                 <button class="secondary-btn" data-close="categoryModal">বাতিল</button>
                 <button id="saveCategoryBtn" class="primary-btn">সেভ করুন</button>
@@ -75,14 +75,12 @@
                 <button class="icon-btn" data-close="detailsModal"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
-            <!-- Sub-Category, Header, Data Action Toolbar -->
             <div class="section-toolbar">
                 <button id="addSubCategoryBtn" class="primary-btn"><i class="fa-solid fa-plus"></i> Sub-Category</button>
                 <button id="addHeaderBtn" class="primary-btn"><i class="fa-solid fa-plus"></i> Header</button>
                 <button id="addDataBtn" class="secondary-btn"><i class="fa-solid fa-plus"></i> Data</button>
             </div>
 
-            <!-- Details Dynamic Content Area -->
             <div id="detailsContent" class="details-content"></div>
         </div>
     </div>
@@ -119,6 +117,7 @@
     <!-- Toast Notification -->
     <div id="toast" class="toast hidden"></div>
 
-    <script type="module" src="./app.js"></script>
+    <!-- JS Module Link -->
+    <script type="module" src="./app.js?v=2.0"></script>
 </body>
 </html>
