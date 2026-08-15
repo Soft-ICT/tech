@@ -19,6 +19,7 @@ let database = {
 };
 
 let currentCategoryId = null;
+let targetMoveDataId = null;
 
 /* =========================================
    AUTH WATCHER & INITIAL LOAD
@@ -105,7 +106,6 @@ function generateId(prefix) {
 ========================================= */
 
 function setupEvents() {
-    // Night Mode Toggle
     document.getElementById("themeBtn")?.addEventListener("click", toggleTheme);
 
     document.getElementById("addCategoryBtn")?.addEventListener("click", () => openCategoryModal(false));
@@ -115,11 +115,11 @@ function setupEvents() {
     document.getElementById("saveCategoryBtn")?.addEventListener("click", saveCategory);
     document.getElementById("saveHeaderBtn")?.addEventListener("click", saveHeader);
     document.getElementById("saveDataBtn")?.addEventListener("click", saveData);
+    document.getElementById("confirmMoveBtn")?.addEventListener("click", confirmMoveData);
 
     document.getElementById("addHeaderBtn")?.addEventListener("click", openHeaderModal);
     document.getElementById("addDataBtn")?.addEventListener("click", openDataModal);
 
-    // Navigation Back Button
     document.getElementById("backToMainBtn")?.addEventListener("click", goBack);
 
     document.getElementById("searchBtn")?.addEventListener("click", toggleSearch);
@@ -232,7 +232,6 @@ async function editCategory(id) {
 async function deleteCategory(id) {
     if (!confirm("আপনি কি নিশ্চিত এই Category ডিলিট করতে চান? এর ভেতরের সব ডাটা মুছে যাবে!")) return;
 
-    // Recursive deletion function
     function removeCategoryRecursively(catId) {
         const subCats = database.categories.filter(c => c.parentId === catId);
         subCats.forEach(sc => removeCategoryRecursively(sc.id));
@@ -253,7 +252,7 @@ async function deleteCategory(id) {
 }
 
 /* =========================================
-   RENDER LOGIC (MAIN DASHBOARD)
+   RENDER LOGIC
 ========================================= */
 
 function renderCategories() {
@@ -311,17 +310,12 @@ function renderCategories() {
     });
 }
 
-/* =========================================
-   RENDER LOGIC (CATEGORY DETAILS)
-========================================= */
-
 function renderCategoryDetails() {
     const container = document.getElementById("detailsContent");
     if (!container) return;
 
     container.innerHTML = "";
 
-    // Render Sub-Categories
     const subCategories = database.categories.filter(cat => cat.parentId === currentCategoryId);
     if (subCategories.length > 0) {
         const subWrapper = document.createElement("div");
@@ -347,7 +341,6 @@ function renderCategoryDetails() {
         container.appendChild(subWrapper);
     }
 
-    // Render Headers & Data
     const headers = database.headers.filter(h => h.categoryId === currentCategoryId);
     const categoryData = database.data.filter(d => d.categoryId === currentCategoryId);
 
@@ -405,7 +398,7 @@ function createDataCardElement(item) {
         </div>
     `;
 
-    dataEl.querySelector(".btn-move-data").addEventListener("click", () => moveData(item.id));
+    dataEl.querySelector(".btn-move-data").addEventListener("click", () => openMoveModal(item.id));
     dataEl.querySelector(".btn-edit-data").addEventListener("click", () => editData(item.id));
     dataEl.querySelector(".btn-del-data").addEventListener("click", () => deleteData(item.id));
 
@@ -457,7 +450,6 @@ async function deleteHeader(id) {
     if (!confirm("আপনি কি নিশ্চিত এই Header ডিলিট করতে চান? এর ভেতরের ডাটা সাধারণ ডাটাতে চলে যাবে।")) return;
 
     database.headers = database.headers.filter(h => h.id !== id);
-    // Move associated data to no-header
     database.data.forEach(d => {
         if (d.headerId === id) d.headerId = null;
     });
@@ -534,12 +526,10 @@ async function deleteData(id) {
 }
 
 /* =========================================
-   EASY & FAST MOVE DATA LOGIC (MODAL)
+   MODAL BASED FAST MOVE DATA
 ========================================= */
 
-let targetMoveDataId = null;
-
-function moveData(dataId) {
+function openMoveModal(dataId) {
     targetMoveDataId = dataId;
     const item = database.data.find(d => d.id === dataId);
     if (!item) return;
@@ -548,14 +538,12 @@ function moveData(dataId) {
     const headSelect = document.getElementById("moveHeaderSelect");
     if (!catSelect || !headSelect) return;
 
-    // ১. সব ক্যাটাগরি ড্রপডাউনে সাজানো
     catSelect.innerHTML = "";
     database.categories.forEach(cat => {
         const selected = cat.id === item.categoryId ? "selected" : "";
         catSelect.innerHTML += `<option value="${cat.id}" ${selected}>📁 ${escapeHTML(cat.name)}</option>`;
     });
 
-    // ২. সিলেক্ট করা ক্যাটাগরির হেডার লোড করার ফাংশন
     const updateHeaderOptions = (selectedCatId) => {
         headSelect.innerHTML = `<option value="">📄 সাধারণ Data (Header ছাড়া)</option>`;
         const headers = database.headers.filter(h => h.categoryId === selectedCatId);
@@ -565,10 +553,8 @@ function moveData(dataId) {
         });
     };
 
-    // বর্তমান ক্যাটাগরির হেডার লোড
     updateHeaderOptions(catSelect.value);
 
-    // ক্যাটাগরি চেঞ্জ করলে হেডার অপশন অটো চেঞ্জ হবে
     catSelect.onchange = (e) => {
         updateHeaderOptions(e.target.value);
     };
@@ -576,8 +562,7 @@ function moveData(dataId) {
     openModal("moveDataModal");
 }
 
-// Confirm Move Button Click Listener (setupEvents ফাংশনের ভেতরে একবার দিলেও হবে)
-document.getElementById("confirmMoveBtn")?.addEventListener("click", async () => {
+async function confirmMoveData() {
     if (!targetMoveDataId) return;
 
     const item = database.data.find(d => d.id === targetMoveDataId);
@@ -586,15 +571,14 @@ document.getElementById("confirmMoveBtn")?.addEventListener("click", async () =>
 
     if (item && selectedCatId) {
         item.categoryId = selectedCatId;
-        item.headerId = selectedHeadId || null; // হেডার থাকলে সেট হবে, না থাকলে সাধারণ ডাটায় যাবে
+        item.headerId = selectedHeadId || null;
 
         await saveDatabase();
         closeModal("moveDataModal");
         renderCategoryDetails();
         showToast("Data সফলভাবে স্থানান্তর করা হয়েছে");
     }
-});
-
+}
 
 /* =========================================
    UI HELPERS
