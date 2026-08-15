@@ -1,4 +1,14 @@
 /* =========================================
+   FIREBASE IMPORTS & SETUP
+========================================= */
+
+import { watchAuth, logoutUser } from "./auth.js";
+import { ref, set, get } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+import { db } from "./firebase.js";
+
+"use strict";
+
+/* =========================================
    DATABASE & STATE MANAGEMENT
 ========================================= */
 
@@ -11,28 +21,65 @@ let database = {
 let currentCategoryId = null;
 let editingCategoryId = null;
 
-document.addEventListener("DOMContentLoaded", () => {
+/* =========================================
+   AUTH WATCHER & INITIAL LOAD
+========================================= */
+
+watchAuth((user, role) => {
+    if (!user) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    window.currentUser = user;
+    window.currentUserRole = role;
+
     loadDatabase();
+});
+
+document.addEventListener("DOMContentLoaded", () => {
     setupEvents();
 });
 
-function loadDatabase() {
-    const savedData = localStorage.getItem("my_data_manager");
-    if (savedData) {
-        try {
-            database = JSON.parse(savedData);
+/* =========================================
+   FIREBASE STORAGE LOGIC
+========================================= */
+
+async function loadDatabase() {
+    if (!window.currentUser) return;
+
+    try {
+        const snapshot = await get(ref(db, "webapp/user_data/" + window.currentUser.uid));
+
+        if (snapshot.exists()) {
+            database = snapshot.val();
             if (!database.categories) database.categories = [];
             if (!database.headers) database.headers = [];
             if (!database.data) database.data = [];
-        } catch (e) {
-            console.error("Local Storage Error", e);
+        } else {
+            database = {
+                categories: [],
+                headers: [],
+                data: []
+            };
         }
+
+        renderCategories();
+    } catch (error) {
+        console.error("Database load error:", error);
+        showToast("ফায়ারবেস থেকে ডাটা লোড করা যায়নি");
     }
-    renderCategories();
 }
 
-function saveDatabase() {
-    localStorage.setItem("my_data_manager", JSON.stringify(database));
+async function saveDatabase() {
+    if (!window.currentUser) return;
+
+    try {
+        await set(ref(db, "webapp/user_data/" + window.currentUser.uid), database);
+    } catch (error) {
+        console.error("Database save error:", error);
+        showToast("ফায়ারবেসে ডাটা সেভ করতে সমস্যা হয়েছে");
+    }
 }
 
 function generateId(prefix) {
@@ -55,7 +102,7 @@ function setupEvents() {
     document.getElementById("addHeaderBtn")?.addEventListener("click", openHeaderModal);
     document.getElementById("addDataBtn")?.addEventListener("click", openDataModal);
 
-    // পেজ ব্যাক বাটন ইভেন্ট
+    // Page Navigation Back Button
     document.getElementById("backToMainBtn")?.addEventListener("click", goBack);
 
     document.getElementById("searchBtn")?.addEventListener("click", toggleSearch);
@@ -76,7 +123,7 @@ function setupEvents() {
 }
 
 /* =========================================
-   PAGE SWITCHING LOGIC (পপ-আপ বাদ দিয়ে পেজ পরিবর্তন)
+   PAGE SWITCHING LOGIC
 ========================================= */
 
 function openCategory(id) {
@@ -85,7 +132,6 @@ function openCategory(id) {
 
     currentCategoryId = id;
 
-    // ভিউ পরিবর্তন (মেইন ভিউ হাইড, ডিটেইলস ভিউ শো)
     document.getElementById("mainDashboardView")?.classList.add("hidden");
     document.getElementById("categoryDetailsView")?.classList.remove("hidden");
 
@@ -104,11 +150,9 @@ function openCategory(id) {
 function goBack() {
     const currentCat = database.categories.find(c => c.id === currentCategoryId);
     
-    // যদি সাব-ক্যাটাগরির ভেতরে থাকে তবে ওপরের ক্যাটাগরিতে ফেরত যাবে
     if (currentCat && currentCat.parentId) {
         openCategory(currentCat.parentId);
     } else {
-        // তা না হলে মেইন ড্যাশবোর্ডে ফেরত যাবে
         currentCategoryId = null;
         document.getElementById("categoryDetailsView")?.classList.add("hidden");
         document.getElementById("mainDashboardView")?.classList.remove("hidden");
@@ -134,7 +178,7 @@ function openCategoryModal(isSubCategory = false) {
     setTimeout(() => input?.focus(), 100);
 }
 
-function saveCategory() {
+async function saveCategory() {
     const input = document.getElementById("categoryNameInput");
     const name = input?.value.trim();
 
@@ -157,7 +201,7 @@ function saveCategory() {
         });
     }
 
-    saveDatabase();
+    await saveDatabase();
     closeModal("categoryModal");
 
     if (currentCategoryId) {
@@ -283,7 +327,7 @@ function renderCategoryDetails() {
 }
 
 /* =========================================
-   HEADER & DATA MODALS LOGIC
+   HEADER & DATA LOGIC
 ========================================= */
 
 function openHeaderModal() {
@@ -292,7 +336,7 @@ function openHeaderModal() {
     openModal("headerModal");
 }
 
-function saveHeader() {
+async function saveHeader() {
     const input = document.getElementById("headerNameInput");
     const title = input?.value.trim();
 
@@ -304,7 +348,7 @@ function saveHeader() {
         title: title
     });
 
-    saveDatabase();
+    await saveDatabase();
     closeModal("headerModal");
     renderCategoryDetails();
     showToast("Header সেভ করা হয়েছে");
@@ -329,7 +373,7 @@ function openDataModal() {
     openModal("dataModal");
 }
 
-function saveData() {
+async function saveData() {
     const title = document.getElementById("dataTitleInput")?.value.trim();
     const desc = document.getElementById("dataDescriptionInput")?.value.trim();
     const headerId = document.getElementById("dataHeaderSelect")?.value;
@@ -344,7 +388,7 @@ function saveData() {
         description: desc
     });
 
-    saveDatabase();
+    await saveDatabase();
     closeModal("dataModal");
     renderCategoryDetails();
     showToast("Data সেভ করা হয়েছে");
