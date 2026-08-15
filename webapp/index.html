@@ -134,6 +134,28 @@
             <button class="secondary-btn" data-close="dataModal">বাতিল</button>
             <button id="saveDataBtn" class="primary-btn">Save</button>
         </div>
+        <!-- Data Move Modal -->
+<div id="moveDataModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Data সরান (Move Data)</h2>
+            <button class="close-btn" data-close="moveDataModal">✕</button>
+        </div>
+        <div class="form-group">
+            <label>গন্তব্য Category বেছে নিন</label>
+            <select id="moveCategorySelect"></select>
+        </div>
+        <div class="form-group">
+            <label>গন্তব্য Header বেছে নিন</label>
+            <select id="moveHeaderSelect"></select>
+        </div>
+        <div class="modal-actions">
+            <button class="secondary-btn" data-close="moveDataModal">বাতিল</button>
+            <button id="confirmMoveBtn" class="primary-btn">Move করুন</button>
+        </div>
+    </div>
+</div>
+        
     </div>
 </div>
 
