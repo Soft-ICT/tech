@@ -51,6 +51,11 @@ watchAuth((user, role) => {
 
 document.addEventListener("DOMContentLoaded", () => {
     setupEvents();
+    /* Add Sub-Category */
+document
+    .getElementById("addSubCategoryBtn")
+    ?.addEventListener("click", openAddCategory);
+    
     loadTheme();
 });
 
