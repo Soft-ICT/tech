@@ -3,7 +3,7 @@
 ========================================= */
 
 import { watchAuth, logoutUser } from "./auth.js";
-import { ref, set, get } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+import { ref, set, get, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 import { db } from "./firebase.js";
 
 "use strict";
@@ -20,20 +20,23 @@ let database = {
 
 let currentCategoryId = null;
 let targetMoveDataId = null;
+let primaryAdminUid = null;
 
 /* =========================================
    AUTH WATCHER & INITIAL LOAD
 ========================================= */
 
-watchAuth((user, role) => {
+watchAuth(async (user) => {
     if (!user) {
         window.location.href = "login.html";
         return;
     }
 
     window.currentUser = user;
-    window.currentUserRole = role;
+    await checkUserRole(user.uid);
+    await findPrimaryAdmin();
 
+    updateRoleUI();
     loadDatabase();
 });
 
@@ -41,6 +44,51 @@ document.addEventListener("DOMContentLoaded", () => {
     setupEvents();
     initTheme();
 });
+
+async function checkUserRole(uid) {
+    try {
+        const userSnap = await get(ref(db, `webapp/users/${uid}`));
+        if (userSnap.exists()) {
+            window.currentUserRole = userSnap.val().role || "user";
+        } else {
+            window.currentUserRole = "user";
+        }
+    } catch (err) {
+        window.currentUserRole = "user";
+    }
+}
+
+async function findPrimaryAdmin() {
+    try {
+        const usersRef = ref(db, "webapp/users");
+        const adminQuery = query(usersRef, orderByChild("role"), equalTo("admin"));
+        const snapshot = await get(adminQuery);
+        
+        if (snapshot.exists()) {
+            const admins = snapshot.val();
+            primaryAdminUid = Object.keys(admins)[0];
+        } else {
+            primaryAdminUid = window.currentUser.uid;
+        }
+    } catch (err) {
+        primaryAdminUid = window.currentUser.uid;
+    }
+}
+
+function updateRoleUI() {
+    const isAdmin = window.currentUserRole === "admin";
+    const adminButtons = [
+        document.getElementById("addCategoryBtn"),
+        document.getElementById("emptyAddBtn"),
+        document.getElementById("addSubCategoryBtn"),
+        document.getElementById("addHeaderBtn"),
+        document.getElementById("addDataBtn")
+    ];
+
+    adminButtons.forEach(btn => {
+        if (btn) btn.style.display = isAdmin ? "inline-block" : "none";
+    });
+}
 
 /* =========================================
    NIGHT / DARK MODE LOGIC
@@ -68,7 +116,8 @@ async function loadDatabase() {
     if (!window.currentUser) return;
 
     try {
-        const snapshot = await get(ref(db, "webapp/user_data/" + window.currentUser.uid));
+        const targetPath = `webapp/user_data/${primaryAdminUid}`;
+        const snapshot = await get(ref(db, targetPath));
 
         if (snapshot.exists()) {
             database = snapshot.val();
@@ -79,7 +128,8 @@ async function loadDatabase() {
             database = { categories: [], headers: [], data: [] };
         }
 
-        renderCategories();
+        if (currentCategoryId) renderCategoryDetails();
+        else renderCategories();
     } catch (error) {
         console.error("Database load error:", error);
         showToast("ফায়ারবেস থেকে ডাটা লোড করা যায়নি");
@@ -87,10 +137,10 @@ async function loadDatabase() {
 }
 
 async function saveDatabase() {
-    if (!window.currentUser) return;
+    if (window.currentUserRole !== "admin") return;
 
     try {
-        await set(ref(db, "webapp/user_data/" + window.currentUser.uid), database);
+        await set(ref(db, `webapp/user_data/${window.currentUser.uid}`), database);
     } catch (error) {
         console.error("Database save error:", error);
         showToast("ডাটা সেভ করতে সমস্যা হয়েছে");
@@ -102,11 +152,41 @@ function generateId(prefix) {
 }
 
 /* =========================================
+   PIN TOGGLE FUNCTIONS
+========================================= */
+
+async function togglePinCategory(id) {
+    if (window.currentUserRole !== "admin") return;
+    const cat = database.categories.find(c => c.id === id);
+    if (!cat) return;
+
+    cat.isPinned = !cat.isPinned;
+    await saveDatabase();
+    if (currentCategoryId) renderCategoryDetails();
+    else renderCategories();
+    showToast(cat.isPinned ? "Category পিন করা হয়েছে" : "Category আনপিন করা হয়েছে");
+}
+
+async function togglePinData(id) {
+    if (window.currentUserRole !== "admin") return;
+    const item = database.data.find(d => d.id === id);
+    if (!item) return;
+
+    item.isPinned = !item.isPinned;
+    await saveDatabase();
+    renderCategoryDetails();
+    showToast(item.isPinned ? "Data পিন করা হয়েছে" : "Data আনপিন করা হয়েছে");
+}
+
+/* =========================================
    EVENTS SETUP
 ========================================= */
 
 function setupEvents() {
     document.getElementById("themeBtn")?.addEventListener("click", toggleTheme);
+    document.getElementById("logoutBtn")?.addEventListener("click", () => {
+        if (confirm("আপনি কি লগআউট করতে চান?")) logoutUser();
+    });
 
     document.getElementById("addCategoryBtn")?.addEventListener("click", () => openCategoryModal(false));
     document.getElementById("emptyAddBtn")?.addEventListener("click", () => openCategoryModal(false));
@@ -203,6 +283,7 @@ async function saveCategory() {
         id: generateId("cat"),
         name: name,
         parentId: currentCategoryId ? currentCategoryId : null,
+        isPinned: false,
         createdAt: Date.now()
     });
 
@@ -216,6 +297,7 @@ async function saveCategory() {
 }
 
 async function editCategory(id) {
+    if (window.currentUserRole !== "admin") return;
     const cat = database.categories.find(c => c.id === id);
     if (!cat) return;
 
@@ -230,6 +312,7 @@ async function editCategory(id) {
 }
 
 async function deleteCategory(id) {
+    if (window.currentUserRole !== "admin") return;
     if (!confirm("আপনি কি নিশ্চিত এই Category ডিলিট করতে চান? এর ভেতরের সব ডাটা মুছে যাবে!")) return;
 
     function removeCategoryRecursively(catId) {
@@ -252,7 +335,7 @@ async function deleteCategory(id) {
 }
 
 /* =========================================
-   RENDER LOGIC
+   RENDER LOGIC (WITH PIN SORTING)
 ========================================= */
 
 function renderCategories() {
@@ -271,6 +354,9 @@ function renderCategories() {
         );
     }
 
+    // Pinned First Sorting
+    categoriesToShow.sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
+
     list.innerHTML = "";
     if (countElement) countElement.textContent = `${categoriesToShow.length}টি Category`;
 
@@ -283,6 +369,8 @@ function renderCategories() {
     emptyState.classList.add("hidden");
     list.classList.remove("hidden");
 
+    const isAdmin = window.currentUserRole === "admin";
+
     categoriesToShow.forEach(category => {
         const card = document.createElement("div");
         card.className = "category-card";
@@ -293,18 +381,26 @@ function renderCategories() {
 
         card.innerHTML = `
             <div style="flex-grow: 1; cursor: pointer;" class="cat-click">
-                <h3 style="margin:0; font-size:16px;">📁 ${escapeHTML(category.name)}</h3>
+                <h3 style="margin:0; font-size:16px;">
+                    ${category.isPinned ? '📌 ' : '📁 '} ${escapeHTML(category.name)}
+                </h3>
                 <small style="color:gray;">${subCount} Sub-Categories • ${dataCount} Data</small>
             </div>
+            ${isAdmin ? `
             <div style="display: flex; gap: 8px;">
+                <button class="btn-pin-cat secondary-btn" style="padding: 4px 8px;">${category.isPinned ? '📍' : '📌'}</button>
                 <button class="btn-edit-cat secondary-btn" style="padding: 4px 8px;">✏️</button>
                 <button class="btn-del-cat secondary-btn" style="padding: 4px 8px; color: red;">🗑️</button>
-            </div>
+            </div>` : ''}
         `;
 
         card.querySelector(".cat-click").addEventListener("click", () => openCategory(category.id));
-        card.querySelector(".btn-edit-cat").addEventListener("click", (e) => { e.stopPropagation(); editCategory(category.id); });
-        card.querySelector(".btn-del-cat").addEventListener("click", (e) => { e.stopPropagation(); deleteCategory(category.id); });
+        
+        if (isAdmin) {
+            card.querySelector(".btn-pin-cat").addEventListener("click", (e) => { e.stopPropagation(); togglePinCategory(category.id); });
+            card.querySelector(".btn-edit-cat").addEventListener("click", (e) => { e.stopPropagation(); editCategory(category.id); });
+            card.querySelector(".btn-del-cat").addEventListener("click", (e) => { e.stopPropagation(); deleteCategory(category.id); });
+        }
 
         list.appendChild(card);
     });
@@ -315,8 +411,12 @@ function renderCategoryDetails() {
     if (!container) return;
 
     container.innerHTML = "";
+    const isAdmin = window.currentUserRole === "admin";
 
+    // Sub-Categories (Sorted by Pin)
     const subCategories = database.categories.filter(cat => cat.parentId === currentCategoryId);
+    subCategories.sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
+
     if (subCategories.length > 0) {
         const subWrapper = document.createElement("div");
         subWrapper.style.marginBottom = "20px";
@@ -326,15 +426,22 @@ function renderCategoryDetails() {
             const item = document.createElement("div");
             item.style.cssText = "padding: 12px 15px; background: rgba(0,0,0,0.04); border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-weight: 500;";
             item.innerHTML = `
-                <span style="cursor:pointer; flex-grow:1;" class="sub-click">📁 ${escapeHTML(sub.name)}</span>
+                <span style="cursor:pointer; flex-grow:1;" class="sub-click">
+                    ${sub.isPinned ? '📌 ' : '📁 '} ${escapeHTML(sub.name)}
+                </span>
+                ${isAdmin ? `
                 <div style="display: flex; gap: 8px;">
+                    <button class="btn-pin-sub secondary-btn" style="padding: 2px 6px;">${sub.isPinned ? '📍' : '📌'}</button>
                     <button class="btn-edit-sub secondary-btn" style="padding: 2px 6px;">✏️</button>
                     <button class="btn-del-sub secondary-btn" style="padding: 2px 6px; color: red;">🗑️</button>
-                </div>
+                </div>` : ''}
             `;
             item.querySelector(".sub-click").addEventListener("click", () => openCategory(sub.id));
-            item.querySelector(".btn-edit-sub").addEventListener("click", () => editCategory(sub.id));
-            item.querySelector(".btn-del-sub").addEventListener("click", () => deleteCategory(sub.id));
+            if (isAdmin) {
+                item.querySelector(".btn-pin-sub").addEventListener("click", () => togglePinCategory(sub.id));
+                item.querySelector(".btn-edit-sub").addEventListener("click", () => editCategory(sub.id));
+                item.querySelector(".btn-del-sub").addEventListener("click", () => deleteCategory(sub.id));
+            }
 
             subWrapper.appendChild(item);
         });
@@ -350,17 +457,22 @@ function renderCategoryDetails() {
         headerBox.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                 <h5 style="margin:0; font-size: 15px;">🏷️ ${escapeHTML(header.title)}</h5>
+                ${isAdmin ? `
                 <div style="display:flex; gap:6px;">
                     <button class="btn-edit-head secondary-btn" style="padding:2px 6px;">✏️</button>
                     <button class="btn-del-head secondary-btn" style="padding:2px 6px; color:red;">🗑️</button>
-                </div>
+                </div>` : ''}
             </div>
         `;
 
-        headerBox.querySelector(".btn-edit-head").addEventListener("click", () => editHeader(header.id));
-        headerBox.querySelector(".btn-del-head").addEventListener("click", () => deleteHeader(header.id));
+        if (isAdmin) {
+            headerBox.querySelector(".btn-edit-head").addEventListener("click", () => editHeader(header.id));
+            headerBox.querySelector(".btn-del-head").addEventListener("click", () => deleteHeader(header.id));
+        }
 
         const headerItems = categoryData.filter(d => d.headerId === header.id);
+        headerItems.sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
+
         headerItems.forEach(item => {
             headerBox.appendChild(createDataCardElement(item));
         });
@@ -369,6 +481,8 @@ function renderCategoryDetails() {
     });
 
     const noHeaderData = categoryData.filter(d => !d.headerId);
+    noHeaderData.sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
+
     if (noHeaderData.length > 0) {
         const noHeaderBox = document.createElement("div");
         noHeaderBox.innerHTML = `<h5 style="margin: 10px 0;">📄 সাধারণ Data</h5>`;
@@ -384,23 +498,30 @@ function renderCategoryDetails() {
 }
 
 function createDataCardElement(item) {
+    const isAdmin = window.currentUserRole === "admin";
     const dataEl = document.createElement("div");
     dataEl.style.cssText = "padding:10px; background:var(--card-bg, #fff); margin-bottom:6px; border-radius:4px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:flex-start;";
+    
     dataEl.innerHTML = `
         <div>
-            <strong>${escapeHTML(item.title)}</strong>
+            <strong>${item.isPinned ? '📌 ' : ''}${escapeHTML(item.title)}</strong>
             <p style="margin:4px 0 0 0; font-size:13px; color:#555;">${escapeHTML(item.description)}</p>
         </div>
+        ${isAdmin ? `
         <div style="display:flex; gap:6px;">
+            <button class="btn-pin-data secondary-btn" style="padding:2px 6px;">${item.isPinned ? '📍' : '📌'}</button>
             <button class="btn-move-data secondary-btn" style="padding:2px 6px;">📦 Move</button>
             <button class="btn-edit-data secondary-btn" style="padding:2px 6px;">✏️</button>
             <button class="btn-del-data secondary-btn" style="padding:2px 6px; color:red;">🗑️</button>
-        </div>
+        </div>` : ''}
     `;
 
-    dataEl.querySelector(".btn-move-data").addEventListener("click", () => openMoveModal(item.id));
-    dataEl.querySelector(".btn-edit-data").addEventListener("click", () => editData(item.id));
-    dataEl.querySelector(".btn-del-data").addEventListener("click", () => deleteData(item.id));
+    if (isAdmin) {
+        dataEl.querySelector(".btn-pin-data").addEventListener("click", () => togglePinData(item.id));
+        dataEl.querySelector(".btn-move-data").addEventListener("click", () => openMoveModal(item.id));
+        dataEl.querySelector(".btn-edit-data").addEventListener("click", () => editData(item.id));
+        dataEl.querySelector(".btn-del-data").addEventListener("click", () => deleteData(item.id));
+    }
 
     return dataEl;
 }
@@ -434,6 +555,7 @@ async function saveHeader() {
 }
 
 async function editHeader(id) {
+    if (window.currentUserRole !== "admin") return;
     const header = database.headers.find(h => h.id === id);
     if (!header) return;
 
@@ -447,6 +569,7 @@ async function editHeader(id) {
 }
 
 async function deleteHeader(id) {
+    if (window.currentUserRole !== "admin") return;
     if (!confirm("আপনি কি নিশ্চিত এই Header ডিলিট করতে চান? এর ভেতরের ডাটা সাধারণ ডাটাতে চলে যাবে।")) return;
 
     database.headers = database.headers.filter(h => h.id !== id);
@@ -490,7 +613,8 @@ async function saveData() {
         categoryId: currentCategoryId,
         headerId: headerId || null,
         title: title,
-        description: desc
+        description: desc,
+        isPinned: false
     });
 
     await saveDatabase();
@@ -500,6 +624,7 @@ async function saveData() {
 }
 
 async function editData(id) {
+    if (window.currentUserRole !== "admin") return;
     const item = database.data.find(d => d.id === id);
     if (!item) return;
 
@@ -517,6 +642,7 @@ async function editData(id) {
 }
 
 async function deleteData(id) {
+    if (window.currentUserRole !== "admin") return;
     if (!confirm("আপনি কি নিশ্চিত এই Data ডিলিট করতে চান?")) return;
 
     database.data = database.data.filter(d => d.id !== id);
@@ -563,7 +689,7 @@ function openMoveModal(dataId) {
 }
 
 async function confirmMoveData() {
-    if (!targetMoveDataId) return;
+    if (window.currentUserRole !== "admin" || !targetMoveDataId) return;
 
     const item = database.data.find(d => d.id === targetMoveDataId);
     const selectedCatId = document.getElementById("moveCategorySelect")?.value;
