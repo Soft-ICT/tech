@@ -1,20 +1,5 @@
-import {
-    watchAuth,
-    logoutUser
-} from "./auth.js";
-
-import {
-    ref,
-    set,
-    get
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
-
-import { db } from "./firebase.js";
-
-"use strict";
-
 /* =========================================
-   DATABASE & STATE
+   DATABASE & STATE MANAGEMENT
 ========================================= */
 
 let database = {
@@ -26,403 +11,72 @@ let database = {
 let currentCategoryId = null;
 let editingCategoryId = null;
 
-/* =========================================
-   AUTH WATCHER & LOAD
-========================================= */
-
-watchAuth((user, role) => {
-    if (!user) {
-        window.location.href = "login.html";
-        return;
-    }
-
-    console.log("Logged in:", user.email, "Role:", role);
-
-    window.currentUser = user;
-    window.currentUserRole = role;
-
-    // ইউজার কনফার্ম হওয়ার পর ফায়ারবেস থেকে ডাটা লোড হবে
-    loadDatabase();
-});
-
-/* =========================================
-   INITIALIZE
-========================================= */
-
 document.addEventListener("DOMContentLoaded", () => {
+    loadDatabase();
     setupEvents();
-    loadTheme();
 });
 
-/* =========================================
-   FIREBASE STORAGE
-========================================= */
-
-async function loadDatabase() {
-    if (!window.currentUser) return;
-
-    try {
-        const snapshot = await get(ref(db, "webapp/user_data/" + window.currentUser.uid));
-
-        if (snapshot.exists()) {
-            database = snapshot.val();
+function loadDatabase() {
+    const savedData = localStorage.getItem("my_data_manager");
+    if (savedData) {
+        try {
+            database = JSON.parse(savedData);
             if (!database.categories) database.categories = [];
             if (!database.headers) database.headers = [];
             if (!database.data) database.data = [];
-        } else {
-            database = {
-                categories: [],
-                headers: [],
-                data: []
-            };
+        } catch (e) {
+            console.error("Local Storage Error", e);
         }
-
-        renderCategories();
-    } catch (error) {
-        console.error("Database load error:", error);
-        showToast("ফায়ারবেস থেকে ডাটা লোড করা যায়নি");
     }
+    renderCategories();
 }
 
-async function saveDatabase() {
-    if (!window.currentUser) return;
-
-    try {
-        await set(ref(db, "webapp/user_data/" + window.currentUser.uid), database);
-        console.log("Firebase-এ ডাটা সেভ সফল হয়েছে");
-    } catch (error) {
-        console.error("Database save error:", error);
-        showToast("ফায়ারবেসে ডাটা সেভ করতে সমস্যা হয়েছে");
-    }
+function saveDatabase() {
+    localStorage.setItem("my_data_manager", JSON.stringify(database));
 }
-
-/* =========================================
-   ID GENERATOR
-========================================= */
 
 function generateId(prefix) {
-    return (
-        prefix +
-        "_" +
-        Date.now() +
-        "_" +
-        Math.random()
-            .toString(36)
-            .substring(2, 8)
-    );
+    return prefix + "_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7);
 }
 
 /* =========================================
-   EVENTS
+   EVENTS SETUP
 ========================================= */
 
 function setupEvents() {
+    document.getElementById("addCategoryBtn")?.addEventListener("click", () => openCategoryModal(false));
+    document.getElementById("emptyAddBtn")?.addEventListener("click", () => openCategoryModal(false));
+    document.getElementById("addSubCategoryBtn")?.addEventListener("click", () => openCategoryModal(true));
 
-    /* Logout Event */
-    const logoutBtn = document.getElementById("logoutBtn");
-    if (logoutBtn) {
-        logoutBtn.addEventListener("click", async () => {
-            await logoutUser();
-            window.location.href = "login.html";
+    document.getElementById("saveCategoryBtn")?.addEventListener("click", saveCategory);
+    document.getElementById("saveHeaderBtn")?.addEventListener("click", saveHeader);
+    document.getElementById("saveDataBtn")?.addEventListener("click", saveData);
+
+    document.getElementById("addHeaderBtn")?.addEventListener("click", openHeaderModal);
+    document.getElementById("addDataBtn")?.addEventListener("click", openDataModal);
+
+    // পেজ ব্যাক বাটন ইভেন্ট
+    document.getElementById("backToMainBtn")?.addEventListener("click", goBack);
+
+    document.getElementById("searchBtn")?.addEventListener("click", toggleSearch);
+    document.getElementById("clearSearch")?.addEventListener("click", clearSearch);
+    document.getElementById("searchInput")?.addEventListener("input", renderCategories);
+
+    document.querySelectorAll("[data-close]").forEach(btn => {
+        btn.addEventListener("click", () => {
+            closeModal(btn.dataset.close);
         });
-    }
+    });
 
-    /* Add Category */
-    document
-        .getElementById("addCategoryBtn")
-        .addEventListener("click", openAddCategory);
-
-    document
-        .getElementById("emptyAddBtn")
-        .addEventListener("click", openAddCategory);
-
-    /* Add Sub-Category */
-    document
-        .getElementById("addSubCategoryBtn")
-        ?.addEventListener("click", openAddCategory);
-
-    /* Save Category */
-    document
-        .getElementById("saveCategoryBtn")
-        .addEventListener("click", saveCategory);
-
-    /* Save Header */
-    document
-        .getElementById("saveHeaderBtn")
-        .addEventListener("click", saveHeader);
-
-    /* Save Data */
-    document
-        .getElementById("saveDataBtn")
-        .addEventListener("click", saveData);
-
-    /* Add Header */
-    document
-        .getElementById("addHeaderBtn")
-        .addEventListener("click", openHeaderModal);
-
-    /* Add Data */
-    document
-        .getElementById("addDataBtn")
-        .addEventListener("click", openDataModal);
-
-    /* Search */
-    document
-        .getElementById("searchBtn")
-        .addEventListener("click", toggleSearch);
-
-    document
-        .getElementById("searchInput")
-        .addEventListener("input", renderCategories);
-
-    document
-        .getElementById("clearSearch")
-        .addEventListener("click", () => {
-            document.getElementById("searchInput").value = "";
-            renderCategories();
+    document.querySelectorAll(".modal").forEach(modal => {
+        modal.addEventListener("click", (e) => {
+            if (e.target === modal) closeModal(modal.id);
         });
-
-    /* Theme */
-    document
-        .getElementById("themeBtn")
-        .addEventListener("click", toggleTheme);
-
-    /* Close buttons */
-    document
-        .querySelectorAll("[data-close]")
-        .forEach(button => {
-            button.addEventListener("click", () => {
-                const modalId = button.dataset.close;
-                closeModal(modalId);
-            });
-        });
-
-    /* Close modal by background */
-    document
-        .querySelectorAll(".modal")
-        .forEach(modal => {
-            modal.addEventListener("click", event => {
-                if (event.target === modal) {
-                    closeModal(modal.id);
-                }
-            });
-        });
-
-    /* Escape Key */
-    document.addEventListener("keydown", event => {
-        if (event.key === "Escape") {
-            document
-                .querySelectorAll(".modal")
-                .forEach(modal => {
-                    modal.classList.add("hidden");
-                });
-        }
     });
 }
 
 /* =========================================
-   CATEGORY LOGIC
-========================================= */
-
-function openAddCategory() {
-    editingCategoryId = null;
-
-    document.getElementById("categoryModalTitle").textContent = currentCategoryId ? "নতুন Sub-Category" : "নতুন Category";
-    document.getElementById("categoryNameInput").value = "";
-
-    openModal("categoryModal");
-
-    setTimeout(() => {
-        document.getElementById("categoryNameInput").focus();
-    }, 100);
-}
-
-function openEditCategory(id) {
-    const category = database.categories.find(item => item.id === id);
-    if (!category) return;
-
-    editingCategoryId = id;
-
-    document.getElementById("categoryModalTitle").textContent = "Category Edit";
-    document.getElementById("categoryNameInput").value = category.name;
-
-    openModal("categoryModal");
-}
-
-async function saveCategory() {
-    const input = document.getElementById("categoryNameInput");
-    const name = input.value.trim();
-
-    if (!name) {
-        showToast("Category Name লিখুন");
-        input.focus();
-        return;
-    }
-
-    if (editingCategoryId) {
-        const category = database.categories.find(item => item.id === editingCategoryId);
-        if (category) {
-            category.name = name;
-            category.updatedAt = Date.now();
-        }
-        showToast("Category আপডেট হয়েছে");
-    } else {
-        database.categories.push({
-            id: generateId("cat"),
-            name: name,
-            parentId: currentCategoryId || null, // বর্তমান কোনো ক্যাটাগরির ভেতরে থাকলে তার ID সেট হবে
-            order: database.categories.length,
-            pinned: false,
-            createdAt: Date.now(),
-            updatedAt: Date.now()
-        });
-        showToast("Category তৈরি হয়েছে");
-    }
-
-    await saveDatabase();
-    closeModal("categoryModal");
-
-    if (currentCategoryId) {
-        renderCategoryDetails();
-    }
-    renderCategories();
-}
-
-async function deleteCategory(id) {
-    const category = database.categories.find(item => item.id === id);
-    if (!category) return;
-
-    const confirmed = confirm(`"${category.name}" Category মুছে ফেলবেন?`);
-    if (!confirmed) return;
-
-    // ক্যাটাগরি এবং তার সকল সাব-ক্যাটাগরি রিকার্সিভলি ফিল্টার করা
-    function removeCategoryAndChildren(catId) {
-        const children = database.categories.filter(item => item.parentId === catId);
-        children.forEach(child => removeCategoryAndChildren(child.id));
-
-        database.categories = database.categories.filter(item => item.id !== catId);
-        database.headers = database.headers.filter(item => item.categoryId !== catId);
-        database.data = database.data.filter(item => item.categoryId !== catId);
-    }
-
-    removeCategoryAndChildren(id);
-
-    await saveDatabase();
-
-    if (currentCategoryId === id) {
-        closeModal("detailsModal");
-        currentCategoryId = null;
-    } else if (currentCategoryId) {
-        renderCategoryDetails();
-    }
-    
-    renderCategories();
-    showToast("Category মুছে ফেলা হয়েছে");
-}
-
-/* =========================================
-   CATEGORY RENDER (Root Level)
-========================================= */
-
-function renderCategories() {
-    const list = document.getElementById("categoryList");
-    const empty = document.getElementById("emptyState");
-
-    const search = document.getElementById("searchInput").value.trim().toLowerCase();
-
-    let categories = [...database.categories];
-
-    // সার্চ না থাকলে ড্যাশবোর্ডে শুধু মূল (Root) ক্যাটাগরিগুলো দেখাবে
-    if (!search) {
-        categories = categories.filter(category => !category.parentId);
-    }
-
-    categories.sort((a, b) => {
-        if (a.pinned !== b.pinned) {
-            return b.pinned - a.pinned;
-        }
-        return a.order - b.order;
-    });
-
-    if (search) {
-        categories = categories.filter(category => {
-            const categoryMatch = category.name.toLowerCase().includes(search);
-            const headerMatch = database.headers.some(
-                header => header.categoryId === category.id && header.title.toLowerCase().includes(search)
-            );
-            const dataMatch = database.data.some(
-                data =>
-                    data.categoryId === category.id &&
-                    (data.title.toLowerCase().includes(search) || data.description.toLowerCase().includes(search))
-            );
-            return categoryMatch || headerMatch || dataMatch;
-        });
-    }
-
-    list.innerHTML = "";
-    document.getElementById("categoryCount").textContent = `${database.categories.length}টি Category`;
-
-    if (database.categories.length === 0) {
-        empty.classList.remove("hidden");
-        return;
-    }
-
-    empty.classList.add("hidden");
-
-    if (categories.length === 0) {
-        list.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">🔎</div>
-                <h2>কোনো ফলাফল পাওয়া যায়নি</h2>
-                <p>অন্য কিছু লিখে আবার চেষ্টা করুন।</p>
-            </div>
-        `;
-        return;
-    }
-
-    categories.forEach(category => {
-        const headerCount = database.headers.filter(item => item.categoryId === category.id).length;
-        const dataCount = database.data.filter(item => item.categoryId === category.id).length;
-
-        const card = document.createElement("div");
-        card.className = "category-card";
-
-        card.innerHTML = `
-            <div class="category-top">
-                <div class="category-icon">📁</div>
-                <div class="category-info">
-                    <div class="category-name">${escapeHTML(category.name)}</div>
-                    <div class="category-meta">${headerCount} Header • ${dataCount} Data</div>
-                </div>
-                <div class="category-menu">
-                    <button class="small-btn" title="Edit" data-action="edit">✏️</button>
-                    <button class="small-btn" title="Delete" data-action="delete">🗑️</button>
-                </div>
-            </div>
-        `;
-
-        card.addEventListener("click", event => {
-            const action = event.target.dataset.action;
-
-            if (action === "edit") {
-                openEditCategory(category.id);
-                return;
-            }
-
-            if (action === "delete") {
-                deleteCategory(category.id);
-                return;
-            }
-
-            openCategory(category.id);
-        });
-
-        list.appendChild(card);
-    });
-}
-
-/* =========================================
-   CATEGORY DETAILS & SUB-CATEGORIES
+   PAGE SWITCHING LOGIC (পপ-আপ বাদ দিয়ে পেজ পরিবর্তন)
 ========================================= */
 
 function openCategory(id) {
@@ -431,371 +85,303 @@ function openCategory(id) {
 
     currentCategoryId = id;
 
-    document.getElementById("detailsTitle").textContent = category.name;
+    // ভিউ পরিবর্তন (মেইন ভিউ হাইড, ডিটেইলস ভিউ শো)
+    document.getElementById("mainDashboardView")?.classList.add("hidden");
+    document.getElementById("categoryDetailsView")?.classList.remove("hidden");
 
-    const headers = database.headers.filter(item => item.categoryId === id);
-    const data = database.data.filter(item => item.categoryId === id);
+    const titleElement = document.getElementById("detailsTitle");
+    const subtitleElement = document.getElementById("detailsSubtitle");
 
-    document.getElementById("detailsSubtitle").textContent = `${headers.length} Header • ${data.length} Data`;
+    if (titleElement) titleElement.textContent = category.name;
+
+    const headersCount = database.headers.filter(h => h.categoryId === id).length;
+    const dataCount = database.data.filter(d => d.categoryId === id).length;
+    if (subtitleElement) subtitleElement.textContent = `${headersCount} Header • ${dataCount} Data`;
 
     renderCategoryDetails();
-    openModal("detailsModal");
+}
+
+function goBack() {
+    const currentCat = database.categories.find(c => c.id === currentCategoryId);
+    
+    // যদি সাব-ক্যাটাগরির ভেতরে থাকে তবে ওপরের ক্যাটাগরিতে ফেরত যাবে
+    if (currentCat && currentCat.parentId) {
+        openCategory(currentCat.parentId);
+    } else {
+        // তা না হলে মেইন ড্যাশবোর্ডে ফেরত যাবে
+        currentCategoryId = null;
+        document.getElementById("categoryDetailsView")?.classList.add("hidden");
+        document.getElementById("mainDashboardView")?.classList.remove("hidden");
+        renderCategories();
+    }
+}
+
+/* =========================================
+   CATEGORY & SUB-CATEGORY LOGIC
+========================================= */
+
+function openCategoryModal(isSubCategory = false) {
+    editingCategoryId = null;
+    const modalTitle = document.getElementById("categoryModalTitle");
+    if (modalTitle) {
+        modalTitle.textContent = isSubCategory ? "নতুন Sub-Category" : "নতুন Category";
+    }
+
+    const input = document.getElementById("categoryNameInput");
+    if (input) input.value = "";
+
+    openModal("categoryModal");
+    setTimeout(() => input?.focus(), 100);
+}
+
+function saveCategory() {
+    const input = document.getElementById("categoryNameInput");
+    const name = input?.value.trim();
+
+    if (!name) {
+        showToast("Category Name লিখুন");
+        return;
+    }
+
+    if (editingCategoryId) {
+        const category = database.categories.find(item => item.id === editingCategoryId);
+        if (category) {
+            category.name = name;
+        }
+    } else {
+        database.categories.push({
+            id: generateId("cat"),
+            name: name,
+            parentId: currentCategoryId ? currentCategoryId : null,
+            createdAt: Date.now()
+        });
+    }
+
+    saveDatabase();
+    closeModal("categoryModal");
+
+    if (currentCategoryId) {
+        renderCategoryDetails();
+    } else {
+        renderCategories();
+    }
+    showToast("Category সেভ করা হয়েছে");
+}
+
+/* =========================================
+   RENDER LOGIC
+========================================= */
+
+function renderCategories() {
+    const list = document.getElementById("categoryList");
+    const emptyState = document.getElementById("emptyState");
+    const countElement = document.getElementById("categoryCount");
+    const searchVal = document.getElementById("searchInput")?.value.trim().toLowerCase();
+
+    if (!list || !emptyState) return;
+
+    let categoriesToShow = database.categories.filter(cat => !cat.parentId);
+
+    if (searchVal) {
+        categoriesToShow = database.categories.filter(cat => 
+            cat.name.toLowerCase().includes(searchVal)
+        );
+    }
+
+    list.innerHTML = "";
+    if (countElement) countElement.textContent = `${categoriesToShow.length}টি Category`;
+
+    if (database.categories.length === 0) {
+        emptyState.classList.remove("hidden");
+        list.classList.add("hidden");
+        return;
+    }
+
+    emptyState.classList.add("hidden");
+    list.classList.remove("hidden");
+
+    categoriesToShow.forEach(category => {
+        const card = document.createElement("div");
+        card.className = "category-card";
+        card.style.cssText = "padding: 15px; border-radius: 8px; background: var(--card-bg, #fff); margin-bottom: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(0,0,0,0.1);";
+        
+        const subCount = database.categories.filter(c => c.parentId === category.id).length;
+        const dataCount = database.data.filter(d => d.categoryId === category.id).length;
+
+        card.innerHTML = `
+            <div>
+                <h3 style="margin:0; font-size:16px;">📁 ${escapeHTML(category.name)}</h3>
+                <small style="color:gray;">${subCount} Sub-Categories • ${dataCount} Data</small>
+            </div>
+            <span>➡️</span>
+        `;
+
+        card.addEventListener("click", () => openCategory(category.id));
+        list.appendChild(card);
+    });
 }
 
 function renderCategoryDetails() {
     const container = document.getElementById("detailsContent");
-
-    // ১. বর্তমান ক্যাটাগরির অধীনে থাকা Sub-categories
-    const subCategories = database.categories.filter(
-        item => item.parentId === currentCategoryId
-    );
-
-    // ২. বর্তমান ক্যাটাগরির অধীনে থাকা Headers
-    const headers = database.headers
-        .filter(item => item.categoryId === currentCategoryId)
-        .sort((a, b) => a.order - b.order);
-
-    // ৩. বর্তমান ক্যাটাগরির অধীনে থাকা Data
-    const data = database.data
-        .filter(item => item.categoryId === currentCategoryId)
-        .sort((a, b) => a.order - b.order);
+    if (!container) return;
 
     container.innerHTML = "";
 
-    /* Sub-categories Render */
-    if (subCategories.length > 0) {
-        const subSec = document.createElement("div");
-        subSec.className = "subcategory-section";
-        subSec.style.marginBottom = "20px";
-        subSec.innerHTML = `<h3 style="margin-bottom:10px; font-size:16px;">📂 Sub-Categories</h3>`;
+    const subCategories = database.categories.filter(cat => cat.parentId === currentCategoryId);
 
-        const subList = document.createElement("div");
-        subList.className = "category-list";
+    if (subCategories.length > 0) {
+        const subWrapper = document.createElement("div");
+        subWrapper.style.marginBottom = "20px";
+        subWrapper.innerHTML = `<h4 style="margin-bottom:10px;">📂 Sub-Categories</h4>`;
 
         subCategories.forEach(sub => {
-            const card = document.createElement("div");
-            card.className = "category-card";
-            card.innerHTML = `
-                <div class="category-top">
-                    <div class="category-icon">📁</div>
-                    <div class="category-info">
-                        <div class="category-name">${escapeHTML(sub.name)}</div>
-                    </div>
-                    <div class="category-menu">
-                        <button class="small-btn" title="Edit" data-action="edit">✏️</button>
-                        <button class="small-btn" title="Delete" data-action="delete">🗑️</button>
-                    </div>
-                </div>
-            `;
-
-            card.addEventListener("click", event => {
-                const action = event.target.dataset.action;
-                if (action === "edit") {
-                    openEditCategory(sub.id);
-                    return;
-                }
-                if (action === "delete") {
-                    deleteCategory(sub.id);
-                    return;
-                }
-                // পর্যায়ক্রমে গভীরে ঢোকার জন্য
-                openCategory(sub.id);
-            });
-
-            subList.appendChild(card);
+            const item = document.createElement("div");
+            item.style.cssText = "padding: 12px 15px; background: rgba(0,0,0,0.04); border-radius: 6px; margin-bottom: 8px; cursor: pointer; display: flex; justify-content: space-between; font-weight: 500;";
+            item.innerHTML = `<span>📁 ${escapeHTML(sub.name)}</span> <span>➡️</span>`;
+            item.addEventListener("click", () => openCategory(sub.id));
+            subWrapper.appendChild(item);
         });
 
-        subSec.appendChild(subList);
-        container.appendChild(subSec);
+        container.appendChild(subWrapper);
     }
 
-    /* Headers Section */
+    const headers = database.headers.filter(h => h.categoryId === currentCategoryId);
+    const categoryData = database.data.filter(d => d.categoryId === currentCategoryId);
+
     headers.forEach(header => {
-        const section = document.createElement("div");
-        section.className = "header-section";
-        const headerData = data.filter(item => item.headerId === header.id);
+        const headerBox = document.createElement("div");
+        headerBox.style.cssText = "margin-bottom: 15px; padding: 12px; border: 1px dashed #ccc; border-radius: 6px;";
+        headerBox.innerHTML = `<h5 style="margin:0 0 10px 0; font-size: 15px;">🏷️ ${escapeHTML(header.title)}</h5>`;
 
-        section.innerHTML = `
-            <div class="header-title">
-                <span>🏷️ ${escapeHTML(header.title)}</span>
-                <button class="small-btn" title="Delete Header">🗑️</button>
-            </div>
-            <div class="header-data"></div>
-        `;
-
-        section.querySelector("button").addEventListener("click", () => {
-            deleteHeader(header.id);
+        const headerItems = categoryData.filter(d => d.headerId === header.id);
+        headerItems.forEach(item => {
+            const dataEl = document.createElement("div");
+            dataEl.style.cssText = "padding:10px; background:#fff; margin-bottom:6px; border-radius:4px; border:1px solid #eee;";
+            dataEl.innerHTML = `<strong>${escapeHTML(item.title)}</strong><p style="margin:4px 0 0 0; font-size:13px; color:#555;">${escapeHTML(item.description)}</p>`;
+            headerBox.appendChild(dataEl);
         });
 
-        const dataContainer = section.querySelector(".header-data");
-
-        if (headerData.length === 0) {
-            dataContainer.innerHTML = `
-                <p style="color:var(--muted); padding:10px;">
-                    এই Header-এর অধীনে এখনো কোনো Data নেই।
-                </p>
-            `;
-        } else {
-            headerData.forEach(item => {
-                dataContainer.appendChild(createDataCard(item));
-            });
-        }
-
-        container.appendChild(section);
+        container.appendChild(headerBox);
     });
 
-    /* Data without Header Section */
-    const noHeaderData = data.filter(item => !item.headerId);
-
+    const noHeaderData = categoryData.filter(d => !d.headerId);
     if (noHeaderData.length > 0) {
-        const section = document.createElement("div");
-        section.className = "header-section";
-
-        section.innerHTML = `
-            <div class="header-title">
-                <span>📄 সাধারণ Data</span>
-            </div>
-            <div class="header-data"></div>
-        `;
-
-        const dataContainer = section.querySelector(".header-data");
-
+        const noHeaderBox = document.createElement("div");
+        noHeaderBox.innerHTML = `<h5 style="margin: 10px 0;">📄 সাধারণ Data</h5>`;
         noHeaderData.forEach(item => {
-            dataContainer.appendChild(createDataCard(item));
+            const dataEl = document.createElement("div");
+            dataEl.style.cssText = "padding:10px; background:#fff; margin-bottom:6px; border-radius:4px; border:1px solid #eee;";
+            dataEl.innerHTML = `<strong>${escapeHTML(item.title)}</strong><p style="margin:4px 0 0 0; font-size:13px; color:#555;">${escapeHTML(item.description)}</p>`;
+            noHeaderBox.appendChild(dataEl);
         });
-
-        container.appendChild(section);
+        container.appendChild(noHeaderBox);
     }
 
-    if (subCategories.length === 0 && headers.length === 0 && data.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">📝</div>
-                <h2>এই Category এখনো খালি</h2>
-                <p>নতুন Sub-Category, Header অথবা Data যোগ করতে উপরের বাটন ব্যবহার করুন।</p>
-            </div>
-        `;
+    if (subCategories.length === 0 && headers.length === 0 && categoryData.length === 0) {
+        container.innerHTML = `<p style="text-align:center; color:gray; margin-top:30px;">এটি একটি খালি ক্যাটাগরি। সাব-ক্যাটাগরি, হেডার অথবা ডাটা যোগ করুন।</p>`;
     }
 }
 
 /* =========================================
-   HEADER LOGIC
+   HEADER & DATA MODALS LOGIC
 ========================================= */
 
 function openHeaderModal() {
-    if (!currentCategoryId) {
-        showToast("আগে একটি Category নির্বাচন করুন");
-        return;
-    }
-
-    document.getElementById("headerNameInput").value = "";
+    const input = document.getElementById("headerNameInput");
+    if (input) input.value = "";
     openModal("headerModal");
-
-    setTimeout(() => {
-        document.getElementById("headerNameInput").focus();
-    }, 100);
 }
 
-async function saveHeader() {
+function saveHeader() {
     const input = document.getElementById("headerNameInput");
-    const title = input.value.trim();
+    const title = input?.value.trim();
 
-    if (!title) {
-        showToast("Header Name লিখুন");
-        return;
-    }
+    if (!title || !currentCategoryId) return;
 
     database.headers.push({
         id: generateId("header"),
         categoryId: currentCategoryId,
-        title: title,
-        order: database.headers.filter(item => item.categoryId === currentCategoryId).length,
-        createdAt: Date.now()
+        title: title
     });
 
-    await saveDatabase();
+    saveDatabase();
     closeModal("headerModal");
     renderCategoryDetails();
-    renderCategories();
-    showToast("Header তৈরি হয়েছে");
+    showToast("Header সেভ করা হয়েছে");
 }
-
-async function deleteHeader(id) {
-    const header = database.headers.find(item => item.id === id);
-    if (!header) return;
-
-    const confirmed = confirm(`"${header.title}" Header মুছে ফেলবেন?`);
-    if (!confirmed) return;
-
-    database.headers = database.headers.filter(item => item.id !== id);
-
-    database.data.forEach(item => {
-        if (item.headerId === id) {
-            item.headerId = null;
-        }
-    });
-
-    await saveDatabase();
-    renderCategoryDetails();
-    renderCategories();
-    showToast("Header মুছে ফেলা হয়েছে");
-}
-
-/* =========================================
-   DATA LOGIC
-========================================= */
 
 function openDataModal() {
-    if (!currentCategoryId) {
-        showToast("আগে একটি Category নির্বাচন করুন");
-        return;
+    const titleInput = document.getElementById("dataTitleInput");
+    const descInput = document.getElementById("dataDescriptionInput");
+    const select = document.getElementById("dataHeaderSelect");
+
+    if (titleInput) titleInput.value = "";
+    if (descInput) descInput.value = "";
+
+    if (select) {
+        select.innerHTML = `<option value="">Header ছাড়া</option>`;
+        const currentHeaders = database.headers.filter(h => h.categoryId === currentCategoryId);
+        currentHeaders.forEach(h => {
+            select.innerHTML += `<option value="${h.id}">${escapeHTML(h.title)}</option>`;
+        });
     }
 
-    document.getElementById("dataTitleInput").value = "";
-    document.getElementById("dataDescriptionInput").value = "";
-
-    populateHeaderSelect();
     openModal("dataModal");
 }
 
-function populateHeaderSelect() {
-    const select = document.getElementById("dataHeaderSelect");
-    const headers = database.headers.filter(item => item.categoryId === currentCategoryId);
+function saveData() {
+    const title = document.getElementById("dataTitleInput")?.value.trim();
+    const desc = document.getElementById("dataDescriptionInput")?.value.trim();
+    const headerId = document.getElementById("dataHeaderSelect")?.value;
 
-    select.innerHTML = `<option value="">Header ছাড়া</option>`;
-
-    headers.forEach(header => {
-        const option = document.createElement("option");
-        option.value = header.id;
-        option.textContent = header.title;
-        select.appendChild(option);
-    });
-}
-
-async function saveData() {
-    const title = document.getElementById("dataTitleInput").value.trim();
-    const description = document.getElementById("dataDescriptionInput").value.trim();
-    const headerId = document.getElementById("dataHeaderSelect").value;
-
-    if (!title) {
-        showToast("Data Title লিখুন");
-        return;
-    }
+    if (!title || !currentCategoryId) return;
 
     database.data.push({
         id: generateId("data"),
         categoryId: currentCategoryId,
         headerId: headerId || null,
         title: title,
-        description: description,
-        order: database.data.filter(item => item.categoryId === currentCategoryId).length,
-        pinned: false,
-        createdAt: Date.now(),
-        updatedAt: Date.now()
+        description: desc
     });
 
-    await saveDatabase();
+    saveDatabase();
     closeModal("dataModal");
     renderCategoryDetails();
-    renderCategories();
-    showToast("Data তৈরি হয়েছে");
+    showToast("Data সেভ করা হয়েছে");
 }
 
 /* =========================================
-   DATA CARD
-========================================= */
-
-function createDataCard(item) {
-    const card = document.createElement("div");
-    card.className = "data-card";
-
-    card.innerHTML = `
-        <div class="data-title">
-            ${escapeHTML(item.title)}
-        </div>
-        ${
-            item.description
-                ? `<div class="data-description">${escapeHTML(item.description)}</div>`
-                : ""
-        }
-    `;
-
-    return card;
-}
-
-/* =========================================
-   SEARCH & THEME LOGIC
-========================================= */
-
-function toggleSearch() {
-    const box = document.getElementById("searchBox");
-    box.classList.toggle("hidden");
-
-    if (!box.classList.contains("hidden")) {
-        document.getElementById("searchInput").focus();
-    }
-}
-
-function toggleTheme() {
-    const dark = document.body.classList.toggle("dark");
-    localStorage.setItem("theme", dark ? "dark" : "light");
-    updateThemeButton();
-}
-
-function loadTheme() {
-    const theme = localStorage.getItem("theme");
-    if (theme === "dark") {
-        document.body.classList.add("dark");
-    }
-    updateThemeButton();
-}
-
-function updateThemeButton() {
-    const button = document.getElementById("themeBtn");
-    if (button) {
-        button.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
-    }
-}
-
-/* =========================================
-   MODALS & TOAST
+   UI HELPERS
 ========================================= */
 
 function openModal(id) {
-    document.getElementById(id).classList.remove("hidden");
+    document.getElementById(id)?.classList.remove("hidden");
 }
 
 function closeModal(id) {
-    document.getElementById(id).classList.add("hidden");
-    if (id === "detailsModal") {
-        currentCategoryId = null;
-    }
+    document.getElementById(id)?.classList.add("hidden");
 }
 
-let toastTimer;
+function toggleSearch() {
+    document.getElementById("searchBox")?.classList.toggle("hidden");
+}
 
-function showToast(message) {
+function clearSearch() {
+    const input = document.getElementById("searchInput");
+    if (input) input.value = "";
+    renderCategories();
+}
+
+function showToast(msg) {
     const toast = document.getElementById("toast");
     if (!toast) return;
-
-    toast.textContent = message;
+    toast.textContent = msg;
     toast.classList.add("show");
-
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => {
-        toast.classList.remove("show");
-    }, 2500);
+    setTimeout(() => toast.classList.remove("show"), 2000);
 }
 
-/* =========================================
-   SECURITY / HTML ESCAPE
-========================================= */
-
-function escapeHTML(value) {
-    return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+function escapeHTML(str) {
+    return String(str || "").replace(/[&<>"']/g, match => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+    }[match]));
 }
