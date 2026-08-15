@@ -1,3 +1,39 @@
+import {
+    watchAuth,
+    logoutUser
+} from "./auth.js";
+
+
+watchAuth(
+    (user, role) => {
+
+        if (!user) {
+
+            window.location.href =
+                "login.html";
+
+            return;
+
+        }
+
+
+        console.log(
+            "Logged in:",
+            user.email,
+            "Role:",
+            role
+        );
+
+
+        window.currentUser =
+            user;
+
+        window.currentUserRole =
+            role;
+
+    }
+);
+
 "use strict";
 
 
