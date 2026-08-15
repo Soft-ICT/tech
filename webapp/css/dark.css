@@ -1,0 +1,19 @@
+body.dark {
+    --bg: #111827;
+    --card: #1f2937;
+    --text: #f3f4f6;
+    --muted: #9ca3af;
+    --border: #374151;
+}
+
+body.dark .category-icon {
+    background: #1e3a8a;
+}
+
+body.dark .danger-btn {
+    background: #450a0a;
+}
+
+body.dark .secondary-btn {
+    background: #111827;
+}

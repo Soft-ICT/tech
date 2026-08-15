@@ -1,0 +1,60 @@
+@media (max-width: 600px) {
+
+    .topbar {
+        padding: 0 10px;
+    }
+
+    .app-title {
+        font-size: 15px;
+    }
+
+    .container {
+        padding:
+            18px
+            12px
+            60px;
+    }
+
+    .dashboard-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+    .dashboard-header .primary-btn {
+        width: 100%;
+    }
+
+    .category-list {
+        grid-template-columns: 1fr;
+    }
+
+    .modal {
+        padding: 10px;
+
+        align-items: flex-end;
+    }
+
+    .modal-content {
+        max-height: 92vh;
+
+        border-radius:
+            18px
+            18px
+            10px
+            10px;
+    }
+
+    .modal-actions {
+        flex-direction: column-reverse;
+    }
+
+    .modal-actions button {
+        width: 100%;
+    }
+
+    .section-toolbar button {
+        flex: 1;
+    }
+
+}
