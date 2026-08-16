@@ -79,10 +79,18 @@ function updateAdminUI() {
         }
     });
 
-    // ২. লগইন মডেলের ভেতর ফর্ম/লগআউট কন্টেইনার টগল
+    // ২. লগইন ফর্ম ও লগআউট কন্টেইনার টগল
     const loginForm = document.getElementById("loginFormContainer");
     const logoutContainer = document.getElementById("logoutContainer");
-    if (loginForm) loginForm.style.display = isAdmin ? "none" : "block";
+
+    if (loginForm) {
+        if (isAdmin) {
+            loginForm.style.display = "none";
+        } else {
+            loginForm.style.display = "block";
+        }
+    }
+
     if (logoutContainer) {
         if (isAdmin) {
             logoutContainer.classList.remove("hidden");
