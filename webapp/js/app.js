@@ -95,7 +95,7 @@ function toggleTheme() {
 
 
 /* =========================================================
-   FIREBASE LOAD
+   FIREBASE LOAD - সবাই একই ডাটা পড়বে
 ========================================================= */
 
 async function loadDatabase() {
@@ -104,12 +104,9 @@ async function loadDatabase() {
 
     try {
 
+        // 🔥 সবাই এই একটি পাথ থেকেই ডাটা পড়বে
         const snapshot = await get(
-            ref(
-                db,
-                "webapp/user_data/" +
-                window.currentUser.uid
-            )
+            ref(db, "webapp/master_data")
         );
 
         if (snapshot.exists()) {
@@ -159,7 +156,7 @@ async function loadDatabase() {
 
 
 /* =========================================================
-   FIREBASE SAVE
+   FIREBASE SAVE - সবাই একই জায়গায় সেভ করবে (শুধু Admin পারবে)
 ========================================================= */
 
 async function saveDatabase() {
@@ -177,12 +174,9 @@ async function saveDatabase() {
 
     try {
 
+        // 🔥 সবাই এই একটি পাথেই সেভ করবে
         await set(
-            ref(
-                db,
-                "webapp/user_data/" +
-                window.currentUser.uid
-            ),
+            ref(db, "webapp/master_data"),
             database
         );
 
