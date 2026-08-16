@@ -2,7 +2,7 @@
    FIREBASE IMPORTS
 ========================================================= */
 
-import { watchAuth } from "./auth.js";
+import { watchAuth, loginAdmin } from "./auth.js";
 import {
     ref,
     set,
@@ -48,13 +48,18 @@ let targetMoveDataId = null;
 ========================================================= */
 
 watchAuth((user, role) => {
+    const adminBtn = document.getElementById("adminLoginBtn");
+    
     if (!user) {
-        console.warn("User is not authenticated. Direct mode active.");
+        console.warn("User is not authenticated. Guest mode active.");
+        if (adminBtn) adminBtn.textContent = "🔑 Admin Login";
         return;
     }
 
     window.currentUser = user;
     window.currentUserRole = role || "admin";
+
+    if (adminBtn) adminBtn.textContent = "👤 Admin Active";
 
     loadDatabase();
 });
@@ -150,7 +155,38 @@ function generateId(prefix) {
 ========================================================= */
 
 function setupEvents() {
+    // Theme & Search
     document.getElementById("themeBtn")?.addEventListener("click", toggleTheme);
+    document.getElementById("searchBtn")?.addEventListener("click", toggleSearch);
+    document.getElementById("clearSearch")?.addEventListener("click", clearSearch);
+    document.getElementById("searchInput")?.addEventListener("input", renderCategories);
+
+    // Admin Login Events
+    document.getElementById("adminLoginBtn")?.addEventListener("click", () => {
+        openModal("loginModal");
+    });
+
+    document.getElementById("submitLoginBtn")?.addEventListener("click", async () => {
+        const email = document.getElementById("loginEmail")?.value.trim();
+        const password = document.getElementById("loginPassword")?.value.trim();
+
+        if (!email || !password) {
+            showToast("ইমেইল এবং পাসওয়ার্ড দিন");
+            return;
+        }
+
+        const res = await loginAdmin(email, password);
+        if (res.success) {
+            showToast("অ্যাডমিন লগইন সফল হয়েছে!");
+            closeModal("loginModal");
+            document.getElementById("loginEmail").value = "";
+            document.getElementById("loginPassword").value = "";
+        } else {
+            showToast("লগইন ব্যর্থ হয়েছে: " + res.error);
+        }
+    });
+
+    // Modals & Navigation
     document.getElementById("addCategoryBtn")?.addEventListener("click", () => openCategoryModal(false));
     document.getElementById("emptyAddBtn")?.addEventListener("click", () => openCategoryModal(false));
     document.getElementById("addSubCategoryBtn")?.addEventListener("click", () => openCategoryModal(true));
@@ -161,9 +197,6 @@ function setupEvents() {
     document.getElementById("addHeaderBtn")?.addEventListener("click", openHeaderModal);
     document.getElementById("addDataBtn")?.addEventListener("click", openDataModal);
     document.getElementById("backToMainBtn")?.addEventListener("click", goBack);
-    document.getElementById("searchBtn")?.addEventListener("click", toggleSearch);
-    document.getElementById("clearSearch")?.addEventListener("click", clearSearch);
-    document.getElementById("searchInput")?.addEventListener("input", renderCategories);
 
     document.querySelectorAll("[data-close]").forEach(btn => {
         btn.addEventListener("click", () => closeModal(btn.dataset.close));
