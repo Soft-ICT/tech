@@ -559,7 +559,7 @@ function renderCategories() {
         const card = document.createElement("div");
         card.className = "category-card";
         card.style.cssText =
-            "padding:15px;border-radius:8px;background:var(--card-bg,#fff);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(0,0,0,.1);min-height:54px;";
+            "padding:15px;border-radius:8px;background:var(--card-bg,#fff);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(0,0,0,.1);";
 
         const pinIcon = category.pinned ? "📌" : "📍";
 
@@ -622,7 +622,7 @@ function renderCategoryDetails() {
         subCategories.sort(pinComparator).forEach(sub => {
             const item = document.createElement("div");
             item.style.cssText =
-                "padding:12px 15px;background:rgba(0,0,0,.04);border-radius:6px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;font-weight:500;";
+                "padding:12px 15px;background:#f0f4ff;border:1px solid #d0e0ff;border-radius:6px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;font-weight:500;";
 
             const pinIcon = sub.pinned ? "📌" : "📍";
             const adminActions = isAdmin ? `
@@ -634,7 +634,7 @@ function renderCategoryDetails() {
             ` : '';
 
             item.innerHTML = `
-                <span style="cursor:pointer;flex-grow:1" class="sub-click">${escapeHTML(sub.name)}</span>
+                <span style="cursor:pointer;flex-grow:1;color:#1a365d" class="sub-click">${escapeHTML(sub.name)}</span>
                 ${adminActions}
             `;
 
@@ -656,7 +656,7 @@ function renderCategoryDetails() {
 
     headers.sort(pinComparator).forEach(header => {
         const headerBox = document.createElement("div");
-        headerBox.style.cssText = "margin-bottom:15px;padding:12px;border:1px dashed #ccc;border-radius:6px;";
+        headerBox.style.cssText = "margin-bottom:15px;padding:12px;background:#f9fbfd;border:1px dashed #4a90e2;border-radius:6px;";
 
         const pinIcon = header.pinned ? "📌" : "📍";
         const adminActions = isAdmin ? `
@@ -669,7 +669,7 @@ function renderCategoryDetails() {
 
         headerBox.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-                <h5 style="margin:0;font-size:15px">${escapeHTML(header.title)}</h5>
+                <h5 style="margin:0;font-size:15px;color:#2b6cb0">${escapeHTML(header.title)}</h5>
                 ${adminActions}
             </div>
         `;
