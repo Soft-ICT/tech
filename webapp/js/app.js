@@ -770,17 +770,12 @@ async function togglePin(
 
 function refreshCurrentView(type) {
 
-    if (
-        type === "category"
-    ) {
-
+    // For category, header or data - always re-render the current view
+    if (currentCategoryId) {
+        renderCategoryDetails();
+    } else {
         renderCategories();
-
-        return;
     }
-
-
-    renderCategoryDetails();
 }
 
 
@@ -1303,11 +1298,6 @@ function renderCategories() {
                     ? "📌"
                     : "📍";
 
-            const pinText =
-                category.pinned
-                    ? "আনপিন"
-                    : "পিন";
-
 
             card.innerHTML = `
 
@@ -1346,7 +1336,7 @@ function renderCategories() {
                         class="btn-pin-cat secondary-btn"
                         style="padding:4px 8px"
                     >
-                        ${pinIcon} ${pinText}
+                        ${pinIcon}
                     </button>
 
                     <button
@@ -1652,11 +1642,6 @@ function renderCategoryDetails() {
                     ? "📌"
                     : "📍";
 
-            const pinText =
-                header.pinned
-                    ? "আনপিন"
-                    : "পিন";
-
 
             headerBox.innerHTML = `
 
@@ -1682,7 +1667,7 @@ function renderCategoryDetails() {
                         <button
                             class="btn-pin-head secondary-btn"
                         >
-                            ${pinIcon} ${pinText}
+                            ${pinIcon}
                         </button>
 
                         <button
@@ -1896,11 +1881,6 @@ function createDataCardElement(
             ? "📌"
             : "📍";
 
-    const pinText =
-        item.pinned
-            ? "আনপিন"
-            : "পিন";
-
 
     dataEl.innerHTML = `
 
@@ -1936,7 +1916,7 @@ function createDataCardElement(
                 class="btn-pin-data secondary-btn"
                 style="padding:2px 6px"
             >
-                ${pinIcon} ${pinText}
+                ${pinIcon}
             </button>
 
 
@@ -1944,7 +1924,7 @@ function createDataCardElement(
                 class="btn-move-data secondary-btn"
                 style="padding:2px 6px"
             >
-                📦 Move
+                📦
             </button>
 
 
@@ -2472,8 +2452,7 @@ function openMoveModal(
 
 
             catSelect.innerHTML +=
-                `<option
-                    value="${cat.id}"
+                `<option                    value="${cat.id}"
                     ${selected}
                 >
                     📁 ${escapeHTML(
