@@ -617,7 +617,7 @@ function renderCategoryDetails() {
             ` : '';
 
             item.innerHTML = `
-                <div style="flex-grow:1;cursor:pointer;display:flex;align-items:center;height:90%;" class="sub-click">
+                <div style="flex-grow:1;cursor:pointer;display:flex;align-items:center;height:100%;" class="sub-click">
                     <h3 style="margin:0;font-size:18px;font-weight:600;color:#ffffff">${escapeHTML(sub.name)}</h3>
                 </div>
                 ${adminActions}
