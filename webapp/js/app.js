@@ -560,7 +560,7 @@ function renderCategories() {
         const card = document.createElement("div");
         card.className = "category-card";
         card.style.cssText =
-            "height:90px;padding:0 20px;border-radius:12px;background:#003358;color:#ffffff;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;box-sizing:border-box;";
+            "height:90px;padding:0 20px;border-radius:12px;background:#003358;color:#ffffff;margin-bottom:22px;display:flex;justify-content:space-between;align-items:center;box-sizing:border-box;";
 
         const pinIcon = category.pinned ? "📍" : "📌";
 
@@ -624,7 +624,7 @@ function renderCategoryDetails() {
         subCategories.sort(pinComparator).forEach(sub => {
             const item = document.createElement("div");
             item.style.cssText =
-                "height:90px;padding:0 20px;background:#003358;color:#ffffff;border-radius:12px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;box-sizing:border-box;";
+                "height:90px;padding:0 20px;background:#003358;color:#ffffff;border-radius:12px;margin-bottom:22px;display:flex;justify-content:space-between;align-items:center;box-sizing:border-box;";
 
             const pinIcon = sub.pinned ? "📍" : "📌";
             const adminActions = isAdmin ? `
@@ -636,7 +636,9 @@ function renderCategoryDetails() {
             ` : '';
 
             item.innerHTML = `
-                <span style="cursor:pointer;flex-grow:1;font-size:18px;font-weight:600;display:flex;align-items:center;height:100%;color:#ffffff;" class="sub-click">${escapeHTML(sub.name)}</span>
+                <div style="flex-grow:1;cursor:pointer;display:flex;align-items:center;height:100%;" class="sub-click">
+                    <h3 style="margin:0;font-size:18px;font-weight:600;color:#ffffff">${escapeHTML(sub.name)}</h3>
+                </div>
                 ${adminActions}
             `;
 
