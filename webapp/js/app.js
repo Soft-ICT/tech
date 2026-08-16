@@ -2,7 +2,7 @@
    FIREBASE IMPORTS
 ========================================================= */
 
-import { watchAuth, loginAdmin } from "./auth.js";
+import { watchAuth, loginAdmin, logoutAdmin } from "./auth.js";
 import {
     ref,
     set,
@@ -57,12 +57,18 @@ watchAuth((user, role) => {
         // গেস্ট মোড
         window.currentUser = null;
         window.currentUserRole = "guest";
-        if (adminBtn) adminBtn.textContent = "🔑 Admin Login";
+        if (adminBtn) {
+            adminBtn.textContent = "🔑 Admin Login";
+            adminBtn.style.backgroundColor = ""; 
+        }
     } else {
         // এডমিন মোড
         window.currentUser = user;
         window.currentUserRole = role || "admin";
-        if (adminBtn) adminBtn.textContent = "👤 Admin Active";
+        if (adminBtn) {
+            adminBtn.textContent = "🚪 Logout";
+            adminBtn.style.backgroundColor = "#dc3545"; 
+        }
     }
 
     // UI-তে এডমিন বাটনগুলো রেন্ডার বা হাইড করা
@@ -176,9 +182,33 @@ function setupEvents() {
     document.getElementById("clearSearch")?.addEventListener("click", clearSearch);
     document.getElementById("searchInput")?.addEventListener("input", renderCategories);
 
-    // Admin Login Events
-    document.getElementById("adminLoginBtn")?.addEventListener("click", () => {
-        openModal("loginModal");
+    // Topbar Admin Login & Logout Trigger
+    document.getElementById("adminLoginBtn")?.addEventListener("click", async () => {
+        if (window.currentUserRole === "admin" && window.currentUser) {
+            if (confirm("আপনি কি নিশ্চিত লগআউট করতে চান?")) {
+                const res = await logoutAdmin();
+                if (res.success) {
+                    showToast("সফলভাবে লগআউট হয়েছে");
+                } else {
+                    showToast("লগআউট করতে সমস্যা হয়েছে");
+                }
+            }
+        } else {
+            openModal("loginModal");
+        }
+    });
+
+    // Modal Logout Button Event
+    document.getElementById("modalLogoutBtn")?.addEventListener("click", async () => {
+        if (confirm("আপনি কি নিশ্চিত লগআউট করতে চান?")) {
+            const res = await logoutAdmin();
+            if (res.success) {
+                showToast("সফলভাবে লগআউট হয়েছে");
+                closeModal("loginModal");
+            } else {
+                showToast("লগআউট করতে সমস্যা হয়েছে");
+            }
+        }
     });
 
     document.getElementById("submitLoginBtn")?.addEventListener("click", async () => {
@@ -545,7 +575,6 @@ function renderCategories() {
         const dataCount = database.data.filter(d => d.categoryId === category.id).length;
         const pinIcon = category.pinned ? "📌" : "📍";
 
-        // এডমিন না হলে বাটনগুলো থাকবে না
         const adminActions = isAdmin ? `
             <div style="display:flex;gap:6px;align-items:center">
                 <button class="btn-pin-cat secondary-btn" style="padding:4px 8px">${pinIcon}</button>
