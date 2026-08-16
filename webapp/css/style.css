@@ -625,6 +625,41 @@ body {
     color: white !important;
 }
 
+/* Dynamic Card & Space Styles */
+.category-card,
+.subcategory-card {
+    height: 90px !important;
+    padding: 0 20px !important;
+    border-radius: 12px !important;
+    background: #003358 !important;
+    color: #ffffff !important;
+    margin-bottom: 25px !important; /* স্পেস বাড়ানোর জন্য ২৫px দেওয়া হয়েছে */
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
+}
+
+.action-btn-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.custom-action-btn {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 10px !important;
+    background: #ffffff !important;
+    border: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    font-size: 16px !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    padding: 0 !important;
+}
 
 
 /* Utility */
