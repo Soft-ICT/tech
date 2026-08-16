@@ -509,7 +509,7 @@ async function deleteCategory(id) {
 }
 
 /* =========================================================
-   CATEGORY RENDER (CSS Class Based)
+   CATEGORY RENDER
 ========================================================= */
 
 function renderCategories() {
@@ -600,7 +600,7 @@ function renderCategories() {
 }
 
 /* =========================================================
-   CATEGORY DETAILS (CSS Class Based)
+   CATEGORY DETAILS (Header design updated)
 ========================================================= */
 
 function renderCategoryDetails() {
@@ -655,20 +655,20 @@ function renderCategoryDetails() {
 
     headers.sort(pinComparator).forEach(header => {
         const headerBox = document.createElement("div");
-        headerBox.style.cssText = "min-height:100px;margin-bottom:16px;padding:16px;background:#f4f7fa;border:2px dashed #003358;border-radius:12px;box-sizing:border-box;";
+        headerBox.className = "header-box";
 
         const pinIcon = header.pinned ? "📌" : "📍";
         const adminActions = isAdmin ? `
             <div style="display:flex;gap:6px">
-                <button class="btn-pin-head secondary-btn">${pinIcon}</button>
-                <button class="btn-edit-head secondary-btn">✏️</button>
-                <button class="btn-del-head secondary-btn" style="color:red">🗑️</button>
+                <button class="btn-pin-head custom-action-btn">${pinIcon}</button>
+                <button class="btn-edit-head custom-action-btn">✏️</button>
+                <button class="btn-del-head custom-action-btn" style="color:red">🗑️</button>
             </div>
         ` : '';
 
         headerBox.innerHTML = `
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-                <h5 style="margin:0;font-size:18px;font-weight:bold;color:#003358">${escapeHTML(header.title)}</h5>
+            <div class="header-banner">
+                <h5>${escapeHTML(header.title)}</h5>
                 ${adminActions}
             </div>
         `;
@@ -694,7 +694,12 @@ function renderCategoryDetails() {
 
     if (noHeaderData.length > 0) {
         const noHeaderBox = document.createElement("div");
-        noHeaderBox.innerHTML = `<h5 style="margin:10px 0;color:#003358">📄 সাধারণ Data</h5>`;
+        noHeaderBox.className = "header-box";
+        noHeaderBox.innerHTML = `
+            <div class="header-banner" style="background-color: #6c757d !important;">
+                <h5>📄 সাধারণ Data</h5>
+            </div>
+        `;
 
         noHeaderData.forEach(item => noHeaderBox.appendChild(createDataCardElement(item)));
         container.appendChild(noHeaderBox);
@@ -733,23 +738,22 @@ function pinComparator(a, b) {
 function createDataCardElement(item) {
     const isAdmin = window.currentUserRole === "admin";
     const dataEl = document.createElement("div");
-    dataEl.style.cssText =
-        "padding:10px;background:var(--card-bg,#fff);margin-bottom:6px;border-radius:6px;border:1px solid #eee;display:flex;justify-content:space-between;align-items:flex-start;";
+    dataEl.className = "data-card-item";
 
     const pinIcon = item.pinned ? "📌" : "📍";
     const adminActions = isAdmin ? `
         <div style="display:flex;gap:5px;flex-wrap:wrap">
-            <button class="btn-pin-data secondary-btn" style="padding:2px 6px">${pinIcon}</button>
-            <button class="btn-move-data secondary-btn" style="padding:2px 6px">📦</button>
-            <button class="btn-edit-data secondary-btn" style="padding:2px 6px">✏️</button>
-            <button class="btn-del-data secondary-btn" style="padding:2px 6px;color:red">🗑️</button>
+            <button class="btn-pin-data custom-action-btn">${pinIcon}</button>
+            <button class="btn-move-data custom-action-btn">📦</button>
+            <button class="btn-edit-data custom-action-btn">✏️</button>
+            <button class="btn-del-data custom-action-btn" style="color:red">🗑️</button>
         </div>
     ` : '';
 
     dataEl.innerHTML = `
         <div>
             <strong>${escapeHTML(item.title)}</strong>
-            <p style="margin:4px 0 0;font-size:13px;color:#555">${escapeHTML(item.description)}</p>
+            <p>${escapeHTML(item.description)}</p>
         </div>
         ${adminActions}
     `;
