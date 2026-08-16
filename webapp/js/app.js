@@ -69,7 +69,6 @@ watchAuth((user, role) => {
 function updateAdminUI() {
     const isAdmin = window.currentUserRole === "admin";
 
-    // ১. .admin-only ক্লাসযুক্ত এলিমেন্ট
     const adminElements = document.querySelectorAll(".admin-only");
     adminElements.forEach(el => {
         if (isAdmin) {
@@ -79,7 +78,6 @@ function updateAdminUI() {
         }
     });
 
-    // ২. লগইন ফর্ম ও লগআউট কন্টেইনার টগল
     const loginForm = document.getElementById("loginFormContainer");
     const logoutContainer = document.getElementById("logoutContainer");
 
@@ -125,7 +123,7 @@ function toggleTheme() {
 }
 
 /* =========================================================
-   FIREBASE LOAD
+   FIREBASE LOAD & SAVE
 ========================================================= */
 
 async function loadDatabase() {
@@ -147,10 +145,6 @@ async function loadDatabase() {
     }
 }
 
-/* =========================================================
-   FIREBASE SAVE
-========================================================= */
-
 async function saveDatabase() {
     if (window.currentUserRole !== "admin") {
         showToast("শুধুমাত্র Admin পরিবর্তন সেভ করতে পারবেন");
@@ -164,10 +158,6 @@ async function saveDatabase() {
     }
 }
 
-/* =========================================================
-   ID GENERATOR
-========================================================= */
-
 function generateId(prefix) {
     return (
         prefix + "_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8)
@@ -179,13 +169,11 @@ function generateId(prefix) {
 ========================================================= */
 
 function setupEvents() {
-    // Theme & Search
     document.getElementById("themeBtn")?.addEventListener("click", toggleTheme);
     document.getElementById("searchBtn")?.addEventListener("click", toggleSearch);
     document.getElementById("clearSearch")?.addEventListener("click", clearSearch);
     document.getElementById("searchInput")?.addEventListener("input", renderCategories);
 
-    // Admin Login Events
     document.getElementById("adminLoginBtn")?.addEventListener("click", () => {
         openModal("loginModal");
     });
@@ -210,7 +198,6 @@ function setupEvents() {
         }
     });
 
-    // লগআউট বাটন
     document.getElementById("logoutBtn")?.addEventListener("click", async () => {
         const result = await logoutAdmin();
         if (result.success) {
@@ -221,7 +208,6 @@ function setupEvents() {
         }
     });
 
-    // Modals & Navigation
     document.getElementById("addCategoryBtn")?.addEventListener("click", () => openCategoryModal(false));
     document.getElementById("emptyAddBtn")?.addEventListener("click", () => openCategoryModal(false));
     document.getElementById("addSubCategoryBtn")?.addEventListener("click", () => openCategoryModal(true));
@@ -600,7 +586,7 @@ function renderCategories() {
 }
 
 /* =========================================================
-   CATEGORY DETAILS
+   CATEGORY DETAILS (Updated: Height 100px & No Radius)
 ========================================================= */
 
 function renderCategoryDetails() {
@@ -610,13 +596,12 @@ function renderCategoryDetails() {
     container.innerHTML = "";
     const isAdmin = window.currentUserRole === "admin";
 
-    // Sub-Categories Render
     const subCategories = database.categories.filter(cat => cat.parentId === currentCategoryId);
 
     if (subCategories.length > 0) {
         const subWrapper = document.createElement("div");
         subWrapper.style.marginBottom = "20px";
-        subWrapper.innerHTML = `<h4 style="color:#003358;margin-bottom:12px;">📂 Sub-Categories</h4>`;
+        subWrapper.innerHTML = `<h4 style="color:#003358;margin-bottom:12px;padding-left:12px;">📂 Sub-Categories</h4>`;
 
         subCategories.sort(pinComparator).forEach(sub => {
             const item = document.createElement("div");
@@ -651,7 +636,6 @@ function renderCategoryDetails() {
         container.appendChild(subWrapper);
     }
 
-    // Headers and Data Render
     const headers = database.headers.filter(h => h.categoryId === currentCategoryId);
     const categoryData = database.data.filter(d => d.categoryId === currentCategoryId);
 
@@ -668,7 +652,7 @@ function renderCategoryDetails() {
             </div>
         ` : '';
 
-        // ১. হেডার ব্যানার
+        // হেডার ব্যানার (১০০px হাইট & রাউন্ড বিহীন)
         headerBox.innerHTML = `
             <div class="header-banner">
                 <h5>${escapeHTML(header.title)}</h5>
@@ -682,7 +666,6 @@ function renderCategoryDetails() {
             headerBox.querySelector(".btn-del-head").addEventListener("click", () => deleteHeader(header.id));
         }
 
-        // ২. হেডারের নিচের ডাটা আইটেমসমূহ
         const headerItems = categoryData
             .filter(d => d.headerId === header.id)
             .sort(pinComparator);
@@ -694,7 +677,6 @@ function renderCategoryDetails() {
         container.appendChild(headerBox);
     });
 
-    // Header ছাড়া সাধারণ ডাটা
     const noHeaderData = categoryData.filter(d => !d.headerId).sort(pinComparator);
 
     if (noHeaderData.length > 0) {
@@ -717,11 +699,6 @@ function renderCategoryDetails() {
     updateAdminUI();
 }
 
-
-/* =========================================================
-   SORT
-========================================================= */
-
 function pinComparator(a, b) {
     const ap = a.pinned === true;
     const bp = b.pinned === true;
@@ -736,10 +713,6 @@ function pinComparator(a, b) {
 
     return 0;
 }
-
-/* =========================================================
-   DATA CARD
-========================================================= */
 
 function createDataCardElement(item) {
     const isAdmin = window.currentUserRole === "admin";
