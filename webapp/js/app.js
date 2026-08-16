@@ -554,20 +554,21 @@ function renderCategories() {
     list.classList.remove("hidden");
 
     const isAdmin = window.currentUserRole === "admin";
+    const btnStyle = "width:36px;height:36px;border-radius:10px;background:#ffffff;border:none;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;box-shadow:0 2px 4px rgba(0,0,0,0.1);padding:0;";
 
     categoriesToShow.forEach(category => {
         const card = document.createElement("div");
         card.className = "category-card";
         card.style.cssText =
-            "height:90px;padding:0 20px;border-radius:8px;background:#003358;color:#ffffff;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;box-sizing:border-box;";
+            "height:90px;padding:0 20px;border-radius:12px;background:#003358;color:#ffffff;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;box-sizing:border-box;";
 
-        const pinIcon = category.pinned ? "📌" : "📍";
+        const pinIcon = category.pinned ? "📍" : "📌";
 
         const adminActions = isAdmin ? `
-            <div style="display:flex;gap:6px;align-items:center">
-                <button class="btn-pin-cat secondary-btn" style="padding:4px 8px">${pinIcon}</button>
-                <button class="btn-edit-cat secondary-btn" style="padding:4px 8px">✏️</button>
-                <button class="btn-del-cat secondary-btn" style="padding:4px 8px;color:red">🗑️</button>
+            <div style="display:flex;gap:10px;align-items:center">
+                <button class="btn-pin-cat" style="${btnStyle}">${pinIcon}</button>
+                <button class="btn-edit-cat" style="${btnStyle}">✏️</button>
+                <button class="btn-del-cat" style="${btnStyle}">🗑️</button>
             </div>
         ` : '';
 
@@ -611,30 +612,31 @@ function renderCategoryDetails() {
 
     container.innerHTML = "";
     const isAdmin = window.currentUserRole === "admin";
+    const btnStyle = "width:36px;height:36px;border-radius:10px;background:#ffffff;border:none;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;box-shadow:0 2px 4px rgba(0,0,0,0.1);padding:0;";
 
     const subCategories = database.categories.filter(cat => cat.parentId === currentCategoryId);
 
     if (subCategories.length > 0) {
         const subWrapper = document.createElement("div");
         subWrapper.style.marginBottom = "20px";
-        subWrapper.innerHTML = `<h4 style="color:#003358">📂 Sub-Categories</h4>`;
+        subWrapper.innerHTML = `<h4 style="color:#003358;margin-bottom:12px;">📂 Sub-Categories</h4>`;
 
         subCategories.sort(pinComparator).forEach(sub => {
             const item = document.createElement("div");
             item.style.cssText =
-                "height:90px;padding:0 20px;background:#003358;color:#ffffff;border-radius:8px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;box-sizing:border-box;";
+                "height:90px;padding:0 20px;background:#003358;color:#ffffff;border-radius:12px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;box-sizing:border-box;";
 
-            const pinIcon = sub.pinned ? "📌" : "📍";
+            const pinIcon = sub.pinned ? "📍" : "📌";
             const adminActions = isAdmin ? `
-                <div style="display:flex;gap:6px">
-                    <button class="btn-pin-sub secondary-btn">${pinIcon}</button>
-                    <button class="btn-edit-sub secondary-btn">✏️</button>
-                    <button class="btn-del-sub secondary-btn" style="color:red">🗑️</button>
+                <div style="display:flex;gap:10px;align-items:center">
+                    <button class="btn-pin-sub" style="${btnStyle}">${pinIcon}</button>
+                    <button class="btn-edit-sub" style="${btnStyle}">✏️</button>
+                    <button class="btn-del-sub" style="${btnStyle}">🗑️</button>
                 </div>
             ` : '';
 
             item.innerHTML = `
-                <span style="cursor:pointer;flex-grow:1;font-size:18px;font-weight:600;display:flex;align-items:center;height:100%;" class="sub-click">${escapeHTML(sub.name)}</span>
+                <span style="cursor:pointer;flex-grow:1;font-size:18px;font-weight:600;display:flex;align-items:center;height:100%;color:#ffffff;" class="sub-click">${escapeHTML(sub.name)}</span>
                 ${adminActions}
             `;
 
@@ -656,7 +658,7 @@ function renderCategoryDetails() {
 
     headers.sort(pinComparator).forEach(header => {
         const headerBox = document.createElement("div");
-        headerBox.style.cssText = "min-height:100px;margin-bottom:15px;padding:16px;background:#f4f7fa;border:2px dashed #003358;border-radius:8px;box-sizing:border-box;";
+        headerBox.style.cssText = "min-height:100px;margin-bottom:16px;padding:16px;background:#f4f7fa;border:2px dashed #003358;border-radius:12px;box-sizing:border-box;";
 
         const pinIcon = header.pinned ? "📌" : "📍";
         const adminActions = isAdmin ? `
@@ -735,7 +737,7 @@ function createDataCardElement(item) {
     const isAdmin = window.currentUserRole === "admin";
     const dataEl = document.createElement("div");
     dataEl.style.cssText =
-        "padding:10px;background:var(--card-bg,#fff);margin-bottom:6px;border-radius:4px;border:1px solid #eee;display:flex;justify-content:space-between;align-items:flex-start;";
+        "padding:10px;background:var(--card-bg,#fff);margin-bottom:6px;border-radius:6px;border:1px solid #eee;display:flex;justify-content:space-between;align-items:flex-start;";
 
     const pinIcon = item.pinned ? "📌" : "📍";
     const adminActions = isAdmin ? `
