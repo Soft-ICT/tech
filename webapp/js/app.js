@@ -559,7 +559,7 @@ function renderCategories() {
         const card = document.createElement("div");
         card.className = "category-card";
         card.style.cssText =
-            "padding:15px;border-radius:8px;background:var(--card-bg,#fff);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(0,0,0,.1);";
+            "height:90px;padding:0 20px;border-radius:8px;background:#003358;color:#ffffff;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;box-sizing:border-box;";
 
         const pinIcon = category.pinned ? "📌" : "📍";
 
@@ -572,8 +572,8 @@ function renderCategories() {
         ` : '';
 
         card.innerHTML = `
-            <div style="flex-grow:1;cursor:pointer" class="cat-click">
-                <h3 style="margin:0;font-size:16px">${escapeHTML(category.name)}</h3>
+            <div style="flex-grow:1;cursor:pointer;display:flex;align-items:center;height:100%;" class="cat-click">
+                <h3 style="margin:0;font-size:18px;font-weight:600;color:#ffffff">${escapeHTML(category.name)}</h3>
             </div>
             ${adminActions}
         `;
@@ -617,12 +617,12 @@ function renderCategoryDetails() {
     if (subCategories.length > 0) {
         const subWrapper = document.createElement("div");
         subWrapper.style.marginBottom = "20px";
-        subWrapper.innerHTML = `<h4>📂 Sub-Categories</h4>`;
+        subWrapper.innerHTML = `<h4 style="color:#003358">📂 Sub-Categories</h4>`;
 
         subCategories.sort(pinComparator).forEach(sub => {
             const item = document.createElement("div");
             item.style.cssText =
-                "padding:12px 15px;background:#f0f4ff;border:1px solid #d0e0ff;border-radius:6px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;font-weight:500;";
+                "height:90px;padding:0 20px;background:#003358;color:#ffffff;border-radius:8px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;box-sizing:border-box;";
 
             const pinIcon = sub.pinned ? "📌" : "📍";
             const adminActions = isAdmin ? `
@@ -634,7 +634,7 @@ function renderCategoryDetails() {
             ` : '';
 
             item.innerHTML = `
-                <span style="cursor:pointer;flex-grow:1;color:#1a365d" class="sub-click">${escapeHTML(sub.name)}</span>
+                <span style="cursor:pointer;flex-grow:1;font-size:18px;font-weight:600;display:flex;align-items:center;height:100%;" class="sub-click">${escapeHTML(sub.name)}</span>
                 ${adminActions}
             `;
 
@@ -656,7 +656,7 @@ function renderCategoryDetails() {
 
     headers.sort(pinComparator).forEach(header => {
         const headerBox = document.createElement("div");
-        headerBox.style.cssText = "margin-bottom:15px;padding:12px;background:#f9fbfd;border:1px dashed #4a90e2;border-radius:6px;";
+        headerBox.style.cssText = "min-height:100px;margin-bottom:15px;padding:16px;background:#f4f7fa;border:2px dashed #003358;border-radius:8px;box-sizing:border-box;";
 
         const pinIcon = header.pinned ? "📌" : "📍";
         const adminActions = isAdmin ? `
@@ -668,8 +668,8 @@ function renderCategoryDetails() {
         ` : '';
 
         headerBox.innerHTML = `
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-                <h5 style="margin:0;font-size:15px;color:#2b6cb0">${escapeHTML(header.title)}</h5>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                <h5 style="margin:0;font-size:18px;font-weight:bold;color:#003358">${escapeHTML(header.title)}</h5>
                 ${adminActions}
             </div>
         `;
@@ -695,7 +695,7 @@ function renderCategoryDetails() {
 
     if (noHeaderData.length > 0) {
         const noHeaderBox = document.createElement("div");
-        noHeaderBox.innerHTML = `<h5 style="margin:10px 0">📄 সাধারণ Data</h5>`;
+        noHeaderBox.innerHTML = `<h5 style="margin:10px 0;color:#003358">📄 সাধারণ Data</h5>`;
 
         noHeaderData.forEach(item => noHeaderBox.appendChild(createDataCardElement(item)));
         container.appendChild(noHeaderBox);
