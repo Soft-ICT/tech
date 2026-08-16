@@ -12,7 +12,7 @@
     --border: #e5e7eb;
     --primary: #2563eb;
     --danger: #dc2626;
-    --shadow: 0 8px 25px rgba(0,0,0,0.06);
+    --shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
 }
 
 body {
@@ -25,18 +25,17 @@ body {
 
     background: var(--bg);
     color: var(--text);
-
     min-height: 100vh;
 }
 
 
-/* Topbar */
+/* =========================
+   Topbar
+========================= */
 
 .topbar {
     height: 64px;
-
     background: var(--card);
-
     border-bottom: 1px solid var(--border);
 
     display: flex;
@@ -46,15 +45,12 @@ body {
 
     position: sticky;
     top: 0;
-
     z-index: 100;
 }
-
 
 .app-title {
     display: flex;
     align-items: center;
-
     gap: 8px;
 
     font-size: 18px;
@@ -63,67 +59,59 @@ body {
     flex: 1;
 }
 
-
 .top-actions {
     display: flex;
     gap: 5px;
 }
-
 
 .icon-btn {
     width: 42px;
     height: 42px;
 
     border: none;
-
     background: transparent;
-
     border-radius: 10px;
 
     font-size: 20px;
-
     cursor: pointer;
 }
-
 
 .icon-btn:hover {
     background: var(--bg);
 }
 
 
-/* Main */
+/* =========================
+   Main
+========================= */
 
 .container {
     width: min(1100px, 100%);
-
     margin: auto;
 
     padding: 25px 18px 80px;
 }
 
 
-/* Search */
+/* =========================
+   Search
+========================= */
 
 .search-box {
     display: flex;
 
     background: var(--card);
-
     border: 1px solid var(--border);
-
     border-radius: 14px;
 
     padding: 6px;
-
     margin-bottom: 20px;
 }
-
 
 .search-box input {
     flex: 1;
 
     border: none;
-
     outline: none;
 
     background: transparent;
@@ -131,60 +119,54 @@ body {
     padding: 12px;
 
     font-size: 15px;
-
     color: var(--text);
 }
-
 
 .search-box button {
     width: 40px;
 
     border: none;
-
     background: transparent;
 
     cursor: pointer;
-
     font-size: 16px;
 }
 
 
-/* Dashboard Header */
+/* =========================
+   Dashboard Header
+========================= */
 
 .dashboard-header {
     display: flex;
 
     align-items: center;
-
     justify-content: space-between;
 
     gap: 15px;
-
     margin-bottom: 25px;
 }
-
 
 .dashboard-header h1 {
     font-size: 25px;
 }
 
-
 .dashboard-header p {
     color: var(--muted);
 
     margin-top: 4px;
-
     font-size: 14px;
 }
 
 
-/* Buttons */
+/* =========================
+   Buttons
+========================= */
 
 .primary-btn,
 .secondary-btn,
 .danger-btn {
     border: none;
-
     border-radius: 10px;
 
     padding: 11px 16px;
@@ -192,40 +174,34 @@ body {
     cursor: pointer;
 
     font-size: 14px;
-
     font-weight: 600;
 }
 
-
 .primary-btn {
     background: var(--primary);
-
     color: white;
 }
 
-
 .secondary-btn {
     background: var(--bg);
-
     color: var(--text);
 
     border: 1px solid var(--border);
 }
 
-
 .danger-btn {
-    background: #fee2e2;
-
-    color: var(--danger);
+    background: #dc3545 !important;
+    color: white !important;
 }
-
 
 .primary-btn:hover {
-    opacity: .9;
+    opacity: 0.9;
 }
 
 
-/* Category */
+/* =========================
+   Category List
+========================= */
 
 .category-list {
     display: grid;
@@ -237,47 +213,85 @@ body {
 }
 
 
-.category-card {
-    background: var(--card);
+/* =========================
+   Category + Subcategory Card
+   একই Size / Padding / Margin
+========================= */
 
-    border: 1px solid var(--border);
+.category-card,
+.subcategory-card {
+    width: 100%;
 
-    border-radius: 16px;
+    height: 90px !important;
 
-    padding: 18px;
+    padding: 0 20px !important;
 
-    box-shadow: var(--shadow);
+    margin-bottom: 20px !important;
+
+    border-radius: 12px !important;
+
+    background: #003358 !important;
+    color: #ffffff !important;
+
+    border: 1px solid transparent;
+
+    display: flex !important;
+
+    align-items: center !important;
+    justify-content: space-between !important;
+
+    gap: 12px;
+
+    box-sizing: border-box !important;
 
     cursor: pointer;
 
-    transition: .2s;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
-
-.category-card:hover {
+.category-card:hover,
+.subcategory-card:hover {
     transform: translateY(-2px);
+
+    box-shadow:
+        0 6px 18px rgba(0, 0, 0, 0.12);
 }
 
+
+/* =========================
+   Category Top
+========================= */
 
 .category-top {
     display: flex;
 
-    align-items: flex-start;
+    align-items: center;
 
     gap: 12px;
+
+    flex: 1;
+
+    min-width: 0;
 }
 
+
+/* =========================
+   Category Icon
+========================= */
 
 .category-icon {
     width: 48px;
     height: 48px;
+
+    min-width: 48px;
 
     border-radius: 13px;
 
     display: flex;
 
     align-items: center;
-
     justify-content: center;
 
     background: #dbeafe;
@@ -286,10 +300,15 @@ body {
 }
 
 
+/* =========================
+   Category Info
+========================= */
+
 .category-info {
     flex: 1;
-}
 
+    min-width: 0;
+}
 
 .category-name {
     font-size: 17px;
@@ -297,11 +316,16 @@ body {
     font-weight: 700;
 
     word-break: break-word;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
 }
 
-
 .category-meta {
-    color: var(--muted);
+    color: rgba(255, 255, 255, 0.75);
 
     font-size: 13px;
 
@@ -309,17 +333,34 @@ body {
 }
 
 
-.category-menu {
+/* =========================
+   Category Menu
+   + Action Button Group
+   একই spacing
+========================= */
+
+.category-menu,
+.action-btn-group {
     display: flex;
 
-    gap: 5px;
+    align-items: center;
+
+    gap: 10px;
+
+    flex-shrink: 0;
 }
 
+
+/* =========================
+   Small Button
+========================= */
 
 .small-btn {
     border: none;
 
     background: transparent;
+
+    color: inherit;
 
     cursor: pointer;
 
@@ -330,13 +371,58 @@ body {
     border-radius: 7px;
 }
 
-
 .small-btn:hover {
-    background: var(--bg);
+    background: rgba(255, 255, 255, 0.12);
 }
 
 
-/* Empty */
+/* =========================
+   Custom Action Button
+   Category + Subcategory
+========================= */
+
+.custom-action-btn {
+    width: 26px !important;
+    height: 26px !important;
+
+    min-width: 26px !important;
+    min-height: 26px !important;
+
+    padding: 0 !important;
+
+    border: none !important;
+
+    border-radius: 5px !important;
+
+    background: #ffffff !important;
+
+    color: #172033 !important;
+
+    display: inline-flex !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    cursor: pointer !important;
+
+    font-size: 16px !important;
+
+    line-height: 1 !important;
+
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.1) !important;
+
+    flex-shrink: 0;
+}
+
+.custom-action-btn:hover {
+    transform: scale(1.05);
+}
+
+
+/* =========================
+   Empty State
+========================= */
 
 .empty-state {
     text-align: center;
@@ -344,20 +430,17 @@ body {
     padding: 80px 20px;
 }
 
-
 .empty-icon {
     font-size: 55px;
 
     margin-bottom: 15px;
 }
 
-
 .empty-state h2 {
     font-size: 20px;
 
     margin-bottom: 8px;
 }
-
 
 .empty-state p {
     color: var(--muted);
@@ -366,26 +449,26 @@ body {
 }
 
 
-/* Modal */
+/* =========================
+   Modal
+========================= */
 
 .modal {
     position: fixed;
 
     inset: 0;
 
-    background: rgba(0,0,0,.45);
+    background: rgba(0, 0, 0, 0.45);
 
     display: flex;
 
     align-items: center;
-
     justify-content: center;
 
     padding: 18px;
 
     z-index: 1000;
 }
-
 
 .modal-content {
     width: min(500px, 100%);
@@ -400,20 +483,18 @@ body {
 
     padding: 20px;
 
-    box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.2);
 }
-
 
 .modal-content.large {
     width: min(800px, 100%);
 }
 
-
 .modal-header {
     display: flex;
 
     align-items: center;
-
     justify-content: space-between;
 
     gap: 15px;
@@ -421,11 +502,9 @@ body {
     margin-bottom: 22px;
 }
 
-
 .modal-header h2 {
     font-size: 20px;
 }
-
 
 .modal-header p {
     color: var(--muted);
@@ -434,7 +513,6 @@ body {
 
     margin-top: 4px;
 }
-
 
 .close-btn {
     width: 38px;
@@ -452,12 +530,13 @@ body {
 }
 
 
-/* Form */
+/* =========================
+   Form
+========================= */
 
 .form-group {
     margin-bottom: 18px;
 }
-
 
 .form-group label {
     display: block;
@@ -468,7 +547,6 @@ body {
 
     font-weight: 600;
 }
-
 
 .form-group input,
 .form-group textarea,
@@ -490,18 +568,15 @@ body {
     font-size: 15px;
 }
 
-
 .form-group textarea {
     resize: vertical;
 }
-
 
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
     border-color: var(--primary);
 }
-
 
 .modal-actions {
     display: flex;
@@ -514,7 +589,9 @@ body {
 }
 
 
-/* Section */
+/* =========================
+   Section
+========================= */
 
 .section-toolbar {
     display: flex;
@@ -526,7 +603,6 @@ body {
     flex-wrap: wrap;
 }
 
-
 .header-section {
     margin-bottom: 20px;
 
@@ -537,7 +613,6 @@ body {
     overflow: hidden;
 }
 
-
 .header-title {
     background: var(--bg);
 
@@ -546,17 +621,14 @@ body {
     display: flex;
 
     align-items: center;
-
     justify-content: space-between;
 
     font-weight: 700;
 }
 
-
 .header-data {
     padding: 10px;
 }
-
 
 .data-card {
     border: 1px solid var(--border);
@@ -570,13 +642,11 @@ body {
     background: var(--card);
 }
 
-
 .data-title {
     font-weight: 700;
 
     margin-bottom: 5px;
 }
-
 
 .data-description {
     color: var(--muted);
@@ -587,7 +657,9 @@ body {
 }
 
 
-/* Toast */
+/* =========================
+   Toast
+========================= */
 
 .toast {
     position: fixed;
@@ -608,11 +680,10 @@ body {
 
     z-index: 2000;
 
-    transition: .3s;
+    transition: 0.3s;
 
     opacity: 0;
 }
-
 
 .toast.show {
     transform: translate(-50%, 0);
@@ -620,50 +691,81 @@ body {
     opacity: 1;
 }
 
-.danger-btn {
-    background-color: #dc3545 !important;
-    color: white !important;
-}
 
-/* Dynamic Card & Space Styles */
-.category-card,
-.subcategory-card {
-    height: 90px !important;
-    padding: 0 20px !important;
-    border-radius: 12px !important;
-    background: #003358 !important;
-    color: #ffffff !important;
-    margin-bottom: 20px !important; /* স্পেস বাড়ানোর জন্য ২৫px দেওয়া হয়েছে */
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    box-sizing: border-box !important;
-}
-
-.action-btn-group {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
-.custom-action-btn {
-    width: 26px !important;
-    height: 26px !important;
-    border-radius: 5px !important;
-    background: #ffffff !important;
-    border: none !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    cursor: pointer !important;
-    font-size: 16px !important;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
-    padding: 0 !important;
-}
-
-
-/* Utility */
+/* =========================
+   Hidden
+========================= */
 
 .hidden {
     display: none !important;
+}
+
+
+/* =========================
+   Mobile Responsive
+========================= */
+
+@media (max-width: 600px) {
+
+    .container {
+        padding:
+            18px 12px 70px;
+    }
+
+    .dashboard-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+    .dashboard-header h1 {
+        font-size: 22px;
+    }
+
+    .category-list {
+        grid-template-columns: 1fr;
+
+        gap: 0;
+    }
+
+    .category-card,
+    .subcategory-card {
+        height: 90px !important;
+
+        padding: 0 15px !important;
+
+        margin-bottom: 20px !important;
+    }
+
+    .category-icon {
+        width: 42px;
+        height: 42px;
+
+        min-width: 42px;
+
+        font-size: 21px;
+    }
+
+    .category-name {
+        font-size: 15px;
+    }
+
+    .category-meta {
+        font-size: 12px;
+    }
+
+    .category-menu,
+    .action-btn-group {
+        gap: 8px;
+    }
+
+    .custom-action-btn {
+        width: 26px !important;
+        height: 26px !important;
+
+        min-width: 26px !important;
+        min-height: 26px !important;
+
+        font-size: 15px !important;
+    }
 }
