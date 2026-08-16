@@ -633,7 +633,7 @@ body {
     border-radius: 12px !important;
     background: #003358 !important;
     color: #ffffff !important;
-    margin-bottom: 25px !important; /* স্পেস বাড়ানোর জন্য ২৫px দেওয়া হয়েছে */
+    margin-bottom: 20px !important; /* স্পেস বাড়ানোর জন্য ২৫px দেওয়া হয়েছে */
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
@@ -647,9 +647,9 @@ body {
 }
 
 .custom-action-btn {
-    width: 36px !important;
-    height: 36px !important;
-    border-radius: 10px !important;
+    width: 26px !important;
+    height: 26px !important;
+    border-radius: 5px !important;
     background: #ffffff !important;
     border: none !important;
     display: inline-flex !important;
