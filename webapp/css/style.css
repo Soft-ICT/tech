@@ -427,17 +427,18 @@ body {
     padding: 0 !important;
 }
 
-/* ১. হেডার ব্যানার (Height: 100px, Square Shape) */
+/* ১. হেডার ব্যানার (Text Centered) */
 .header-banner {
     width: 100% !important;
     height: 100px !important;
     background-color: #003358 !important;
     color: #ffffff !important;
     padding: 0 20px !important;
-    border-radius: 0px !important; /* কোনো রাউন্ড শেপ থাকবে না */
+    border-radius: 0px !important;
     display: flex !important;
-    justify-content: space-between !important;
     align-items: center !important;
+    justify-content: center !important; /* সেন্টার এলাইনমেন্ট */
+    position: relative !important; /* একশন বাটনের পজিশন ঠিক রাখার জন্য */
     margin-bottom: 10px !important;
     box-sizing: border-box !important;
 }
@@ -447,7 +448,15 @@ body {
     font-size: 20px;
     font-weight: 700;
     color: #ffffff !important;
+    text-align: center !important; /* টেক্সট সেন্টারে রাখার জন্য */
 }
+
+/* একশন বাটনগুলোকে ডানপাশে ফিক্সড রাখার জন্য */
+.header-banner > div {
+    position: absolute !important;
+    right: 20px !important;
+}
+
 
 /* ২. ডাটা কার্ড (Square Shape) */
 .data-card-item {
