@@ -428,10 +428,10 @@ body {
     padding: 0 !important;
 }
 
-/* ১. হেডার ব্যানার (Height: 80px, Text Centered, No Radius) */
+/* ১. হেডার ব্যানার (Height: 90px, Text Centered, No Radius) */
 .header-banner {
     width: 100% !important;
-    height: 50px !important;
+    height: 90px !important;
     background-color: #003358 !important;
     color: #ffffff !important;
     padding: 0 20px !important;
@@ -555,7 +555,7 @@ body {
     }
 
     .header-banner {
-        height: 100px !important;
+        height: 90px !important;
         padding: 0 15px !important;
         border-radius: 0px !important;
     }
