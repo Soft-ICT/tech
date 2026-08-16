@@ -2,7 +2,7 @@
    FIREBASE IMPORTS
 ========================================================= */
 
-import { watchAuth, loginAdmin } from "./auth.js";
+import { watchAuth, loginAdmin, logoutAdmin } from "./auth.js";
 import {
     ref,
     set,
@@ -47,7 +47,6 @@ let targetMoveDataId = null;
 window.currentUserRole = "guest";
 
 /* =========================================================
-/* =========================================================
    AUTH & UI CONTROL
 ========================================================= */
 
@@ -60,15 +59,15 @@ watchAuth((user, role) => {
         window.currentUserRole = "guest";
         if (adminBtn) {
             adminBtn.textContent = "🔑 Admin Login";
-            adminBtn.classList.remove("danger-btn");
+            adminBtn.style.backgroundColor = ""; // ডিফল্ট বাটন কালার
         }
     } else {
         // এডমিন মোড
         window.currentUser = user;
         window.currentUserRole = role || "admin";
         if (adminBtn) {
-            adminBtn.textContent = "🚪 Logout"; // এডমিন থাকলে লগআউট দেখাবে
-            adminBtn.classList.add("danger-btn");
+            adminBtn.textContent = "🚪 Logout";
+            adminBtn.style.backgroundColor = "#dc3545"; // লগআউট বাটন লাল কালার
         }
     }
 
@@ -78,25 +77,26 @@ watchAuth((user, role) => {
     // অ্যাডমিন বা গেস্ট যে-ই হোক, ডাটা লোড হবে
     loadDatabase();
 });
-// Admin Login / Logout Event
-document.getElementById("adminLoginBtn")?.addEventListener("click", async () => {
-    // এডমিন লগইন অবস্থায় থাকলে লগআউট হবে
-    if (window.currentUserRole === "admin" && window.currentUser) {
-        if (confirm("আপনি কি নিশ্চিত লগআউট করতে চান?")) {
-            const { logoutAdmin } = await import("./auth.js");
-            const res = await logoutAdmin();
-            if (res.success) {
-                showToast("সফলভাবে লগআউট হয়েছে");
-            } else {
-                showToast("লগআউট করতে সমস্যা হয়েছে");
-            }
-        }
-    } else {
-        // লগইন না থাকলে মডাল ওপেন হবে
-        openModal("loginModal");
-    }
-});
 
+function updateAdminUI() {
+    const isAdmin = window.currentUserRole === "admin";
+    
+    // এডমিন বাটনগুলোর প্রদর্শনী নিয়ন্ত্রণ
+    const adminElements = document.querySelectorAll(".admin-only");
+    adminElements.forEach(el => {
+        if (isAdmin) {
+            el.classList.remove("hidden");
+        } else {
+            el.classList.add("hidden");
+        }
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    setupEvents();
+    initTheme();
+    updateAdminUI();
+});
 
 /* =========================================================
    THEME
@@ -182,9 +182,20 @@ function setupEvents() {
     document.getElementById("clearSearch")?.addEventListener("click", clearSearch);
     document.getElementById("searchInput")?.addEventListener("input", renderCategories);
 
-    // Admin Login Events
-    document.getElementById("adminLoginBtn")?.addEventListener("click", () => {
-        openModal("loginModal");
+    // Admin Login & Logout Trigger
+    document.getElementById("adminLoginBtn")?.addEventListener("click", async () => {
+        if (window.currentUserRole === "admin" && window.currentUser) {
+            if (confirm("আপনি কি নিশ্চিত লগআউট করতে চান?")) {
+                const res = await logoutAdmin();
+                if (res.success) {
+                    showToast("সফলভাবে লগআউট হয়েছে");
+                } else {
+                    showToast("লগআউট করতে সমস্যা হয়েছে");
+                }
+            }
+        } else {
+            openModal("loginModal");
+        }
     });
 
     document.getElementById("submitLoginBtn")?.addEventListener("click", async () => {
@@ -551,7 +562,6 @@ function renderCategories() {
         const dataCount = database.data.filter(d => d.categoryId === category.id).length;
         const pinIcon = category.pinned ? "📌" : "📍";
 
-        // এডমিন না হলে বাটনগুলো থাকবে না
         const adminActions = isAdmin ? `
             <div style="display:flex;gap:6px;align-items:center">
                 <button class="btn-pin-cat secondary-btn" style="padding:4px 8px">${pinIcon}</button>
