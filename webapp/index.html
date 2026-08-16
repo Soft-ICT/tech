@@ -49,7 +49,11 @@
         <span>My Data Manager</span>
     </div>
 
-    <div class="top-actions">
+    <div class="top-actions" style="display: flex; gap: 8px; align-items: center;">
+        <!-- অ্যাডমিন লগইন বাটন -->
+        <button id="adminLoginBtn" class="primary-btn" style="padding: 6px 12px; font-size: 13px;">
+            🔑 Admin Login
+        </button>
         <button id="themeBtn" class="icon-btn" title="নাইট/ডে মোড">🌙</button>
         <button id="searchBtn" class="icon-btn" title="সার্চ করুন">🔍</button>
     </div>
@@ -144,6 +148,32 @@
     </div>
 
 </main>
+
+
+<!-- Admin Login Modal -->
+<div id="loginModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Admin Login</h2>
+            <button class="close-btn" data-close="loginModal">✕</button>
+        </div>
+
+        <div class="form-group">
+            <label>ইমেইল</label>
+            <input id="loginEmail" type="email" placeholder="admin@example.com">
+        </div>
+
+        <div class="form-group">
+            <label>পাসওয়ার্ড</label>
+            <input id="loginPassword" type="password" placeholder="******">
+        </div>
+
+        <div class="modal-actions">
+            <button class="secondary-btn" data-close="loginModal">বাতিল</button>
+            <button id="submitLoginBtn" class="primary-btn">লগইন</button>
+        </div>
+    </div>
+</div>
 
 
 <!-- Category Modal -->
