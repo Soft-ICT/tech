@@ -2,7 +2,7 @@ import {
     getAuth, 
     signInWithEmailAndPassword, 
     onAuthStateChanged,
-    signOut   // ✅ signOut ইম্পোর্ট করা হলো
+    signOut
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { app } from "./firebase.js";
 
@@ -18,7 +18,7 @@ export async function loginAdmin(email, password) {
     }
 }
 
-// ✅ লগআউট ফাংশন যোগ করা হলো
+// Admin Logout Function
 export async function logoutAdmin() {
     try {
         await signOut(auth);
