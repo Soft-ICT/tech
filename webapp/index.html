@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="css/dark-mode.css">
     <link rel="stylesheet" href="css/responsive.css">
 
-    <!-- নাইট মোড কাজ করানোর জন্য প্রয়োজনীয় ইনলাইন CSS ইনজেকশন -->
     <style>
         body.dark-mode {
             background-color: #121212 !important;
@@ -50,7 +49,6 @@
     </div>
 
     <div class="top-actions" style="display: flex; gap: 8px; align-items: center;">
-        <!-- অ্যাডমিন লগইন বাটন -->
         <button id="adminLoginBtn" class="primary-btn" style="padding: 6px 12px; font-size: 13px;">
             🔑 Admin Login
         </button>
@@ -87,7 +85,8 @@
                 <p id="categoryCount">0টি Category</p>
             </div>
 
-            <button id="addCategoryBtn" class="primary-btn">
+            <!-- Admin-only add button -->
+            <button id="addCategoryBtn" class="primary-btn admin-only">
                 ＋ Category
             </button>
 
@@ -106,10 +105,10 @@
             <h2>এখনো কোনো Category নেই</h2>
 
             <p>
-                শুরু করতে একটি নতুন Category তৈরি করুন।
+                ডাটা দেখতে অপেক্ষা করুন অথবা এডমিন হিসেবে লগইন করুন।
             </p>
 
-            <button id="emptyAddBtn" class="primary-btn">
+            <button id="emptyAddBtn" class="primary-btn admin-only">
                 ＋ প্রথম Category তৈরি করুন
             </button>
 
@@ -129,8 +128,8 @@
             </div>
         </section>
 
-        <!-- Section Toolbar -->
-        <div class="section-toolbar" style="margin-bottom: 20px;">
+        <!-- Section Toolbar (Admin Only Buttons) -->
+        <div class="section-toolbar admin-only" style="margin-bottom: 20px;">
             <button id="addSubCategoryBtn" class="primary-btn">
                 ＋ Sub-Category
             </button>
