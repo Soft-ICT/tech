@@ -475,7 +475,7 @@ function goBack() {
 
 
 /* =========================================================
-   PIN SYSTEM
+   PIN SYSTEM - Modified with 📌 and 📍 only
    =========================================================
 
    Category:
@@ -732,7 +732,7 @@ async function togglePin(
 
 
         showToast(
-            "📌 PIN সরানো হয়েছে"
+            "📍 আনপিন করা হয়েছে"
         );
 
         return;
@@ -761,7 +761,7 @@ async function togglePin(
 
 
     showToast(
-        "📌 PIN করা হয়েছে"
+        "📌 পিন করা হয়েছে"
     );
 }
 
@@ -1143,7 +1143,7 @@ async function deleteCategory(id) {
 
 
 /* =========================================================
-   CATEGORY RENDER
+   CATEGORY RENDER - Modified with 📌 and 📍
 ========================================================= */
 
 function renderCategories() {
@@ -1298,6 +1298,17 @@ function renderCategories() {
                 ).length;
 
 
+            const pinIcon =
+                category.pinned
+                    ? "📌"
+                    : "📍";
+
+            const pinText =
+                category.pinned
+                    ? "আনপিন"
+                    : "পিন";
+
+
             card.innerHTML = `
 
                 <div
@@ -1309,11 +1320,7 @@ function renderCategories() {
                         style="margin:0;font-size:16px"
                     >
 
-                        ${
-                            category.pinned
-                                ? "📌 "
-                                : "📁 "
-                        }
+                        ${pinIcon}
 
                         ${escapeHTML(
                             category.name
@@ -1330,7 +1337,7 @@ function renderCategories() {
 
                         ${
                             category.pinned
-                                ? " • PIN #" +
+                                ? " • #" +
                                   category.pinOrder
                                 : ""
                         }
@@ -1348,11 +1355,7 @@ function renderCategories() {
                         class="btn-pin-cat secondary-btn"
                         style="padding:4px 8px"
                     >
-                        ${
-                            category.pinned
-                                ? "📌 আনপিন"
-                                : "📌 পিন"
-                        }
+                        ${pinIcon} ${pinText}
                     </button>
 
                     <button
@@ -1449,7 +1452,7 @@ function renderCategories() {
 
 
 /* =========================================================
-   CATEGORY DETAILS
+   CATEGORY DETAILS - Modified with 📌 and 📍
 ========================================================= */
 
 function renderCategoryDetails() {
@@ -1508,6 +1511,12 @@ function renderCategoryDetails() {
                     "padding:12px 15px;background:rgba(0,0,0,.04);border-radius:6px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;font-weight:500;";
 
 
+                const pinIcon =
+                    sub.pinned
+                        ? "📌"
+                        : "📍";
+
+
                 item.innerHTML = `
 
                     <span
@@ -1515,11 +1524,7 @@ function renderCategoryDetails() {
                         class="sub-click"
                     >
 
-                        ${
-                            sub.pinned
-                                ? "📌"
-                                : "📁"
-                        }
+                        ${pinIcon}
 
                         ${escapeHTML(
                             sub.name
@@ -1543,11 +1548,7 @@ function renderCategoryDetails() {
                         <button
                             class="btn-pin-sub secondary-btn"
                         >
-                            ${
-                                sub.pinned
-                                    ? "📌"
-                                    : "📌"
-                            }
+                            ${pinIcon}
                         </button>
 
                         <button
@@ -1665,6 +1666,17 @@ function renderCategoryDetails() {
                 "margin-bottom:15px;padding:12px;border:1px dashed #ccc;border-radius:6px;";
 
 
+            const pinIcon =
+                header.pinned
+                    ? "📌"
+                    : "📍";
+
+            const pinText =
+                header.pinned
+                    ? "আনপিন"
+                    : "পিন";
+
+
             headerBox.innerHTML = `
 
                 <div
@@ -1675,11 +1687,7 @@ function renderCategoryDetails() {
                         style="margin:0;font-size:15px"
                     >
 
-                        ${
-                            header.pinned
-                                ? "📌 "
-                                : "🏷️ "
-                        }
+                        ${pinIcon}
 
                         ${escapeHTML(
                             header.title
@@ -1703,11 +1711,7 @@ function renderCategoryDetails() {
                         <button
                             class="btn-pin-head secondary-btn"
                         >
-                            ${
-                                header.pinned
-                                    ? "📌 আনপিন"
-                                    : "📌 পিন"
-                            }
+                            ${pinIcon} ${pinText}
                         </button>
 
                         <button
@@ -1899,7 +1903,7 @@ function pinComparator(a, b) {
 
 
 /* =========================================================
-   DATA CARD
+   DATA CARD - Modified with 📌 and 📍
 ========================================================= */
 
 function createDataCardElement(
@@ -1916,17 +1920,24 @@ function createDataCardElement(
         "padding:10px;background:var(--card-bg,#fff);margin-bottom:6px;border-radius:4px;border:1px solid #eee;display:flex;justify-content:space-between;align-items:flex-start;";
 
 
+    const pinIcon =
+        item.pinned
+            ? "📌"
+            : "📍";
+
+    const pinText =
+        item.pinned
+            ? "আনপিন"
+            : "পিন";
+
+
     dataEl.innerHTML = `
 
         <div>
 
             <strong>
 
-                ${
-                    item.pinned
-                        ? "📌 "
-                        : ""
-                }
+                ${pinIcon}
 
                 ${escapeHTML(
                     item.title
@@ -1949,7 +1960,7 @@ function createDataCardElement(
             ${
                 item.pinned
                     ? `<small>
-                         📌 PIN #${item.pinOrder}
+                         #${item.pinOrder}
                        </small>`
                     : ""
             }
@@ -1965,11 +1976,7 @@ function createDataCardElement(
                 class="btn-pin-data secondary-btn"
                 style="padding:2px 6px"
             >
-                ${
-                    item.pinned
-                        ? "📌 আনপিন"
-                        : "📌 পিন"
-                }
+                ${pinIcon} ${pinText}
             </button>
 
 
