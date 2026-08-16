@@ -82,14 +82,14 @@ body {
 
 
 /* =========================
-   Main
+   Main (Full Width)
 ========================= */
 
 .container {
-    width: min(1100px, 100%);
+    width: 100% !important;
+    max-width: 100% !important;
     margin: auto;
-
-    padding: 25px 18px 80px;
+    padding: 15px 0 80px !important; /* কোনো মার্জিন নেই */
 }
 
 
@@ -105,7 +105,7 @@ body {
     border-radius: 14px;
 
     padding: 6px;
-    margin-bottom: 20px;
+    margin: 0 12px 20px 12px;
 }
 
 .search-box input {
@@ -144,7 +144,7 @@ body {
     justify-content: space-between;
 
     gap: 15px;
-    margin-bottom: 25px;
+    margin: 0 12px 25px 12px;
 }
 
 .dashboard-header h1 {
@@ -210,6 +210,7 @@ body {
         repeat(auto-fill, minmax(260px, 1fr));
 
     gap: 16px;
+    padding: 0 12px;
 }
 
 
@@ -227,7 +228,7 @@ body {
 
     margin-bottom: 20px !important;
 
-    border-radius: 12px !important;
+    border-radius: 0px !important; /* রাউন্ড বাদ দেওয়া হয়েছে */
 
     background: #003358 !important;
     color: #ffffff !important;
@@ -260,7 +261,7 @@ body {
 
 
 /* =========================
-   Category Top
+   Category Top & Info
 ========================= */
 
 .category-top {
@@ -274,11 +275,6 @@ body {
 
     min-width: 0;
 }
-
-
-/* =========================
-   Category Icon
-========================= */
 
 .category-icon {
     width: 48px;
@@ -297,11 +293,6 @@ body {
 
     font-size: 24px;
 }
-
-
-/* =========================
-   Category Info
-========================= */
 
 .category-info {
     flex: 1;
@@ -333,7 +324,7 @@ body {
 
 
 /* =========================
-   Category Menu + Action Button
+   Action Buttons
 ========================= */
 
 .category-menu,
@@ -346,11 +337,6 @@ body {
 
     flex-shrink: 0;
 }
-
-
-/* =========================
-   Small Button
-========================= */
 
 .small-btn {
     border: none;
@@ -371,11 +357,6 @@ body {
 .small-btn:hover {
     background: rgba(255, 255, 255, 0.12);
 }
-
-
-/* =========================
-   Custom Action Button
-========================= */
 
 .custom-action-btn {
     width: 26px !important;
@@ -413,35 +394,6 @@ body {
 
 .custom-action-btn:hover {
     transform: scale(1.05);
-}
-
-
-/* =========================
-   Empty State
-========================= */
-
-.empty-state {
-    text-align: center;
-
-    padding: 80px 20px;
-}
-
-.empty-icon {
-    font-size: 55px;
-
-    margin-bottom: 15px;
-}
-
-.empty-state h2 {
-    font-size: 20px;
-
-    margin-bottom: 8px;
-}
-
-.empty-state p {
-    color: var(--muted);
-
-    margin-bottom: 20px;
 }
 
 
@@ -586,57 +538,67 @@ body {
 
 
 /* =========================
-   Header Section & Data List
+   Header Section & Data List (Updated)
 ========================= */
 
-/* পুরো কন্টেইনার যেন ডিসপ্লের ফুল-উইডথ নেয় */
+.section-toolbar {
+    display: flex;
+
+    gap: 10px;
+
+    margin: 0 12px 20px 12px;
+
+    flex-wrap: wrap;
+}
+
+/* পুরো কন্টেইনার */
 .header-box {
-    width: 100%;
-    margin-bottom: 25px;
-    background: transparent !important; /* বাইরের নীল ব্যাকগ্রাউন্ড বাদ দেওয়া হয়েছে */
+    width: 100% !important;
+    margin-bottom: 20px !important;
+    background: transparent !important;
     box-shadow: none !important;
     border: none !important;
     padding: 0 !important;
 }
 
-/* ১. শুধু হেডারের নিজস্ব ব্যানার/শিরোনামের অংশ */
+/* ১. হেডার ব্যানার (Height: 100px & No Radius) */
 .header-banner {
-    width: 100%;
-    background-color: #003358 !important; /* হেডারের নির্দিষ্ট ব্যাকগ্রাউন্ড কালার */
+    width: 100% !important;
+    height: 100px !important; /* নির্দিষ্ট ১০০ পিক্সেল হাইট */
+    background-color: #003358 !important;
     color: #ffffff !important;
-    padding: 12px 16px;
-    border-radius: 12px; /* সুন্দর রাউন্ডেড শেপ */
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px; /* নিচের ডাটা কার্ডগুলো থেকে একটু গ্যাপ */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    padding: 0 20px !important;
+    border-radius: 0px !important; /* কোনো রাউন্ড শেপ থাকবে না */
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 10px !important;
+    box-sizing: border-box !important;
 }
 
 .header-banner h5 {
     margin: 0;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 700;
     color: #ffffff !important;
 }
 
-/* ২. ডাটা কার্ড (হেডারের নিচে অবস্থান করবে) */
+/* ২. ডাটা কার্ড (No Radius) */
 .data-card-item {
-    width: 100%;
-    background-color: #ffffff !important; /* ডাটা কার্ডের সাদা ব্যাকগ্রাউন্ড */
+    width: 100% !important;
+    background-color: #ffffff !important;
     color: #172033 !important;
-    padding: 14px 16px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    margin-bottom: 10px; /* প্রতিটি ডাটা কার্ডের মাঝখানে স্পেস */
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
-}
-
-.data-card-item:last-child {
-    margin-bottom: 0;
+    padding: 16px 20px !important;
+    border-radius: 0px !important; /* রাউন্ড বাদ দেওয়া হয়েছে */
+    border-bottom: 1px solid var(--border) !important;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    margin-bottom: 8px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
 }
 
 .data-card-item strong {
@@ -653,19 +615,20 @@ body {
     white-space: pre-line;
 }
 
-/* কন্টেইনার ফুল উইডথ নিশ্চিত করতে */
-.container {
-    width: 100% !important;
-    max-width: 100% !important;
-    padding-left: 12px !important;
-    padding-right: 12px !important;
-}
-
-
 
 /* =========================
-   Toast
+   Empty State & Toast
 ========================= */
+
+.empty-state {
+    text-align: center;
+    padding: 80px 20px;
+}
+
+.empty-icon {
+    font-size: 55px;
+    margin-bottom: 15px;
+}
 
 .toast {
     position: fixed;
@@ -697,11 +660,6 @@ body {
     opacity: 1;
 }
 
-
-/* =========================
-   Hidden
-========================= */
-
 .hidden {
     display: none !important;
 }
@@ -712,66 +670,37 @@ body {
 ========================= */
 
 @media (max-width: 600px) {
-
     .container {
-        padding:
-            18px 12px 70px;
+        padding: 10px 0 70px !important;
     }
 
     .dashboard-header {
         align-items: flex-start;
-
         flex-direction: column;
-    }
-
-    .dashboard-header h1 {
-        font-size: 22px;
     }
 
     .category-list {
         grid-template-columns: 1fr;
-
         gap: 0;
+        padding: 0;
     }
 
     .category-card,
     .subcategory-card {
         height: 90px !important;
-
         padding: 0 15px !important;
-
-        margin-bottom: 20px !important;
+        margin-bottom: 15px !important;
+        border-radius: 0px !important;
     }
 
-    .category-icon {
-        width: 42px;
-        height: 42px;
-
-        min-width: 42px;
-
-        font-size: 21px;
+    .header-banner {
+        height: 100px !important;
+        padding: 0 15px !important;
+        border-radius: 0px !important;
     }
 
-    .category-name {
-        font-size: 15px;
-    }
-
-    .category-meta {
-        font-size: 12px;
-    }
-
-    .category-menu,
-    .action-btn-group {
-        gap: 8px;
-    }
-
-    .custom-action-btn {
-        width: 26px !important;
-        height: 26px !important;
-
-        min-width: 26px !important;
-        min-height: 26px !important;
-
-        font-size: 15px !important;
+    .data-card-item {
+        padding: 14px 15px !important;
+        border-radius: 0px !important;
     }
 }
