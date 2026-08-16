@@ -2,7 +2,7 @@
    FIREBASE IMPORTS
 ========================================================= */
 
-import { watchAuth, logoutUser } from "./auth.js";
+import { watchAuth } from "./auth.js";
 import {
     ref,
     set,
@@ -35,12 +35,12 @@ let targetMoveDataId = null;
 watchAuth((user, role) => {
 
     if (!user) {
-        window.location.href = "login.html";
+        console.warn("User is not authenticated. Direct mode active.");
         return;
     }
 
     window.currentUser = user;
-    window.currentUserRole = role || "user";
+    window.currentUserRole = role || "admin";
 
     loadDatabase();
 });
@@ -50,11 +50,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     setupEvents();
     initTheme();
-
-    // লগআউট বাটনের ইভেন্ট
-    document.getElementById("logoutBtn")?.addEventListener("click", () => {
-        logoutUser();
-    });
 
 });
 
@@ -95,7 +90,7 @@ function toggleTheme() {
 
 
 /* =========================================================
-   FIREBASE LOAD - সবাই একই ডাটা পড়বে
+   FIREBASE LOAD
 ========================================================= */
 
 async function loadDatabase() {
@@ -104,9 +99,12 @@ async function loadDatabase() {
 
     try {
 
-        // 🔥 সবাই এই একটি পাথ থেকেই ডাটা পড়বে
         const snapshot = await get(
-            ref(db, "webapp/master_data")
+            ref(
+                db,
+                "webapp/user_data/" +
+                window.currentUser.uid
+            )
         );
 
         if (snapshot.exists()) {
@@ -138,9 +136,6 @@ async function loadDatabase() {
 
         renderCategories();
 
-        // অ্যাডমিন স্ট্যাটাস আপডেট
-        updateAdminStatus();
-
     } catch (error) {
 
         console.error(
@@ -156,7 +151,7 @@ async function loadDatabase() {
 
 
 /* =========================================================
-   FIREBASE SAVE - সবাই একই জায়গায় সেভ করবে (শুধু Admin পারবে)
+   FIREBASE SAVE
 ========================================================= */
 
 async function saveDatabase() {
@@ -174,9 +169,12 @@ async function saveDatabase() {
 
     try {
 
-        // 🔥 সবাই এই একটি পাথেই সেভ করবে
         await set(
-            ref(db, "webapp/master_data"),
+            ref(
+                db,
+                "webapp/user_data/" +
+                window.currentUser.uid
+            ),
             database
         );
 
@@ -213,35 +211,6 @@ function generateId(prefix) {
 
 
 /* =========================================================
-   CHECK ADMIN
-========================================================= */
-
-function isAdmin() {
-    return window.currentUserRole === "admin";
-}
-
-
-/* =========================================================
-   UPDATE ADMIN STATUS UI
-========================================================= */
-
-function updateAdminStatus() {
-    const statusEl = document.getElementById("adminStatus");
-    if (statusEl) {
-        if (isAdmin()) {
-            statusEl.textContent = "👑 Admin";
-            statusEl.style.color = "#4CAF50";
-            document.body.classList.add("admin-mode");
-        } else {
-            statusEl.textContent = "👤 User (Read Only)";
-            statusEl.style.color = "#FF9800";
-            document.body.classList.remove("admin-mode");
-        }
-    }
-}
-
-
-/* =========================================================
    EVENTS
 ========================================================= */
 
@@ -259,13 +228,7 @@ function setupEvents() {
         .getElementById("addCategoryBtn")
         ?.addEventListener(
             "click",
-            () => {
-                if (isAdmin()) {
-                    openCategoryModal(false);
-                } else {
-                    showToast("শুধুমাত্র Admin যোগ করতে পারবেন");
-                }
-            }
+            () => openCategoryModal(false)
         );
 
 
@@ -273,13 +236,7 @@ function setupEvents() {
         .getElementById("emptyAddBtn")
         ?.addEventListener(
             "click",
-            () => {
-                if (isAdmin()) {
-                    openCategoryModal(false);
-                } else {
-                    showToast("শুধুমাত্র Admin যোগ করতে পারবেন");
-                }
-            }
+            () => openCategoryModal(false)
         );
 
 
@@ -287,13 +244,7 @@ function setupEvents() {
         .getElementById("addSubCategoryBtn")
         ?.addEventListener(
             "click",
-            () => {
-                if (isAdmin()) {
-                    openCategoryModal(true);
-                } else {
-                    showToast("শুধুমাত্র Admin যোগ করতে পারবেন");
-                }
-            }
+            () => openCategoryModal(true)
         );
 
 
@@ -333,13 +284,7 @@ function setupEvents() {
         .getElementById("addHeaderBtn")
         ?.addEventListener(
             "click",
-            () => {
-                if (isAdmin()) {
-                    openHeaderModal();
-                } else {
-                    showToast("শুধুমাত্র Admin যোগ করতে পারবেন");
-                }
-            }
+            openHeaderModal
         );
 
 
@@ -347,13 +292,7 @@ function setupEvents() {
         .getElementById("addDataBtn")
         ?.addEventListener(
             "click",
-            () => {
-                if (isAdmin()) {
-                    openDataModal();
-                } else {
-                    showToast("শুধুমাত্র Admin যোগ করতে পারবেন");
-                }
-            }
+            openDataModal
         );
 
 
@@ -723,7 +662,10 @@ async function togglePin(
     id
 ) {
 
-    if (!isAdmin()) {
+    if (
+        window.currentUserRole !==
+        "admin"
+    ) {
 
         showToast(
             "শুধুমাত্র Admin PIN করতে পারবেন"
@@ -828,7 +770,7 @@ async function togglePin(
 
 function refreshCurrentView(type) {
 
-    // সব সময় current view রি-রেন্ডার করবে
+    // For category, header or data - always re-render the current view
     if (currentCategoryId) {
         renderCategoryDetails();
     } else {
@@ -969,11 +911,6 @@ function openCategoryModal(
     isSubCategory = false
 ) {
 
-    if (!isAdmin()) {
-        showToast("শুধুমাত্র Admin যোগ করতে পারবেন");
-        return;
-    }
-
     const title =
         document.getElementById(
             "categoryModalTitle"
@@ -1013,11 +950,6 @@ function openCategoryModal(
 
 
 async function saveCategory() {
-
-    if (!isAdmin()) {
-        showToast("শুধুমাত্র Admin যোগ করতে পারবেন");
-        return;
-    }
 
     const input =
         document.getElementById(
@@ -1081,11 +1013,6 @@ async function saveCategory() {
 
 async function editCategory(id) {
 
-    if (!isAdmin()) {
-        showToast("শুধুমাত্র Admin এডিট করতে পারবেন");
-        return;
-    }
-
     const cat =
         database.categories.find(
             c => c.id === id
@@ -1128,11 +1055,6 @@ async function editCategory(id) {
 
 
 async function deleteCategory(id) {
-
-    if (!isAdmin()) {
-        showToast("শুধুমাত্র Admin ডিলিট করতে পারবেন");
-        return;
-    }
 
     if (
         !confirm(
@@ -1338,8 +1260,6 @@ function renderCategories() {
     );
 
 
-    const isAdminUser = isAdmin();
-
     categoriesToShow.forEach(
         category => {
 
@@ -1379,25 +1299,6 @@ function renderCategories() {
                     : "📍";
 
 
-            let actionsHTML = "";
-
-            if (isAdminUser) {
-                actionsHTML = `
-                    <div style="display:flex;gap:6px;align-items:center">
-                        <button class="btn-pin-cat secondary-btn" style="padding:4px 8px">
-                            ${pinIcon}
-                        </button>
-                        <button class="btn-edit-cat secondary-btn" style="padding:4px 8px">
-                            ✏️
-                        </button>
-                        <button class="btn-del-cat secondary-btn" style="padding:4px 8px;color:red">
-                            🗑️
-                        </button>
-                    </div>
-                `;
-            }
-
-
             card.innerHTML = `
 
                 <div
@@ -1426,7 +1327,33 @@ function renderCategories() {
 
                 </div>
 
-                ${actionsHTML}
+
+                <div
+                    style="display:flex;gap:6px;align-items:center"
+                >
+
+                    <button
+                        class="btn-pin-cat secondary-btn"
+                        style="padding:4px 8px"
+                    >
+                        ${pinIcon}
+                    </button>
+
+                    <button
+                        class="btn-edit-cat secondary-btn"
+                        style="padding:4px 8px"
+                    >
+                        ✏️
+                    </button>
+
+                    <button
+                        class="btn-del-cat secondary-btn"
+                        style="padding:4px 8px;color:red"
+                    >
+                        🗑️
+                    </button>
+
+                </div>
             `;
 
 
@@ -1443,61 +1370,59 @@ function renderCategories() {
                 );
 
 
-            if (isAdminUser) {
-                card
-                    .querySelector(
-                        ".btn-pin-cat"
-                    )
-                    .addEventListener(
-                        "click",
-                        e => {
+            card
+                .querySelector(
+                    ".btn-pin-cat"
+                )
+                .addEventListener(
+                    "click",
+                    e => {
 
-                            e.stopPropagation();
+                        e.stopPropagation();
 
-                            togglePin(
-                                "category",
-                                category.id
-                            );
+                        togglePin(
+                            "category",
+                            category.id
+                        );
 
-                        }
-                    );
-
-
-                card
-                    .querySelector(
-                        ".btn-edit-cat"
-                    )
-                    .addEventListener(
-                        "click",
-                        e => {
-
-                            e.stopPropagation();
-
-                            editCategory(
-                                category.id
-                            );
-
-                        }
-                    );
+                    }
+                );
 
 
-                card
-                    .querySelector(
-                        ".btn-del-cat"
-                    )
-                    .addEventListener(
-                        "click",
-                        e => {
+            card
+                .querySelector(
+                    ".btn-edit-cat"
+                )
+                .addEventListener(
+                    "click",
+                    e => {
 
-                            e.stopPropagation();
+                        e.stopPropagation();
 
-                            deleteCategory(
-                                category.id
-                            );
+                        editCategory(
+                            category.id
+                        );
 
-                        }
-                    );
-            }
+                    }
+                );
+
+
+            card
+                .querySelector(
+                    ".btn-del-cat"
+                )
+                .addEventListener(
+                    "click",
+                    e => {
+
+                        e.stopPropagation();
+
+                        deleteCategory(
+                            category.id
+                        );
+
+                    }
+                );
 
 
             list.appendChild(card);
@@ -1531,9 +1456,6 @@ function renderCategoryDetails() {
                 cat.parentId ===
                 currentCategoryId
         );
-
-
-    const isAdminUser = isAdmin();
 
 
     if (
@@ -1576,25 +1498,6 @@ function renderCategoryDetails() {
                         : "📍";
 
 
-                let actionsHTML = "";
-
-                if (isAdminUser) {
-                    actionsHTML = `
-                        <div style="display:flex;gap:6px">
-                            <button class="btn-pin-sub secondary-btn">
-                                ${pinIcon}
-                            </button>
-                            <button class="btn-edit-sub secondary-btn">
-                                ✏️
-                            </button>
-                            <button class="btn-del-sub secondary-btn" style="color:red">
-                                🗑️
-                            </button>
-                        </div>
-                    `;
-                }
-
-
                 item.innerHTML = `
 
                     <span
@@ -1608,7 +1511,31 @@ function renderCategoryDetails() {
 
                     </span>
 
-                    ${actionsHTML}
+
+                    <div
+                        style="display:flex;gap:6px"
+                    >
+
+                        <button
+                            class="btn-pin-sub secondary-btn"
+                        >
+                            ${pinIcon}
+                        </button>
+
+                        <button
+                            class="btn-edit-sub secondary-btn"
+                        >
+                            ✏️
+                        </button>
+
+                        <button
+                            class="btn-del-sub secondary-btn"
+                            style="color:red"
+                        >
+                            🗑️
+                        </button>
+
+                    </div>
                 `;
 
 
@@ -1625,46 +1552,44 @@ function renderCategoryDetails() {
                     );
 
 
-                if (isAdminUser) {
-                    item
-                        .querySelector(
-                            ".btn-pin-sub"
-                        )
-                        .addEventListener(
-                            "click",
-                            () =>
-                                togglePin(
-                                    "category",
-                                    sub.id
-                                )
-                        );
+                item
+                    .querySelector(
+                        ".btn-pin-sub"
+                    )
+                    .addEventListener(
+                        "click",
+                        () =>
+                            togglePin(
+                                "category",
+                                sub.id
+                            )
+                    );
 
 
-                    item
-                        .querySelector(
-                            ".btn-edit-sub"
-                        )
-                        .addEventListener(
-                            "click",
-                            () =>
-                                editCategory(
-                                    sub.id
-                                )
-                        );
+                item
+                    .querySelector(
+                        ".btn-edit-sub"
+                    )
+                    .addEventListener(
+                        "click",
+                        () =>
+                            editCategory(
+                                sub.id
+                            )
+                    );
 
 
-                    item
-                        .querySelector(
-                            ".btn-del-sub"
-                        )
-                        .addEventListener(
-                            "click",
-                            () =>
-                                deleteCategory(
-                                    sub.id
-                                )
-                        );
-                }
+                item
+                    .querySelector(
+                        ".btn-del-sub"
+                    )
+                    .addEventListener(
+                        "click",
+                        () =>
+                            deleteCategory(
+                                sub.id
+                            )
+                    );
 
 
                 subWrapper.appendChild(
@@ -1718,25 +1643,6 @@ function renderCategoryDetails() {
                     : "📍";
 
 
-            let actionsHTML = "";
-
-            if (isAdminUser) {
-                actionsHTML = `
-                    <div style="display:flex;gap:6px">
-                        <button class="btn-pin-head secondary-btn">
-                            ${pinIcon}
-                        </button>
-                        <button class="btn-edit-head secondary-btn">
-                            ✏️
-                        </button>
-                        <button class="btn-del-head secondary-btn" style="color:red">
-                            🗑️
-                        </button>
-                    </div>
-                `;
-            }
-
-
             headerBox.innerHTML = `
 
                 <div
@@ -1753,52 +1659,74 @@ function renderCategoryDetails() {
 
                     </h5>
 
-                    ${actionsHTML}
+
+                    <div
+                        style="display:flex;gap:6px"
+                    >
+
+                        <button
+                            class="btn-pin-head secondary-btn"
+                        >
+                            ${pinIcon}
+                        </button>
+
+                        <button
+                            class="btn-edit-head secondary-btn"
+                        >
+                            ✏️
+                        </button>
+
+                        <button
+                            class="btn-del-head secondary-btn"
+                            style="color:red"
+                        >
+                            🗑️
+                        </button>
+
+                    </div>
 
                 </div>
             `;
 
 
-            if (isAdminUser) {
-                headerBox
-                    .querySelector(
-                        ".btn-pin-head"
-                    )
-                    .addEventListener(
-                        "click",
-                        () =>
-                            togglePin(
-                                "header",
-                                header.id
-                            )
-                    );
+            headerBox
+                .querySelector(
+                    ".btn-pin-head"
+                )
+                .addEventListener(
+                    "click",
+                    () =>
+                        togglePin(
+                            "header",
+                            header.id
+                        )
+                );
 
 
-                headerBox
-                    .querySelector(
-                        ".btn-edit-head"
-                    )
-                    .addEventListener(
-                        "click",
-                        () =>
-                            editHeader(
-                                header.id
-                            )
-                    );
+            headerBox
+                .querySelector(
+                    ".btn-edit-head"
+                )
+                .addEventListener(
+                    "click",
+                    () =>
+                        editHeader(
+                            header.id
+                        )
+                );
 
 
-                headerBox
-                    .querySelector(
-                        ".btn-del-head"
-                    )
-                    .addEventListener(
-                        "click",
-                        () =>
-                            deleteHeader(
-                                header.id
-                            )
-                    );
-            }
+            headerBox
+                .querySelector(
+                    ".btn-del-head"
+                )
+                .addEventListener(
+                    "click",
+                    () =>
+                        deleteHeader(
+                            header.id
+                        )
+                );
 
 
             const headerItems =
@@ -1953,30 +1881,6 @@ function createDataCardElement(
             ? "📌"
             : "📍";
 
-    const isAdminUser = isAdmin();
-
-
-    let actionsHTML = "";
-
-    if (isAdminUser) {
-        actionsHTML = `
-            <div style="display:flex;gap:5px;flex-wrap:wrap">
-                <button class="btn-pin-data secondary-btn" style="padding:2px 6px">
-                    ${pinIcon}
-                </button>
-                <button class="btn-move-data secondary-btn" style="padding:2px 6px">
-                    📦
-                </button>
-                <button class="btn-edit-data secondary-btn" style="padding:2px 6px">
-                    ✏️
-                </button>
-                <button class="btn-del-data secondary-btn" style="padding:2px 6px;color:red">
-                    🗑️
-                </button>
-            </div>
-        `;
-    }
-
 
     dataEl.innerHTML = `
 
@@ -2003,63 +1907,97 @@ function createDataCardElement(
 
         </div>
 
-        ${actionsHTML}
+
+        <div
+            style="display:flex;gap:5px;flex-wrap:wrap"
+        >
+
+            <button
+                class="btn-pin-data secondary-btn"
+                style="padding:2px 6px"
+            >
+                ${pinIcon}
+            </button>
+
+
+            <button
+                class="btn-move-data secondary-btn"
+                style="padding:2px 6px"
+            >
+                📦
+            </button>
+
+
+            <button
+                class="btn-edit-data secondary-btn"
+                style="padding:2px 6px"
+            >
+                ✏️
+            </button>
+
+
+            <button
+                class="btn-del-data secondary-btn"
+                style="padding:2px 6px;color:red"
+            >
+                🗑️
+            </button>
+
+        </div>
     `;
 
 
-    if (isAdminUser) {
-        dataEl
-            .querySelector(
-                ".btn-pin-data"
-            )
-            .addEventListener(
-                "click",
-                () =>
-                    togglePin(
-                        "data",
-                        item.id
-                    )
-            );
+    dataEl
+        .querySelector(
+            ".btn-pin-data"
+        )
+        .addEventListener(
+            "click",
+            () =>
+                togglePin(
+                    "data",
+                    item.id
+                )
+        );
 
 
-        dataEl
-            .querySelector(
-                ".btn-move-data"
-            )
-            .addEventListener(
-                "click",
-                () =>
-                    openMoveModal(
-                        item.id
-                    )
-            );
+    dataEl
+        .querySelector(
+            ".btn-move-data"
+        )
+        .addEventListener(
+            "click",
+            () =>
+                openMoveModal(
+                    item.id
+                )
+        );
 
 
-        dataEl
-            .querySelector(
-                ".btn-edit-data"
-            )
-            .addEventListener(
-                "click",
-                () =>
-                    editData(
-                        item.id
-                    )
-            );
+    dataEl
+        .querySelector(
+            ".btn-edit-data"
+        )
+        .addEventListener(
+            "click",
+            () =>
+                editData(
+                    item.id
+                )
+        );
 
 
-        dataEl
-            .querySelector(
-                ".btn-del-data"
-            )
-            .addEventListener(
-                "click",
-                () =>
-                    deleteData(
-                        item.id
-                    )
-            );
-    }
+    dataEl
+        .querySelector(
+            ".btn-del-data"
+        )
+        .addEventListener(
+            "click",
+            () =>
+                deleteData(
+                    item.id
+                )
+        );
 
 
     return dataEl;
@@ -2071,11 +2009,6 @@ function createDataCardElement(
 ========================================================= */
 
 function openHeaderModal() {
-
-    if (!isAdmin()) {
-        showToast("শুধুমাত্র Admin যোগ করতে পারবেন");
-        return;
-    }
 
     const input =
         document.getElementById(
@@ -2094,11 +2027,6 @@ function openHeaderModal() {
 
 
 async function saveHeader() {
-
-    if (!isAdmin()) {
-        showToast("শুধুমাত্র Admin যোগ করতে পারবেন");
-        return;
-    }
 
     const input =
         document.getElementById(
@@ -2157,11 +2085,6 @@ async function saveHeader() {
 
 async function editHeader(id) {
 
-    if (!isAdmin()) {
-        showToast("শুধুমাত্র Admin এডিট করতে পারবেন");
-        return;
-    }
-
     const header =
         database.headers.find(
             h =>
@@ -2202,11 +2125,6 @@ async function editHeader(id) {
 
 
 async function deleteHeader(id) {
-
-    if (!isAdmin()) {
-        showToast("শুধুমাত্র Admin ডিলিট করতে পারবেন");
-        return;
-    }
 
     if (
         !confirm(
@@ -2258,11 +2176,6 @@ async function deleteHeader(id) {
 ========================================================= */
 
 function openDataModal() {
-
-    if (!isAdmin()) {
-        showToast("শুধুমাত্র Admin যোগ করতে পারবেন");
-        return;
-    }
 
     const titleInput =
         document.getElementById(
@@ -2324,11 +2237,6 @@ function openDataModal() {
 
 
 async function saveData() {
-
-    if (!isAdmin()) {
-        showToast("শুধুমাত্র Admin যোগ করতে পারবেন");
-        return;
-    }
 
     const title =
         document
@@ -2407,11 +2315,6 @@ async function saveData() {
 
 async function editData(id) {
 
-    if (!isAdmin()) {
-        showToast("শুধুমাত্র Admin এডিট করতে পারবেন");
-        return;
-    }
-
     const item =
         database.data.find(
             d =>
@@ -2466,11 +2369,6 @@ async function editData(id) {
 
 async function deleteData(id) {
 
-    if (!isAdmin()) {
-        showToast("শুধুমাত্র Admin ডিলিট করতে পারবেন");
-        return;
-    }
-
     if (
         !confirm(
             "আপনি কি নিশ্চিত এই Data ডিলিট করতে চান?"
@@ -2505,11 +2403,6 @@ async function deleteData(id) {
 function openMoveModal(
     dataId
 ) {
-
-    if (!isAdmin()) {
-        showToast("শুধুমাত্র Admin Move করতে পারবেন");
-        return;
-    }
 
     targetMoveDataId =
         dataId;
@@ -2559,8 +2452,7 @@ function openMoveModal(
 
 
             catSelect.innerHTML +=
-                `<option
-                    value="${cat.id}"
+                `<option                    value="${cat.id}"
                     ${selected}
                 >
                     📁 ${escapeHTML(
@@ -2631,11 +2523,6 @@ function openMoveModal(
 
 
 async function confirmMoveData() {
-
-    if (!isAdmin()) {
-        showToast("শুধুমাত্র Admin Move করতে পারবেন");
-        return;
-    }
 
     if (!targetMoveDataId)
         return;
