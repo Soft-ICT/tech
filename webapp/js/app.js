@@ -43,7 +43,7 @@ let database = {
 let currentCategoryId = null;
 let targetMoveDataId = null;
 
-// ডিফল্টভাবে ইউজারকে Admin ধরা হবে না (Guest Role)
+// ডিফল্টভাবে ইউজারকে Guest ধরা হবে
 window.currentUserRole = "guest";
 
 /* =========================================================
@@ -71,23 +71,25 @@ watchAuth((user, role) => {
         }
     }
 
-    // UI-তে এডমিন বাটনগুলো রেন্ডার বা হাইড করা
+    // UI অ্যাডমিন ভিজিবিলিটি আপডেট
     updateAdminUI();
 
-    // অ্যাডমিন বা গেস্ট যে-ই হোক, ডাটা লোড হবে
+    // ডাটা লোড করা
     loadDatabase();
 });
 
 function updateAdminUI() {
     const isAdmin = window.currentUserRole === "admin";
     
-    // এডমিন বাটনগুলোর প্রদর্শনী নিয়ন্ত্রণ
+    // এডমিন বাটনগুলো সঠিকভাবে হাইড ও শো করা
     const adminElements = document.querySelectorAll(".admin-only");
     adminElements.forEach(el => {
         if (isAdmin) {
             el.classList.remove("hidden");
+            el.style.display = ""; 
         } else {
             el.classList.add("hidden");
+            el.style.display = "none";
         }
     });
 }
@@ -118,12 +120,11 @@ function toggleTheme() {
 }
 
 /* =========================================================
-   FIREBASE LOAD (গেস্ট এবং এডমিন উভয়ের জন্যই ডাটা লোড হবে)
+   FIREBASE LOAD
 ========================================================= */
 
 async function loadDatabase() {
     try {
-        // স্থায়ী এডমিন Path থেকে পাবলিকলি রিড করা হবে
         const snapshot = await get(ref(db, "webapp/public_data"));
 
         if (snapshot.exists()) {
@@ -144,7 +145,7 @@ async function loadDatabase() {
 }
 
 /* =========================================================
-   FIREBASE SAVE (শুধুমাত্র Admin সেভ করতে পারবে)
+   FIREBASE SAVE
 ========================================================= */
 
 async function saveDatabase() {
@@ -176,13 +177,12 @@ function generateId(prefix) {
 ========================================================= */
 
 function setupEvents() {
-    // Theme & Search
     document.getElementById("themeBtn")?.addEventListener("click", toggleTheme);
     document.getElementById("searchBtn")?.addEventListener("click", toggleSearch);
     document.getElementById("clearSearch")?.addEventListener("click", clearSearch);
     document.getElementById("searchInput")?.addEventListener("input", renderCategories);
 
-    // Topbar Admin Login & Logout Trigger
+    // Topbar Admin Login / Logout
     document.getElementById("adminLoginBtn")?.addEventListener("click", async () => {
         if (window.currentUserRole === "admin" && window.currentUser) {
             if (confirm("আপনি কি নিশ্চিত লগআউট করতে চান?")) {
@@ -198,7 +198,7 @@ function setupEvents() {
         }
     });
 
-    // Modal Logout Button Event
+    // Modal Logout Button
     document.getElementById("modalLogoutBtn")?.addEventListener("click", async () => {
         if (confirm("আপনি কি নিশ্চিত লগআউট করতে চান?")) {
             const res = await logoutAdmin();
@@ -231,7 +231,6 @@ function setupEvents() {
         }
     });
 
-    // Modals & Navigation
     document.getElementById("addCategoryBtn")?.addEventListener("click", () => openCategoryModal(false));
     document.getElementById("emptyAddBtn")?.addEventListener("click", () => openCategoryModal(false));
     document.getElementById("addSubCategoryBtn")?.addEventListener("click", () => openCategoryModal(true));
@@ -554,9 +553,10 @@ function renderCategories() {
         countElement.textContent = `${categoriesToShow.length}টি Category`;
     }
 
-    if (database.categories.length === 0) {
+    if (categoriesToShow.length === 0) {
         emptyState.classList.remove("hidden");
         list.classList.add("hidden");
+        updateAdminUI();
         return;
     }
 
@@ -594,15 +594,15 @@ function renderCategories() {
         card.querySelector(".cat-click").addEventListener("click", () => openCategory(category.id));
         
         if (isAdmin) {
-            card.querySelector(".btn-pin-cat").addEventListener("click", e => {
+            card.querySelector(".btn-pin-cat")?.addEventListener("click", e => {
                 e.stopPropagation();
                 togglePin("category", category.id);
             });
-            card.querySelector(".btn-edit-cat").addEventListener("click", e => {
+            card.querySelector(".btn-edit-cat")?.addEventListener("click", e => {
                 e.stopPropagation();
                 editCategory(category.id);
             });
-            card.querySelector(".btn-del-cat").addEventListener("click", e => {
+            card.querySelector(".btn-del-cat")?.addEventListener("click", e => {
                 e.stopPropagation();
                 deleteCategory(category.id);
             });
@@ -653,9 +653,9 @@ function renderCategoryDetails() {
 
             item.querySelector(".sub-click").addEventListener("click", () => openCategory(sub.id));
             if (isAdmin) {
-                item.querySelector(".btn-pin-sub").addEventListener("click", () => togglePin("category", sub.id));
-                item.querySelector(".btn-edit-sub").addEventListener("click", () => editCategory(sub.id));
-                item.querySelector(".btn-del-sub").addEventListener("click", () => deleteCategory(sub.id));
+                item.querySelector(".btn-pin-sub")?.addEventListener("click", () => togglePin("category", sub.id));
+                item.querySelector(".btn-edit-sub")?.addEventListener("click", () => editCategory(sub.id));
+                item.querySelector(".btn-del-sub")?.addEventListener("click", () => deleteCategory(sub.id));
             }
 
             subWrapper.appendChild(item);
@@ -688,9 +688,9 @@ function renderCategoryDetails() {
         `;
 
         if (isAdmin) {
-            headerBox.querySelector(".btn-pin-head").addEventListener("click", () => togglePin("header", header.id));
-            headerBox.querySelector(".btn-edit-head").addEventListener("click", () => editHeader(header.id));
-            headerBox.querySelector(".btn-del-head").addEventListener("click", () => deleteHeader(header.id));
+            headerBox.querySelector(".btn-pin-head")?.addEventListener("click", () => togglePin("header", header.id));
+            headerBox.querySelector(".btn-edit-head")?.addEventListener("click", () => editHeader(header.id));
+            headerBox.querySelector(".btn-del-head")?.addEventListener("click", () => deleteHeader(header.id));
         }
 
         const headerItems = categoryData
@@ -769,10 +769,10 @@ function createDataCardElement(item) {
     `;
 
     if (isAdmin) {
-        dataEl.querySelector(".btn-pin-data").addEventListener("click", () => togglePin("data", item.id));
-        dataEl.querySelector(".btn-move-data").addEventListener("click", () => openMoveModal(item.id));
-        dataEl.querySelector(".btn-edit-data").addEventListener("click", () => editData(item.id));
-        dataEl.querySelector(".btn-del-data").addEventListener("click", () => deleteData(item.id));
+        dataEl.querySelector(".btn-pin-data")?.addEventListener("click", () => togglePin("data", item.id));
+        dataEl.querySelector(".btn-move-data")?.addEventListener("click", () => openMoveModal(item.id));
+        dataEl.querySelector(".btn-edit-data")?.addEventListener("click", () => editData(item.id));
+        dataEl.querySelector(".btn-del-data")?.addEventListener("click", () => deleteData(item.id));
     }
 
     return dataEl;
