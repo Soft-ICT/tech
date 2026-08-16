@@ -560,7 +560,7 @@ function renderCategories() {
         const card = document.createElement("div");
         card.className = "category-card";
         card.style.cssText =
-            "height:90px;padding:0 20px;border-radius:12px;background:#003358;color:#ffffff;margin-bottom:22px;display:flex;justify-content:space-between;align-items:center;box-sizing:border-box;";
+            "height:90px;padding:0 20px;border-radius:12px;background:#003358;color:#ffffff;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;box-sizing:border-box;";
 
         const pinIcon = category.pinned ? "📍" : "📌";
 
