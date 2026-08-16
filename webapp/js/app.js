@@ -475,7 +475,7 @@ function goBack() {
 
 
 /* =========================================================
-   PIN SYSTEM - Modified with 📌 and 📍 only
+   PIN SYSTEM
    =========================================================
 
    Category:
@@ -1143,7 +1143,7 @@ async function deleteCategory(id) {
 
 
 /* =========================================================
-   CATEGORY RENDER - Modified with 📌 and 📍
+   CATEGORY RENDER
 ========================================================= */
 
 function renderCategories() {
@@ -1320,8 +1320,6 @@ function renderCategories() {
                         style="margin:0;font-size:16px"
                     >
 
-                        ${pinIcon}
-
                         ${escapeHTML(
                             category.name
                         )}
@@ -1334,13 +1332,6 @@ function renderCategories() {
                         Sub-Categories •
                         ${dataCount}
                         Data
-
-                        ${
-                            category.pinned
-                                ? " • #" +
-                                  category.pinOrder
-                                : ""
-                        }
 
                     </small>
 
@@ -1452,7 +1443,7 @@ function renderCategories() {
 
 
 /* =========================================================
-   CATEGORY DETAILS - Modified with 📌 and 📍
+   CATEGORY DETAILS
 ========================================================= */
 
 function renderCategoryDetails() {
@@ -1524,19 +1515,9 @@ function renderCategoryDetails() {
                         class="sub-click"
                     >
 
-                        ${pinIcon}
-
                         ${escapeHTML(
                             sub.name
                         )}
-
-                        ${
-                            sub.pinned
-                                ? " (#" +
-                                  sub.pinOrder +
-                                  ")"
-                                : ""
-                        }
 
                     </span>
 
@@ -1687,19 +1668,9 @@ function renderCategoryDetails() {
                         style="margin:0;font-size:15px"
                     >
 
-                        ${pinIcon}
-
                         ${escapeHTML(
                             header.title
                         )}
-
-                        ${
-                            header.pinned
-                                ? " (#" +
-                                  header.pinOrder +
-                                  ")"
-                                : ""
-                        }
 
                     </h5>
 
@@ -1903,7 +1874,7 @@ function pinComparator(a, b) {
 
 
 /* =========================================================
-   DATA CARD - Modified with 📌 and 📍
+   DATA CARD
 ========================================================= */
 
 function createDataCardElement(
@@ -1937,8 +1908,6 @@ function createDataCardElement(
 
             <strong>
 
-                ${pinIcon}
-
                 ${escapeHTML(
                     item.title
                 )}
@@ -1955,15 +1924,6 @@ function createDataCardElement(
                 )}
 
             </p>
-
-
-            ${
-                item.pinned
-                    ? `<small>
-                         #${item.pinOrder}
-                       </small>`
-                    : ""
-            }
 
         </div>
 
