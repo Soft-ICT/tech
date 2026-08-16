@@ -51,6 +51,11 @@ document.addEventListener("DOMContentLoaded", () => {
     setupEvents();
     initTheme();
 
+    // লগআউট বাটনের ইভেন্ট
+    document.getElementById("logoutBtn")?.addEventListener("click", () => {
+        logoutUser();
+    });
+
 });
 
 
@@ -136,6 +141,9 @@ async function loadDatabase() {
 
         renderCategories();
 
+        // অ্যাডমিন স্ট্যাটাস আপডেট
+        updateAdminStatus();
+
     } catch (error) {
 
         console.error(
@@ -216,6 +224,26 @@ function generateId(prefix) {
 
 function isAdmin() {
     return window.currentUserRole === "admin";
+}
+
+
+/* =========================================================
+   UPDATE ADMIN STATUS UI
+========================================================= */
+
+function updateAdminStatus() {
+    const statusEl = document.getElementById("adminStatus");
+    if (statusEl) {
+        if (isAdmin()) {
+            statusEl.textContent = "👑 Admin";
+            statusEl.style.color = "#4CAF50";
+            document.body.classList.add("admin-mode");
+        } else {
+            statusEl.textContent = "👤 User (Read Only)";
+            statusEl.style.color = "#FF9800";
+            document.body.classList.remove("admin-mode");
+        }
+    }
 }
 
 
@@ -402,49 +430,6 @@ function setupEvents() {
             );
 
         });
-
-    // Show admin status
-    updateAdminStatus();
-}
-
-
-/* =========================================================
-   UPDATE ADMIN STATUS UI
-========================================================= */
-
-function updateAdminStatus() {
-    const statusEl = document.getElementById("adminStatus");
-    if (statusEl) {
-        if (isAdmin()) {
-            statusEl.textContent = "👑 Admin";
-            statusEl.style.color = "#4CAF50";
-            statusEl.style.fontWeight = "bold";
-        } else {
-            statusEl.textContent = "👤 User (Read Only)";
-            statusEl.style.color = "#FF9800";
-            statusEl.style.fontWeight = "bold";
-        }
-    }
-
-    // Hide/Show admin buttons based on role
-    const adminButtons = document.querySelectorAll(".admin-only");
-    adminButtons.forEach(btn => {
-        if (isAdmin()) {
-            btn.style.display = "inline-block";
-        } else {
-            btn.style.display = "none";
-        }
-    });
-
-    // Show/Hide add buttons
-    const addButtons = document.querySelectorAll(".add-btn");
-    addButtons.forEach(btn => {
-        if (isAdmin()) {
-            btn.style.display = "inline-block";
-        } else {
-            btn.style.display = "none";
-        }
-    });
 }
 
 
@@ -849,7 +834,7 @@ async function togglePin(
 
 function refreshCurrentView(type) {
 
-    // For category, header or data - always re-render the current view
+    // সব সময় current view রি-রেন্ডার করবে
     if (currentCategoryId) {
         renderCategoryDetails();
     } else {
