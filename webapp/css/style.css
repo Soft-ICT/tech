@@ -182,16 +182,16 @@ body {
 }
 
 /* =========================
-   Category + Subcategory Card
+   Category + Subcategory Card (Rounded)
 ========================= */
 
 .category-card,
 .subcategory-card {
     width: 100%;
-    height: 100px !important;
+    height: 90px !important;
     padding: 0 20px !important;
     margin-bottom: 20px !important;
-    border-radius: 0px !important; /* রাউন্ড বাদ দেওয়া হয়েছে */
+    border-radius: 14px !important; /* রাউন্ড শেপ যুক্ত করা হয়েছে */
     background: #003358 !important;
     color: #ffffff !important;
     border: 1px solid transparent;
@@ -407,7 +407,7 @@ body {
 }
 
 /* =========================
-   Header Section & Data List (Updated)
+   Header Section & Data List
 ========================= */
 
 .section-toolbar {
@@ -427,18 +427,18 @@ body {
     padding: 0 !important;
 }
 
-/* ১. হেডার ব্যানার (Text Centered) */
+/* ১. হেডার ব্যানার (Height: 100px, Text Centered, No Radius) */
 .header-banner {
     width: 100% !important;
-    height: 90px !important;
+    height: 100px !important;
     background-color: #003358 !important;
     color: #ffffff !important;
     padding: 0 20px !important;
-    border-radius: 0px !important;
+    border-radius: 0px !important; /* হেডার কোন রাউন্ড হবে না */
     display: flex !important;
     align-items: center !important;
-    justify-content: center !important; /* সেন্টার এলাইনমেন্ট */
-    position: relative !important; /* একশন বাটনের পজিশন ঠিক রাখার জন্য */
+    justify-content: center !important;
+    position: relative !important;
     margin-bottom: 10px !important;
     box-sizing: border-box !important;
 }
@@ -448,23 +448,21 @@ body {
     font-size: 20px;
     font-weight: 700;
     color: #ffffff !important;
-    text-align: center !important; /* টেক্সট সেন্টারে রাখার জন্য */
+    text-align: center !important;
 }
 
-/* একশন বাটনগুলোকে ডানপাশে ফিক্সড রাখার জন্য */
 .header-banner > div {
     position: absolute !important;
     right: 20px !important;
 }
 
-
-/* ২. ডাটা কার্ড (Square Shape) */
+/* ২. ডাটা কার্ড (No Radius) */
 .data-card-item {
     width: 100% !important;
     background-color: #ffffff !important;
     color: #172033 !important;
     padding: 16px 20px !important;
-    border-radius: 0px !important; /* রাউন্ড বাদ দেওয়া হয়েছে */
+    border-radius: 0px !important;
     border-bottom: 1px solid var(--border) !important;
     border-top: none;
     border-left: none;
@@ -552,7 +550,7 @@ body {
         height: 90px !important;
         padding: 0 15px !important;
         margin-bottom: 15px !important;
-        border-radius: 0px !important;
+        border-radius: 12px !important; /* মোবাইলে সাব-ক্যাটাগরির জন্য রাউন্ড শেপ */
     }
 
     .header-banner {
