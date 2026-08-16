@@ -430,7 +430,7 @@ body {
 /* ১. হেডার ব্যানার (Text Centered) */
 .header-banner {
     width: 100% !important;
-    height: 100px !important;
+    height: 90px !important;
     background-color: #003358 !important;
     color: #ffffff !important;
     padding: 0 20px !important;
