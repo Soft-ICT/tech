@@ -509,7 +509,7 @@ async function deleteCategory(id) {
 }
 
 /* =========================================================
-   CATEGORY RENDER
+   CATEGORY RENDER (CSS Class Based)
 ========================================================= */
 
 function renderCategories() {
@@ -554,21 +554,18 @@ function renderCategories() {
     list.classList.remove("hidden");
 
     const isAdmin = window.currentUserRole === "admin";
-    const btnStyle = "width:36px;height:36px;border-radius:10px;background:#ffffff;border:none;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;box-shadow:0 2px 4px rgba(0,0,0,0.1);padding:0;";
 
     categoriesToShow.forEach(category => {
         const card = document.createElement("div");
         card.className = "category-card";
-        card.style.cssText =
-            "height:90px;padding:0 20px;border-radius:12px;background:#003358;color:#ffffff;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;box-sizing:border-box;";
 
         const pinIcon = category.pinned ? "📍" : "📌";
 
         const adminActions = isAdmin ? `
-            <div style="display:flex;gap:10px;align-items:center">
-                <button class="btn-pin-cat" style="${btnStyle}">${pinIcon}</button>
-                <button class="btn-edit-cat" style="${btnStyle}">✏️</button>
-                <button class="btn-del-cat" style="${btnStyle}">🗑️</button>
+            <div class="action-btn-group">
+                <button class="btn-pin-cat custom-action-btn">${pinIcon}</button>
+                <button class="btn-edit-cat custom-action-btn">✏️</button>
+                <button class="btn-del-cat custom-action-btn">🗑️</button>
             </div>
         ` : '';
 
@@ -603,7 +600,7 @@ function renderCategories() {
 }
 
 /* =========================================================
-   CATEGORY DETAILS
+   CATEGORY DETAILS (CSS Class Based)
 ========================================================= */
 
 function renderCategoryDetails() {
@@ -612,7 +609,6 @@ function renderCategoryDetails() {
 
     container.innerHTML = "";
     const isAdmin = window.currentUserRole === "admin";
-    const btnStyle = "width:36px;height:36px;border-radius:10px;background:#ffffff;border:none;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;box-shadow:0 2px 4px rgba(0,0,0,0.1);padding:0;";
 
     const subCategories = database.categories.filter(cat => cat.parentId === currentCategoryId);
 
@@ -623,15 +619,14 @@ function renderCategoryDetails() {
 
         subCategories.sort(pinComparator).forEach(sub => {
             const item = document.createElement("div");
-            item.style.cssText =
-                "height:90px;padding:0 20px;background:#003358;color:#ffffff;border-radius:12px;margin-bottom:22px;display:flex;justify-content:space-between;align-items:center;box-sizing:border-box;";
+            item.className = "subcategory-card";
 
             const pinIcon = sub.pinned ? "📍" : "📌";
             const adminActions = isAdmin ? `
-                <div style="display:flex;gap:10px;align-items:center">
-                    <button class="btn-pin-sub" style="${btnStyle}">${pinIcon}</button>
-                    <button class="btn-edit-sub" style="${btnStyle}">✏️</button>
-                    <button class="btn-del-sub" style="${btnStyle}">🗑️</button>
+                <div class="action-btn-group">
+                    <button class="btn-pin-sub custom-action-btn">${pinIcon}</button>
+                    <button class="btn-edit-sub custom-action-btn">✏️</button>
+                    <button class="btn-del-sub custom-action-btn">🗑️</button>
                 </div>
             ` : '';
 
