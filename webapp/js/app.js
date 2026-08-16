@@ -47,6 +47,7 @@ let targetMoveDataId = null;
 window.currentUserRole = "guest";
 
 /* =========================================================
+/* =========================================================
    AUTH & UI CONTROL
 ========================================================= */
 
@@ -57,12 +58,18 @@ watchAuth((user, role) => {
         // গেস্ট মোড
         window.currentUser = null;
         window.currentUserRole = "guest";
-        if (adminBtn) adminBtn.textContent = "🔑 Admin Login";
+        if (adminBtn) {
+            adminBtn.textContent = "🔑 Admin Login";
+            adminBtn.classList.remove("danger-btn");
+        }
     } else {
         // এডমিন মোড
         window.currentUser = user;
         window.currentUserRole = role || "admin";
-        if (adminBtn) adminBtn.textContent = "👤 Admin Active";
+        if (adminBtn) {
+            adminBtn.textContent = "🚪 Logout"; // এডমিন থাকলে লগআউট দেখাবে
+            adminBtn.classList.add("danger-btn");
+        }
     }
 
     // UI-তে এডমিন বাটনগুলো রেন্ডার বা হাইড করা
@@ -71,26 +78,25 @@ watchAuth((user, role) => {
     // অ্যাডমিন বা গেস্ট যে-ই হোক, ডাটা লোড হবে
     loadDatabase();
 });
-
-function updateAdminUI() {
-    const isAdmin = window.currentUserRole === "admin";
-    
-    // এডমিন বাটনগুলোর প্রদর্শনী নিয়ন্ত্রণ
-    const adminElements = document.querySelectorAll(".admin-only");
-    adminElements.forEach(el => {
-        if (isAdmin) {
-            el.classList.remove("hidden");
-        } else {
-            el.classList.add("hidden");
+// Admin Login / Logout Event
+document.getElementById("adminLoginBtn")?.addEventListener("click", async () => {
+    // এডমিন লগইন অবস্থায় থাকলে লগআউট হবে
+    if (window.currentUserRole === "admin" && window.currentUser) {
+        if (confirm("আপনি কি নিশ্চিত লগআউট করতে চান?")) {
+            const { logoutAdmin } = await import("./auth.js");
+            const res = await logoutAdmin();
+            if (res.success) {
+                showToast("সফলভাবে লগআউট হয়েছে");
+            } else {
+                showToast("লগআউট করতে সমস্যা হয়েছে");
+            }
         }
-    });
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    setupEvents();
-    initTheme();
-    updateAdminUI();
+    } else {
+        // লগইন না থাকলে মডাল ওপেন হবে
+        openModal("loginModal");
+    }
 });
+
 
 /* =========================================================
    THEME
