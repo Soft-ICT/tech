@@ -43,30 +43,53 @@ let database = {
 let currentCategoryId = null;
 let targetMoveDataId = null;
 
+// ডিফল্টভাবে ইউজারকে Admin ধরা হবে না (Guest Role)
+window.currentUserRole = "guest";
+
 /* =========================================================
-   AUTH
+   AUTH & UI CONTROL
 ========================================================= */
 
 watchAuth((user, role) => {
     const adminBtn = document.getElementById("adminLoginBtn");
     
     if (!user) {
-        console.warn("User is not authenticated. Guest mode active.");
+        // গেস্ট মোড
+        window.currentUser = null;
+        window.currentUserRole = "guest";
         if (adminBtn) adminBtn.textContent = "🔑 Admin Login";
-        return;
+    } else {
+        // এডমিন মোড
+        window.currentUser = user;
+        window.currentUserRole = role || "admin";
+        if (adminBtn) adminBtn.textContent = "👤 Admin Active";
     }
 
-    window.currentUser = user;
-    window.currentUserRole = role || "admin";
+    // UI-তে এডমিন বাটনগুলো রেন্ডার বা হাইড করা
+    updateAdminUI();
 
-    if (adminBtn) adminBtn.textContent = "👤 Admin Active";
-
+    // অ্যাডমিন বা গেস্ট যে-ই হোক, ডাটা লোড হবে
     loadDatabase();
 });
+
+function updateAdminUI() {
+    const isAdmin = window.currentUserRole === "admin";
+    
+    // এডমিন বাটনগুলোর প্রদর্শনী নিয়ন্ত্রণ
+    const adminElements = document.querySelectorAll(".admin-only");
+    adminElements.forEach(el => {
+        if (isAdmin) {
+            el.classList.remove("hidden");
+        } else {
+            el.classList.add("hidden");
+        }
+    });
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     setupEvents();
     initTheme();
+    updateAdminUI();
 });
 
 /* =========================================================
@@ -89,16 +112,13 @@ function toggleTheme() {
 }
 
 /* =========================================================
-   FIREBASE LOAD
+   FIREBASE LOAD (গেস্ট এবং এডমিন উভয়ের জন্যই ডাটা লোড হবে)
 ========================================================= */
 
 async function loadDatabase() {
-    if (!window.currentUser) return;
-
     try {
-        const snapshot = await get(
-            ref(db, "webapp/user_data/" + window.currentUser.uid)
-        );
+        // স্থায়ী এডমিন Path থেকে পাবলিকলি রিড করা হবে
+        const snapshot = await get(ref(db, "webapp/public_data"));
 
         if (snapshot.exists()) {
             database = snapshot.val();
@@ -110,30 +130,25 @@ async function loadDatabase() {
         }
 
         migratePinData();
-        renderCategories();
+        refreshCurrentView();
     } catch (error) {
         console.error("Database load error:", error);
-        showToast("ফায়ারবেস থেকে ডাটা লোড করা যায়নি");
+        showToast("ডাটা লোড করতে সমস্যা হয়েছে");
     }
 }
 
 /* =========================================================
-   FIREBASE SAVE
+   FIREBASE SAVE (শুধুমাত্র Admin সেভ করতে পারবে)
 ========================================================= */
 
 async function saveDatabase() {
-    if (!window.currentUser) return;
-
     if (window.currentUserRole !== "admin") {
-        showToast("শুধুমাত্র Admin পরিবর্তন করতে পারবেন");
+        showToast("শুধুমাত্র Admin পরিবর্তন সেভ করতে পারবেন");
         return;
     }
 
     try {
-        await set(
-            ref(db, "webapp/user_data/" + window.currentUser.uid),
-            database
-        );
+        await set(ref(db, "webapp/public_data"), database);
     } catch (error) {
         console.error("Database save error:", error);
         showToast("ডাটা সেভ করতে সমস্যা হয়েছে");
@@ -300,10 +315,7 @@ function normalizePinOrders(type, referenceItem, list) {
 }
 
 async function togglePin(type, id) {
-    if (window.currentUserRole !== "admin") {
-        showToast("শুধুমাত্র Admin PIN করতে পারবেন");
-        return;
-    }
+    if (window.currentUserRole !== "admin") return;
 
     let list;
     if (type === "category") list = database.categories;
@@ -390,6 +402,7 @@ function normalizeCategoryPins() {
 ========================================================= */
 
 function openCategoryModal(isSubCategory = false) {
+    if (window.currentUserRole !== "admin") return;
     const title = document.getElementById("categoryModalTitle");
     if (title) {
         title.textContent = isSubCategory ? "নতুন Sub-Category" : "নতুন Category";
@@ -403,6 +416,7 @@ function openCategoryModal(isSubCategory = false) {
 }
 
 async function saveCategory() {
+    if (window.currentUserRole !== "admin") return;
     const input = document.getElementById("categoryNameInput");
     const name = input?.value.trim();
 
@@ -430,6 +444,7 @@ async function saveCategory() {
 }
 
 async function editCategory(id) {
+    if (window.currentUserRole !== "admin") return;
     const cat = database.categories.find(c => c.id === id);
     if (!cat) return;
 
@@ -446,6 +461,7 @@ async function editCategory(id) {
 }
 
 async function deleteCategory(id) {
+    if (window.currentUserRole !== "admin") return;
     if (!confirm("আপনি কি নিশ্চিত এই Category ডিলিট করতে চান? এর ভেতরের সব ডাটা মুছে যাবে!")) return;
 
     function removeRecursively(catId) {
@@ -517,6 +533,8 @@ function renderCategories() {
     emptyState.classList.add("hidden");
     list.classList.remove("hidden");
 
+    const isAdmin = window.currentUserRole === "admin";
+
     categoriesToShow.forEach(category => {
         const card = document.createElement("div");
         card.className = "category-card";
@@ -527,34 +545,44 @@ function renderCategories() {
         const dataCount = database.data.filter(d => d.categoryId === category.id).length;
         const pinIcon = category.pinned ? "📌" : "📍";
 
-        card.innerHTML = `
-            <div style="flex-grow:1;cursor:pointer" class="cat-click">
-                <h3 style="margin:0;font-size:16px">${escapeHTML(category.name)}</h3>
-                <small style="color:gray">${subCount} Sub-Categories • ${dataCount} Data</small>
-            </div>
+        // এডমিন না হলে বাটনগুলো থাকবে না
+        const adminActions = isAdmin ? `
             <div style="display:flex;gap:6px;align-items:center">
                 <button class="btn-pin-cat secondary-btn" style="padding:4px 8px">${pinIcon}</button>
                 <button class="btn-edit-cat secondary-btn" style="padding:4px 8px">✏️</button>
                 <button class="btn-del-cat secondary-btn" style="padding:4px 8px;color:red">🗑️</button>
             </div>
+        ` : '';
+
+        card.innerHTML = `
+            <div style="flex-grow:1;cursor:pointer" class="cat-click">
+                <h3 style="margin:0;font-size:16px">${escapeHTML(category.name)}</h3>
+                <small style="color:gray">${subCount} Sub-Categories • ${dataCount} Data</small>
+            </div>
+            ${adminActions}
         `;
 
         card.querySelector(".cat-click").addEventListener("click", () => openCategory(category.id));
-        card.querySelector(".btn-pin-cat").addEventListener("click", e => {
-            e.stopPropagation();
-            togglePin("category", category.id);
-        });
-        card.querySelector(".btn-edit-cat").addEventListener("click", e => {
-            e.stopPropagation();
-            editCategory(category.id);
-        });
-        card.querySelector(".btn-del-cat").addEventListener("click", e => {
-            e.stopPropagation();
-            deleteCategory(category.id);
-        });
+        
+        if (isAdmin) {
+            card.querySelector(".btn-pin-cat").addEventListener("click", e => {
+                e.stopPropagation();
+                togglePin("category", category.id);
+            });
+            card.querySelector(".btn-edit-cat").addEventListener("click", e => {
+                e.stopPropagation();
+                editCategory(category.id);
+            });
+            card.querySelector(".btn-del-cat").addEventListener("click", e => {
+                e.stopPropagation();
+                deleteCategory(category.id);
+            });
+        }
 
         list.appendChild(card);
     });
+
+    updateAdminUI();
 }
 
 /* =========================================================
@@ -566,6 +594,7 @@ function renderCategoryDetails() {
     if (!container) return;
 
     container.innerHTML = "";
+    const isAdmin = window.currentUserRole === "admin";
 
     const subCategories = database.categories.filter(cat => cat.parentId === currentCategoryId);
 
@@ -580,20 +609,25 @@ function renderCategoryDetails() {
                 "padding:12px 15px;background:rgba(0,0,0,.04);border-radius:6px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;font-weight:500;";
 
             const pinIcon = sub.pinned ? "📌" : "📍";
-
-            item.innerHTML = `
-                <span style="cursor:pointer;flex-grow:1" class="sub-click">${escapeHTML(sub.name)}</span>
+            const adminActions = isAdmin ? `
                 <div style="display:flex;gap:6px">
                     <button class="btn-pin-sub secondary-btn">${pinIcon}</button>
                     <button class="btn-edit-sub secondary-btn">✏️</button>
                     <button class="btn-del-sub secondary-btn" style="color:red">🗑️</button>
                 </div>
+            ` : '';
+
+            item.innerHTML = `
+                <span style="cursor:pointer;flex-grow:1" class="sub-click">${escapeHTML(sub.name)}</span>
+                ${adminActions}
             `;
 
             item.querySelector(".sub-click").addEventListener("click", () => openCategory(sub.id));
-            item.querySelector(".btn-pin-sub").addEventListener("click", () => togglePin("category", sub.id));
-            item.querySelector(".btn-edit-sub").addEventListener("click", () => editCategory(sub.id));
-            item.querySelector(".btn-del-sub").addEventListener("click", () => deleteCategory(sub.id));
+            if (isAdmin) {
+                item.querySelector(".btn-pin-sub").addEventListener("click", () => togglePin("category", sub.id));
+                item.querySelector(".btn-edit-sub").addEventListener("click", () => editCategory(sub.id));
+                item.querySelector(".btn-del-sub").addEventListener("click", () => deleteCategory(sub.id));
+            }
 
             subWrapper.appendChild(item);
         });
@@ -609,21 +643,26 @@ function renderCategoryDetails() {
         headerBox.style.cssText = "margin-bottom:15px;padding:12px;border:1px dashed #ccc;border-radius:6px;";
 
         const pinIcon = header.pinned ? "📌" : "📍";
+        const adminActions = isAdmin ? `
+            <div style="display:flex;gap:6px">
+                <button class="btn-pin-head secondary-btn">${pinIcon}</button>
+                <button class="btn-edit-head secondary-btn">✏️</button>
+                <button class="btn-del-head secondary-btn" style="color:red">🗑️</button>
+            </div>
+        ` : '';
 
         headerBox.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
                 <h5 style="margin:0;font-size:15px">${escapeHTML(header.title)}</h5>
-                <div style="display:flex;gap:6px">
-                    <button class="btn-pin-head secondary-btn">${pinIcon}</button>
-                    <button class="btn-edit-head secondary-btn">✏️</button>
-                    <button class="btn-del-head secondary-btn" style="color:red">🗑️</button>
-                </div>
+                ${adminActions}
             </div>
         `;
 
-        headerBox.querySelector(".btn-pin-head").addEventListener("click", () => togglePin("header", header.id));
-        headerBox.querySelector(".btn-edit-head").addEventListener("click", () => editHeader(header.id));
-        headerBox.querySelector(".btn-del-head").addEventListener("click", () => deleteHeader(header.id));
+        if (isAdmin) {
+            headerBox.querySelector(".btn-pin-head").addEventListener("click", () => togglePin("header", header.id));
+            headerBox.querySelector(".btn-edit-head").addEventListener("click", () => editHeader(header.id));
+            headerBox.querySelector(".btn-del-head").addEventListener("click", () => deleteHeader(header.id));
+        }
 
         const headerItems = categoryData
             .filter(d => d.headerId === header.id)
@@ -647,8 +686,10 @@ function renderCategoryDetails() {
     }
 
     if (subCategories.length === 0 && headers.length === 0 && categoryData.length === 0) {
-        container.innerHTML = `<p style="text-align:center;color:gray;margin-top:30px">এটি একটি খালি ক্যাটাগরি। সাব-ক্যাটাগরি, হেডার অথবা ডাটা যোগ করুন।</p>`;
+        container.innerHTML = `<p style="text-align:center;color:gray;margin-top:30px">এখানে কোনো ডাটা নেই।</p>`;
     }
+
+    updateAdminUI();
 }
 
 /* =========================================================
@@ -675,44 +716,52 @@ function pinComparator(a, b) {
 ========================================================= */
 
 function createDataCardElement(item) {
+    const isAdmin = window.currentUserRole === "admin";
     const dataEl = document.createElement("div");
     dataEl.style.cssText =
         "padding:10px;background:var(--card-bg,#fff);margin-bottom:6px;border-radius:4px;border:1px solid #eee;display:flex;justify-content:space-between;align-items:flex-start;";
 
     const pinIcon = item.pinned ? "📌" : "📍";
-
-    dataEl.innerHTML = `
-        <div>
-            <strong>${escapeHTML(item.title)}</strong>
-            <p style="margin:4px 0 0;font-size:13px;color:#555">${escapeHTML(item.description)}</p>
-        </div>
+    const adminActions = isAdmin ? `
         <div style="display:flex;gap:5px;flex-wrap:wrap">
             <button class="btn-pin-data secondary-btn" style="padding:2px 6px">${pinIcon}</button>
             <button class="btn-move-data secondary-btn" style="padding:2px 6px">📦</button>
             <button class="btn-edit-data secondary-btn" style="padding:2px 6px">✏️</button>
             <button class="btn-del-data secondary-btn" style="padding:2px 6px;color:red">🗑️</button>
         </div>
+    ` : '';
+
+    dataEl.innerHTML = `
+        <div>
+            <strong>${escapeHTML(item.title)}</strong>
+            <p style="margin:4px 0 0;font-size:13px;color:#555">${escapeHTML(item.description)}</p>
+        </div>
+        ${adminActions}
     `;
 
-    dataEl.querySelector(".btn-pin-data").addEventListener("click", () => togglePin("data", item.id));
-    dataEl.querySelector(".btn-move-data").addEventListener("click", () => openMoveModal(item.id));
-    dataEl.querySelector(".btn-edit-data").addEventListener("click", () => editData(item.id));
-    dataEl.querySelector(".btn-del-data").addEventListener("click", () => deleteData(item.id));
+    if (isAdmin) {
+        dataEl.querySelector(".btn-pin-data").addEventListener("click", () => togglePin("data", item.id));
+        dataEl.querySelector(".btn-move-data").addEventListener("click", () => openMoveModal(item.id));
+        dataEl.querySelector(".btn-edit-data").addEventListener("click", () => editData(item.id));
+        dataEl.querySelector(".btn-del-data").addEventListener("click", () => deleteData(item.id));
+    }
 
     return dataEl;
 }
 
 /* =========================================================
-   HEADER
+   HEADER CRUD
 ========================================================= */
 
 function openHeaderModal() {
+    if (window.currentUserRole !== "admin") return;
     const input = document.getElementById("headerNameInput");
     if (input) input.value = "";
     openModal("headerModal");
 }
 
 async function saveHeader() {
+    if (window.currentUserRole !== "admin") return;
     const input = document.getElementById("headerNameInput");
     const title = input?.value.trim();
 
@@ -733,6 +782,7 @@ async function saveHeader() {
 }
 
 async function editHeader(id) {
+    if (window.currentUserRole !== "admin") return;
     const header = database.headers.find(h => h.id === id);
     if (!header) return;
 
@@ -746,6 +796,7 @@ async function editHeader(id) {
 }
 
 async function deleteHeader(id) {
+    if (window.currentUserRole !== "admin") return;
     if (!confirm("এই Header ডিলিট করবেন? এর Data সাধারণ Data-তে চলে যাবে।")) return;
 
     database.headers = database.headers.filter(h => h.id !== id);
@@ -763,10 +814,11 @@ async function deleteHeader(id) {
 }
 
 /* =========================================================
-   DATA
+   DATA CRUD
 ========================================================= */
 
 function openDataModal() {
+    if (window.currentUserRole !== "admin") return;
     const titleInput = document.getElementById("dataTitleInput");
     const descInput = document.getElementById("dataDescriptionInput");
     const select = document.getElementById("dataHeaderSelect");
@@ -787,6 +839,7 @@ function openDataModal() {
 }
 
 async function saveData() {
+    if (window.currentUserRole !== "admin") return;
     const title = document.getElementById("dataTitleInput")?.value.trim();
     const desc = document.getElementById("dataDescriptionInput")?.value.trim();
     const headerId = document.getElementById("dataHeaderSelect")?.value;
@@ -810,6 +863,7 @@ async function saveData() {
 }
 
 async function editData(id) {
+    if (window.currentUserRole !== "admin") return;
     const item = database.data.find(d => d.id === id);
     if (!item) return;
 
@@ -828,6 +882,7 @@ async function editData(id) {
 }
 
 async function deleteData(id) {
+    if (window.currentUserRole !== "admin") return;
     if (!confirm("আপনি কি নিশ্চিত এই Data ডিলিট করতে চান?")) return;
 
     database.data = database.data.filter(d => d.id !== id);
@@ -841,6 +896,7 @@ async function deleteData(id) {
 ========================================================= */
 
 function openMoveModal(dataId) {
+    if (window.currentUserRole !== "admin") return;
     targetMoveDataId = dataId;
     const item = database.data.find(d => d.id === dataId);
     if (!item) return;
@@ -874,6 +930,7 @@ function openMoveModal(dataId) {
 }
 
 async function confirmMoveData() {
+    if (window.currentUserRole !== "admin") return;
     if (!targetMoveDataId) return;
 
     const item = database.data.find(d => d.id === targetMoveDataId);
