@@ -182,16 +182,16 @@ body {
 }
 
 /* =========================
-   Category + Subcategory Card (Rounded)
+   Category + Subcategory Card (Margin, Padding & Rounded)
 ========================= */
 
 .category-card,
 .subcategory-card {
-    width: 100%;
-    height: 90px !important;
-    padding: 0 20px !important;
-    margin-bottom: 20px !important;
-    border-radius: 14px !important; /* রাউন্ড শেপ যুক্ত করা হয়েছে */
+    width: calc(100% - 24px) !important; /* দুই পাশে সুন্দর মার্জিন রাখার জন্য */
+    height: 80px !important;
+    padding: 0 20px !important; /* ভেতরের টেক্সট ও বাটনের প্যাডিং */
+    margin: 0 auto 15px auto !important; /* কার্ডের চারপাশের মার্জিন এবং সেন্টারে রাখা */
+    border-radius: 12px !important; /* সুন্দর রাউন্ড শেপ */
     background: #003358 !important;
     color: #ffffff !important;
     border: 1px solid transparent;
@@ -207,8 +207,9 @@ body {
 .category-card:hover,
 .subcategory-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
 }
+
 
 /* =========================
    Category Top & Info
