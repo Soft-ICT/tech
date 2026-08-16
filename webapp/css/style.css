@@ -188,7 +188,7 @@ body {
 .category-card,
 .subcategory-card {
     width: calc(100% - 24px) !important; /* দুই পাশে সুন্দর মার্জিন রাখার জন্য */
-    height: 90px !important;
+    height: 70px !important;
     padding: 0 20px !important; /* ভেতরের টেক্সট ও বাটনের প্যাডিং */
     margin: 0 auto 15px auto !important; /* কার্ডের চারপাশের মার্জিন এবং সেন্টারে রাখা */
     border-radius: 12px !important; /* সুন্দর রাউন্ড শেপ */
@@ -548,7 +548,7 @@ body {
 
     .category-card,
     .subcategory-card {
-        height: 90px !important;
+        height: 70px !important;
         padding: 0 15px !important;
         margin-bottom: 15px !important;
         border-radius: 12px !important; /* মোবাইলে সাব-ক্যাটাগরির জন্য রাউন্ড শেপ */
