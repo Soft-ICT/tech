@@ -157,26 +157,31 @@
             <button class="close-btn" data-close="loginModal">✕</button>
         </div>
 
-        <div class="form-group">
-            <label>ইমেইল</label>
-            <input id="loginEmail" type="email" placeholder="admin@example.com">
+        <!-- 🔹 লগইন ফর্ম (শুধু অ্যাডমিন না থাকলে দেখাবে) -->
+        <div id="loginFormContainer">
+            <div class="form-group">
+                <label>ইমেইল</label>
+                <input id="loginEmail" type="email" placeholder="admin@example.com">
+            </div>
+            <div class="form-group">
+                <label>পাসওয়ার্ড</label>
+                <input id="loginPassword" type="password" placeholder="******">
+            </div>
+            <div class="modal-actions">
+                <button class="secondary-btn" data-close="loginModal">বাতিল</button>
+                <button id="submitLoginBtn" class="primary-btn">লগইন</button>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label>পাসওয়ার্ড</label>
-            <input id="loginPassword" type="password" placeholder="******">
-        </div>
-
-        <div class="modal-actions">
-            <button class="secondary-btn" data-close="loginModal">বাতিল</button>
-            <button id="submitLoginBtn" class="primary-btn">লগইন</button>
-        </div>
-
-        <!-- লগআউট বাটন যোগ করা হয়েছে -->
-        <div style="margin-top: 15px; border-top: 1px solid #ddd; padding-top: 15px; text-align: center;">
-            <button id="logoutBtn" class="secondary-btn" style="background-color: #dc3545; color: #ffffff; border: none; width: 100%; padding: 8px 0; border-radius: 4px; cursor: pointer;">
-                🚪 লগআউট
-            </button>
+        <!-- 🔹 লগআউট অংশ (শুধু অ্যাডমিন থাকলে দেখাবে) -->
+        <div id="logoutContainer" class="hidden" style="margin-top: 15px; border-top: 1px solid #ddd; padding-top: 15px; text-align: center;">
+            <p style="margin-bottom: 10px; color: #28a745;">✅ আপনি অ্যাডমিন হিসেবে লগইন আছেন</p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button class="secondary-btn" data-close="loginModal">বাতিল</button>
+                <button id="logoutBtn" class="secondary-btn" style="background-color: #dc3545; color: #ffffff; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer;">
+                    🚪 লগআউট
+                </button>
+            </div>
         </div>
     </div>
 </div>
