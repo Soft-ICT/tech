@@ -559,10 +559,8 @@ function renderCategories() {
         const card = document.createElement("div");
         card.className = "category-card";
         card.style.cssText =
-            "padding:15px;border-radius:8px;background:var(--card-bg,#fff);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(0,0,0,.1);";
+            "padding:15px;border-radius:8px;background:var(--card-bg,#fff);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(0,0,0,.1);min-height:54px;";
 
-        const subCount = database.categories.filter(c => c.parentId === category.id).length;
-        const dataCount = database.data.filter(d => d.categoryId === category.id).length;
         const pinIcon = category.pinned ? "📌" : "📍";
 
         const adminActions = isAdmin ? `
@@ -576,7 +574,6 @@ function renderCategories() {
         card.innerHTML = `
             <div style="flex-grow:1;cursor:pointer" class="cat-click">
                 <h3 style="margin:0;font-size:16px">${escapeHTML(category.name)}</h3>
-                <small style="color:gray">${subCount} Sub-Categories • ${dataCount} Data</small>
             </div>
             ${adminActions}
         `;
