@@ -188,7 +188,7 @@ body {
 .category-card,
 .subcategory-card {
     width: calc(100% - 24px) !important; /* দুই পাশে সুন্দর মার্জিন রাখার জন্য */
-    height: 80px !important;
+    height: 90px !important;
     padding: 0 20px !important; /* ভেতরের টেক্সট ও বাটনের প্যাডিং */
     margin: 0 auto 15px auto !important; /* কার্ডের চারপাশের মার্জিন এবং সেন্টারে রাখা */
     border-radius: 12px !important; /* সুন্দর রাউন্ড শেপ */
@@ -431,7 +431,7 @@ body {
 /* ১. হেডার ব্যানার (Height: 80px, Text Centered, No Radius) */
 .header-banner {
     width: 100% !important;
-    height: 80px !important;
+    height: 50px !important;
     background-color: #003358 !important;
     color: #ffffff !important;
     padding: 0 20px !important;
