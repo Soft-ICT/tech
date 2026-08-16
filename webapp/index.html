@@ -1,18 +1,17 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>My Data Manager</title>
 
-    <!-- CSS ফাইল -->
-    <link rel="stylesheet" href="css/style.css" />
-    <link rel="stylesheet" href="css/dark-mode.css" />
-    <link rel="stylesheet" href="css/responsive.css" />
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dark-mode.css">
+    <link rel="stylesheet" href="css/responsive.css">
 
-    <!-- ইনলাইন CSS (ডার্ক মোড ও অ্যাডমিন কন্ট্রোল) -->
+    <!-- নাইট মোড কাজ করানোর জন্য প্রয়োজনীয় ইনলাইন CSS ইনজেকশন -->
     <style>
-        /* ===== ডার্ক মোড ===== */
         body.dark-mode {
             background-color: #121212 !important;
             color: #ffffff !important;
@@ -36,38 +35,13 @@
             background-color: #333333 !important;
             color: #ffffff !important;
         }
-
-        /* ===== অ্যাডমিন‑ওনলি এলিমেন্ট (ডিফল্টে লুকানো) ===== */
-        .admin-only {
-            display: none !important;
-        }
-        /* অ্যাডমিন মোডে দেখাবে */
-        body.admin-mode .admin-only {
-            display: inline-flex !important;
-        }
-        body.admin-mode .admin-only-block {
-            display: block !important;
-        }
-
-        /* ===== স্ট্যাটাস ব্যাজ ===== */
-        #adminStatus {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: bold;
-            background: rgba(0,0,0,0.08);
-            margin-right: 8px;
-        }
-        body.dark-mode #adminStatus {
-            background: rgba(255,255,255,0.1);
-        }
     </style>
 </head>
 
 <body>
 
-<!-- ===== টপবার ===== -->
 <header class="topbar">
+
     <button id="menuBtn" class="icon-btn">☰</button>
 
     <div class="app-title">
@@ -76,49 +50,73 @@
     </div>
 
     <div class="top-actions">
-        <span id="adminStatus">Loading...</span>
         <button id="themeBtn" class="icon-btn" title="নাইট/ডে মোড">🌙</button>
         <button id="searchBtn" class="icon-btn" title="সার্চ করুন">🔍</button>
-        <button id="logoutBtn" class="icon-btn" title="লগআউট">🚪</button>
     </div>
+
 </header>
 
-<!-- ===== মেইন কন্টেইনার ===== -->
+
 <main class="container">
 
-    <!-- === সার্চ বক্স === -->
+    <!-- Search Box -->
     <section id="searchBox" class="search-box hidden">
-        <input type="search" id="searchInput" placeholder="Category, Header অথবা Data খুঁজুন..." autocomplete="off" />
+
+        <input
+            type="search"
+            id="searchInput"
+            placeholder="Category, Header অথবা Data খুঁজুন..."
+            autocomplete="off"
+        >
+
         <button id="clearSearch">✕</button>
+
     </section>
 
-    <!-- === পেজ ১: ড্যাশবোর্ড (সব ক্যাটাগরি) === -->
+
+    <!-- Page 1: Main Dashboard View -->
     <div id="mainDashboardView">
         <section class="dashboard-header">
+
             <div>
                 <h1>আমার Categories</h1>
                 <p id="categoryCount">0টি Category</p>
             </div>
-            <!-- অ্যাডমিন‑ওনলি বাটন -->
-            <button id="addCategoryBtn" class="primary-btn admin-only">＋ Category</button>
+
+            <button id="addCategoryBtn" class="primary-btn">
+                ＋ Category
+            </button>
+
         </section>
 
-        <!-- ক্যাটাগরি লিস্ট -->
+
+        <!-- Categories List -->
         <section id="categoryList" class="category-list"></section>
 
-        <!-- খালি অবস্থা -->
+
+        <!-- Empty State -->
         <section id="emptyState" class="empty-state">
+
             <div class="empty-icon">📂</div>
+
             <h2>এখনো কোনো Category নেই</h2>
-            <p>শুরু করতে একটি নতুন Category তৈরি করুন।</p>
-            <button id="emptyAddBtn" class="primary-btn admin-only">＋ প্রথম Category তৈরি করুন</button>
+
+            <p>
+                শুরু করতে একটি নতুন Category তৈরি করুন।
+            </p>
+
+            <button id="emptyAddBtn" class="primary-btn">
+                ＋ প্রথম Category তৈরি করুন
+            </button>
+
         </section>
     </div>
 
-    <!-- === পেজ ২: ক্যাটাগরি ডিটেইলস === -->
+
+    <!-- Page 2: Category Details Full Page View -->
     <div id="categoryDetailsView" class="hidden">
         <section class="dashboard-header">
-            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <div style="display: flex; align-items: center; gap: 10px;">
                 <button id="backToMainBtn" class="secondary-btn">← ব্যাকে যান</button>
                 <div>
                     <h1 id="detailsTitle">Category</h1>
@@ -127,11 +125,19 @@
             </div>
         </section>
 
-        <!-- টুলবার (শুধু অ্যাডমিন) -->
-        <div class="section-toolbar admin-only" style="margin-bottom:20px;">
-            <button id="addSubCategoryBtn" class="primary-btn">＋ Sub‑Category</button>
-            <button id="addHeaderBtn" class="primary-btn">＋ Header</button>
-            <button id="addDataBtn" class="secondary-btn">＋ Data</button>
+        <!-- Section Toolbar -->
+        <div class="section-toolbar" style="margin-bottom: 20px;">
+            <button id="addSubCategoryBtn" class="primary-btn">
+                ＋ Sub-Category
+            </button>
+
+            <button id="addHeaderBtn" class="primary-btn">
+                ＋ Header
+            </button>
+
+            <button id="addDataBtn" class="secondary-btn">
+                ＋ Data
+            </button>
         </div>
 
         <div id="detailsContent"></div>
@@ -139,96 +145,202 @@
 
 </main>
 
-<!-- ===== মডাল: ক্যাটাগরি ===== -->
+
+<!-- Category Modal -->
 <div id="categoryModal" class="modal hidden">
+
     <div class="modal-content">
+
         <div class="modal-header">
-            <h2 id="categoryModalTitle">নতুন Category</h2>
-            <button class="close-btn" data-close="categoryModal">✕</button>
+
+            <h2 id="categoryModalTitle">
+                নতুন Category
+            </h2>
+
+            <button class="close-btn" data-close="categoryModal">
+                ✕
+            </button>
+
         </div>
+
         <div class="form-group">
+
             <label>Category Name</label>
-            <input id="categoryNameInput" type="text" placeholder="যেমন: পুলিশ কর্মকর্তা" maxlength="100" />
+
+            <input
+                id="categoryNameInput"
+                type="text"
+                placeholder="যেমন: পুলিশ কর্মকর্তা"
+                maxlength="100"
+            >
+
         </div>
+
         <div class="modal-actions">
-            <button class="secondary-btn" data-close="categoryModal">বাতিল</button>
-            <button id="saveCategoryBtn" class="primary-btn">Save</button>
+
+            <button class="secondary-btn" data-close="categoryModal">
+                বাতিল
+            </button>
+
+            <button id="saveCategoryBtn" class="primary-btn">
+                Save
+            </button>
+
         </div>
+
     </div>
+
 </div>
 
-<!-- ===== মডাল: হেডার ===== -->
+
+<!-- Header Modal -->
 <div id="headerModal" class="modal hidden">
+
     <div class="modal-content">
+
         <div class="modal-header">
+
             <h2>নতুন Header</h2>
-            <button class="close-btn" data-close="headerModal">✕</button>
+
+            <button class="close-btn" data-close="headerModal">
+                ✕
+            </button>
+
         </div>
+
         <div class="form-group">
+
             <label>Header Name</label>
-            <input id="headerNameInput" type="text" placeholder="যেমন: জরুরি যোগাযোগ" maxlength="100" />
+
+            <input
+                id="headerNameInput"
+                type="text"
+                placeholder="যেমন: জরুরি যোগাযোগ"
+                maxlength="100"
+            >
+
         </div>
+
         <div class="modal-actions">
-            <button class="secondary-btn" data-close="headerModal">বাতিল</button>
-            <button id="saveHeaderBtn" class="primary-btn">Save</button>
+
+            <button class="secondary-btn" data-close="headerModal">
+                বাতিল
+            </button>
+
+            <button id="saveHeaderBtn" class="primary-btn">
+                Save
+            </button>
+
         </div>
+
     </div>
+
 </div>
 
-<!-- ===== মডাল: ডাটা ===== -->
+
+<!-- Data Modal -->
 <div id="dataModal" class="modal hidden">
+
     <div class="modal-content">
+
         <div class="modal-header">
+
             <h2>নতুন Data</h2>
-            <button class="close-btn" data-close="dataModal">✕</button>
+
+            <button class="close-btn" data-close="dataModal">
+                ✕
+            </button>
+
         </div>
+
         <div class="form-group">
+
             <label>Data Title</label>
-            <input id="dataTitleInput" type="text" placeholder="যেমন: মোঃ রহিম" maxlength="150" />
+
+            <input
+                id="dataTitleInput"
+                type="text"
+                placeholder="যেমন: মোঃ রহিম"
+                maxlength="150"
+            >
+
         </div>
+
         <div class="form-group">
+
             <label>বিবরণ</label>
-            <textarea id="dataDescriptionInput" placeholder="এই Data সম্পর্কে বিস্তারিত লিখুন..." rows="5"></textarea>
+
+            <textarea
+                id="dataDescriptionInput"
+                placeholder="এই Data সম্পর্কে বিস্তারিত লিখুন..."
+                rows="5"
+            ></textarea>
+
         </div>
+
         <div class="form-group">
+
             <label>Header</label>
+
             <select id="dataHeaderSelect">
-                <option value="">Header ছাড়া</option>
+
+                <option value="">
+                    Header ছাড়া
+                </option>
+
             </select>
+
         </div>
+
         <div class="modal-actions">
-            <button class="secondary-btn" data-close="dataModal">বাতিল</button>
-            <button id="saveDataBtn" class="primary-btn">Save</button>
+
+            <button class="secondary-btn" data-close="dataModal">
+                বাতিল
+            </button>
+
+            <button id="saveDataBtn" class="primary-btn">
+                Save
+            </button>
+
         </div>
+
     </div>
+
 </div>
 
-<!-- ===== মডাল: মুভ ডাটা ===== -->
+
+<!-- Fast Move Data Modal -->
 <div id="moveDataModal" class="modal hidden">
     <div class="modal-content">
+
         <div class="modal-header">
             <h2>Data সরান (Move Data)</h2>
             <button class="close-btn" data-close="moveDataModal">✕</button>
         </div>
+
         <div class="form-group">
             <label>গন্তব্য Category বেছে নিন</label>
             <select id="moveCategorySelect"></select>
         </div>
+
         <div class="form-group">
             <label>গন্তব্য Header বেছে নিন</label>
             <select id="moveHeaderSelect"></select>
         </div>
+
         <div class="modal-actions">
             <button class="secondary-btn" data-close="moveDataModal">বাতিল</button>
             <button id="confirmMoveBtn" class="primary-btn">Move করুন</button>
         </div>
+
     </div>
 </div>
 
-<!-- ===== টোস্ট ===== -->
+
+<!-- Toast -->
 <div id="toast" class="toast"></div>
 
-<!-- ===== জাভাস্ক্রিপ্ট ===== -->
+
 <script type="module" src="js/app.js"></script>
 
 </body>
