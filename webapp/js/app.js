@@ -600,7 +600,7 @@ function renderCategories() {
 }
 
 /* =========================================================
-   CATEGORY DETAILS (Header design updated)
+   CATEGORY DETAILS
 ========================================================= */
 
 function renderCategoryDetails() {
@@ -610,6 +610,7 @@ function renderCategoryDetails() {
     container.innerHTML = "";
     const isAdmin = window.currentUserRole === "admin";
 
+    // Sub-Categories Render
     const subCategories = database.categories.filter(cat => cat.parentId === currentCategoryId);
 
     if (subCategories.length > 0) {
@@ -650,6 +651,7 @@ function renderCategoryDetails() {
         container.appendChild(subWrapper);
     }
 
+    // Headers and Data Render
     const headers = database.headers.filter(h => h.categoryId === currentCategoryId);
     const categoryData = database.data.filter(d => d.categoryId === currentCategoryId);
 
@@ -666,6 +668,7 @@ function renderCategoryDetails() {
             </div>
         ` : '';
 
+        // ১. হেডার ব্যানার
         headerBox.innerHTML = `
             <div class="header-banner">
                 <h5>${escapeHTML(header.title)}</h5>
@@ -679,6 +682,7 @@ function renderCategoryDetails() {
             headerBox.querySelector(".btn-del-head").addEventListener("click", () => deleteHeader(header.id));
         }
 
+        // ২. হেডারের নিচের ডাটা আইটেমসমূহ
         const headerItems = categoryData
             .filter(d => d.headerId === header.id)
             .sort(pinComparator);
@@ -690,6 +694,7 @@ function renderCategoryDetails() {
         container.appendChild(headerBox);
     });
 
+    // Header ছাড়া সাধারণ ডাটা
     const noHeaderData = categoryData.filter(d => !d.headerId).sort(pinComparator);
 
     if (noHeaderData.length > 0) {
@@ -711,6 +716,7 @@ function renderCategoryDetails() {
 
     updateAdminUI();
 }
+
 
 /* =========================================================
    SORT
