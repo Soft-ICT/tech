@@ -620,6 +620,12 @@ body {
     opacity: 1;
 }
 
+.danger-btn {
+    background-color: #dc3545 !important;
+    color: white !important;
+}
+
+
 
 /* Utility */
 
