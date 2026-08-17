@@ -187,11 +187,11 @@ body {
 
 .category-card,
 .subcategory-card {
-    width: calc(100% - 24px) !important; /* দুই পাশে সুন্দর মার্জিন রাখার জন্য */
-    height: 70px !important;
-    padding: 0 20px !important; /* ভেতরের টেক্সট ও বাটনের প্যাডিং */
-    margin: 0 auto 15px auto !important; /* কার্ডের চারপাশের মার্জিন এবং সেন্টারে রাখা */
-    border-radius: 12px !important; /* সুন্দর রাউন্ড শেপ */
+    width: calc(100% - 24px) !important;
+    height: 60px !important;
+    padding: 0 15px !important;
+    margin: 0 auto 10px auto !important;
+    border-radius: 10px !important;
     background: #003358 !important;
     color: #ffffff !important;
     border: 1px solid transparent;
@@ -209,7 +209,6 @@ body {
     transform: translateY(-2px);
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
 }
-
 
 /* =========================
    Category Top & Info
@@ -241,8 +240,8 @@ body {
 }
 
 .category-name {
-    font-size: 17px;
-    font-weight: 700;
+    font-size: 16px;
+    font-weight: 600;
     word-break: break-word;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -435,7 +434,7 @@ body {
     background-color: #003358 !important;
     color: #ffffff !important;
     padding: 0 20px !important;
-    border-radius: 0px !important; /* হেডার কোন রাউন্ড হবে না */
+    border-radius: 0px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -446,7 +445,7 @@ body {
 
 .header-banner h5 {
     margin: 0;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 600;
     color: #ffffff !important;
     text-align: center !important;
@@ -457,26 +456,24 @@ body {
     right: 20px !important;
 }
 
-/* ২. ডাটা কার্ড (No Radius) */
+/* ২. ডাটা কার্ড (ক্যাটাগরির মতো মার্জিন, প্যাডিং ও রাউন্ড) */
 .data-card-item {
-    width: 100% !important;
+    width: calc(100% - 24px) !important;
     background-color: #ffffff !important;
     color: #172033 !important;
-    padding: 16px 20px !important;
-    border-radius: 0px !important;
-    border-bottom: 1px solid var(--border) !important;
-    border-top: none;
-    border-left: none;
-    border-right: none;
-    margin-bottom: 8px !important;
+    padding: 12px 15px !important;
+    border-radius: 10px !important;
+    border: 1px solid var(--border) !important;
+    margin: 0 auto 10px auto !important;
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
     box-sizing: border-box !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .data-card-item strong {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
     color: #172033 !important;
     display: block;
@@ -484,7 +481,7 @@ body {
 
 .data-card-item p {
     margin: 4px 0 0;
-    font-size: 14px;
+    font-size: 13px;
     color: var(--muted) !important;
     white-space: pre-line;
 }
@@ -548,10 +545,10 @@ body {
 
     .category-card,
     .subcategory-card {
-        height: 70px !important;
-        padding: 0 15px !important;
-        margin-bottom: 15px !important;
-        border-radius: 12px !important; /* মোবাইলে সাব-ক্যাটাগরির জন্য রাউন্ড শেপ */
+        height: 55px !important;
+        padding: 0 12px !important;
+        margin-bottom: 10px !important;
+        border-radius: 10px !important;
     }
 
     .header-banner {
@@ -561,7 +558,8 @@ body {
     }
 
     .data-card-item {
-        padding: 14px 15px !important;
-        border-radius: 0px !important;
+        padding: 12px 12px !important;
+        border-radius: 10px !important;
+        margin-bottom: 10px !important;
     }
 }
