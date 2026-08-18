@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
@@ -41,19 +41,22 @@
 
 <header class="topbar">
 
-    <button id="menuBtn" class="icon-btn">☰</button>
+    <button id="menuBtn" class="icon-btn hidden" title="Menu">
+        ☰
+    </button>
 
     <div class="app-title">
-        <span>📚</span>
-        <span>My Data Manager</span>
+        📁 My Data Manager
     </div>
 
-    <div class="top-actions" style="display: flex; gap: 8px; align-items: center;">
-        <button id="adminLoginBtn" class="primary-btn" style="padding: 6px 12px; font-size: 13px;">
+    <div class="top-actions">
+        <button id="adminLoginBtn" class="icon-btn" title="Admin Login">
             🔑 Admin Login
         </button>
-        <button id="themeBtn" class="icon-btn" title="নাইট/ডে মোড">🌙</button>
-        <button id="searchBtn" class="icon-btn" title="সার্চ করুন">🔍</button>
+
+        <button id="toggleSearchBtn" class="icon-btn" title="Search">
+            🔍
+        </button>
     </div>
 
 </header>
@@ -61,159 +64,99 @@
 
 <main class="container">
 
-    <!-- Search Box -->
-    <section id="searchBox" class="search-box hidden">
+    <div id="searchBox" class="search-box hidden">
 
-        <input
-            type="search"
-            id="searchInput"
-            placeholder="Category, Header অথবা Data খুঁজুন..."
-            autocomplete="off"
-        >
+        <input type="text" id="searchInput" placeholder="Search categories & headers...">
 
-        <button id="clearSearch">✕</button>
+        <button id="clearSearchBtn" title="Clear">
+            ✕
+        </button>
 
-    </section>
-
-
-    <!-- Page 1: Main Dashboard View -->
-    <div id="mainDashboardView">
-        <section class="dashboard-header">
-
-            <div>
-                <h1>আমার Categories</h1>
-                <p id="categoryCount">0টি Category</p>
-            </div>
-
-            <!-- Admin-only add button -->
-            <button id="addCategoryBtn" class="primary-btn admin-only">
-                ＋ Category
-            </button>
-
-        </section>
-
-
-        <!-- Categories List -->
-        <section id="categoryList" class="category-list"></section>
-
-
-        <!-- Empty State -->
-        <section id="emptyState" class="empty-state">
-
-            <div class="empty-icon">📂</div>
-
-            <h2>এখনো কোনো Category নেই</h2>
-
-            <p>
-                ডাটা দেখতে অপেক্ষা করুন অথবা এডমিন হিসেবে লগইন করুন।
-            </p>
-
-            <button id="emptyAddBtn" class="primary-btn admin-only">
-                ＋ প্রথম Category তৈরি করুন
-            </button>
-
-        </section>
     </div>
 
 
-    <!-- Page 2: Category Details Full Page View -->
-    <div id="categoryDetailsView" class="hidden">
-        <section class="dashboard-header">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <button id="backToMainBtn" class="secondary-btn">← ব্যাকে যান</button>
-                <div>
-                    <h1 id="detailsTitle">Category</h1>
-                    <p id="detailsSubtitle"></p>
-                </div>
-            </div>
-        </section>
+    <div class="dashboard-header">
 
-        <!-- Section Toolbar (Admin Only Buttons) -->
-        <div class="section-toolbar admin-only" style="margin-bottom: 20px;">
-            <button id="addSubCategoryBtn" class="primary-btn">
-                ＋ Sub-Category
-            </button>
-
-            <button id="addHeaderBtn" class="primary-btn">
-                ＋ Header
-            </button>
-
-            <button id="addDataBtn" class="secondary-btn">
-                ＋ Data
-            </button>
+        <div>
+            <h1 id="pageTitle">
+                Dashboard
+            </h1>
+            <p id="pageSubTitle">
+                Categories
+            </p>
         </div>
 
-        <div id="detailsContent"></div>
+        <button id="addCategoryBtn" class="primary-btn hidden">
+            + New Category
+        </button>
+
     </div>
+
+
+    <div id="categoryContainer" class="category-list"></div>
 
 </main>
 
 
-<!-- Admin Login Modal -->
 <div id="loginModal" class="modal hidden">
+
     <div class="modal-content">
+
         <div class="modal-header">
             <h2>Admin Login</h2>
             <button class="close-btn" data-close="loginModal">✕</button>
         </div>
 
-        <!-- লগইন ফর্ম (গেস্ট মোডে দেখাবে) -->
-        <div id="loginFormContainer">
-            <div class="form-group">
-                <label>ইমেইল</label>
-                <input id="loginEmail" type="email" placeholder="admin@example.com">
-            </div>
-            <div class="form-group">
-                <label>পাসওয়ার্ড</label>
-                <input id="loginPassword" type="password" placeholder="******">
-            </div>
-            <div class="modal-actions">
-                <button class="secondary-btn" data-close="loginModal">বাতিল</button>
-                <button id="submitLoginBtn" class="primary-btn">লগইন</button>
-            </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="adminPassword" placeholder="Enter password">
         </div>
 
-        <!-- লগআউট অংশ (অ্যাডমিন থাকলে দেখাবে) -->
-        <div id="logoutContainer" class="hidden" style="margin-top: 15px; border-top: 1px solid #ddd; padding-top: 15px; text-align: center;">
-            <p style="margin-bottom: 10px; color: #28a745;">✅ আপনি অ্যাডমিন হিসেবে লগইন আছেন</p>
-            <div style="display: flex; gap: 10px; justify-content: center;">
-                <button class="secondary-btn" data-close="loginModal">বাতিল</button>
-                <button id="logoutBtn" class="secondary-btn" style="background-color: #dc3545; color: #ffffff; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer;">
-                    🚪 লগআউট
-                </button>
-            </div>
+        <div class="modal-actions">
+            <button class="secondary-btn" data-close="loginModal">বাতিল</button>
+            <button id="submitLoginBtn" class="primary-btn">Login</button>
         </div>
+
     </div>
+
 </div>
 
 
-<!-- Category Modal -->
 <div id="categoryModal" class="modal hidden">
 
     <div class="modal-content">
 
         <div class="modal-header">
-
             <h2 id="categoryModalTitle">
-                নতুন Category
+                Category তৈরি করুন
             </h2>
 
             <button class="close-btn" data-close="categoryModal">
                 ✕
             </button>
+        </div>
+
+        <div class="form-group">
+
+            <label>
+                Category Title
+            </label>
+
+            <input type="text" id="categoryTitle" placeholder="Category নাম দিন">
 
         </div>
 
         <div class="form-group">
 
-            <label>Category Name</label>
+            <label>
+                Parent Category (Optional)
+            </label>
 
-            <input
-                id="categoryNameInput"
-                type="text"
-                placeholder="যেমন: পুলিশ কর্মকর্তা"
-                maxlength="100"
-            >
+            <select id="parentCategorySelect">
+                <option value="">
+                    Root Category
+                </option>
+            </select>
 
         </div>
 
@@ -234,31 +177,27 @@
 </div>
 
 
-<!-- Header Modal -->
 <div id="headerModal" class="modal hidden">
 
     <div class="modal-content">
 
         <div class="modal-header">
-
-            <h2>নতুন Header</h2>
+            <h2 id="headerModalTitle">
+                Header তৈরি করুন
+            </h2>
 
             <button class="close-btn" data-close="headerModal">
                 ✕
             </button>
-
         </div>
 
         <div class="form-group">
 
-            <label>Header Name</label>
+            <label>
+                Header Title
+            </label>
 
-            <input
-                id="headerNameInput"
-                type="text"
-                placeholder="যেমন: জরুরি যোগাযোগ"
-                maxlength="100"
-            >
+            <input type="text" id="headerTitleInput" placeholder="Header নাম দিন">
 
         </div>
 
@@ -279,14 +218,15 @@
 </div>
 
 
-<!-- Data Modal -->
 <div id="dataModal" class="modal hidden">
 
     <div class="modal-content">
 
         <div class="modal-header">
 
-            <h2>নতুন Data</h2>
+            <h2 id="dataModalTitle">
+                Data যোগ করুন
+            </h2>
 
             <button class="close-btn" data-close="dataModal">
                 ✕
@@ -295,42 +235,50 @@
         </div>
 
         <div class="form-group">
-
-            <label>Data Title</label>
-
-            <input
-                id="dataTitleInput"
-                type="text"
-                placeholder="যেমন: মোঃ রহিম"
-                maxlength="150"
-            >
-
+            <label>নাম</label>
+            <input type="text" id="dataName" placeholder="নাম লিখুন">
         </div>
 
         <div class="form-group">
-
-            <label>বিবরণ</label>
-
-            <textarea
-                id="dataDescriptionInput"
-                placeholder="এই Data সম্পর্কে বিস্তারিত লিখুন..."
-                rows="5"
-            ></textarea>
-
+            <label>পদবী</label>
+            <input type="text" id="dataDesignation" placeholder="পদবী লিখুন">
         </div>
 
         <div class="form-group">
+            <label>মোবাইল</label>
+            <input type="text" id="dataMobile" placeholder="মোবাইল নম্বর লিখুন">
+        </div>
 
+        <div class="form-group">
+            <label>টেলিফোন</label>
+            <input type="text" id="dataPhone" placeholder="টেলিফোন নম্বর লিখুন">
+        </div>
+
+        <div class="form-group">
+            <label>ই-মেইল</label>
+            <input type="email" id="dataEmail" placeholder="ই-মেইল ঠিকানা লিখুন">
+        </div>
+
+        <div class="form-group">
+            <label>বর্তমানে কর্মরত</label>
+            <input type="text" id="dataCurrentOffice" placeholder="বর্তমান কর্মস্থল লিখুন">
+        </div>
+
+        <div class="form-group">
+            <label>স্থায়ী ঠিকানা</label>
+            <textarea id="dataPermanentAddress" rows="2" placeholder="স্থায়ী ঠিকানা লিখুন"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>প্রশাসনিক তথ্য</label>
+            <textarea id="dataAdminInfo" rows="2" placeholder="প্রশাসনিক তথ্য লিখুন"></textarea>
+        </div>
+
+        <div class="form-group">
             <label>Header</label>
-
             <select id="dataHeaderSelect">
-
-                <option value="">
-                    Header ছাড়া
-                </option>
-
+                <option value="">Header ছাড়া</option>
             </select>
-
         </div>
 
         <div class="modal-actions">
@@ -350,7 +298,6 @@
 </div>
 
 
-<!-- Fast Move Data Modal -->
 <div id="moveDataModal" class="modal hidden">
     <div class="modal-content">
 
@@ -378,7 +325,6 @@
 </div>
 
 
-<!-- Toast -->
 <div id="toast" class="toast"></div>
 
 
