@@ -1,7 +1,3 @@
-/* =========================================================
-   FIREBASE IMPORTS
-========================================================= */
-
 import { watchAuth, loginAdmin, logoutAdmin } from "./auth.js";
 import {
     ref,
@@ -12,10 +8,6 @@ import {
 import { db } from "./firebase.js";
 
 "use strict";
-
-/* =========================================================
-   UTILITY FUNCTIONS
-========================================================= */
 
 function escapeHTML(str) {
     return String(str || "").replace(
@@ -30,26 +22,13 @@ function escapeHTML(str) {
     );
 }
 
-/* =========================================================
-   DATABASE STATE
-========================================================= */
-
-let database = {
-    categories: [],
-    headers: [],
-    data: []
-};
-
+let database = { categories: [], headers: [], data: [] };
 let currentCategoryId = null;
 let currentDataId = null;
 let targetMoveDataId = null;
 let editingDataId = null;
 
 window.currentUserRole = "guest";
-
-/* =========================================================
-   AUTH & UI CONTROL
-========================================================= */
 
 watchAuth((user, role) => {
     const adminBtn = document.getElementById("adminLoginBtn");
@@ -70,23 +49,16 @@ watchAuth((user, role) => {
 
 function updateAdminUI() {
     const isAdmin = window.currentUserRole === "admin";
-
     const adminElements = document.querySelectorAll(".admin-only");
     adminElements.forEach(el => {
-        if (isAdmin) {
-            el.classList.remove("hidden");
-        } else {
-            el.classList.add("hidden");
-        }
+        if (isAdmin) el.classList.remove("hidden");
+        else el.classList.add("hidden");
     });
 
     const loginForm = document.getElementById("loginFormContainer");
     const logoutContainer = document.getElementById("logoutContainer");
 
-    if (loginForm) {
-        loginForm.style.display = isAdmin ? "none" : "block";
-    }
-
+    if (loginForm) loginForm.style.display = isAdmin ? "none" : "block";
     if (logoutContainer) {
         if (isAdmin) logoutContainer.classList.remove("hidden");
         else logoutContainer.classList.add("hidden");
@@ -98,14 +70,9 @@ document.addEventListener("DOMContentLoaded", () => {
     initTheme();
     updateAdminUI();
 
-    // মোবাইল এবং ব্রাউজার ব্যাক বাটনের জন্য স্টেট ম্যানেজমেন্ট
     history.replaceState({ page: "home" }, "");
     window.addEventListener("popstate", handlePopState);
 });
-
-/* =========================================================
-   MOBILE BACK BUTTON & HISTORY HANDLING
-========================================================= */
 
 function handlePopState(event) {
     const state = event.state;
@@ -117,10 +84,6 @@ function handlePopState(event) {
         showDataPage(state.dataId, false);
     }
 }
-
-/* =========================================================
-   THEME
-========================================================= */
 
 function initTheme() {
     const savedTheme = localStorage.getItem("theme");
@@ -135,10 +98,6 @@ function toggleTheme() {
     localStorage.setItem("theme", isDark ? "dark" : "light");
     showToast(isDark ? "নাইট মোড অন করা হয়েছে" : "ডে মোড অন করা হয়েছে");
 }
-
-/* =========================================================
-   FIREBASE LOAD & SAVE
-========================================================= */
 
 async function loadDatabase() {
     try {
@@ -174,10 +133,6 @@ async function saveDatabase() {
 function generateId(prefix) {
     return prefix + "_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8);
 }
-
-/* =========================================================
-   EVENTS
-========================================================= */
 
 function setupEvents() {
     document.getElementById("themeBtn")?.addEventListener("click", toggleTheme);
@@ -227,7 +182,6 @@ function setupEvents() {
     document.getElementById("addHeaderBtn")?.addEventListener("click", openHeaderModal);
     document.getElementById("addDataBtn")?.addEventListener("click", openDataModal);
 
-    // Back Buttons (Triggers Browser History Back)
     document.getElementById("backToMainBtn")?.addEventListener("click", () => history.back());
     document.getElementById("backFromDataBtn")?.addEventListener("click", () => history.back());
 
@@ -241,10 +195,6 @@ function setupEvents() {
         });
     });
 }
-
-/* =========================================================
-   NAVIGATION & PAGE VIEWS
-========================================================= */
 
 function openCategory(id, pushHistory = true) {
     if (pushHistory) {
@@ -310,6 +260,49 @@ function openDataPage(dataId, pushHistory = true) {
     showDataPage(dataId);
 }
 
+function cleanPhoneNumber(num) {
+    return String(num || "").replace(/[^\d+]/g, '');
+}
+
+function attachLongClickWhatsApp(element, phoneNumber) {
+    let timer = null;
+    let isLongPress = false;
+    const cleanNum = cleanPhoneNumber(phoneNumber);
+
+    const start = () => {
+        isLongPress = false;
+        timer = setTimeout(() => {
+            isLongPress = true;
+            if (cleanNum) {
+                window.open(`https://wa.me/${cleanNum.replace('+', '')}`, '_blank');
+                showToast("WhatsApp ওপেন হচ্ছে...");
+            }
+        }, 500); // 500ms long click
+    };
+
+    const cancel = () => {
+        clearTimeout(timer);
+    };
+
+    const click = (e) => {
+        if (isLongPress) {
+            e.preventDefault();
+            e.stopPropagation();
+        } else {
+            if (cleanNum) {
+                window.location.href = `tel:${cleanNum}`;
+            }
+        }
+    };
+
+    element.addEventListener('mousedown', start);
+    element.addEventListener('touchstart', start);
+    element.addEventListener('mouseup', cancel);
+    element.addEventListener('mouseleave', cancel);
+    element.addEventListener('touchend', cancel);
+    element.addEventListener('click', click);
+}
+
 function showDataPage(dataId) {
     const item = database.data.find(d => d.id === dataId);
     if (!item) return;
@@ -323,7 +316,7 @@ function showDataPage(dataId) {
     const container = document.getElementById("dataPageContent");
     if (!container) return;
 
-    const name = escapeHTML(item.name || "নাম জানা যায়নি");
+    const name = escapeHTML(item.name || "নাম পাওয়া যায়নি");
     const designation = escapeHTML(item.designation || "");
     const mobile = escapeHTML(item.mobile || "");
     const phone = escapeHTML(item.phone || "");
@@ -337,24 +330,92 @@ function showDataPage(dataId) {
         ? `<img src="${photo}" alt="${name}" class="details-avatar-large">`
         : `<div class="details-avatar-large">👤</div>`;
 
-    const mobileLink = mobile ? `<a href="tel:${mobile}" style="color: #2563eb; text-decoration: none; font-weight: 600;">📞 ${mobile}</a>` : 'নাই';
-    const phoneLink = phone ? `<a href="tel:${phone}" style="color: #2563eb; text-decoration: none; font-weight: 600;">☎️ ${phone}</a>` : 'নাই';
-    const emailLink = email ? `<a href="mailto:${email}" style="color: #2563eb; text-decoration: none;">✉️ ${email}</a>` : 'নাই';
+    const cleanMob = cleanPhoneNumber(mobile);
+    const cleanPhn = cleanPhoneNumber(phone);
 
     container.innerHTML = `
-        ${avatarHtml}
-        <h2 style="text-align:center; margin-bottom:5px; font-size:22px;">${name}</h2>
-        ${designation ? `<p style="text-align:center; opacity:0.8; font-size:16px; margin:0;">${designation}</p>` : ''}
-        
+        <div class="details-header-section">
+            ${avatarHtml}
+            <h2 style="margin: 0; font-size: 22px;">${name}</h2>
+            ${designation ? `<div class="badge-designation">${designation}</div>` : ''}
+        </div>
+
+        <div class="quick-action-grid">
+            ${mobile ? `<button id="btnActionMobile" class="action-btn btn-call">📞 মোবাইল কল</button>` : ''}
+            ${phone ? `<button id="btnActionPhone" class="action-btn btn-call" style="background-color:#4b5563;">☎️ টেলিফোন</button>` : ''}
+            ${mobile ? `<a href="https://wa.me/${cleanMob.replace('+', '')}" target="_blank" class="action-btn btn-wa">💬 WhatsApp</a>` : ''}
+            ${email ? `<a href="mailto:${email}" class="action-btn btn-email">✉️ Email</a>` : ''}
+        </div>
+
         <div class="details-info-list">
-            <div class="details-info-item"><strong>📱 মোবাইল:</strong> ${mobileLink}</div>
-            <div class="details-info-item"><strong>☎️ টেলিফোন:</strong> ${phoneLink}</div>
-            <div class="details-info-item"><strong>✉️ ই-মেইল:</strong> ${emailLink}</div>
-            ${currentOffice ? `<div class="details-info-item"><strong>🏢 বর্তমান ঠিকানা/কর্মস্থল:</strong> ${currentOffice}</div>` : ''}
-            ${permanentAddress ? `<div class="details-info-item"><strong>🏠 স্থায়ী ঠিকানা:</strong> ${permanentAddress}</div>` : ''}
-            ${adminInfo ? `<div class="details-info-item"><strong>📝 প্রশাসনিক তথ্য:</strong> ${adminInfo}</div>` : ''}
+            ${mobile ? `
+                <div class="details-info-box" id="boxMobile" style="cursor:pointer">
+                    <div class="info-label">📱 মোবাইল (১-ক্লিক: ডায়াল | লং-ক্লিক: হোয়াটসঅ্যাপ)</div>
+                    <div class="info-value">${mobile}</div>
+                </div>
+            ` : ''}
+
+            ${phone ? `
+                <div class="details-info-box" id="boxPhone" style="cursor:pointer">
+                    <div class="info-label">☎️ টেলিফোন (১-ক্লিক: ডায়াল)</div>
+                    <div class="info-value">${phone}</div>
+                </div>
+            ` : ''}
+
+            ${email ? `
+                <div class="details-info-box">
+                    <div class="info-label">✉️ ই-মেইল</div>
+                    <div class="info-value"><a href="mailto:${email}" style="color:inherit">${email}</a></div>
+                </div>
+            ` : ''}
+
+            ${currentOffice ? `
+                <div class="details-info-box">
+                    <div class="info-label">🏢 বর্তমান ঠিকানা / কর্মস্থল</div>
+                    <div class="info-value">${currentOffice}</div>
+                </div>
+            ` : ''}
+
+            ${permanentAddress ? `
+                <div class="details-info-box">
+                    <div class="info-label">🏠 স্থায়ী ঠিকানা</div>
+                    <div class="info-value">${permanentAddress}</div>
+                </div>
+            ` : ''}
+
+            ${adminInfo ? `
+                <div class="details-info-box" style="border-left-color: #f59e0b;">
+                    <div class="info-label">📝 প্রশাসনিক তথ্য</div>
+                    <div class="info-value">${adminInfo}</div>
+                </div>
+            ` : ''}
         </div>
     `;
+
+    // 1-Click Dial & Long-Click WhatsApp event binding
+    const boxMobile = document.getElementById("boxMobile");
+    if (boxMobile && mobile) {
+        attachLongClickWhatsApp(boxMobile, mobile);
+    }
+
+    const btnActionMobile = document.getElementById("btnActionMobile");
+    if (btnActionMobile && mobile) {
+        attachLongClickWhatsApp(btnActionMobile, mobile);
+    }
+
+    const boxPhone = document.getElementById("boxPhone");
+    if (boxPhone && phone) {
+        boxPhone.addEventListener("click", () => {
+            if (cleanPhn) window.location.href = `tel:${cleanPhn}`;
+        });
+    }
+
+    const btnActionPhone = document.getElementById("btnActionPhone");
+    if (btnActionPhone && phone) {
+        btnActionPhone.addEventListener("click", () => {
+            if (cleanPhn) window.location.href = `tel:${cleanPhn}`;
+        });
+    }
 }
 
 /* =========================================================
@@ -444,7 +505,7 @@ function renderCategories() {
 
         card.innerHTML = `
             <div style="flex-grow:1;cursor:pointer;display:flex;align-items:center;height:100%;" class="cat-click">
-                <h3 style="margin:0;font-size:18px;font-weight:600;color:#ffffff">${escapeHTML(category.name)}</h3>
+                <h3 style="margin:0;font-size:17px;font-weight:600;color:#ffffff">${escapeHTML(category.name)}</h3>
             </div>
             ${adminActions}
         `;
@@ -499,15 +560,15 @@ function renderCategoryDetails() {
 
             item.innerHTML = `
                 <div style="flex-grow:1;cursor:pointer;display:flex;align-items:center;height:100%;" class="sub-click">
-                    <h3 style="margin:0;font-size:18px;font-weight:600;color:#ffffff">${escapeHTML(sub.name)}</h3>
+                    <h3 style="margin:0;font-size:17px;font-weight:600;color:#ffffff">${escapeHTML(sub.name)}</h3>
                 </div>
                 ${adminActions}
             `;
 
             item.querySelector(".sub-click").addEventListener("click", () => openCategory(sub.id));
             if (isAdmin) {
-                item.querySelector(".btn-edit-sub").addEventListener("click", () => editCategory(sub.id));
-                item.querySelector(".btn-del-sub").addEventListener("click", () => deleteCategory(sub.id));
+                item.querySelector(".btn-edit-sub")?.addEventListener("click", () => editCategory(sub.id));
+                item.querySelector(".btn-del-sub")?.addEventListener("click", () => deleteCategory(sub.id));
             }
 
             subWrapper.appendChild(item);
@@ -539,8 +600,8 @@ function renderCategoryDetails() {
         `;
 
         if (isAdmin) {
-            headerBox.querySelector(".btn-edit-head").addEventListener("click", () => editHeader(header.id));
-            headerBox.querySelector(".btn-del-head").addEventListener("click", () => deleteHeader(header.id));
+            headerBox.querySelector(".btn-edit-head")?.addEventListener("click", () => editHeader(header.id));
+            headerBox.querySelector(".btn-del-head")?.addEventListener("click", () => deleteHeader(header.id));
         }
 
         const headerItems = categoryData.filter(d => d.headerId === header.id);
@@ -569,10 +630,6 @@ function renderCategoryDetails() {
     updateAdminUI();
 }
 
-/* =========================================================
-   CREATE DATA CARD ELEMENT
-========================================================= */
-
 function createDataCardElement(item) {
     const isAdmin = window.currentUserRole === "admin";
     const dataEl = document.createElement("div");
@@ -598,9 +655,9 @@ function createDataCardElement(item) {
 
     dataEl.innerHTML = `
         ${avatarHtml}
-        <div style="flex-grow: 1;">
-            <div style="font-size:16px; font-weight:bold;">${name}</div>
-            <div style="font-size:13px; opacity: 0.85; margin-top:2px;">
+        <div style="flex-grow: 1; overflow: hidden; padding-right: 5px;">
+            <div style="font-size:15px; font-weight:bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${name}</div>
+            <div style="font-size:13px; opacity: 0.85; margin-top:2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                 ${designation ? `<span>${designation}</span>` : ''}
                 ${mobile ? ` | 📱 ${mobile}` : ''}
                 ${phone ? ` | ☎️ ${phone}` : ''}
@@ -609,7 +666,6 @@ function createDataCardElement(item) {
         ${adminActions}
     `;
 
-    // ডাটা কার্ডে ক্লিক করলে সিঙ্গেল ডাটা পেজে নিয়ে যাবে
     dataEl.addEventListener("click", () => openDataPage(item.id));
 
     if (isAdmin) {
@@ -629,10 +685,6 @@ function createDataCardElement(item) {
 
     return dataEl;
 }
-
-/* =========================================================
-   HEADER CRUD
-========================================================= */
 
 function openHeaderModal() {
     if (window.currentUserRole !== "admin") return;
@@ -659,10 +711,6 @@ async function saveHeader() {
     renderCategoryDetails();
     showToast("Header সেভ করা হয়েছে");
 }
-
-/* =========================================================
-   DATA CRUD
-========================================================= */
 
 function openDataModal() {
     if (window.currentUserRole !== "admin") return;
@@ -794,10 +842,6 @@ async function deleteData(id) {
     showToast("Data ডিলিট করা হয়েছে");
 }
 
-/* =========================================================
-   MOVE DATA
-========================================================= */
-
 function openMoveModal(dataId) {
     if (window.currentUserRole !== "admin") return;
     targetMoveDataId = dataId;
@@ -852,10 +896,6 @@ async function confirmMoveData() {
 
     targetMoveDataId = null;
 }
-
-/* =========================================================
-   UI HELPERS
-========================================================= */
 
 function openModal(id) {
     document.getElementById(id)?.classList.remove("hidden");
