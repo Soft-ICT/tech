@@ -473,7 +473,7 @@ body {
     margin-top: 20px;
 }
 
-/* হেডারের ডায়নামিক টেক্সট এলাইনমেন্ট */
+/* হেডারের ডায়নামিক টেক্সট এলাইনমেন্ট (ইউজার = সেন্টার, এডমিন = লেফট) */
 .topbar.admin-header .app-title {
     justify-content: flex-start !important;
 }
@@ -492,6 +492,7 @@ body {
     margin-left: 8px;
     font-weight: 600;
 }
+
 
 
 .toast {
