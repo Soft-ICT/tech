@@ -473,14 +473,34 @@ body {
     margin-top: 20px;
 }
 
-/* ইউজার মোডে হেডারের টেক্সট সেন্টার এবং এডমিন মোডে বামে */
-.topbar.admin-header .app-title {
-    justify-content: flex-start !important;
+/* শীর্ষ বার (Topbar) ফ্লেক্স বক্স কনফিগারেশন */
+.topbar {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    position: relative;
 }
 
+/* টাইটেল কন্টেইনার সব জায়গা জুড়ে থাকবে */
+.topbar .app-title {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    width: 100%;
+}
+
+/* ইউজার মোডে হেডারের টেক্সট একদম সেন্টারে থাকবে */
 .topbar.user-header .app-title {
     justify-content: center !important;
+    text-align: center !important;
 }
+
+/* এডমিন মোডে হেডারের টেক্সট বামে থাকবে */
+.topbar.admin-header .app-title {
+    justify-content: flex-start !important;
+    text-align: left !important;
+}
+
 
 /* পিন করা ব্যাজ (শুধুমাত্র এডমিনের জন্য দৃশ্যমান) */
 .pinned-badge {
