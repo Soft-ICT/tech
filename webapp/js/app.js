@@ -138,11 +138,11 @@ function generateId(prefix) {
     return prefix + "_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8);
 }
 
-/* পিন করা আইটেমের সর্টিং অ্যালগরিদম (প্রথম পিন করা আইটেম সবার উপরে) */
+/* পিন করা আইটেমের ক্রমানুসারে সর্টিং (প্রথম পিন আইটেম সবার উপরে থাকবে) */
 function sortItemsByPin(items) {
     return items.sort((a, b) => {
         if (a.pinned && b.pinned) {
-            return (a.pinnedAt || 0) - (b.pinnedAt || 0); // যে আগে পিন হয়েছে সে উপরে
+            return (a.pinnedAt || 0) - (b.pinnedAt || 0);
         }
         if (a.pinned) return -1;
         if (b.pinned) return 1;
@@ -229,7 +229,6 @@ function renderCategories(searchVal = "") {
         categoriesToShow = categoriesToShow.filter(cat => String(cat.name).toLowerCase().includes(searchVal));
     }
 
-    // পিন অনুসারে সর্ট করা
     categoriesToShow = sortItemsByPin(categoriesToShow);
 
     list.innerHTML = "";
@@ -259,9 +258,12 @@ function renderCategories(searchVal = "") {
             </div>
         ` : '';
 
+        // শুধুমাত্র এডমিন পিন ব্যাজ দেখতে পাবে
+        const pinBadge = (isAdmin && category.pinned) ? '<span class="pinned-badge">Pinned</span>' : '';
+
         card.innerHTML = `
             <div class="cat-click">
-                <h3>${escapeHTML(category.name)} ${category.pinned ? '<span class="pinned-badge">Pinned</span>' : ''}</h3>
+                <h3>${escapeHTML(category.name)} ${pinBadge}</h3>
             </div>
             ${adminActions}
         `;
@@ -432,10 +434,13 @@ function createDataCardElement(item) {
         </div>
     ` : '';
 
+    // শুধুমাত্র এডমিন পিন আইকন দেখতে পাবে
+    const dataPinMark = (isAdmin && item.pinned) ? '📌' : '';
+
     dataEl.innerHTML = `
         ${avatarHtml}
         <div class="data-card-info">
-            <div class="data-card-name">${name} ${item.pinned ? '📌' : ''}</div>
+            <div class="data-card-name">${name} ${dataPinMark}</div>
             <div class="data-card-detail">📱 মোবাইল: ${mobile}</div>
             <div class="data-card-detail">☎️ টেলিফোন: ${phone}</div>
             <div class="data-card-detail">💼 পদবী: ${designation}</div>
@@ -661,7 +666,9 @@ function renderCategoryDetails(searchVal = "") {
                 </div>
             ` : '';
 
-            item.innerHTML = `<div class="sub-click"><h3>${escapeHTML(sub.name)} ${sub.pinned ? '<span class="pinned-badge">Pinned</span>' : ''}</h3></div>${adminActions}`;
+            const subPinBadge = (isAdmin && sub.pinned) ? '<span class="pinned-badge">Pinned</span>' : '';
+
+            item.innerHTML = `<div class="sub-click"><h3>${escapeHTML(sub.name)} ${subPinBadge}</h3></div>${adminActions}`;
             item.querySelector(".sub-click").addEventListener("click", () => openCategory(sub.id));
             if (isAdmin) {
                 item.querySelector(".btn-pin-sub")?.addEventListener("click", () => togglePinCategory(sub.id));
@@ -704,9 +711,11 @@ function renderCategoryDetails(searchVal = "") {
                 </div>
             ` : '';
 
+            const headerPinMark = (isAdmin && header.pinned) ? '📌' : '';
+
             headerBox.innerHTML = `
                 <div class="header-banner">
-                    <span>${escapeHTML(header.title)} ${header.pinned ? '📌' : ''}</span>
+                    <span>${escapeHTML(header.title)} ${headerPinMark}</span>
                     ${adminActions}
                 </div>
             `;
