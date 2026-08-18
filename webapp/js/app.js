@@ -138,7 +138,7 @@ function generateId(prefix) {
     return prefix + "_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8);
 }
 
-/* পিন করা আইটেমের ক্রমানুসারে সর্টিং (প্রথম পিন আইটেম সবার উপরে থাকবে) */
+/* পিন করার ক্রম অনুযায়ী সর্টিং (প্রথম পিন উপরে, পরে পিন করা নিচে) */
 function sortItemsByPin(items) {
     return items.sort((a, b) => {
         if (a.pinned && b.pinned) {
@@ -258,7 +258,7 @@ function renderCategories(searchVal = "") {
             </div>
         ` : '';
 
-        // শুধুমাত্র এডমিন পিন ব্যাজ দেখতে পাবে
+        // পিন মার্ক গোপন করা হচ্ছে ইউজার মোডের জন্য
         const pinBadge = (isAdmin && category.pinned) ? '<span class="pinned-badge">Pinned</span>' : '';
 
         card.innerHTML = `
@@ -434,7 +434,6 @@ function createDataCardElement(item) {
         </div>
     ` : '';
 
-    // শুধুমাত্র এডমিন পিন আইকন দেখতে পাবে
     const dataPinMark = (isAdmin && item.pinned) ? '📌' : '';
 
     dataEl.innerHTML = `
