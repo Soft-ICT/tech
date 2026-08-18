@@ -431,18 +431,19 @@ function showDataPage(dataId) {
 ========================================================= */
 
 function createDataCardElement(item) {
+function createDataCardElement(item) {
     const isAdmin = window.currentUserRole === "admin";
     const dataEl = document.createElement("div");
     dataEl.className = "data-card-item";
 
     const name = escapeHTML(item.name || "নাম পাওয়া যায়নি");
-    const designation = escapeHTML(item.designation || "পদবী নেই");
     const mobile = escapeHTML(item.mobile || "মোবাইল নেই");
     const phone = escapeHTML(item.phone || "টেলিফোন নেই");
+    const designation = escapeHTML(item.designation || "পদবী নেই");
     const photo = item.photo ? escapeHTML(item.photo) : null;
 
     const avatarHtml = photo 
-        ? `<img src="${photo}" alt="${name}" class="data-card-avatar" onerror="this.onerror=null;this.replaceWith(document.createElement('div'));this.innerText='👤';">`
+        ? `<img src="${photo}" alt="${name}" class="data-card-avatar">`
         : `<div class="data-card-avatar">👤</div>`;
 
     const adminActions = isAdmin ? `
@@ -453,37 +454,22 @@ function createDataCardElement(item) {
         </div>
     ` : '';
 
-    // সিরিয়াল অনুযায়ী ডাটা সাজানো হয়েছে: ১. নাম, ২. মোবাইল, ৩. টেলিফোন, ৪. পদবী
+    // নির্দিষ্ট করা সিরিয়াল: ১. নাম, ২. মোবাইল, ৩. টেলিফোন, ৪. পদবী
     dataEl.innerHTML = `
         ${avatarHtml}
         <div class="data-card-info">
             <div class="data-card-name">${name}</div>
-            <div class="data-card-detail">📱 ${mobile}</div>
-            <div class="data-card-detail">☎️ ${phone}</div>
-            <div class="data-card-detail">💼 ${designation}</div>
+            <div class="data-card-detail">📱 মোবাইল: ${mobile}</div>
+            <div class="data-card-detail">☎️ টেলিফোন: ${phone}</div>
+            <div class="data-card-detail">💼 পদবী: ${designation}</div>
         </div>
         ${adminActions}
     `;
 
     dataEl.addEventListener("click", () => openDataPage(item.id));
-
-    if (isAdmin) {
-        dataEl.querySelector(".btn-move-data")?.addEventListener("click", e => {
-            e.stopPropagation();
-            openMoveModal(item.id);
-        });
-        dataEl.querySelector(".btn-edit-data")?.addEventListener("click", e => {
-            e.stopPropagation();
-            editData(item.id);
-        });
-        dataEl.querySelector(".btn-del-data")?.addEventListener("click", e => {
-            e.stopPropagation();
-            deleteData(item.id);
-        });
-    }
-
     return dataEl;
 }
+
 
 /* =========================================================
    CATEGORY CRUD & RENDER
