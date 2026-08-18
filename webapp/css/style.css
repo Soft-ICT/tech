@@ -473,7 +473,11 @@ body {
     margin-top: 20px;
 }
 
-/* শীর্ষ বার (Topbar) ফ্লেক্স বক্স কনফিগারেশন */
+/* ==========================================
+   ১. হেডার ও টাইটেল এলাইনমেন্ট (ইউজার ও এডমিন)
+   ========================================== */
+
+/* শীর্ষ বার ফ্লেক্স বক্স কনফিগারেশন */
 .topbar {
     display: flex;
     align-items: center;
@@ -489,17 +493,62 @@ body {
     width: 100%;
 }
 
-/* ইউজার মোডে হেডারের টেক্সট একদম সেন্টারে থাকবে */
+/* ইউজারের ক্ষেত্রে হেডার টেক্সট একদম সেন্টারে থাকবে */
 .topbar.user-header .app-title {
     justify-content: center !important;
     text-align: center !important;
 }
 
-/* এডমিন মোডে হেডারের টেক্সট বামে থাকবে */
+/* এডমিনের ক্ষেত্রে হেডার টেক্সট বামে থাকবে */
 .topbar.admin-header .app-title {
     justify-content: flex-start !important;
     text-align: left !important;
 }
+
+/* ==========================================
+   ২. পিন আইটেম স্টাইল
+   ========================================== */
+
+.pinned-badge {
+    background-color: #f59e0b;
+    color: #fff;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-left: 8px;
+    font-weight: 600;
+}
+
+/* ==========================================
+   ৩. নোটিফিকেশন টোস্ট ও টুলবার স্টাইল
+   ========================================== */
+
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background-color: var(--text-main);
+    color: var(--bg-color);
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-weight: 600;
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 2000;
+}
+
+.toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.section-toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
 
 
 /* পিন করা ব্যাজ (শুধুমাত্র এডমিনের জন্য দৃশ্যমান) */
