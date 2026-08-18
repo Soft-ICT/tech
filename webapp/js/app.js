@@ -250,7 +250,7 @@ function refreshCurrentView() {
 }
 
 /* =========================================================
-   FULL PAGE SINGLE DATA VIEW
+   FULL PAGE SINGLE DATA VIEW (EXPENSIVE & ROUNDED BUTTONS)
 ========================================================= */
 
 function openDataPage(dataId, pushHistory = true) {
@@ -277,7 +277,7 @@ function attachLongClickWhatsApp(element, phoneNumber) {
                 window.open(`https://wa.me/${cleanNum.replace('+', '')}`, '_blank');
                 showToast("WhatsApp ওপেন হচ্ছে...");
             }
-        }, 500); // 500ms long click
+        }, 500);
     };
 
     const cancel = () => {
@@ -335,16 +335,18 @@ function showDataPage(dataId) {
 
     container.innerHTML = `
         <div class="details-header-section">
-            ${avatarHtml}
-            <h2 style="margin: 0; font-size: 22px;">${name}</h2>
-            ${designation ? `<div class="badge-designation">${designation}</div>` : ''}
+            <div class="avatar-wrapper">
+                ${avatarHtml}
+            </div>
+            <h2 style="margin: 0; font-size: 24px; font-weight: 800;">${name}</h2>
+            ${designation ? `<p style="margin: 5px 0 0 0; opacity: 0.8; font-size: 15px;">${designation}</p>` : ''}
         </div>
 
         <div class="quick-action-grid">
-            ${mobile ? `<button id="btnActionMobile" class="action-btn btn-call">📞 মোবাইল কল</button>` : ''}
-            ${phone ? `<button id="btnActionPhone" class="action-btn btn-call" style="background-color:#4b5563;">☎️ টেলিফোন</button>` : ''}
-            ${mobile ? `<a href="https://wa.me/${cleanMob.replace('+', '')}" target="_blank" class="action-btn btn-wa">💬 WhatsApp</a>` : ''}
-            ${email ? `<a href="mailto:${email}" class="action-btn btn-email">✉️ Email</a>` : ''}
+            ${mobile ? `<button id="btnActionMobile" class="action-btn-round btn-call-round">📞 কল করুন</button>` : ''}
+            ${mobile ? `<a href="https://wa.me/${cleanMob.replace('+', '')}" target="_blank" class="action-btn-round btn-wa-round">💬 WhatsApp</a>` : ''}
+            ${phone ? `<button id="btnActionPhone" class="action-btn-round btn-phone-round">☎️ টেলিফোন</button>` : ''}
+            ${email ? `<a href="mailto:${email}" class="action-btn-round btn-email-round">✉️ Email</a>` : ''}
         </div>
 
         <div class="details-info-list">
@@ -359,6 +361,13 @@ function showDataPage(dataId) {
                 <div class="details-info-box" id="boxPhone" style="cursor:pointer">
                     <div class="info-label">☎️ টেলিফোন (১-ক্লিক: ডায়াল)</div>
                     <div class="info-value">${phone}</div>
+                </div>
+            ` : ''}
+
+            ${designation ? `
+                <div class="details-info-box">
+                    <div class="info-label">💼 পদবী</div>
+                    <div class="info-value">${designation}</div>
                 </div>
             ` : ''}
 
@@ -384,7 +393,7 @@ function showDataPage(dataId) {
             ` : ''}
 
             ${adminInfo ? `
-                <div class="details-info-box" style="border-left-color: #f59e0b;">
+                <div class="details-info-box" style="border-left: 4px solid #f59e0b;">
                     <div class="info-label">📝 প্রশাসনিক তথ্য</div>
                     <div class="info-value">${adminInfo}</div>
                 </div>
@@ -392,7 +401,6 @@ function showDataPage(dataId) {
         </div>
     `;
 
-    // 1-Click Dial & Long-Click WhatsApp event binding
     const boxMobile = document.getElementById("boxMobile");
     if (boxMobile && mobile) {
         attachLongClickWhatsApp(boxMobile, mobile);
@@ -416,6 +424,65 @@ function showDataPage(dataId) {
             if (cleanPhn) window.location.href = `tel:${cleanPhn}`;
         });
     }
+}
+
+/* =========================================================
+   CREATE DATA CARD ELEMENT (UPDATED SERIAL)
+========================================================= */
+
+function createDataCardElement(item) {
+    const isAdmin = window.currentUserRole === "admin";
+    const dataEl = document.createElement("div");
+    dataEl.className = "data-card-item";
+
+    const name = escapeHTML(item.name || "নাম পাওয়া যায়নি");
+    const designation = escapeHTML(item.designation || "পদবী নেই");
+    const mobile = escapeHTML(item.mobile || "মোবাইল নেই");
+    const phone = escapeHTML(item.phone || "টেলিফোন নেই");
+    const photo = item.photo ? escapeHTML(item.photo) : null;
+
+    const avatarHtml = photo 
+        ? `<img src="${photo}" alt="${name}" class="data-card-avatar" onerror="this.onerror=null;this.replaceWith(document.createElement('div'));this.innerText='👤';">`
+        : `<div class="data-card-avatar">👤</div>`;
+
+    const adminActions = isAdmin ? `
+        <div style="display:flex;gap:5px;" onclick="event.stopPropagation()">
+            <button class="btn-move-data custom-action-btn" title="Move">📦</button>
+            <button class="btn-edit-data custom-action-btn" title="Edit">✏️</button>
+            <button class="btn-del-data custom-action-btn" style="color:red" title="Delete">🗑️</button>
+        </div>
+    ` : '';
+
+    // সিরিয়াল অনুযায়ী ডাটা সাজানো হয়েছে: ১. নাম, ২. মোবাইল, ৩. টেলিফোন, ৪. পদবী
+    dataEl.innerHTML = `
+        ${avatarHtml}
+        <div class="data-card-info">
+            <div class="data-card-name">${name}</div>
+            <div class="data-card-detail">📱 ${mobile}</div>
+            <div class="data-card-detail">☎️ ${phone}</div>
+            <div class="data-card-detail">💼 ${designation}</div>
+        </div>
+        ${adminActions}
+    `;
+
+    dataEl.addEventListener("click", () => openDataPage(item.id));
+
+    if (isAdmin) {
+        dataEl.querySelector(".btn-move-data")?.addEventListener("click", e => {
+            e.stopPropagation();
+            openMoveModal(item.id);
+        });
+        dataEl.querySelector(".btn-edit-data")?.addEventListener("click", e => {
+            e.stopPropagation();
+            editData(item.id);
+        });
+        dataEl.querySelector(".btn-del-data")?.addEventListener("click", e => {
+            e.stopPropagation();
+            deleteData(item.id);
+        });
+    }
+
+    return dataEl;
 }
 
 /* =========================================================
@@ -505,7 +572,7 @@ function renderCategories() {
 
         card.innerHTML = `
             <div style="flex-grow:1;cursor:pointer;display:flex;align-items:center;height:100%;" class="cat-click">
-                <h3 style="margin:0;font-size:17px;font-weight:600;color:#ffffff">${escapeHTML(category.name)}</h3>
+                <h3 style="margin:0;font-size:18px;font-weight:700;color:#0f172a">${escapeHTML(category.name)}</h3>
             </div>
             ${adminActions}
         `;
@@ -560,7 +627,7 @@ function renderCategoryDetails() {
 
             item.innerHTML = `
                 <div style="flex-grow:1;cursor:pointer;display:flex;align-items:center;height:100%;" class="sub-click">
-                    <h3 style="margin:0;font-size:17px;font-weight:600;color:#ffffff">${escapeHTML(sub.name)}</h3>
+                    <h3 style="margin:0;font-size:18px;font-weight:700;color:#0f172a">${escapeHTML(sub.name)}</h3>
                 </div>
                 ${adminActions}
             `;
@@ -630,62 +697,6 @@ function renderCategoryDetails() {
     updateAdminUI();
 }
 
-function createDataCardElement(item) {
-    const isAdmin = window.currentUserRole === "admin";
-    const dataEl = document.createElement("div");
-    dataEl.className = "data-card-item";
-
-    const name = escapeHTML(item.name || "নাম পাওয়া যায়নি");
-    const designation = escapeHTML(item.designation || "");
-    const mobile = escapeHTML(item.mobile || "");
-    const phone = escapeHTML(item.phone || "");
-    const photo = item.photo ? escapeHTML(item.photo) : null;
-
-    const avatarHtml = photo 
-        ? `<img src="${photo}" alt="${name}" class="data-card-avatar" onerror="this.onerror=null;this.replaceWith(document.createElement('div'));this.innerText='👤';">`
-        : `<div class="data-card-avatar">👤</div>`;
-
-    const adminActions = isAdmin ? `
-        <div style="display:flex;gap:5px;" onclick="event.stopPropagation()">
-            <button class="btn-move-data custom-action-btn" title="Move">📦</button>
-            <button class="btn-edit-data custom-action-btn" title="Edit">✏️</button>
-            <button class="btn-del-data custom-action-btn" style="color:red" title="Delete">🗑️</button>
-        </div>
-    ` : '';
-
-    dataEl.innerHTML = `
-        ${avatarHtml}
-        <div style="flex-grow: 1; overflow: hidden; padding-right: 5px;">
-            <div style="font-size:15px; font-weight:bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${name}</div>
-            <div style="font-size:13px; opacity: 0.85; margin-top:2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                ${designation ? `<span>${designation}</span>` : ''}
-                ${mobile ? ` | 📱 ${mobile}` : ''}
-                ${phone ? ` | ☎️ ${phone}` : ''}
-            </div>
-        </div>
-        ${adminActions}
-    `;
-
-    dataEl.addEventListener("click", () => openDataPage(item.id));
-
-    if (isAdmin) {
-        dataEl.querySelector(".btn-move-data")?.addEventListener("click", e => {
-            e.stopPropagation();
-            openMoveModal(item.id);
-        });
-        dataEl.querySelector(".btn-edit-data")?.addEventListener("click", e => {
-            e.stopPropagation();
-            editData(item.id);
-        });
-        dataEl.querySelector(".btn-del-data")?.addEventListener("click", e => {
-            e.stopPropagation();
-            deleteData(item.id);
-        });
-    }
-
-    return dataEl;
-}
-
 function openHeaderModal() {
     if (window.currentUserRole !== "admin") return;
     const input = document.getElementById("headerNameInput");
@@ -718,9 +729,9 @@ function openDataModal() {
 
     document.getElementById("dataPhoto").value = "";
     document.getElementById("dataName").value = "";
-    document.getElementById("dataDesignation").value = "";
     document.getElementById("dataMobile").value = "";
     document.getElementById("dataPhone").value = "";
+    document.getElementById("dataDesignation").value = "";
     document.getElementById("dataEmail").value = "";
     document.getElementById("dataCurrentOffice").value = "";
     document.getElementById("dataPermanentAddress").value = "";
@@ -744,9 +755,9 @@ async function saveData() {
 
     const photo = document.getElementById("dataPhoto")?.value.trim() || "";
     const name = document.getElementById("dataName")?.value.trim() || "";
-    const designation = document.getElementById("dataDesignation")?.value.trim() || "";
     const mobile = document.getElementById("dataMobile")?.value.trim() || "";
     const phone = document.getElementById("dataPhone")?.value.trim() || "";
+    const designation = document.getElementById("dataDesignation")?.value.trim() || "";
     const email = document.getElementById("dataEmail")?.value.trim() || "";
     const currentOffice = document.getElementById("dataCurrentOffice")?.value.trim() || "";
     const permanentAddress = document.getElementById("dataPermanentAddress")?.value.trim() || "";
@@ -805,9 +816,9 @@ async function editData(id) {
 
     document.getElementById("dataPhoto").value = item.photo || "";
     document.getElementById("dataName").value = item.name || "";
-    document.getElementById("dataDesignation").value = item.designation || "";
     document.getElementById("dataMobile").value = item.mobile || "";
     document.getElementById("dataPhone").value = item.phone || "";
+    document.getElementById("dataDesignation").value = item.designation || "";
     document.getElementById("dataEmail").value = item.email || "";
     document.getElementById("dataCurrentOffice").value = item.currentOffice || "";
     document.getElementById("dataPermanentAddress").value = item.permanentAddress || "";
