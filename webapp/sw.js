@@ -1,13 +1,8 @@
-// Service Worker Setup
 self.addEventListener("install", (e) => {
-    self.skipWaiting();
-});
-
-self.addEventListener("activate", (e) => {
-    return self.clients.claim();
+  console.log("Service Worker installed");
 });
 
 self.addEventListener("fetch", (e) => {
-    // Basic fetch handling
+  // অ্যাপ অফলাইনে কাজ করার জন্য ক্যাশিং লজিক দেওয়া যায়
 });
 
