@@ -41,6 +41,7 @@ let database = {
 };
 
 let currentCategoryId = null;
+let currentDataId = null;
 let targetMoveDataId = null;
 let editingDataId = null;
 
@@ -96,7 +97,26 @@ document.addEventListener("DOMContentLoaded", () => {
     setupEvents();
     initTheme();
     updateAdminUI();
+
+    // মোবাইল এবং ব্রাউজার ব্যাক বাটনের জন্য স্টেট ম্যানেজমেন্ট
+    history.replaceState({ page: "home" }, "");
+    window.addEventListener("popstate", handlePopState);
 });
+
+/* =========================================================
+   MOBILE BACK BUTTON & HISTORY HANDLING
+========================================================= */
+
+function handlePopState(event) {
+    const state = event.state;
+    if (!state || state.page === "home") {
+        showMainDashboardView();
+    } else if (state.page === "category") {
+        showCategoryView(state.categoryId, false);
+    } else if (state.page === "data") {
+        showDataPage(state.dataId, false);
+    }
+}
 
 /* =========================================================
    THEME
@@ -206,7 +226,10 @@ function setupEvents() {
     document.getElementById("confirmMoveBtn")?.addEventListener("click", confirmMoveData);
     document.getElementById("addHeaderBtn")?.addEventListener("click", openHeaderModal);
     document.getElementById("addDataBtn")?.addEventListener("click", openDataModal);
-    document.getElementById("backToMainBtn")?.addEventListener("click", goBack);
+
+    // Back Buttons (Triggers Browser History Back)
+    document.getElementById("backToMainBtn")?.addEventListener("click", () => history.back());
+    document.getElementById("backFromDataBtn")?.addEventListener("click", () => history.back());
 
     document.querySelectorAll("[data-close]").forEach(btn => {
         btn.addEventListener("click", () => closeModal(btn.dataset.close));
@@ -220,16 +243,24 @@ function setupEvents() {
 }
 
 /* =========================================================
-   NAVIGATION
+   NAVIGATION & PAGE VIEWS
 ========================================================= */
 
-function openCategory(id) {
+function openCategory(id, pushHistory = true) {
+    if (pushHistory) {
+        history.pushState({ page: "category", categoryId: id }, "");
+    }
+    showCategoryView(id);
+}
+
+function showCategoryView(id) {
     const category = database.categories.find(item => item.id === id);
     if (!category) return;
 
     currentCategoryId = id;
 
     document.getElementById("mainDashboardView")?.classList.add("hidden");
+    document.getElementById("dataDetailsView")?.classList.add("hidden");
     document.getElementById("categoryDetailsView")?.classList.remove("hidden");
 
     const title = document.getElementById("detailsTitle");
@@ -247,25 +278,83 @@ function openCategory(id) {
     renderCategoryDetails();
 }
 
-function goBack() {
-    const currentCat = database.categories.find(c => c.id === currentCategoryId);
+function showMainDashboardView() {
+    currentCategoryId = null;
+    currentDataId = null;
 
-    if (currentCat && currentCat.parentId) {
-        openCategory(currentCat.parentId);
-    } else {
-        currentCategoryId = null;
-        document.getElementById("categoryDetailsView")?.classList.add("hidden");
-        document.getElementById("mainDashboardView")?.classList.remove("hidden");
-        renderCategories();
-    }
+    document.getElementById("categoryDetailsView")?.classList.add("hidden");
+    document.getElementById("dataDetailsView")?.classList.add("hidden");
+    document.getElementById("mainDashboardView")?.classList.remove("hidden");
+
+    renderCategories();
 }
 
 function refreshCurrentView() {
-    if (currentCategoryId) {
-        renderCategoryDetails();
+    if (currentDataId) {
+        showDataPage(currentDataId, false);
+    } else if (currentCategoryId) {
+        showCategoryView(currentCategoryId, false);
     } else {
-        renderCategories();
+        showMainDashboardView();
     }
+}
+
+/* =========================================================
+   FULL PAGE SINGLE DATA VIEW
+========================================================= */
+
+function openDataPage(dataId, pushHistory = true) {
+    if (pushHistory) {
+        history.pushState({ page: "data", dataId: dataId }, "");
+    }
+    showDataPage(dataId);
+}
+
+function showDataPage(dataId) {
+    const item = database.data.find(d => d.id === dataId);
+    if (!item) return;
+
+    currentDataId = dataId;
+
+    document.getElementById("mainDashboardView")?.classList.add("hidden");
+    document.getElementById("categoryDetailsView")?.classList.add("hidden");
+    document.getElementById("dataDetailsView")?.classList.remove("hidden");
+
+    const container = document.getElementById("dataPageContent");
+    if (!container) return;
+
+    const name = escapeHTML(item.name || "নাম জানা যায়নি");
+    const designation = escapeHTML(item.designation || "");
+    const mobile = escapeHTML(item.mobile || "");
+    const phone = escapeHTML(item.phone || "");
+    const email = escapeHTML(item.email || "");
+    const currentOffice = escapeHTML(item.currentOffice || "");
+    const permanentAddress = escapeHTML(item.permanentAddress || "");
+    const adminInfo = escapeHTML(item.adminInfo || "");
+    const photo = item.photo ? escapeHTML(item.photo) : null;
+
+    const avatarHtml = photo 
+        ? `<img src="${photo}" alt="${name}" class="details-avatar-large">`
+        : `<div class="details-avatar-large">👤</div>`;
+
+    const mobileLink = mobile ? `<a href="tel:${mobile}" style="color: #2563eb; text-decoration: none; font-weight: 600;">📞 ${mobile}</a>` : 'নাই';
+    const phoneLink = phone ? `<a href="tel:${phone}" style="color: #2563eb; text-decoration: none; font-weight: 600;">☎️ ${phone}</a>` : 'নাই';
+    const emailLink = email ? `<a href="mailto:${email}" style="color: #2563eb; text-decoration: none;">✉️ ${email}</a>` : 'নাই';
+
+    container.innerHTML = `
+        ${avatarHtml}
+        <h2 style="text-align:center; margin-bottom:5px; font-size:22px;">${name}</h2>
+        ${designation ? `<p style="text-align:center; opacity:0.8; font-size:16px; margin:0;">${designation}</p>` : ''}
+        
+        <div class="details-info-list">
+            <div class="details-info-item"><strong>📱 মোবাইল:</strong> ${mobileLink}</div>
+            <div class="details-info-item"><strong>☎️ টেলিফোন:</strong> ${phoneLink}</div>
+            <div class="details-info-item"><strong>✉️ ই-মেইল:</strong> ${emailLink}</div>
+            ${currentOffice ? `<div class="details-info-item"><strong>🏢 বর্তমান ঠিকানা/কর্মস্থল:</strong> ${currentOffice}</div>` : ''}
+            ${permanentAddress ? `<div class="details-info-item"><strong>🏠 স্থায়ী ঠিকানা:</strong> ${permanentAddress}</div>` : ''}
+            ${adminInfo ? `<div class="details-info-item"><strong>📝 প্রশাসনিক তথ্য:</strong> ${adminInfo}</div>` : ''}
+        </div>
+    `;
 }
 
 /* =========================================================
@@ -380,7 +469,7 @@ function renderCategories() {
 }
 
 /* =========================================================
-   CATEGORY DETAILS & DATA CARDS (Category Like View)
+   CATEGORY DETAILS & DATA CARDS
 ========================================================= */
 
 function renderCategoryDetails() {
@@ -481,7 +570,7 @@ function renderCategoryDetails() {
 }
 
 /* =========================================================
-   CREATE DATA CARD ELEMENT (Category Card Like Style)
+   CREATE DATA CARD ELEMENT
 ========================================================= */
 
 function createDataCardElement(item) {
@@ -495,7 +584,6 @@ function createDataCardElement(item) {
     const phone = escapeHTML(item.phone || "");
     const photo = item.photo ? escapeHTML(item.photo) : null;
 
-    // ছবির HTML
     const avatarHtml = photo 
         ? `<img src="${photo}" alt="${name}" class="data-card-avatar" onerror="this.onerror=null;this.replaceWith(document.createElement('div'));this.innerText='👤';">`
         : `<div class="data-card-avatar">👤</div>`;
@@ -521,8 +609,8 @@ function createDataCardElement(item) {
         ${adminActions}
     `;
 
-    // ডাটা কার্ডে ক্লিক করলে মডাল ওপেন হবে
-    dataEl.addEventListener("click", () => showDataDetailsModal(item));
+    // ডাটা কার্ডে ক্লিক করলে সিঙ্গেল ডাটা পেজে নিয়ে যাবে
+    dataEl.addEventListener("click", () => openDataPage(item.id));
 
     if (isAdmin) {
         dataEl.querySelector(".btn-move-data")?.addEventListener("click", e => {
@@ -540,49 +628,6 @@ function createDataCardElement(item) {
     }
 
     return dataEl;
-}
-
-/* =========================================================
-   POPUP FULL DETAILS MODAL
-========================================================= */
-
-function showDataDetailsModal(item) {
-    const modalBody = document.getElementById("detailsModalBody");
-    if (!modalBody) return;
-
-    const name = escapeHTML(item.name || "");
-    const designation = escapeHTML(item.designation || "");
-    const mobile = escapeHTML(item.mobile || "");
-    const phone = escapeHTML(item.phone || "");
-    const email = escapeHTML(item.email || "");
-    const currentOffice = escapeHTML(item.currentOffice || "");
-    const permanentAddress = escapeHTML(item.permanentAddress || "");
-    const adminInfo = escapeHTML(item.adminInfo || "");
-    const photo = item.photo ? escapeHTML(item.photo) : null;
-
-    const avatarHtml = photo 
-        ? `<img src="${photo}" alt="${name}" class="details-avatar">`
-        : `<div class="details-avatar" style="text-align:center; line-height:90px; font-size:40px;">👤</div>`;
-
-    const mobileLink = mobile ? `<a href="tel:${mobile}" style="color: #2563eb; text-decoration: none; font-weight: 600;">📞 ${mobile}</a>` : 'নাই';
-    const phoneLink = phone ? `<a href="tel:${phone}" style="color: #2563eb; text-decoration: none; font-weight: 600;">☎️ ${phone}</a>` : 'নাই';
-    const emailLink = email ? `<a href="mailto:${email}" style="color: #2563eb; text-decoration: none;">✉️ ${email}</a>` : 'নাই';
-
-    modalBody.innerHTML = `
-        ${avatarHtml}
-        <h2 style="text-align:center; margin-bottom:15px;">${name}</h2>
-        <div style="display:flex; flex-direction:column; gap:8px; font-size:14px; line-height:1.5;">
-            ${designation ? `<p><strong>পদবী:</strong> ${designation}</p>` : ''}
-            <p><strong>মোবাইল:</strong> ${mobileLink}</p>
-            <p><strong>টেলিফোন:</strong> ${phoneLink}</p>
-            <p><strong>ই-মেইল:</strong> ${emailLink}</p>
-            ${currentOffice ? `<p><strong>বর্তমান ঠিকানা/কর্মস্থল:</strong> ${currentOffice}</p>` : ''}
-            ${permanentAddress ? `<p><strong>স্থায়ী ঠিকানা:</strong> ${permanentAddress}</p>` : ''}
-            ${adminInfo ? `<p><strong>প্রশাসনিক তথ্য:</strong> ${adminInfo}</p>` : ''}
-        </div>
-    `;
-
-    openModal("dataDetailsModal");
 }
 
 /* =========================================================
@@ -699,7 +744,7 @@ async function saveData() {
 
     await saveDatabase();
     closeModal("dataModal");
-    renderCategoryDetails();
+    refreshCurrentView();
     showToast("Data সেভ করা হয়েছে");
 }
 
@@ -740,7 +785,12 @@ async function deleteData(id) {
 
     database.data = database.data.filter(d => d.id !== id);
     await saveDatabase();
-    renderCategoryDetails();
+    
+    if (currentDataId === id) {
+        history.back();
+    } else {
+        refreshCurrentView();
+    }
     showToast("Data ডিলিট করা হয়েছে");
 }
 
@@ -796,7 +846,7 @@ async function confirmMoveData() {
 
         await saveDatabase();
         closeModal("moveDataModal");
-        renderCategoryDetails();
+        refreshCurrentView();
         showToast("Data সফলভাবে স্থানান্তর করা হয়েছে");
     }
 
