@@ -20,8 +20,8 @@ function escapeHTML(str) {
 let database = { categories: [], headers: [], data: [] };
 let currentCategoryId = null;
 let currentDataId = null;
-let editingItem = null; // Edit tracking
-let movingDataId = null; // Move tracking
+let editingItem = null;
+let movingDataId = null;
 
 window.currentUserRole = "guest";
 
@@ -138,6 +138,18 @@ function generateId(prefix) {
     return prefix + "_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8);
 }
 
+/* পিন করা আইটেমের সর্টিং অ্যালগরিদম (প্রথম পিন করা আইটেম সবার উপরে) */
+function sortItemsByPin(items) {
+    return items.sort((a, b) => {
+        if (a.pinned && b.pinned) {
+            return (a.pinnedAt || 0) - (b.pinnedAt || 0); // যে আগে পিন হয়েছে সে উপরে
+        }
+        if (a.pinned) return -1;
+        if (b.pinned) return 1;
+        return 0;
+    });
+}
+
 function setupEvents() {
     document.getElementById("themeBtn")?.addEventListener("click", toggleTheme);
     document.getElementById("searchBtn")?.addEventListener("click", () => {
@@ -217,8 +229,8 @@ function renderCategories(searchVal = "") {
         categoriesToShow = categoriesToShow.filter(cat => String(cat.name).toLowerCase().includes(searchVal));
     }
 
-    // পিন করা ক্যাটাগরি উপরে থাকবে
-    categoriesToShow.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+    // পিন অনুসারে সর্ট করা
+    categoriesToShow = sortItemsByPin(categoriesToShow);
 
     list.innerHTML = "";
     if (countElement) countElement.textContent = `${categoriesToShow.length}টি Category`;
@@ -298,6 +310,7 @@ async function saveCategory() {
             name: name,
             parentId: currentCategoryId ? currentCategoryId : null,
             pinned: false,
+            pinnedAt: 0,
             createdAt: Date.now()
         });
     }
@@ -312,6 +325,7 @@ async function togglePinCategory(id) {
     const cat = database.categories.find(c => c.id === id);
     if (cat) {
         cat.pinned = !cat.pinned;
+        cat.pinnedAt = cat.pinned ? Date.now() : 0;
         await saveDatabase();
         refreshCurrentView();
         showToast(cat.pinned ? "পিন করা হয়েছে" : "আনপিন করা হয়েছে");
@@ -354,7 +368,9 @@ async function saveHeader() {
         database.headers.push({
             id: generateId("header"),
             categoryId: currentCategoryId,
-            title: title
+            title: title,
+            pinned: false,
+            pinnedAt: 0
         });
     }
 
@@ -362,6 +378,17 @@ async function saveHeader() {
     closeModal("headerModal");
     renderCategoryDetails();
     showToast("Header সেভ করা হয়েছে");
+}
+
+async function togglePinHeader(id) {
+    const header = database.headers.find(h => h.id === id);
+    if (header) {
+        header.pinned = !header.pinned;
+        header.pinnedAt = header.pinned ? Date.now() : 0;
+        await saveDatabase();
+        renderCategoryDetails();
+        showToast(header.pinned ? "হেডার পিন করা হয়েছে" : "হেডার আনপিন করা হয়েছে");
+    }
 }
 
 function editHeader(id) {
@@ -485,7 +512,8 @@ async function saveData() {
             permanentAddress: document.getElementById("dataPermanentAddress")?.value.trim() || "",
             adminInfo: document.getElementById("dataAdminInfo")?.value.trim() || "",
             headerId: document.getElementById("dataHeaderSelect")?.value || null,
-            pinned: false
+            pinned: false,
+            pinnedAt: 0
         });
     }
 
@@ -512,6 +540,7 @@ async function togglePinData(id) {
     const item = database.data.find(d => d.id === id);
     if (item) {
         item.pinned = !item.pinned;
+        item.pinnedAt = item.pinned ? Date.now() : 0;
         await saveDatabase();
         refreshCurrentView();
         showToast(item.pinned ? "ডাটা পিন করা হয়েছে" : "ডাটা আনপিন করা হয়েছে");
@@ -522,7 +551,6 @@ async function togglePinData(id) {
 function openMoveDataModal(id) {
     movingDataId = id;
     const catSelect = document.getElementById("moveCategorySelect");
-    const headSelect = document.getElementById("moveHeaderSelect");
 
     if (catSelect) {
         catSelect.innerHTML = "";
@@ -611,8 +639,10 @@ function renderCategoryDetails(searchVal = "") {
     container.innerHTML = "";
     const isAdmin = window.currentUserRole === "admin";
 
+    /* সাব-ক্যাটাগরি পিন সর্টিং */
     let subCategories = database.categories.filter(cat => cat.parentId === currentCategoryId);
     if (searchVal) subCategories = subCategories.filter(sub => sub.name.toLowerCase().includes(searchVal));
+    subCategories = sortItemsByPin(subCategories);
 
     if (subCategories.length > 0) {
         const subWrapper = document.createElement("div");
@@ -622,16 +652,19 @@ function renderCategoryDetails(searchVal = "") {
             const item = document.createElement("div");
             item.className = "subcategory-card";
 
+            const pinIcon = sub.pinned ? "📌" : "📍";
             const adminActions = isAdmin ? `
                 <div>
+                    <button class="btn-pin-sub custom-action-btn" title="পিন">${pinIcon}</button>
                     <button class="btn-edit-sub custom-action-btn">✏️</button>
                     <button class="btn-del-sub custom-action-btn" style="color:#ef4444">🗑️</button>
                 </div>
             ` : '';
 
-            item.innerHTML = `<div class="sub-click"><h3>${escapeHTML(sub.name)}</h3></div>${adminActions}`;
+            item.innerHTML = `<div class="sub-click"><h3>${escapeHTML(sub.name)} ${sub.pinned ? '<span class="pinned-badge">Pinned</span>' : ''}</h3></div>${adminActions}`;
             item.querySelector(".sub-click").addEventListener("click", () => openCategory(sub.id));
             if (isAdmin) {
+                item.querySelector(".btn-pin-sub")?.addEventListener("click", () => togglePinCategory(sub.id));
                 item.querySelector(".btn-edit-sub")?.addEventListener("click", () => editCategory(sub.id));
                 item.querySelector(".btn-del-sub")?.addEventListener("click", () => deleteCategory(sub.id));
             }
@@ -640,11 +673,12 @@ function renderCategoryDetails(searchVal = "") {
         container.appendChild(subWrapper);
     }
 
-    const headers = database.headers.filter(h => h.categoryId === currentCategoryId);
-    let categoryData = database.data.filter(d => d.categoryId === currentCategoryId);
+    /* হেডার ও ডাটা পিন সর্টিং */
+    let headers = database.headers.filter(h => h.categoryId === currentCategoryId);
+    headers = sortItemsByPin(headers);
 
-    // পিন করা ডাটাগুলো সবার উপরে রেন্ডার করার সর্টিং
-    categoryData.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+    let categoryData = database.data.filter(d => d.categoryId === currentCategoryId);
+    categoryData = sortItemsByPin(categoryData);
 
     if (searchVal) {
         categoryData = categoryData.filter(d => 
@@ -661,8 +695,10 @@ function renderCategoryDetails(searchVal = "") {
             const headerBox = document.createElement("div");
             headerBox.className = "header-box";
 
+            const pinIcon = header.pinned ? "📌" : "📍";
             const adminActions = isAdmin ? `
                 <div>
+                    <button class="btn-pin-head custom-action-btn" title="পিন">${pinIcon}</button>
                     <button class="btn-edit-head custom-action-btn">✏️</button>
                     <button class="btn-del-head custom-action-btn" style="color:#ef4444">🗑️</button>
                 </div>
@@ -670,12 +706,13 @@ function renderCategoryDetails(searchVal = "") {
 
             headerBox.innerHTML = `
                 <div class="header-banner">
-                    <span>${escapeHTML(header.title)}</span>
+                    <span>${escapeHTML(header.title)} ${header.pinned ? '📌' : ''}</span>
                     ${adminActions}
                 </div>
             `;
 
             if (isAdmin) {
+                headerBox.querySelector(".btn-pin-head")?.addEventListener("click", () => togglePinHeader(header.id));
                 headerBox.querySelector(".btn-edit-head")?.addEventListener("click", () => editHeader(header.id));
                 headerBox.querySelector(".btn-del-head")?.addEventListener("click", () => deleteHeader(header.id));
             }
