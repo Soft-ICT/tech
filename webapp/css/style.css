@@ -473,7 +473,7 @@ body {
     margin-top: 20px;
 }
 
-/* হেডারের ডায়নামিক টেক্সট এলাইনমেন্ট (ইউজার = সেন্টার, এডমিন = লেফট) */
+/* ইউজার মোডে হেডারের টেক্সট সেন্টার এবং এডমিন মোডে বামে */
 .topbar.admin-header .app-title {
     justify-content: flex-start !important;
 }
@@ -481,6 +481,18 @@ body {
 .topbar.user-header .app-title {
     justify-content: center !important;
 }
+
+/* পিন করা ব্যাজ (শুধুমাত্র এডমিনের জন্য দৃশ্যমান) */
+.pinned-badge {
+    background-color: #f59e0b;
+    color: #fff;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-left: 8px;
+    font-weight: 600;
+}
+
 
 /* পিন আইটেম স্টাইল */
 .pinned-badge {
