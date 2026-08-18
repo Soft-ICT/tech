@@ -40,34 +40,106 @@ watchAuth((user, role) => {
     loadDatabase();
 });
 
-/* এডমিন ও ইউজারের হেডারের এলাইনমেন্ট ডায়নামিক করার ফাংশন */
+/* =========================================
+   ADMIN / USER UI + HEADER ALIGNMENT
+========================================= */
+
 function updateAdminUI() {
+
     const isAdmin = window.currentUserRole === "admin";
+
     const topbar = document.querySelector(".topbar");
 
+    /* -----------------------------------------
+       Header Admin / User Class
+    ----------------------------------------- */
+
     if (topbar) {
+
         if (isAdmin) {
+
+            // Admin হলে
             topbar.classList.add("admin-header");
             topbar.classList.remove("user-header");
+
         } else {
+
+            // User / Guest হলে
             topbar.classList.add("user-header");
             topbar.classList.remove("admin-header");
+
         }
     }
 
+
+    /* -----------------------------------------
+       Body Admin / User Mode
+       CSS থেকে Title-এর position নিয়ন্ত্রণ হবে
+    ----------------------------------------- */
+
+    document.body.classList.toggle(
+        "admin-mode",
+        isAdmin
+    );
+
+    document.body.classList.toggle(
+        "user-mode",
+        !isAdmin
+    );
+
+
+    /* -----------------------------------------
+       Admin Only Elements
+    ----------------------------------------- */
+
     document.querySelectorAll(".admin-only").forEach(el => {
-        if (isAdmin) el.classList.remove("hidden");
-        else el.classList.add("hidden");
+
+        if (isAdmin) {
+
+            el.classList.remove("hidden");
+
+        } else {
+
+            el.classList.add("hidden");
+
+        }
+
     });
 
-    const loginForm = document.getElementById("loginFormContainer");
-    const logoutContainer = document.getElementById("logoutContainer");
 
-    if (loginForm) loginForm.style.display = isAdmin ? "none" : "block";
-    if (logoutContainer) {
-        if (isAdmin) logoutContainer.classList.remove("hidden");
-        else logoutContainer.classList.add("hidden");
+    /* -----------------------------------------
+       Login / Logout Container
+    ----------------------------------------- */
+
+    const loginForm =
+        document.getElementById("loginFormContainer");
+
+    const logoutContainer =
+        document.getElementById("logoutContainer");
+
+
+    if (loginForm) {
+
+        loginForm.style.display =
+            isAdmin ? "none" : "block";
+
     }
+
+
+    if (logoutContainer) {
+
+        if (isAdmin) {
+
+            logoutContainer.classList.remove("hidden");
+
+        } else {
+
+            logoutContainer.classList.add("hidden");
+
+        }
+
+    }
+
 }
 
 document.addEventListener("DOMContentLoaded", () => {
