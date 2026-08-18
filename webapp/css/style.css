@@ -1,8 +1,11 @@
+/* ==========================================
+   1. Reset & Root Variables
+   ========================================== */
 * {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
-    font-family: 'Hind Siliguri', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Hind Siliguri', sans-serif;
 }
 
 :root {
@@ -10,99 +13,78 @@
     --card-bg: #ffffff;
     --text-main: #0f172a;
     --text-muted: #64748b;
-    --border-color: #e2e8f0;
     --primary-color: #2563eb;
     --primary-hover: #1d4ed8;
-    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 10px 20px -3px rgba(0, 0, 0, 0.08);
-}
-
-body.dark-mode {
-    --bg-color: #0f172a;
-    --card-bg: #1e293b;
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8;
-    --border-color: #334155;
-    --primary-color: #3b82f6;
-    --primary-hover: #2563eb;
-    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 10px 20px -3px rgba(0, 0, 0, 0.5);
+    --border-color: #e2e8f0;
+    --header-bg: #e2e8f0;
+    --danger-color: #ef4444;
+    --danger-hover: #dc2626;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 body {
     background-color: var(--bg-color);
     color: var(--text-main);
-    transition: background-color 0.3s ease, color 0.3s ease;
-    padding-bottom: 40px;
+    line-height: 1.5;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 15px;
 }
 
 .hidden {
     display: none !important;
 }
 
-/* --- Navigation / Topbar (হেডারের হাইট ও টেক্সট সেন্টার) --- */
+/* ==========================================
+   2. Header & Topbar Component
+   ========================================== */
 .topbar {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    height: 70px; /* হাইট বাড়ানো হয়েছে */
-    padding: 0 20px;
+    align-items: center;
+    padding: 12px 20px;
     background-color: var(--card-bg);
-    border-bottom: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
     position: sticky;
     top: 0;
     z-index: 100;
-    box-shadow: var(--shadow-sm);
 }
 
-.app-title {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-size: 19px;
+.app-title-text {
+    font-size: 1.2rem;
     font-weight: 700;
-    height: 100%;
-    line-height: 1;
 }
 
 .top-actions {
     display: flex;
-    align-items: center;
     gap: 8px;
+    align-items: center;
 }
 
-/* ছোট সাইজের এডমিন বাটন */
-.btn-admin-small {
-    padding: 5px 10px !important;
-    font-size: 12px !important;
-    border-radius: 6px !important;
-}
-
+/* Base Buttons */
+.primary-btn, 
+.secondary-btn, 
+.danger-btn, 
 .icon-btn {
-    background: transparent;
-    border: 1px solid var(--border-color);
-    color: var(--text-main);
-    padding: 8px 12px;
+    padding: 8px 16px;
     border-radius: 8px;
+    border: none;
+    font-weight: 600;
     cursor: pointer;
-    font-size: 15px;
-    transition: all 0.2s;
-}
-
-.icon-btn:hover {
-    background-color: var(--border-color);
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .primary-btn {
     background-color: var(--primary-color);
     color: #ffffff;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s;
 }
 
 .primary-btn:hover {
@@ -110,46 +92,60 @@ body {
 }
 
 .secondary-btn {
-    background-color: transparent;
+    background-color: #e2e8f0;
     color: var(--text-main);
-    border: 1px solid var(--border-color);
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
+}
+
+.secondary-btn:hover {
+    background-color: #cbd5e1;
 }
 
 .danger-btn {
-    background-color: #ef4444;
+    background-color: var(--danger-color);
     color: #ffffff;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    cursor: pointer;
 }
 
-/* --- Container --- */
-.container {
-    max-width: 800px;
-    margin: 20px auto;
-    padding: 0 16px;
+.danger-btn:hover {
+    background-color: var(--danger-hover);
+}
+
+.icon-btn {
+    background: transparent;
+    font-size: 1.2rem;
+    padding: 6px;
+    border-radius: 6px;
+}
+
+.icon-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* ==========================================
+   3. Search & Toolbar
+   ========================================== */
+.search-box {
+    margin: 15px 0;
+    display: flex;
+    gap: 10px;
+    background: var(--card-bg);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.search-box input {
+    width: 100%;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    background: transparent;
 }
 
 .dashboard-header {
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: center;
     margin-bottom: 20px;
-}
-
-.dashboard-header h1 {
-    font-size: 24px;
-    font-weight: 700;
-}
-
-.dashboard-header p {
-    color: var(--text-muted);
-    font-size: 14px;
 }
 
 .header-left {
@@ -158,312 +154,177 @@ body {
     gap: 12px;
 }
 
-/* --- Category & Subcategory Cards --- */
-.category-card, .subcategory-card {
-    height: 90px;
+.section-toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+/* ==========================================
+   4. Custom Header Item (User / Admin Logic)
+   ========================================== */
+
+/* 🔵 সাধারণ ইউজার ভিউ (ডিফল্ট): টেক্সট সেন্টার এলাইন হবে, অপশন বাটনগুলো হাইড থাকবে */
+.header-item, 
+.details-header-card,
+div[data-type="header"] {
+    background-color: var(--header-bg);
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin: 10px 0;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-    margin-bottom: 14px;
-    border-radius: 16px;
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
+    justify-content: center; /* ইউজারের জন্য সেন্টারে থাকবে */
+    text-align: center;
+    width: 100%;
+    transition: all 0.3s ease;
     box-shadow: var(--shadow-sm);
-    transition: all 0.25s ease;
 }
 
-.category-card:hover, .subcategory-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-md);
-}
-
-.cat-click, .sub-click {
-    flex-grow: 1;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    height: 100%;
-}
-
-.category-card h3, .subcategory-card h3 {
-    font-size: 19px;
+.header-item .header-title,
+.details-header-card .header-title,
+div[data-type="header"] .header-title {
+    font-size: 1.1rem;
     font-weight: 700;
     color: var(--text-main);
+    text-align: center;
 }
 
-/* --- Data Cards --- */
-.data-card-item {
-    height: 120px;
-    display: flex;
+/* সাধারণ ইউজারদের জন্য এডিট/ডিলিট/পিন অপশন হাইড */
+.header-item .header-actions,
+.details-header-card .header-actions,
+div[data-type="header"] .action-btns,
+.header-item .pin-btn,
+.header-item .edit-btn,
+.header-item .delete-btn {
+    display: none !important;
+}
+
+/* 🟢 এডমিন ভিউ: body-তে 'admin-mode' ক্লাস থাকলে টেক্সট বামে যাবে এবং অপশন বাটন ডানে আসবে */
+body.admin-mode .header-item,
+body.admin-mode .details-header-card,
+body.admin-mode div[data-type="header"],
+.admin-mode .header-item {
+    justify-content: space-between !important;
+    text-align: left !important;
+}
+
+body.admin-mode .header-item .header-title,
+body.admin-mode .details-header-card .header-title,
+body.admin-mode div[data-type="header"] .header-title,
+.admin-mode .header-item .header-title {
+    text-align: left !important;
+}
+
+/* এডমিন মোডে একশন বাটনগুলো ভিজিবল করা */
+body.admin-mode .header-item .header-actions,
+body.admin-mode .details-header-card .header-actions,
+body.admin-mode div[data-type="header"] .action-btns,
+body.admin-mode .header-item .pin-btn,
+body.admin-mode .header-item .edit-btn,
+body.admin-mode .header-item .delete-btn,
+.admin-mode .header-item .header-actions {
+    display: flex !important;
     align-items: center;
-    padding: 12px 18px;
-    margin-bottom: 12px;
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
-    cursor: pointer;
-    box-shadow: var(--shadow-sm);
-    transition: all 0.25s ease;
+    gap: 8px;
 }
 
-.data-card-item:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+/* পিনড ব্যাজ স্টাইল */
+.pinned-badge {
+    background-color: #f59e0b;
+    color: #ffffff;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-left: 8px;
+    font-weight: 600;
 }
 
-.data-card-avatar {
-    width: 65px;
-    height: 65px;
-    min-width: 65px;
-    border-radius: 50%;
-    margin-right: 16px;
-    background: var(--border-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 30px;
-    object-fit: cover;
+/* এডমিন ছাড়া যা যা উপাদান হাইড থাকবে */
+body:not(.admin-mode) .admin-only {
+    display: none !important;
 }
 
-.data-card-info {
+/* ==========================================
+   5. Cards & Details Components
+   ========================================== */
+.category-list, 
+.details-container-card {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    gap: 2px;
-    flex-grow: 1;
-    overflow: hidden;
+    gap: 10px;
 }
 
-.data-card-name {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text-main);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.data-card-detail {
-    font-size: 13.5px;
-    color: var(--text-muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.custom-action-btn {
-    background: transparent;
-    border: none;
-    font-size: 16px;
-    cursor: pointer;
-    padding: 4px;
-}
-
-/* --- Single Data Full View Page --- */
 .details-container-card {
     background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 24px;
-    padding: 28px 20px;
-    box-shadow: var(--shadow-md);
-}
-
-.details-header-section {
-    text-align: center;
-    margin-bottom: 24px;
-}
-
-.avatar-wrapper {
-    position: relative;
-    display: inline-block;
-    margin-bottom: 12px;
-}
-
-.details-avatar-large {
-    width: 110px;
-    height: 110px;
-    border-radius: 50%;
-    object-fit: cover;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--border-color);
-    font-size: 50px;
-    border: 4px solid var(--card-bg);
-    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
-}
-
-/* ৪টি বাটন গ্রিড */
-.quick-action-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    margin-bottom: 24px;
-}
-
-.action-btn-round {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 12px 16px;
-    border-radius: 50px;
-    font-weight: 700;
-    font-size: 14px;
-    color: #ffffff !important;
-    border: none;
-    cursor: pointer;
-    text-decoration: none;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
-    transition: transform 0.2s, box-shadow 0.2s;
-    user-select: none;
-}
-
-.action-btn-round:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-}
-
-.btn-call-round { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
-.btn-phone-round { background: linear-gradient(135deg, #4b5563, #374151); }
-.btn-email-round { background: linear-gradient(135deg, #ea4335, #c5221f); }
-.btn-share-round { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
-
-.details-info-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.details-info-box {
-    background-color: var(--bg-color);
-    padding: 14px 18px;
-    border-radius: 16px;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
     border: 1px solid var(--border-color);
 }
 
-.info-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-muted);
-    margin-bottom: 4px;
-    text-transform: uppercase;
-}
-
-.info-value {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--text-main);
-}
-
-/* --- Search Box & Headers --- */
-.search-box {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-}
-
-.search-box input {
-    flex-grow: 1;
-    padding: 10px 16px;
-    border-radius: 10px;
-    border: 1px solid var(--border-color);
-    background-color: var(--card-bg);
-    color: var(--text-main);
-}
-
-.search-box button {
-    background: transparent;
-    border: 1px solid var(--border-color);
-    color: var(--text-main);
-    padding: 0 14px;
-    border-radius: 10px;
-    cursor: pointer;
-}
-
-.header-box {
-    margin-bottom: 20px;
-}
-
-.header-banner {
-    background-color: var(--border-color);
-    padding: 8px 14px;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: bold;
-}
-
-.empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    background-color: var(--card-bg);
-    border-radius: 16px;
-    border: 1px solid var(--border-color);
-}
-
-.empty-icon { font-size: 40px; margin-bottom: 10px; }
-
-/* --- Modals & Toast --- */
+/* ==========================================
+   6. Modals
+   ========================================== */
 .modal {
     position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
+    top: 0; 
+    left: 0; 
+    right: 0; 
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(2px);
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
     z-index: 1000;
-    padding: 16px;
 }
 
 .modal-content {
-    background-color: var(--card-bg);
-    color: var(--text-main);
-    border-radius: 20px;
+    background: var(--card-bg);
     padding: 24px;
-    width: 100%;
-    max-width: 480px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
     max-height: 90vh;
     overflow-y: auto;
-    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-md);
 }
 
 .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
-}
-
-.close-btn {
-    background: transparent;
-    border: none;
-    font-size: 20px;
-    color: var(--text-main);
-    cursor: pointer;
+    margin-bottom: 20px;
 }
 
 .form-group {
-    margin-bottom: 14px;
+    margin-bottom: 15px;
 }
 
 .form-group label {
     display: block;
     margin-bottom: 6px;
-    font-size: 13px;
     font-weight: 600;
+    font-size: 0.9rem;
 }
 
-.form-group input, .form-group textarea, .form-group select {
+.form-group input, 
+.form-group select, 
+.form-group textarea {
     width: 100%;
     padding: 10px 12px;
-    border-radius: 8px;
     border: 1px solid var(--border-color);
-    background-color: var(--bg-color);
-    color: var(--text-main);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.form-group input:focus, 
+.form-group select:focus, 
+.form-group textarea:focus {
+    border-color: var(--primary-color);
 }
 
 .modal-actions {
@@ -474,55 +335,8 @@ body {
 }
 
 /* ==========================================
-   ১. হেডার ও টাইটেল এলাইনমেন্ট (ইউজার ও এডমিন)
+   7. Toast Notification & Misc
    ========================================== */
-
-/* শীর্ষ বার ফ্লেক্স বক্স কনফিগারেশন */
-.topbar {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    position: relative;
-}
-
-/* টাইটেল কন্টেইনার সব জায়গা জুড়ে থাকবে */
-.topbar .app-title {
-    display: flex;
-    align-items: center;
-    flex-grow: 1;
-    width: 100%;
-}
-
-/* ইউজারের ক্ষেত্রে হেডার টেক্সট একদম সেন্টারে থাকবে */
-.topbar.user-header .app-title {
-    justify-content: center !important;
-    text-align: center !important;
-}
-
-/* এডমিনের ক্ষেত্রে হেডার টেক্সট বামে থাকবে */
-.topbar.admin-header .app-title {
-    justify-content: flex-start !important;
-    text-align: left !important;
-}
-
-/* ==========================================
-   ২. পিন আইটেম স্টাইল
-   ========================================== */
-
-.pinned-badge {
-    background-color: #f59e0b;
-    color: #fff;
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 12px;
-    margin-left: 8px;
-    font-weight: 600;
-}
-
-/* ==========================================
-   ৩. নোটিফিকেশন টোস্ট ও টুলবার স্টাইল
-   ========================================== */
-
 .toast {
     position: fixed;
     bottom: 20px;
@@ -536,6 +350,7 @@ body {
     opacity: 0;
     transition: all 0.3s ease;
     z-index: 2000;
+    box-shadow: var(--shadow-md);
 }
 
 .toast.show {
@@ -543,61 +358,26 @@ body {
     opacity: 1;
 }
 
-.section-toolbar {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-
-
-/* পিন করা ব্যাজ (শুধুমাত্র এডমিনের জন্য দৃশ্যমান) */
-.pinned-badge {
-    background-color: #f59e0b;
-    color: #fff;
-    font-size: 11px;
-    padding: 2px 8px;
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    background: var(--card-bg);
     border-radius: 12px;
-    margin-left: 8px;
+    border: 1px dashed var(--border-color);
+}
+
+.empty-icon {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+.logout-box {
+    text-align: center;
+    padding: 10px 0;
+}
+
+.status-ok {
+    color: #16a34a;
     font-weight: 600;
-}
-
-
-/* পিন আইটেম স্টাইল */
-.pinned-badge {
-    background-color: #f59e0b;
-    color: #fff;
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 12px;
-    margin-left: 8px;
-    font-weight: 600;
-}
-
-
-
-.toast {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background-color: var(--text-main);
-    color: var(--bg-color);
-    padding: 10px 20px;
-    border-radius: 50px;
-    font-weight: 600;
-    opacity: 0;
-    transition: all 0.3s ease;
-    z-index: 2000;
-}
-
-.toast.show {
-    transform: translateX(-50%) translateY(0);
-    opacity: 1;
-}
-
-.section-toolbar {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
