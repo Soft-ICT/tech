@@ -9,7 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css?v=3">
 </head>
-<body>
+<!-- এডমিন সক্রিয় করতে body ট্যাগে 'admin-mode' ক্লাস যোগ হবে -->
+<body class="admin-mode">
 
 <header class="topbar">
     <button id="menuBtn" class="icon-btn">☰</button>
@@ -57,7 +58,7 @@
     </div>
 
     <!-- Page 2: Category Details View -->
-    <div id="categoryDetailsView" class="hidden">
+    <div id="categoryDetailsView">
         <section class="dashboard-header">
             <div class="header-left">
                 <button id="backToMainBtn" class="secondary-btn">← ব্যাকে যান</button>
@@ -74,7 +75,27 @@
             <button id="addDataBtn" class="secondary-btn">＋ Data</button>
         </div>
 
-        <div id="detailsContent"></div>
+        <!-- ডাইনামিক হেডার কনটেন্ট স্ট্রাকচার উদাহরণ -->
+        <div id="detailsContent">
+            <!-- অ্যাডমিন/ইউজার ভিত্তিক হেডার আইটেমউদাহরণ -->
+            <div class="header-item">
+                <span class="header-title">আসসালামু আলাইকুম</span>
+                <div class="header-actions">
+                    <button class="icon-btn">📌</button>
+                    <button class="icon-btn">✏️</button>
+                    <button class="icon-btn">🗑️</button>
+                </div>
+            </div>
+            
+            <div class="header-item">
+                <span class="header-title">ওয়ালাইকুম আসসালাম</span>
+                <div class="header-actions">
+                    <button class="icon-btn">📌</button>
+                    <button class="icon-btn">✏️</button>
+                    <button class="icon-btn">🗑️</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Page 3: Single Data Details View -->
