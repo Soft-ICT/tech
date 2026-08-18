@@ -1,8 +1,24 @@
-import { watchAuth, loginAdmin, logoutAdmin } from "./auth.js";
-import { ref, set, get } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
-import { db } from "./firebase.js";
+import {
+    watchAuth,
+    loginAdmin,
+    logoutAdmin
+} from "./auth.js";
+
+import {
+    ref,
+    set,
+    get
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+import {
+    db
+} from "./firebase.js";
 
 "use strict";
+
+/* =========================================
+   HTML Escape
+========================================= */
 
 function escapeHTML(str) {
     return String(str || "").replace(
@@ -17,7 +33,16 @@ function escapeHTML(str) {
     );
 }
 
-let database = { categories: [], headers: [], data: [] };
+/* =========================================
+   Global Variables
+========================================= */
+
+let database = {
+    categories: [],
+    headers: [],
+    data: []
+};
+
 let currentCategoryId = null;
 let currentDataId = null;
 let editingItem = null;
@@ -25,122 +50,76 @@ let movingDataId = null;
 
 window.currentUserRole = "guest";
 
+/* =========================================
+   Authentication
+========================================= */
+
 watchAuth((user, role) => {
     const adminBtn = document.getElementById("adminLoginBtn");
+
     if (!user) {
         window.currentUser = null;
         window.currentUserRole = "guest";
-        if (adminBtn) adminBtn.textContent = "🔑 Admin";
+        if (adminBtn) {
+            adminBtn.textContent = "🔑 Admin";
+        }
     } else {
         window.currentUser = user;
         window.currentUserRole = role || "admin";
-        if (adminBtn) adminBtn.textContent = "👤 Admin";
+        if (adminBtn) {
+            adminBtn.textContent = "👤 Admin";
+        }
     }
+
     updateAdminUI();
     loadDatabase();
 });
 
 /* =========================================
-   ADMIN / USER UI + HEADER ALIGNMENT
+   Admin / User UI
 ========================================= */
 
 function updateAdminUI() {
-
     const isAdmin = window.currentUserRole === "admin";
-
     const topbar = document.querySelector(".topbar");
 
-    /* -----------------------------------------
-       Header Admin / User Class
-    ----------------------------------------- */
-
     if (topbar) {
-
         if (isAdmin) {
-
-            // Admin হলে
             topbar.classList.add("admin-header");
             topbar.classList.remove("user-header");
-
         } else {
-
-            // User / Guest হলে
             topbar.classList.add("user-header");
             topbar.classList.remove("admin-header");
-
         }
     }
-
-
-    /* -----------------------------------------
-       Body Admin / User Mode
-       CSS থেকে Title-এর position নিয়ন্ত্রণ হবে
-    ----------------------------------------- */
-
-    document.body.classList.toggle(
-        "admin-mode",
-        isAdmin
-    );
-
-    document.body.classList.toggle(
-        "user-mode",
-        !isAdmin
-    );
-
-
-    /* -----------------------------------------
-       Admin Only Elements
-    ----------------------------------------- */
 
     document.querySelectorAll(".admin-only").forEach(el => {
-
         if (isAdmin) {
-
             el.classList.remove("hidden");
-
         } else {
-
             el.classList.add("hidden");
-
         }
-
     });
 
-
-    /* -----------------------------------------
-       Login / Logout Container
-    ----------------------------------------- */
-
-    const loginForm =
-        document.getElementById("loginFormContainer");
-
-    const logoutContainer =
-        document.getElementById("logoutContainer");
-
+    const loginForm = document.getElementById("loginFormContainer");
+    const logoutContainer = document.getElementById("logoutContainer");
 
     if (loginForm) {
-
-        loginForm.style.display =
-            isAdmin ? "none" : "block";
-
+        loginForm.style.display = isAdmin ? "none" : "block";
     }
-
 
     if (logoutContainer) {
-
         if (isAdmin) {
-
             logoutContainer.classList.remove("hidden");
-
         } else {
-
             logoutContainer.classList.add("hidden");
-
         }
-
     }
-
 }
+
+/* =========================================
+   DOM Ready
+========================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
     setupEvents();
@@ -151,8 +130,13 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener("popstate", handlePopState);
 });
 
+/* =========================================
+   Browser Back
+========================================= */
+
 function handlePopState(event) {
     const state = event.state;
+
     if (!state || state.page === "home") {
         showMainDashboardView(false);
     } else if (state.page === "category") {
@@ -161,6 +145,10 @@ function handlePopState(event) {
         showDataPage(state.dataId, false);
     }
 }
+
+/* =========================================
+   Theme
+========================================= */
 
 function initTheme() {
     if (localStorage.getItem("theme") === "dark") {
@@ -172,20 +160,31 @@ function toggleTheme() {
     document.body.classList.toggle("dark-mode");
     const isDark = document.body.classList.contains("dark-mode");
     localStorage.setItem("theme", isDark ? "dark" : "light");
+
     showToast(isDark ? "নাইট মোড অন করা হয়েছে" : "ডে মোড অন করা হয়েছে");
 }
+
+/* =========================================
+   Firebase Database Load
+========================================= */
 
 async function loadDatabase() {
     try {
         const snapshot = await get(ref(db, "webapp/public_data"));
+
         if (snapshot.exists()) {
             database = snapshot.val();
             if (!database.categories) database.categories = [];
             if (!database.headers) database.headers = [];
             if (!database.data) database.data = [];
         } else {
-            database = { categories: [], headers: [], data: [] };
+            database = {
+                categories: [],
+                headers: [],
+                data: []
+            };
         }
+
         refreshCurrentView();
     } catch (error) {
         console.error("Database load error:", error);
@@ -193,11 +192,16 @@ async function loadDatabase() {
     }
 }
 
+/* =========================================
+   Firebase Database Save
+========================================= */
+
 async function saveDatabase() {
     if (window.currentUserRole !== "admin") {
         showToast("শুধুমাত্র Admin পরিবর্তন সেভ করতে পারবেন");
         return;
     }
+
     try {
         await set(ref(db, "webapp/public_data"), database);
     } catch (error) {
@@ -206,11 +210,18 @@ async function saveDatabase() {
     }
 }
 
+/* =========================================
+   Generate ID
+========================================= */
+
 function generateId(prefix) {
     return prefix + "_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8);
 }
 
-/* পিন করার ক্রম অনুযায়ী সর্টিং (প্রথম পিন উপরে, পরে পিন করা নিচে) */
+/* =========================================
+   Pin Sorting
+========================================= */
+
 function sortItemsByPin(items) {
     return items.sort((a, b) => {
         if (a.pinned && b.pinned) {
@@ -222,11 +233,17 @@ function sortItemsByPin(items) {
     });
 }
 
+/* =========================================
+   Setup Events
+========================================= */
+
 function setupEvents() {
     document.getElementById("themeBtn")?.addEventListener("click", toggleTheme);
+
     document.getElementById("searchBtn")?.addEventListener("click", () => {
         const searchBox = document.getElementById("searchBox");
         searchBox?.classList.toggle("hidden");
+
         if (!searchBox?.classList.contains("hidden")) {
             document.getElementById("searchInput")?.focus();
         }
@@ -239,15 +256,19 @@ function setupEvents() {
     });
 
     document.getElementById("searchInput")?.addEventListener("input", handleSearch);
+
     document.getElementById("adminLoginBtn")?.addEventListener("click", () => openModal("loginModal"));
 
     document.getElementById("submitLoginBtn")?.addEventListener("click", async () => {
         const email = document.getElementById("loginEmail")?.value.trim();
         const password = document.getElementById("loginPassword")?.value.trim();
 
-        if (!email || !password) return showToast("ইমেইল এবং পাসওয়ার্ড দিন");
+        if (!email || !password) {
+            return showToast("ইমেইল এবং পাসওয়ার্ড দিন");
+        }
 
         const res = await loginAdmin(email, password);
+
         if (res.success) {
             showToast("অ্যাডমিন লগইন সফল হয়েছে!");
             closeModal("loginModal");
@@ -268,11 +289,13 @@ function setupEvents() {
     document.getElementById("emptyAddBtn")?.addEventListener("click", () => openCategoryModal(false));
     document.getElementById("addSubCategoryBtn")?.addEventListener("click", () => openCategoryModal(true));
     document.getElementById("saveCategoryBtn")?.addEventListener("click", saveCategory);
+
     document.getElementById("saveHeaderBtn")?.addEventListener("click", saveHeader);
     document.getElementById("saveDataBtn")?.addEventListener("click", saveData);
     document.getElementById("confirmMoveBtn")?.addEventListener("click", confirmMoveData);
-    document.getElementById("addHeaderBtn")?.addEventListener("click", openHeaderModal);
-    document.getElementById("addDataBtn")?.addEventListener("click", openDataModal);
+
+    document.getElementById("addHeaderBtn")?.addEventListener("click", () => openHeaderModal());
+    document.getElementById("addDataBtn")?.addEventListener("click", () => openDataModal());
 
     document.getElementById("backToMainBtn")?.addEventListener("click", () => history.back());
     document.getElementById("backFromDataBtn")?.addEventListener("click", () => history.back());
@@ -282,29 +305,45 @@ function setupEvents() {
     });
 }
 
+/* =========================================
+   Search
+========================================= */
+
 function handleSearch() {
     const searchVal = document.getElementById("searchInput")?.value.trim().toLowerCase();
-    if (currentCategoryId) renderCategoryDetails(searchVal);
-    else renderCategories(searchVal);
+
+    if (currentCategoryId) {
+        renderCategoryDetails(searchVal);
+    } else {
+        renderCategories(searchVal);
+    }
 }
 
-/* ---------------- Category Renders & Actions ---------------- */
+/* =========================================
+   Render Categories
+========================================= */
+
 function renderCategories(searchVal = "") {
     const list = document.getElementById("categoryList");
     const emptyState = document.getElementById("emptyState");
     const countElement = document.getElementById("categoryCount");
+
     if (!list || !emptyState) return;
 
     let categoriesToShow = database.categories.filter(cat => !cat.parentId);
 
     if (searchVal) {
-        categoriesToShow = categoriesToShow.filter(cat => String(cat.name).toLowerCase().includes(searchVal));
+        categoriesToShow = categoriesToShow.filter(cat =>
+            String(cat.name).toLowerCase().includes(searchVal)
+        );
     }
 
     categoriesToShow = sortItemsByPin(categoriesToShow);
-
     list.innerHTML = "";
-    if (countElement) countElement.textContent = `${categoriesToShow.length}টি Category`;
+
+    if (countElement) {
+        countElement.textContent = `${categoriesToShow.length}টি Category`;
+    }
 
     if (categoriesToShow.length === 0) {
         emptyState.classList.remove("hidden");
@@ -322,20 +361,27 @@ function renderCategories(searchVal = "") {
         card.className = "category-card";
 
         const pinIcon = category.pinned ? "📌" : "📍";
-        const adminActions = isAdmin ? `
-            <div class="action-btn-group">
-                <button class="btn-pin-cat custom-action-btn" title="পিন করুন">${pinIcon}</button>
-                <button class="btn-edit-cat custom-action-btn">✏️</button>
-                <button class="btn-del-cat custom-action-btn" style="color:#ef4444">🗑️</button>
-            </div>
-        ` : '';
 
-        // পিন মার্ক গোপন করা হচ্ছে ইউজার মোডের জন্য
-        const pinBadge = (isAdmin && category.pinned) ? '<span class="pinned-badge">Pinned</span>' : '';
+        const adminActions = isAdmin
+            ? `
+                <div class="action-btn-group">
+                    <button class="btn-pin-cat custom-action-btn" title="পিন করুন">${pinIcon}</button>
+                    <button class="btn-edit-cat custom-action-btn">✏️</button>
+                    <button class="btn-del-cat custom-action-btn" style="color:#ef4444">🗑️</button>
+                </div>
+            `
+            : "";
+
+        const pinBadge = (isAdmin && category.pinned)
+            ? '<span class="pinned-badge">Pinned</span>'
+            : "";
 
         card.innerHTML = `
             <div class="cat-click">
-                <h3>${escapeHTML(category.name)} ${pinBadge}</h3>
+                <h3>
+                    ${escapeHTML(category.name)}
+                    ${pinBadge}
+                </h3>
             </div>
             ${adminActions}
         `;
@@ -343,9 +389,20 @@ function renderCategories(searchVal = "") {
         card.querySelector(".cat-click").addEventListener("click", () => openCategory(category.id));
 
         if (isAdmin) {
-            card.querySelector(".btn-pin-cat")?.addEventListener("click", e => { e.stopPropagation(); togglePinCategory(category.id); });
-            card.querySelector(".btn-edit-cat")?.addEventListener("click", e => { e.stopPropagation(); editCategory(category.id); });
-            card.querySelector(".btn-del-cat")?.addEventListener("click", e => { e.stopPropagation(); deleteCategory(category.id); });
+            card.querySelector(".btn-pin-cat")?.addEventListener("click", e => {
+                e.stopPropagation();
+                togglePinCategory(category.id);
+            });
+
+            card.querySelector(".btn-edit-cat")?.addEventListener("click", e => {
+                e.stopPropagation();
+                editCategory(category.id);
+            });
+
+            card.querySelector(".btn-del-cat")?.addEventListener("click", e => {
+                e.stopPropagation();
+                deleteCategory(category.id);
+            });
         }
 
         list.appendChild(card);
@@ -354,9 +411,15 @@ function renderCategories(searchVal = "") {
     updateAdminUI();
 }
 
+/* =========================================
+   Category Modal
+========================================= */
+
 function openCategoryModal(isSubCategory = false, editObj = null) {
     if (window.currentUserRole !== "admin") return;
+
     editingItem = editObj;
+
     const title = document.getElementById("categoryModalTitle");
     const input = document.getElementById("categoryNameInput");
 
@@ -367,13 +430,22 @@ function openCategoryModal(isSubCategory = false, editObj = null) {
         title.textContent = isSubCategory ? "নতুন Sub-Category" : "নতুন Category";
         input.value = "";
     }
+
     openModal("categoryModal");
 }
 
+/* =========================================
+   Save Category
+========================================= */
+
 async function saveCategory() {
     if (window.currentUserRole !== "admin") return;
+
     const name = document.getElementById("categoryNameInput")?.value.trim();
-    if (!name) return showToast("Category Name লিখুন");
+
+    if (!name) {
+        return showToast("Category Name লিখুন");
+    }
 
     if (editingItem) {
         editingItem.name = name;
@@ -395,45 +467,77 @@ async function saveCategory() {
     showToast("সেভ করা হয়েছে");
 }
 
+/* =========================================
+   Pin Category
+========================================= */
+
 async function togglePinCategory(id) {
     const cat = database.categories.find(c => c.id === id);
+
     if (cat) {
         cat.pinned = !cat.pinned;
         cat.pinnedAt = cat.pinned ? Date.now() : 0;
+
         await saveDatabase();
         refreshCurrentView();
         showToast(cat.pinned ? "পিন করা হয়েছে" : "আনপিন করা হয়েছে");
     }
 }
 
+/* =========================================
+   Edit Category
+========================================= */
+
 function editCategory(id) {
     const cat = database.categories.find(c => c.id === id);
     if (cat) openCategoryModal(false, cat);
 }
 
+/* =========================================
+   Delete Category
+========================================= */
+
 async function deleteCategory(id) {
     if (!confirm("আপনি কি নিশ্চিত এই Category মুছে ফেলতে চান?")) return;
+
     database.categories = database.categories.filter(c => c.id !== id && c.parentId !== id);
     database.headers = database.headers.filter(h => h.categoryId !== id);
     database.data = database.data.filter(d => d.categoryId !== id);
+
     await saveDatabase();
     refreshCurrentView();
     showToast("ডিলিট করা হয়েছে");
 }
 
-/* ---------------- Header Actions ---------------- */
+/* =========================================
+   Header Actions
+========================================= */
+
 function openHeaderModal(editObj = null) {
     if (window.currentUserRole !== "admin") return;
+
     editingItem = editObj;
+
     const input = document.getElementById("headerNameInput");
-    input.value = editObj ? editObj.title : "";
+    if (input) {
+        input.value = editObj ? editObj.title : "";
+    }
+
     openModal("headerModal");
 }
 
+/* =========================================
+   Save Header
+========================================= */
+
 async function saveHeader() {
     if (window.currentUserRole !== "admin") return;
+
     const title = document.getElementById("headerNameInput")?.value.trim();
-    if (!title || !currentCategoryId) return;
+
+    if (!title || !currentCategoryId) {
+        return showToast("হেডার নাম লিখুন");
+    }
 
     if (editingItem) {
         editingItem.title = title;
@@ -450,36 +554,57 @@ async function saveHeader() {
 
     await saveDatabase();
     closeModal("headerModal");
-    renderCategoryDetails();
+    refreshCurrentView();
     showToast("Header সেভ করা হয়েছে");
 }
 
+/* =========================================
+   Pin Header
+========================================= */
+
 async function togglePinHeader(id) {
     const header = database.headers.find(h => h.id === id);
+
     if (header) {
         header.pinned = !header.pinned;
         header.pinnedAt = header.pinned ? Date.now() : 0;
+
         await saveDatabase();
-        renderCategoryDetails();
+        refreshCurrentView();
         showToast(header.pinned ? "হেডার পিন করা হয়েছে" : "হেডার আনপিন করা হয়েছে");
     }
 }
+
+/* =========================================
+   Edit Header
+========================================= */
 
 function editHeader(id) {
     const h = database.headers.find(item => item.id === id);
     if (h) openHeaderModal(h);
 }
 
+/* =========================================
+   Delete Header
+========================================= */
+
 async function deleteHeader(id) {
     if (!confirm("এই Header ডিলিট করতে চান? ডাটাগুলো সরানো হবে না।")) return;
+
     database.headers = database.headers.filter(h => h.id !== id);
-    database.data.forEach(d => { if (d.headerId === id) d.headerId = null; });
+    database.data.forEach(d => {
+        if (d.headerId === id) d.headerId = null;
+    });
+
     await saveDatabase();
-    renderCategoryDetails();
+    refreshCurrentView();
     showToast("Header ডিলিট করা হয়েছে");
 }
 
-/* ---------------- Data Item Render & Actions ---------------- */
+/* =========================================
+   Create Data Card
+========================================= */
+
 function createDataCardElement(item) {
     const isAdmin = window.currentUserRole === "admin";
     const dataEl = document.createElement("div");
@@ -491,22 +616,24 @@ function createDataCardElement(item) {
     const designation = escapeHTML(item.designation || "পদবী নেই");
     const photo = item.photo ? escapeHTML(item.photo) : null;
 
-    const avatarHtml = photo 
+    const avatarHtml = photo
         ? `<img src="${photo}" alt="${name}" class="data-card-avatar">`
         : `<div class="data-card-avatar">👤</div>`;
 
     const pinIcon = item.pinned ? "📌" : "📍";
 
-    const adminActions = isAdmin ? `
-        <div style="display:flex;gap:4px;" onclick="event.stopPropagation()">
-            <button class="btn-pin-data custom-action-btn" title="পিন">${pinIcon}</button>
-            <button class="btn-move-data custom-action-btn" title="মুভ">📦</button>
-            <button class="btn-edit-data custom-action-btn" title="এডিট">✏️</button>
-            <button class="btn-del-data custom-action-btn" style="color:#ef4444" title="ডিলিট">🗑️</button>
-        </div>
-    ` : '';
+    const adminActions = isAdmin
+        ? `
+            <div style="display:flex;gap:4px;" onclick="event.stopPropagation()">
+                <button class="btn-pin-data custom-action-btn" title="পিন">${pinIcon}</button>
+                <button class="btn-move-data custom-action-btn" title="মুভ">📦</button>
+                <button class="btn-edit-data custom-action-btn" title="এডিট">✏️</button>
+                <button class="btn-del-data custom-action-btn" style="color:#ef4444" title="ডিলিট">🗑️</button>
+            </div>
+        `
+        : "";
 
-    const dataPinMark = (isAdmin && item.pinned) ? '📌' : '';
+    const dataPinMark = (isAdmin && item.pinned) ? "📌" : "";
 
     dataEl.innerHTML = `
         ${avatarHtml}
@@ -522,21 +649,43 @@ function createDataCardElement(item) {
     dataEl.addEventListener("click", () => openDataPage(item.id));
 
     if (isAdmin) {
-        dataEl.querySelector(".btn-pin-data")?.addEventListener("click", e => { e.stopPropagation(); togglePinData(item.id); });
-        dataEl.querySelector(".btn-move-data")?.addEventListener("click", e => { e.stopPropagation(); openMoveDataModal(item.id); });
-        dataEl.querySelector(".btn-edit-data")?.addEventListener("click", e => { e.stopPropagation(); editData(item.id); });
-        dataEl.querySelector(".btn-del-data")?.addEventListener("click", e => { e.stopPropagation(); deleteData(item.id); });
+        dataEl.querySelector(".btn-pin-data")?.addEventListener("click", e => {
+            e.stopPropagation();
+            togglePinData(item.id);
+        });
+
+        dataEl.querySelector(".btn-move-data")?.addEventListener("click", e => {
+            e.stopPropagation();
+            openMoveDataModal(item.id);
+        });
+
+        dataEl.querySelector(".btn-edit-data")?.addEventListener("click", e => {
+            e.stopPropagation();
+            editData(item.id);
+        });
+
+        dataEl.querySelector(".btn-del-data")?.addEventListener("click", e => {
+            e.stopPropagation();
+            deleteData(item.id);
+        });
     }
 
     return dataEl;
 }
 
+/* =========================================
+   Data Modal
+========================================= */
+
 function openDataModal(editObj = null) {
     if (window.currentUserRole !== "admin") return;
+
     editingItem = editObj;
 
     const title = document.getElementById("dataModalTitle");
-    if (title) title.textContent = editObj ? "Data এডিট করুন" : "Data যোগ করুন";
+    if (title) {
+        title.textContent = editObj ? "Data এডিট করুন" : "Data যোগ করুন";
+    }
 
     document.getElementById("dataPhoto").value = editObj?.photo || "";
     document.getElementById("dataName").value = editObj?.name || "";
@@ -549,45 +698,61 @@ function openDataModal(editObj = null) {
     document.getElementById("dataAdminInfo").value = editObj?.adminInfo || "";
 
     const select = document.getElementById("dataHeaderSelect");
+
     if (select) {
         select.innerHTML = `<option value="">Header ছাড়া</option>`;
-        database.headers.filter(h => h.categoryId === currentCategoryId).forEach(h => {
-            select.innerHTML += `<option value="${h.id}" ${editObj?.headerId === h.id ? 'selected' : ''}>${escapeHTML(h.title)}</option>`;
-        });
+
+        database.headers
+            .filter(h => h.categoryId === currentCategoryId)
+            .forEach(h => {
+                select.innerHTML += `
+                    <option value="${h.id}" ${editObj?.headerId === h.id ? "selected" : ""}>
+                        ${escapeHTML(h.title)}
+                    </option>
+                `;
+            });
     }
 
     openModal("dataModal");
 }
 
+/* =========================================
+   Save Data
+========================================= */
+
 async function saveData() {
     if (window.currentUserRole !== "admin") return;
 
+    if (!currentCategoryId && !editingItem) {
+        return showToast("ক্যাটাগরি সিলেক্ট করা নেই");
+    }
+
+    const name = document.getElementById("dataName")?.value.trim() || "";
+    if (!name) {
+        return showToast("নাম প্রদান করুন");
+    }
+
+    const payload = {
+        photo: document.getElementById("dataPhoto")?.value.trim() || "",
+        name: name,
+        mobile: document.getElementById("dataMobile")?.value.trim() || "",
+        phone: document.getElementById("dataPhone")?.value.trim() || "",
+        designation: document.getElementById("dataDesignation")?.value.trim() || "",
+        email: document.getElementById("dataEmail")?.value.trim() || "",
+        currentOffice: document.getElementById("dataCurrentOffice")?.value.trim() || "",
+        permanentAddress: document.getElementById("dataPermanentAddress")?.value.trim() || "",
+        adminInfo: document.getElementById("dataAdminInfo")?.value.trim() || "",
+        headerId: document.getElementById("dataHeaderSelect")?.value || null
+    };
+
     if (editingItem) {
-        editingItem.photo = document.getElementById("dataPhoto")?.value.trim() || "";
-        editingItem.name = document.getElementById("dataName")?.value.trim() || "";
-        editingItem.mobile = document.getElementById("dataMobile")?.value.trim() || "";
-        editingItem.phone = document.getElementById("dataPhone")?.value.trim() || "";
-        editingItem.designation = document.getElementById("dataDesignation")?.value.trim() || "";
-        editingItem.email = document.getElementById("dataEmail")?.value.trim() || "";
-        editingItem.currentOffice = document.getElementById("dataCurrentOffice")?.value.trim() || "";
-        editingItem.permanentAddress = document.getElementById("dataPermanentAddress")?.value.trim() || "";
-        editingItem.adminInfo = document.getElementById("dataAdminInfo")?.value.trim() || "";
-        editingItem.headerId = document.getElementById("dataHeaderSelect")?.value || null;
+        Object.assign(editingItem, payload);
         editingItem = null;
     } else {
         database.data.push({
             id: generateId("data"),
             categoryId: currentCategoryId,
-            photo: document.getElementById("dataPhoto")?.value.trim() || "",
-            name: document.getElementById("dataName")?.value.trim() || "",
-            mobile: document.getElementById("dataMobile")?.value.trim() || "",
-            phone: document.getElementById("dataPhone")?.value.trim() || "",
-            designation: document.getElementById("dataDesignation")?.value.trim() || "",
-            email: document.getElementById("dataEmail")?.value.trim() || "",
-            currentOffice: document.getElementById("dataCurrentOffice")?.value.trim() || "",
-            permanentAddress: document.getElementById("dataPermanentAddress")?.value.trim() || "",
-            adminInfo: document.getElementById("dataAdminInfo")?.value.trim() || "",
-            headerId: document.getElementById("dataHeaderSelect")?.value || null,
+            ...payload,
             pinned: false,
             pinnedAt: 0
         });
@@ -599,39 +764,63 @@ async function saveData() {
     showToast("ডাটা সেভ হয়েছে");
 }
 
+/* =========================================
+   Edit Data
+========================================= */
+
 function editData(id) {
     const item = database.data.find(d => d.id === id);
     if (item) openDataModal(item);
 }
 
+/* =========================================
+   Delete Data
+========================================= */
+
 async function deleteData(id) {
     if (!confirm("আপনি কি এই Data মুছে ফেলতে চান?")) return;
+
     database.data = database.data.filter(d => d.id !== id);
+
     await saveDatabase();
     refreshCurrentView();
     showToast("ডাটা ডিলিট করা হয়েছে");
 }
 
+/* =========================================
+   Pin Data
+========================================= */
+
 async function togglePinData(id) {
     const item = database.data.find(d => d.id === id);
+
     if (item) {
         item.pinned = !item.pinned;
         item.pinnedAt = item.pinned ? Date.now() : 0;
+
         await saveDatabase();
         refreshCurrentView();
         showToast(item.pinned ? "ডাটা পিন করা হয়েছে" : "ডাটা আনপিন করা হয়েছে");
     }
 }
 
-/* ---------------- Data Move System ---------------- */
+/* =========================================
+   Move Data
+========================================= */
+
 function openMoveDataModal(id) {
     movingDataId = id;
+
     const catSelect = document.getElementById("moveCategorySelect");
 
     if (catSelect) {
         catSelect.innerHTML = "";
         database.categories.forEach(c => {
-            catSelect.innerHTML += `<option value="${c.id}">${escapeHTML(c.name)}</option>`;
+            catSelect.innerHTML += `
+                <option value="${c.id}">
+                    ${escapeHTML(c.name)}
+                </option>
+            `;
         });
         catSelect.value = currentCategoryId;
     }
@@ -645,11 +834,18 @@ function openMoveDataModal(id) {
 function updateMoveHeaderOptions() {
     const catId = document.getElementById("moveCategorySelect")?.value;
     const headSelect = document.getElementById("moveHeaderSelect");
+
     if (headSelect) {
         headSelect.innerHTML = `<option value="">Header ছাড়া</option>`;
-        database.headers.filter(h => h.categoryId === catId).forEach(h => {
-            headSelect.innerHTML += `<option value="${h.id}">${escapeHTML(h.title)}</option>`;
-        });
+        database.headers
+            .filter(h => h.categoryId === catId)
+            .forEach(h => {
+                headSelect.innerHTML += `
+                    <option value="${h.id}">
+                        ${escapeHTML(h.title)}
+                    </option>
+                `;
+            });
     }
 }
 
@@ -658,9 +854,11 @@ async function confirmMoveData() {
     const headId = document.getElementById("moveHeaderSelect")?.value || null;
 
     const item = database.data.find(d => d.id === movingDataId);
+
     if (item && catId) {
         item.categoryId = catId;
         item.headerId = headId;
+
         await saveDatabase();
         closeModal("moveDataModal");
         refreshCurrentView();
@@ -668,9 +866,14 @@ async function confirmMoveData() {
     }
 }
 
-/* ---------------- Render Details & Navigations ---------------- */
+/* =========================================
+   Navigation
+========================================= */
+
 function openCategory(id, pushHistory = true) {
-    if (pushHistory) history.pushState({ page: "category", categoryId: id }, "");
+    if (pushHistory) {
+        history.pushState({ page: "category", categoryId: id }, "");
+    }
     showCategoryView(id);
 }
 
@@ -680,33 +883,49 @@ function showCategoryView(id) {
 
     currentCategoryId = id;
     currentDataId = null;
+
     document.getElementById("mainDashboardView")?.classList.add("hidden");
     document.getElementById("dataDetailsView")?.classList.add("hidden");
     document.getElementById("categoryDetailsView")?.classList.remove("hidden");
 
     document.getElementById("detailsTitle").textContent = category.name;
+
     const headersCount = database.headers.filter(h => h.categoryId === id).length;
     const dataCount = database.data.filter(d => d.categoryId === id).length;
+
     document.getElementById("detailsSubtitle").textContent = `${headersCount} Header • ${dataCount} Data`;
 
-    renderCategoryDetails(document.getElementById("searchInput")?.value.trim().toLowerCase());
+    renderCategoryDetails(
+        document.getElementById("searchInput")?.value.trim().toLowerCase()
+    );
 }
 
 function showMainDashboardView(updateHistory = true) {
     currentCategoryId = null;
     currentDataId = null;
+
     document.getElementById("categoryDetailsView")?.classList.add("hidden");
     document.getElementById("dataDetailsView")?.classList.add("hidden");
     document.getElementById("mainDashboardView")?.classList.remove("hidden");
 
-    renderCategories(document.getElementById("searchInput")?.value.trim().toLowerCase());
+    renderCategories(
+        document.getElementById("searchInput")?.value.trim().toLowerCase()
+    );
 }
 
 function refreshCurrentView() {
-    if (currentDataId) showDataPage(currentDataId, false);
-    else if (currentCategoryId) showCategoryView(currentCategoryId);
-    else showMainDashboardView(false);
+    if (currentDataId) {
+        showDataPage(currentDataId, false);
+    } else if (currentCategoryId) {
+        showCategoryView(currentCategoryId);
+    } else {
+        showMainDashboardView(false);
+    }
 }
+
+/* =========================================
+   Render Category Details
+========================================= */
 
 function renderCategoryDetails(searchVal = "") {
     const container = document.getElementById("detailsContent");
@@ -715,9 +934,15 @@ function renderCategoryDetails(searchVal = "") {
     container.innerHTML = "";
     const isAdmin = window.currentUserRole === "admin";
 
-    /* সাব-ক্যাটাগরি পিন সর্টিং */
+    /* Sub Categories */
     let subCategories = database.categories.filter(cat => cat.parentId === currentCategoryId);
-    if (searchVal) subCategories = subCategories.filter(sub => sub.name.toLowerCase().includes(searchVal));
+
+    if (searchVal) {
+        subCategories = subCategories.filter(sub =>
+            sub.name.toLowerCase().includes(searchVal)
+        );
+    }
+
     subCategories = sortItemsByPin(subCategories);
 
     if (subCategories.length > 0) {
@@ -729,29 +954,43 @@ function renderCategoryDetails(searchVal = "") {
             item.className = "subcategory-card";
 
             const pinIcon = sub.pinned ? "📌" : "📍";
-            const adminActions = isAdmin ? `
-                <div>
-                    <button class="btn-pin-sub custom-action-btn" title="পিন">${pinIcon}</button>
-                    <button class="btn-edit-sub custom-action-btn">✏️</button>
-                    <button class="btn-del-sub custom-action-btn" style="color:#ef4444">🗑️</button>
+
+            const adminActions = isAdmin
+                ? `
+                    <div>
+                        <button class="btn-pin-sub custom-action-btn" title="পিন">${pinIcon}</button>
+                        <button class="btn-edit-sub custom-action-btn">✏️</button>
+                        <button class="btn-del-sub custom-action-btn" style="color:#ef4444">🗑️</button>
+                    </div>
+                `
+                : "";
+
+            const subPinBadge = (isAdmin && sub.pinned)
+                ? '<span class="pinned-badge">Pinned</span>'
+                : "";
+
+            item.innerHTML = `
+                <div class="sub-click">
+                    <h3>${escapeHTML(sub.name)} ${subPinBadge}</h3>
                 </div>
-            ` : '';
+                ${adminActions}
+            `;
 
-            const subPinBadge = (isAdmin && sub.pinned) ? '<span class="pinned-badge">Pinned</span>' : '';
-
-            item.innerHTML = `<div class="sub-click"><h3>${escapeHTML(sub.name)} ${subPinBadge}</h3></div>${adminActions}`;
             item.querySelector(".sub-click").addEventListener("click", () => openCategory(sub.id));
+
             if (isAdmin) {
                 item.querySelector(".btn-pin-sub")?.addEventListener("click", () => togglePinCategory(sub.id));
                 item.querySelector(".btn-edit-sub")?.addEventListener("click", () => editCategory(sub.id));
                 item.querySelector(".btn-del-sub")?.addEventListener("click", () => deleteCategory(sub.id));
             }
+
             subWrapper.appendChild(item);
         });
+
         container.appendChild(subWrapper);
     }
 
-    /* হেডার ও ডাটা পিন সর্টিং */
+    /* Headers & Category Data */
     let headers = database.headers.filter(h => h.categoryId === currentCategoryId);
     headers = sortItemsByPin(headers);
 
@@ -759,7 +998,7 @@ function renderCategoryDetails(searchVal = "") {
     categoryData = sortItemsByPin(categoryData);
 
     if (searchVal) {
-        categoryData = categoryData.filter(d => 
+        categoryData = categoryData.filter(d =>
             (d.name && d.name.toLowerCase().includes(searchVal)) ||
             (d.mobile && d.mobile.toLowerCase().includes(searchVal)) ||
             (d.phone && d.phone.toLowerCase().includes(searchVal)) ||
@@ -767,22 +1006,27 @@ function renderCategoryDetails(searchVal = "") {
         );
     }
 
+    /* Render Each Header */
     headers.forEach(header => {
         const headerItems = categoryData.filter(d => d.headerId === header.id);
+
         if (!searchVal || headerItems.length > 0 || header.title.toLowerCase().includes(searchVal)) {
             const headerBox = document.createElement("div");
             headerBox.className = "header-box";
 
             const pinIcon = header.pinned ? "📌" : "📍";
-            const adminActions = isAdmin ? `
-                <div>
-                    <button class="btn-pin-head custom-action-btn" title="পিন">${pinIcon}</button>
-                    <button class="btn-edit-head custom-action-btn">✏️</button>
-                    <button class="btn-del-head custom-action-btn" style="color:#ef4444">🗑️</button>
-                </div>
-            ` : '';
 
-            const headerPinMark = (isAdmin && header.pinned) ? '📌' : '';
+            const adminActions = isAdmin
+                ? `
+                    <div>
+                        <button class="btn-pin-head custom-action-btn" title="পিন">${pinIcon}</button>
+                        <button class="btn-edit-head custom-action-btn">✏️</button>
+                        <button class="btn-del-head custom-action-btn" style="color:#ef4444">🗑️</button>
+                    </div>
+                `
+                : "";
+
+            const headerPinMark = (isAdmin && header.pinned) ? "📌" : "";
 
             headerBox.innerHTML = `
                 <div class="header-banner">
@@ -797,34 +1041,58 @@ function renderCategoryDetails(searchVal = "") {
                 headerBox.querySelector(".btn-del-head")?.addEventListener("click", () => deleteHeader(header.id));
             }
 
-            headerItems.forEach(item => headerBox.appendChild(createDataCardElement(item)));
+            headerItems.forEach(item => {
+                headerBox.appendChild(createDataCardElement(item));
+            });
+
             container.appendChild(headerBox);
         }
     });
 
+    /* Data Without Header */
     const noHeaderData = categoryData.filter(d => !d.headerId);
+
     if (noHeaderData.length > 0) {
         const noHeaderBox = document.createElement("div");
         noHeaderBox.className = "header-box";
-        noHeaderBox.innerHTML = `<div class="header-banner"><span>📄 সাধারণ Data</span></div>`;
 
-        noHeaderData.forEach(item => noHeaderBox.appendChild(createDataCardElement(item)));
+        noHeaderBox.innerHTML = `
+            <div class="header-banner">
+                <span>📄 সাধারণ Data</span>
+            </div>
+        `;
+
+        noHeaderData.forEach(item => {
+            noHeaderBox.appendChild(createDataCardElement(item));
+        });
+
         container.appendChild(noHeaderBox);
     }
 
     updateAdminUI();
 }
 
+/* =========================================
+   Open Data Page
+========================================= */
+
 function openDataPage(dataId, pushHistory = true) {
-    if (pushHistory) history.pushState({ page: "data", dataId: dataId }, "");
+    if (pushHistory) {
+        history.pushState({ page: "data", dataId: dataId }, "");
+    }
     showDataPage(dataId);
 }
+
+/* =========================================
+   Data Details Page
+========================================= */
 
 function showDataPage(dataId) {
     const item = database.data.find(d => d.id === dataId);
     if (!item) return;
 
     currentDataId = dataId;
+
     document.getElementById("mainDashboardView")?.classList.add("hidden");
     document.getElementById("categoryDetailsView")?.classList.add("hidden");
     document.getElementById("dataDetailsView")?.classList.remove("hidden");
@@ -842,32 +1110,59 @@ function showDataPage(dataId) {
     const adminInfo = escapeHTML(item.adminInfo || "");
     const photo = item.photo ? escapeHTML(item.photo) : null;
 
-    const avatarHtml = photo 
+    const avatarHtml = photo
         ? `<img src="${photo}" alt="${name}" class="details-avatar-large">`
         : `<div class="details-avatar-large">👤</div>`;
 
     container.innerHTML = `
         <div class="details-header-section">
             <div class="avatar-wrapper">${avatarHtml}</div>
-            <h2 style="font-size: 22px; font-weight: 700;">${name}</h2>
-            <p style="color: var(--text-muted); font-size: 15px;">${designation}</p>
+            <h2 style="font-size:22px;font-weight:700;">${name}</h2>
+            <p style="color:var(--text-muted);font-size:15px;">${designation}</p>
         </div>
 
         <div class="quick-action-grid">
-            <a href="${item.mobile ? 'tel:' + item.mobile : '#'}" id="btnMobileCall" class="action-btn-round btn-call-round">📱 মোবাইল</a>
-            <a href="${item.phone ? 'tel:' + item.phone : '#'}" id="btnPhoneCall" class="action-btn-round btn-phone-round">☎️ টেলিফোন</a>
-            <a href="${item.email ? 'mailto:' + item.email : '#'}" class="action-btn-round btn-email-round">✉️ ইমেইল</a>
+            <a href="${item.mobile ? "tel:" + item.mobile : "#"}" id="btnMobileCall" class="action-btn-round btn-call-round">📱 মোবাইল</a>
+            <a href="${item.phone ? "tel:" + item.phone : "#"}" id="btnPhoneCall" class="action-btn-round btn-phone-round">☎️ টেলিফোন</a>
+            <a href="${item.email ? "mailto:" + item.email : "#"}" class="action-btn-round btn-email-round">✉️ ইমেইল</a>
             <button id="btnShareContact" class="action-btn-round btn-share-round">🔗 শেয়ার কন্টাক্ট</button>
         </div>
 
         <div class="details-info-list">
-            <div class="details-info-box"><div class="info-label">📱 মোবাইল</div><div class="info-value">${mobile}</div></div>
-            <div class="details-info-box"><div class="info-label">☎️ টেলিফোন</div><div class="info-value">${phone}</div></div>
-            <div class="details-info-box"><div class="info-label">💼 পদবী</div><div class="info-value">${designation}</div></div>
-            <div class="details-info-box"><div class="info-label">✉️ ই-মেইল</div><div class="info-value">${email}</div></div>
-            ${currentOffice ? `<div class="details-info-box"><div class="info-label">🏢 বর্তমান ঠিকানা</div><div class="info-value">${currentOffice}</div></div>` : ''}
-            ${permanentAddress ? `<div class="details-info-box"><div class="info-label">🏠 স্থায়ী ঠিকানা</div><div class="info-value">${permanentAddress}</div></div>` : ''}
-            ${adminInfo ? `<div class="details-info-box" style="border-left: 4px solid #f59e0b;"><div class="info-label">📝 প্রশাসনিক তথ্য</div><div class="info-value">${adminInfo}</div></div>` : ''}
+            <div class="details-info-box">
+                <div class="info-label">📱 মোবাইল</div>
+                <div class="info-value">${mobile}</div>
+            </div>
+            <div class="details-info-box">
+                <div class="info-label">☎️ টেলিফোন</div>
+                <div class="info-value">${phone}</div>
+            </div>
+            <div class="details-info-box">
+                <div class="info-label">💼 পদবী</div>
+                <div class="info-value">${designation}</div>
+            </div>
+            <div class="details-info-box">
+                <div class="info-label">✉️ ই-মেইল</div>
+                <div class="info-value">${email}</div>
+            </div>
+            ${currentOffice ? `
+                <div class="details-info-box">
+                    <div class="info-label">🏢 বর্তমান ঠিকানা</div>
+                    <div class="info-value">${currentOffice}</div>
+                </div>` : ""
+            }
+            ${permanentAddress ? `
+                <div class="details-info-box">
+                    <div class="info-label">🏠 স্থায়ী ঠিকানা</div>
+                    <div class="info-value">${permanentAddress}</div>
+                </div>` : ""
+            }
+            ${adminInfo ? `
+                <div class="details-info-box" style="border-left:4px solid #f59e0b;">
+                    <div class="info-label">📝 প্রশাসনিক তথ্য</div>
+                    <div class="info-value">${adminInfo}</div>
+                </div>` : ""
+            }
         </div>
     `;
 
@@ -875,7 +1170,13 @@ function showDataPage(dataId) {
     setupLongPressWhatsApp(document.getElementById("btnPhoneCall"), item.phone);
 
     document.getElementById("btnShareContact")?.addEventListener("click", () => {
-        const shareText = `👤 নাম: ${item.name || ''}\n📱 মোবাইল: ${item.mobile || ''}\n☎️ টেলিফোন: ${item.phone || ''}\n✉️ ইমেইল: ${item.email || ''}\n💼 পদবী: ${item.designation || ''}`;
+        const shareText =
+            `👤 নাম: ${item.name || ""}\n` +
+            `📱 মোবাইল: ${item.mobile || ""}\n` +
+            `☎️ টেলিফোন: ${item.phone || ""}\n` +
+            `✉️ ইমেইল: ${item.email || ""}\n` +
+            `💼 পদবী: ${item.designation || ""}`;
+
         if (navigator.share) {
             navigator.share({ title: item.name, text: shareText }).catch(() => {});
         } else {
@@ -885,16 +1186,25 @@ function showDataPage(dataId) {
     });
 }
 
+/* =========================================
+   Long Press WhatsApp
+========================================= */
+
 function setupLongPressWhatsApp(element, num) {
     if (!element || !num) return;
+
     let timer = null;
+
     const start = () => {
         timer = setTimeout(() => {
-            const cleanNum = num.replace(/[^\d+]/g, '');
-            window.open(`https://wa.me/${cleanNum}`, '_blank');
+            const cleanNum = num.replace(/[^\d+]/g, "");
+            window.open(`https://wa.me/${cleanNum}`, "_blank");
         }, 800);
     };
-    const cancel = () => { if (timer) clearTimeout(timer); };
+
+    const cancel = () => {
+        if (timer) clearTimeout(timer);
+    };
 
     element.addEventListener("mousedown", start);
     element.addEventListener("touchstart", start);
@@ -903,13 +1213,28 @@ function setupLongPressWhatsApp(element, num) {
     element.addEventListener("mouseleave", cancel);
 }
 
-function openModal(id) { document.getElementById(id)?.classList.remove("hidden"); }
-function closeModal(id) { document.getElementById(id)?.classList.add("hidden"); }
+/* =========================================
+   Modal
+========================================= */
+
+function openModal(id) {
+    document.getElementById(id)?.classList.remove("hidden");
+}
+
+function closeModal(id) {
+    document.getElementById(id)?.classList.add("hidden");
+}
+
+/* =========================================
+   Toast
+========================================= */
 
 function showToast(msg) {
     const toast = document.getElementById("toast");
     if (!toast) return;
+
     toast.textContent = msg;
     toast.classList.add("show");
+
     setTimeout(() => toast.classList.remove("show"), 2000);
 }
