@@ -477,33 +477,47 @@ body {
    ১. হেডার ও টাইটেল এলাইনমেন্ট (ইউজার ও এডমিন)
    ========================================== */
 
-/* শীর্ষ বার ফ্লেক্স বক্স কনফিগারেশন */
+/* হেডার কন্টেইনার */
 .topbar {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     width: 100%;
     position: relative;
+    padding: 10px 15px;
+    box-sizing: border-box;
 }
 
-/* টাইটেল কন্টেইনার সব জায়গা জুড়ে থাকবে */
+/* টাইটেল এলাকা */
 .topbar .app-title {
     display: flex;
     align-items: center;
-    flex-grow: 1;
-    width: 100%;
 }
 
-/* ইউজারের ক্ষেত্রে হেডার টেক্সট একদম সেন্টারে থাকবে */
+/* ইউজারের ক্ষেত্রে টাইটেল একদম স্ক্রিনের ঠিক সেন্টারে বসবে */
 .topbar.user-header .app-title {
-    justify-content: center !important;
+    position: absolute !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    margin: 0 !important;
     text-align: center !important;
+    white-space: nowrap;
+    pointer-events: none; /* বাটন ক্লিকে সমস্যা না করার জন্য */
 }
 
-/* এডমিনের ক্ষেত্রে হেডার টেক্সট বামে থাকবে */
+/* এডমিনের ক্ষেত্রে টাইটেল স্বাভাবিক বামে থাকবে */
 .topbar.admin-header .app-title {
-    justify-content: flex-start !important;
-    text-align: left !important;
+    position: static !important;
+    transform: none !important;
+    margin-left: 10px;
 }
+
+/* টাইটেলের ফন্ট স্টাইল */
+.app-title-text {
+    font-size: 18px;
+    font-weight: 700;
+}
+
 
 /* ==========================================
    ২. পিন আইটেম স্টাইল
