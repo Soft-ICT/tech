@@ -1,15 +1,20 @@
 {
-  "name": "My Data Manager",
-  "short_name": "DataManager",
-  "start_url": "index.html",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#007bff",
+  "short_name": "Police Phonebook",
+  "name": "Police Phonebook",
   "icons": [
     {
-      "src": "icon.png",
-      "sizes": "192x192",
-      "type": "image/png"
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
     }
-  ]
+  ],
+  "start_url": "./index.html",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "display": "standalone"
 }
