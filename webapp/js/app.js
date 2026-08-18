@@ -83,19 +83,12 @@ function updateAdminUI() {
     const logoutContainer = document.getElementById("logoutContainer");
 
     if (loginForm) {
-        if (isAdmin) {
-            loginForm.style.display = "none";
-        } else {
-            loginForm.style.display = "block";
-        }
+        loginForm.style.display = isAdmin ? "none" : "block";
     }
 
     if (logoutContainer) {
-        if (isAdmin) {
-            logoutContainer.classList.remove("hidden");
-        } else {
-            logoutContainer.classList.add("hidden");
-        }
+        if (isAdmin) logoutContainer.classList.remove("hidden");
+        else logoutContainer.classList.add("hidden");
     }
 }
 
@@ -138,7 +131,6 @@ async function loadDatabase() {
         } else {
             database = { categories: [], headers: [], data: [] };
         }
-        migratePinData();
         refreshCurrentView();
     } catch (error) {
         console.error("Database load error:", error);
@@ -160,9 +152,7 @@ async function saveDatabase() {
 }
 
 function generateId(prefix) {
-    return (
-        prefix + "_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8)
-    );
+    return prefix + "_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8);
 }
 
 /* =========================================================
@@ -175,9 +165,7 @@ function setupEvents() {
     document.getElementById("clearSearch")?.addEventListener("click", clearSearch);
     document.getElementById("searchInput")?.addEventListener("input", renderCategories);
 
-    document.getElementById("adminLoginBtn")?.addEventListener("click", () => {
-        openModal("loginModal");
-    });
+    document.getElementById("adminLoginBtn")?.addEventListener("click", () => openModal("loginModal"));
 
     document.getElementById("submitLoginBtn")?.addEventListener("click", async () => {
         const email = document.getElementById("loginEmail")?.value.trim();
@@ -232,7 +220,7 @@ function setupEvents() {
 }
 
 /* =========================================================
-   CATEGORY NAVIGATION
+   NAVIGATION
 ========================================================= */
 
 function openCategory(id) {
@@ -272,85 +260,6 @@ function goBack() {
     }
 }
 
-/* =========================================================
-   PIN SYSTEM
-========================================================= */
-
-function getPinScope(type, item) {
-    if (type === "category") return "category";
-    if (type === "header") return "header_" + String(item.categoryId);
-    if (type === "data") {
-        return (
-            "data_" + String(item.categoryId) + "_" + (item.headerId ? String(item.headerId) : "no_header")
-        );
-    }
-    return "unknown";
-}
-
-function getNextPinOrder(type, item, list) {
-    const scope = getPinScope(type, item);
-    let maxOrder = 0;
-
-    list.forEach(current => {
-        if (!current || current.pinned !== true) return;
-        if (getPinScope(type, current) !== scope) return;
-
-        const order = Number(current.pinOrder);
-        if (Number.isFinite(order) && order > maxOrder) {
-            maxOrder = order;
-        }
-    });
-
-    return maxOrder + 1;
-}
-
-function normalizePinOrders(type, referenceItem, list) {
-    const scope = getPinScope(type, referenceItem);
-
-    const pinned = list
-        .filter(item => item && item.pinned === true && getPinScope(type, item) === scope)
-        .sort((a, b) => {
-            const ao = Number(a.pinOrder) || 999999999;
-            const bo = Number(b.pinOrder) || 999999999;
-            if (ao !== bo) return ao - bo;
-            return String(a.id).localeCompare(String(b.id));
-        });
-
-    pinned.forEach((item, index) => {
-        item.pinOrder = index + 1;
-    });
-}
-
-async function togglePin(type, id) {
-    if (window.currentUserRole !== "admin") return;
-
-    let list;
-    if (type === "category") list = database.categories;
-    else if (type === "header") list = database.headers;
-    else if (type === "data") list = database.data;
-    else return;
-
-    const item = list.find(x => x.id === id);
-    if (!item) return;
-
-    if (item.pinned === true) {
-        item.pinned = false;
-        item.pinOrder = 0;
-        normalizePinOrders(type, item, list);
-        await saveDatabase();
-        refreshCurrentView();
-        showToast("📍 আনপিন করা হয়েছে");
-        return;
-    }
-
-    item.pinned = true;
-    item.pinOrder = getNextPinOrder(type, item, list);
-
-    await saveDatabase();
-    refreshCurrentView();
-    showToast("📌 পিন করা হয়েছে");
-}
-
 function refreshCurrentView() {
     if (currentCategoryId) {
         renderCategoryDetails();
@@ -359,67 +268,19 @@ function refreshCurrentView() {
     }
 }
 
-function migratePinData() {
-    const lists = [database.categories, database.headers, database.data];
-
-    lists.forEach(list => {
-        list.forEach(item => {
-            if (!item) return;
-            if (item.pinned === true && !Number.isFinite(Number(item.pinOrder))) {
-                item.pinOrder = 0;
-            }
-            if (item.pinned !== true) {
-                item.pinOrder = 0;
-            }
-        });
-    });
-
-    normalizeAllPinScopes();
-}
-
-function normalizeAllPinScopes() {
-    normalizeCategoryPins();
-
-    const categoryIds = [...new Set(database.headers.map(h => h.categoryId))];
-
-    categoryIds.forEach(categoryId => {
-        const headers = database.headers.filter(h => h.categoryId === categoryId);
-        headers.forEach(header => {
-            normalizePinOrders("header", header, database.headers);
-        });
-    });
-
-    database.data.forEach(item => {
-        normalizePinOrders("data", item, database.data);
-    });
-}
-
-function normalizeCategoryPins() {
-    const pinned = database.categories
-        .filter(c => !c.parentId && c.pinned === true)
-        .sort((a, b) => (Number(a.pinOrder) || 999999999) - (Number(b.pinOrder) || 999999999));
-
-    pinned.forEach((item, index) => {
-        item.pinOrder = index + 1;
-    });
-}
-
 /* =========================================================
-   CATEGORY CRUD
+   CATEGORY CRUD & RENDER
 ========================================================= */
 
 function openCategoryModal(isSubCategory = false) {
     if (window.currentUserRole !== "admin") return;
     const title = document.getElementById("categoryModalTitle");
-    if (title) {
-        title.textContent = isSubCategory ? "নতুন Sub-Category" : "নতুন Category";
-    }
+    if (title) title.textContent = isSubCategory ? "নতুন Sub-Category" : "নতুন Category";
 
     const input = document.getElementById("categoryNameInput");
     if (input) input.value = "";
 
     openModal("categoryModal");
-    setTimeout(() => input?.focus(), 100);
 }
 
 async function saveCategory() {
@@ -444,60 +305,9 @@ async function saveCategory() {
     await saveDatabase();
     closeModal("categoryModal");
 
-    if (currentCategoryId) renderCategoryDetails();
-    else renderCategories();
-
+    refreshCurrentView();
     showToast("Category সেভ করা হয়েছে");
 }
-
-async function editCategory(id) {
-    if (window.currentUserRole !== "admin") return;
-    const cat = database.categories.find(c => c.id === id);
-    if (!cat) return;
-
-    const newName = prompt("নতুন Category Name দিন:", cat.name);
-    if (newName && newName.trim() !== "") {
-        cat.name = newName.trim();
-        await saveDatabase();
-
-        if (currentCategoryId) renderCategoryDetails();
-        else renderCategories();
-
-        showToast("Category এডিট করা হয়েছে");
-    }
-}
-
-async function deleteCategory(id) {
-    if (window.currentUserRole !== "admin") return;
-    if (!confirm("আপনি কি নিশ্চিত এই Category ডিলিট করতে চান? এর ভেতরের সব ডাটা মুছে যাবে!")) return;
-
-    function removeRecursively(catId) {
-        const subs = database.categories.filter(c => c.parentId === catId);
-        subs.forEach(sub => removeRecursively(sub.id));
-
-        database.categories = database.categories.filter(c => c.id !== catId);
-        database.headers = database.headers.filter(h => h.categoryId !== catId);
-        database.data = database.data.filter(d => d.categoryId !== catId);
-    }
-
-    removeRecursively(id);
-    await saveDatabase();
-
-    if (currentCategoryId === id) {
-        currentCategoryId = null;
-        goBack();
-    } else if (currentCategoryId) {
-        renderCategoryDetails();
-    } else {
-        renderCategories();
-    }
-
-    showToast("Category ডিলিট করা হয়েছে");
-}
-
-/* =========================================================
-   CATEGORY RENDER
-========================================================= */
 
 function renderCategories() {
     const list = document.getElementById("categoryList");
@@ -514,16 +324,6 @@ function renderCategories() {
             String(cat.name).toLowerCase().includes(searchVal)
         );
     }
-
-    categoriesToShow.sort((a, b) => {
-        const ap = a.pinned === true;
-        const bp = b.pinned === true;
-        if (ap !== bp) return ap ? -1 : 1;
-        if (ap && bp) {
-            return (Number(a.pinOrder) || 999999999) - (Number(b.pinOrder) || 999999999);
-        }
-        return 0;
-    });
 
     list.innerHTML = "";
 
@@ -546,11 +346,8 @@ function renderCategories() {
         const card = document.createElement("div");
         card.className = "category-card";
 
-        const pinIcon = category.pinned ? "📍" : "📌";
-
         const adminActions = isAdmin ? `
             <div class="action-btn-group">
-                <button class="btn-pin-cat custom-action-btn">${pinIcon}</button>
                 <button class="btn-edit-cat custom-action-btn">✏️</button>
                 <button class="btn-del-cat custom-action-btn">🗑️</button>
             </div>
@@ -566,15 +363,11 @@ function renderCategories() {
         card.querySelector(".cat-click").addEventListener("click", () => openCategory(category.id));
         
         if (isAdmin) {
-            card.querySelector(".btn-pin-cat").addEventListener("click", e => {
-                e.stopPropagation();
-                togglePin("category", category.id);
-            });
-            card.querySelector(".btn-edit-cat").addEventListener("click", e => {
+            card.querySelector(".btn-edit-cat")?.addEventListener("click", e => {
                 e.stopPropagation();
                 editCategory(category.id);
             });
-            card.querySelector(".btn-del-cat").addEventListener("click", e => {
+            card.querySelector(".btn-del-cat")?.addEventListener("click", e => {
                 e.stopPropagation();
                 deleteCategory(category.id);
             });
@@ -587,7 +380,7 @@ function renderCategories() {
 }
 
 /* =========================================================
-   CATEGORY DETAILS
+   CATEGORY DETAILS & DATA CARDS (Category Like View)
 ========================================================= */
 
 function renderCategoryDetails() {
@@ -597,21 +390,19 @@ function renderCategoryDetails() {
     container.innerHTML = "";
     const isAdmin = window.currentUserRole === "admin";
 
+    // Subcategories
     const subCategories = database.categories.filter(cat => cat.parentId === currentCategoryId);
-
     if (subCategories.length > 0) {
         const subWrapper = document.createElement("div");
         subWrapper.style.marginBottom = "20px";
-        subWrapper.innerHTML = `<h4 style="color:#003358;margin-bottom:12px;padding-left:12px;">📂 Sub-Categories</h4>`;
+        subWrapper.innerHTML = `<h4 style="color:#003358;margin-bottom:12px;">📂 Sub-Categories</h4>`;
 
-        subCategories.sort(pinComparator).forEach(sub => {
+        subCategories.forEach(sub => {
             const item = document.createElement("div");
             item.className = "subcategory-card";
 
-            const pinIcon = sub.pinned ? "📍" : "📌";
             const adminActions = isAdmin ? `
                 <div class="action-btn-group">
-                    <button class="btn-pin-sub custom-action-btn">${pinIcon}</button>
                     <button class="btn-edit-sub custom-action-btn">✏️</button>
                     <button class="btn-del-sub custom-action-btn">🗑️</button>
                 </div>
@@ -626,7 +417,6 @@ function renderCategoryDetails() {
 
             item.querySelector(".sub-click").addEventListener("click", () => openCategory(sub.id));
             if (isAdmin) {
-                item.querySelector(".btn-pin-sub").addEventListener("click", () => togglePin("category", sub.id));
                 item.querySelector(".btn-edit-sub").addEventListener("click", () => editCategory(sub.id));
                 item.querySelector(".btn-del-sub").addEventListener("click", () => deleteCategory(sub.id));
             }
@@ -637,17 +427,16 @@ function renderCategoryDetails() {
         container.appendChild(subWrapper);
     }
 
+    // Headers & Data
     const headers = database.headers.filter(h => h.categoryId === currentCategoryId);
     const categoryData = database.data.filter(d => d.categoryId === currentCategoryId);
 
-    headers.sort(pinComparator).forEach(header => {
+    headers.forEach(header => {
         const headerBox = document.createElement("div");
         headerBox.className = "header-box";
 
-        const pinIcon = header.pinned ? "📌" : "📍";
         const adminActions = isAdmin ? `
             <div style="display:flex;gap:6px">
-                <button class="btn-pin-head custom-action-btn">${pinIcon}</button>
                 <button class="btn-edit-head custom-action-btn">✏️</button>
                 <button class="btn-del-head custom-action-btn" style="color:red">🗑️</button>
             </div>
@@ -661,15 +450,11 @@ function renderCategoryDetails() {
         `;
 
         if (isAdmin) {
-            headerBox.querySelector(".btn-pin-head").addEventListener("click", () => togglePin("header", header.id));
             headerBox.querySelector(".btn-edit-head").addEventListener("click", () => editHeader(header.id));
             headerBox.querySelector(".btn-del-head").addEventListener("click", () => deleteHeader(header.id));
         }
 
-        const headerItems = categoryData
-            .filter(d => d.headerId === header.id)
-            .sort(pinComparator);
-
+        const headerItems = categoryData.filter(d => d.headerId === header.id);
         headerItems.forEach(item => {
             headerBox.appendChild(createDataCardElement(item));
         });
@@ -677,8 +462,8 @@ function renderCategoryDetails() {
         container.appendChild(headerBox);
     });
 
-    const noHeaderData = categoryData.filter(d => !d.headerId).sort(pinComparator);
-
+    // Orphan Data
+    const noHeaderData = categoryData.filter(d => !d.headerId);
     if (noHeaderData.length > 0) {
         const noHeaderBox = document.createElement("div");
         noHeaderBox.className = "header-box";
@@ -692,78 +477,112 @@ function renderCategoryDetails() {
         container.appendChild(noHeaderBox);
     }
 
-    if (subCategories.length === 0 && headers.length === 0 && categoryData.length === 0) {
-        container.innerHTML = `<p style="text-align:center;color:gray;margin-top:30px">এখানে কোনো ডাটা নেই।</p>`;
-    }
-
     updateAdminUI();
 }
 
-function pinComparator(a, b) {
-    const ap = a.pinned === true;
-    const bp = b.pinned === true;
-
-    if (ap !== bp) return ap ? -1 : 1;
-
-    if (ap && bp) {
-        const ao = Number(a.pinOrder) || 999999999;
-        const bo = Number(b.pinOrder) || 999999999;
-        if (ao !== bo) return ao - bo;
-    }
-
-    return 0;
-}
+/* =========================================================
+   CREATE DATA CARD ELEMENT (Category Card Like Style)
+========================================================= */
 
 function createDataCardElement(item) {
     const isAdmin = window.currentUserRole === "admin";
     const dataEl = document.createElement("div");
     dataEl.className = "data-card-item";
 
-    const pinIcon = item.pinned ? "📌" : "📍";
+    const name = escapeHTML(item.name || "নাম পাওয়া যায়নি");
+    const designation = escapeHTML(item.designation || "");
+    const mobile = escapeHTML(item.mobile || "");
+    const phone = escapeHTML(item.phone || "");
+    const photo = item.photo ? escapeHTML(item.photo) : null;
+
+    // ছবির HTML
+    const avatarHtml = photo 
+        ? `<img src="${photo}" alt="${name}" class="data-card-avatar" onerror="this.onerror=null;this.replaceWith(document.createElement('div'));this.innerText='👤';">`
+        : `<div class="data-card-avatar">👤</div>`;
+
     const adminActions = isAdmin ? `
-        <div style="display:flex;gap:5px;flex-wrap:wrap">
-            <button class="btn-pin-data custom-action-btn">${pinIcon}</button>
-            <button class="btn-move-data custom-action-btn">📦</button>
-            <button class="btn-edit-data custom-action-btn">✏️</button>
-            <button class="btn-del-data custom-action-btn" style="color:red">🗑️</button>
+        <div style="display:flex;gap:5px;" onclick="event.stopPropagation()">
+            <button class="btn-move-data custom-action-btn" title="Move">📦</button>
+            <button class="btn-edit-data custom-action-btn" title="Edit">✏️</button>
+            <button class="btn-del-data custom-action-btn" style="color:red" title="Delete">🗑️</button>
         </div>
     ` : '';
 
-    const name = escapeHTML(item.name || item.title || "");
+    dataEl.innerHTML = `
+        ${avatarHtml}
+        <div style="flex-grow: 1;">
+            <div style="font-size:16px; font-weight:bold;">${name}</div>
+            <div style="font-size:13px; opacity: 0.85; margin-top:2px;">
+                ${designation ? `<span>${designation}</span>` : ''}
+                ${mobile ? ` | 📱 ${mobile}` : ''}
+                ${phone ? ` | ☎️ ${phone}` : ''}
+            </div>
+        </div>
+        ${adminActions}
+    `;
+
+    // ডাটা কার্ডে ক্লিক করলে মডাল ওপেন হবে
+    dataEl.addEventListener("click", () => showDataDetailsModal(item));
+
+    if (isAdmin) {
+        dataEl.querySelector(".btn-move-data")?.addEventListener("click", e => {
+            e.stopPropagation();
+            openMoveModal(item.id);
+        });
+        dataEl.querySelector(".btn-edit-data")?.addEventListener("click", e => {
+            e.stopPropagation();
+            editData(item.id);
+        });
+        dataEl.querySelector(".btn-del-data")?.addEventListener("click", e => {
+            e.stopPropagation();
+            deleteData(item.id);
+        });
+    }
+
+    return dataEl;
+}
+
+/* =========================================================
+   POPUP FULL DETAILS MODAL
+========================================================= */
+
+function showDataDetailsModal(item) {
+    const modalBody = document.getElementById("detailsModalBody");
+    if (!modalBody) return;
+
+    const name = escapeHTML(item.name || "");
     const designation = escapeHTML(item.designation || "");
     const mobile = escapeHTML(item.mobile || "");
     const phone = escapeHTML(item.phone || "");
     const email = escapeHTML(item.email || "");
     const currentOffice = escapeHTML(item.currentOffice || "");
     const permanentAddress = escapeHTML(item.permanentAddress || "");
-    const adminInfo = escapeHTML(item.adminInfo || item.description || "");
+    const adminInfo = escapeHTML(item.adminInfo || "");
+    const photo = item.photo ? escapeHTML(item.photo) : null;
 
-    const mobileLink = mobile ? `<a href="tel:${mobile}" style="color: #2563eb; text-decoration: none; font-weight: 600;">📞 ${mobile}</a>` : '';
-    const phoneLink = phone ? `<a href="tel:${phone}" style="color: #2563eb; text-decoration: none; font-weight: 600;">☎️ ${phone}</a>` : '';
-    const emailLink = email ? `<a href="mailto:${email}" style="color: #2563eb; text-decoration: none;">✉️ ${email}</a>` : '';
+    const avatarHtml = photo 
+        ? `<img src="${photo}" alt="${name}" class="details-avatar">`
+        : `<div class="details-avatar" style="text-align:center; line-height:90px; font-size:40px;">👤</div>`;
 
-    dataEl.innerHTML = `
-        <div style="flex-grow: 1;">
-            ${name ? `<strong style="font-size:16px; color:#172033; margin-bottom:4px; display:block;">${name}</strong>` : ''}
-            ${designation ? `<p style="margin:2px 0; font-size:13.5px;"><strong>পদবী:</strong> ${designation}</p>` : ''}
-            ${mobile ? `<p style="margin:2px 0; font-size:13.5px;"><strong>মোবাইল:</strong> ${mobileLink}</p>` : ''}
-            ${phone ? `<p style="margin:2px 0; font-size:13.5px;"><strong>টেলিফোন:</strong> ${phoneLink}</p>` : ''}
-            ${email ? `<p style="margin:2px 0; font-size:13.5px;"><strong>ই-মেইল:</strong> ${emailLink}</p>` : ''}
-            ${currentOffice ? `<p style="margin:2px 0; font-size:13.5px;"><strong>কর্মস্থল:</strong> ${currentOffice}</p>` : ''}
-            ${permanentAddress ? `<p style="margin:2px 0; font-size:13.5px;"><strong>স্থায়ী ঠিকানা:</strong> ${permanentAddress}</p>` : ''}
-            ${adminInfo ? `<p style="margin:2px 0; font-size:13.5px;"><strong>প্রশাসনিক তথ্য:</strong> ${adminInfo}</p>` : ''}
+    const mobileLink = mobile ? `<a href="tel:${mobile}" style="color: #2563eb; text-decoration: none; font-weight: 600;">📞 ${mobile}</a>` : 'নাই';
+    const phoneLink = phone ? `<a href="tel:${phone}" style="color: #2563eb; text-decoration: none; font-weight: 600;">☎️ ${phone}</a>` : 'নাই';
+    const emailLink = email ? `<a href="mailto:${email}" style="color: #2563eb; text-decoration: none;">✉️ ${email}</a>` : 'নাই';
+
+    modalBody.innerHTML = `
+        ${avatarHtml}
+        <h2 style="text-align:center; margin-bottom:15px;">${name}</h2>
+        <div style="display:flex; flex-direction:column; gap:8px; font-size:14px; line-height:1.5;">
+            ${designation ? `<p><strong>পদবী:</strong> ${designation}</p>` : ''}
+            <p><strong>মোবাইল:</strong> ${mobileLink}</p>
+            <p><strong>টেলিফোন:</strong> ${phoneLink}</p>
+            <p><strong>ই-মেইল:</strong> ${emailLink}</p>
+            ${currentOffice ? `<p><strong>বর্তমান ঠিকানা/কর্মস্থল:</strong> ${currentOffice}</p>` : ''}
+            ${permanentAddress ? `<p><strong>স্থায়ী ঠিকানা:</strong> ${permanentAddress}</p>` : ''}
+            ${adminInfo ? `<p><strong>প্রশাসনিক তথ্য:</strong> ${adminInfo}</p>` : ''}
         </div>
-        ${adminActions}
     `;
 
-    if (isAdmin) {
-        dataEl.querySelector(".btn-pin-data").addEventListener("click", () => togglePin("data", item.id));
-        dataEl.querySelector(".btn-move-data").addEventListener("click", () => openMoveModal(item.id));
-        dataEl.querySelector(".btn-edit-data").addEventListener("click", () => editData(item.id));
-        dataEl.querySelector(".btn-del-data").addEventListener("click", () => deleteData(item.id));
-    }
-
-    return dataEl;
+    openModal("dataDetailsModal");
 }
 
 /* =========================================================
@@ -787,9 +606,7 @@ async function saveHeader() {
     database.headers.push({
         id: generateId("header"),
         categoryId: currentCategoryId,
-        title: title,
-        pinned: false,
-        pinOrder: 0
+        title: title
     });
 
     await saveDatabase();
@@ -798,46 +615,15 @@ async function saveHeader() {
     showToast("Header সেভ করা হয়েছে");
 }
 
-async function editHeader(id) {
-    if (window.currentUserRole !== "admin") return;
-    const header = database.headers.find(h => h.id === id);
-    if (!header) return;
-
-    const title = prompt("নতুন Header Name দিন:", header.title);
-    if (title && title.trim()) {
-        header.title = title.trim();
-        await saveDatabase();
-        renderCategoryDetails();
-        showToast("Header এডিট করা হয়েছে");
-    }
-}
-
-async function deleteHeader(id) {
-    if (window.currentUserRole !== "admin") return;
-    if (!confirm("এই Header ডিলিট করবেন? এর Data সাধারণ Data-তে চলে যাবে।")) return;
-
-    database.headers = database.headers.filter(h => h.id !== id);
-    database.data.forEach(d => {
-        if (d.headerId === id) {
-            d.headerId = null;
-            d.pinned = false;
-            d.pinOrder = 0;
-        }
-    });
-
-    await saveDatabase();
-    renderCategoryDetails();
-    showToast("Header ডিলিট করা হয়েছে");
-}
-
 /* =========================================================
-   DATA CRUD (Updated for 8 Fields)
+   DATA CRUD
 ========================================================= */
 
 function openDataModal() {
     if (window.currentUserRole !== "admin") return;
     editingDataId = null;
 
+    document.getElementById("dataPhoto").value = "";
     document.getElementById("dataName").value = "";
     document.getElementById("dataDesignation").value = "";
     document.getElementById("dataMobile").value = "";
@@ -863,6 +649,7 @@ function openDataModal() {
 async function saveData() {
     if (window.currentUserRole !== "admin") return;
 
+    const photo = document.getElementById("dataPhoto")?.value.trim() || "";
     const name = document.getElementById("dataName")?.value.trim() || "";
     const designation = document.getElementById("dataDesignation")?.value.trim() || "";
     const mobile = document.getElementById("dataMobile")?.value.trim() || "";
@@ -881,6 +668,7 @@ async function saveData() {
     if (editingDataId) {
         const item = database.data.find(d => d.id === editingDataId);
         if (item) {
+            item.photo = photo;
             item.name = name;
             item.designation = designation;
             item.mobile = mobile;
@@ -896,6 +684,7 @@ async function saveData() {
             id: generateId("data"),
             categoryId: currentCategoryId,
             headerId: headerId,
+            photo: photo,
             name: name,
             designation: designation,
             mobile: mobile,
@@ -903,9 +692,7 @@ async function saveData() {
             email: email,
             currentOffice: currentOffice,
             permanentAddress: permanentAddress,
-            adminInfo: adminInfo,
-            pinned: false,
-            pinOrder: 0
+            adminInfo: adminInfo
         };
         database.data.push(newData);
     }
@@ -923,14 +710,15 @@ async function editData(id) {
 
     editingDataId = id;
 
-    document.getElementById("dataName").value = item.name || item.title || "";
+    document.getElementById("dataPhoto").value = item.photo || "";
+    document.getElementById("dataName").value = item.name || "";
     document.getElementById("dataDesignation").value = item.designation || "";
     document.getElementById("dataMobile").value = item.mobile || "";
     document.getElementById("dataPhone").value = item.phone || "";
     document.getElementById("dataEmail").value = item.email || "";
     document.getElementById("dataCurrentOffice").value = item.currentOffice || "";
     document.getElementById("dataPermanentAddress").value = item.permanentAddress || "";
-    document.getElementById("dataAdminInfo").value = item.adminInfo || item.description || "";
+    document.getElementById("dataAdminInfo").value = item.adminInfo || "";
 
     const select = document.getElementById("dataHeaderSelect");
     if (select) {
@@ -1005,8 +793,6 @@ async function confirmMoveData() {
     if (item && catId) {
         item.categoryId = catId;
         item.headerId = headerId || null;
-        item.pinned = false;
-        item.pinOrder = 0;
 
         await saveDatabase();
         closeModal("moveDataModal");
