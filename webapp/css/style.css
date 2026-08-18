@@ -36,52 +36,21 @@ body {
     padding-bottom: 40px;
 }
 
-
-/* ==========================================
-   HEADER TITLE ALIGNMENT
-   User = Center, Admin = Left
-   ========================================== */
-
-/* User mode: title centered in the full topbar */
-body.user-mode .topbar .app-title,
-.topbar.user-header .app-title {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    justify-content: center !important;
-    text-align: center !important;
-    width: auto;
-    flex-grow: 0;
-}
-
-/* Admin mode: title stays on the left after menu button */
-body.admin-mode .topbar .app-title,
-.topbar.admin-header .app-title {
-    position: static;
-    transform: none;
-    justify-content: flex-start !important;
-    text-align: left !important;
-    width: auto;
-    flex-grow: 0;
-    margin-left: 10px;
-}
-
-/* Keep right-side buttons on the right */
-body.user-mode .topbar .top-actions,
-body.admin-mode .topbar .top-actions {
-    margin-left: auto;
-}
-
 .hidden {
     display: none !important;
 }
 
-/* --- Navigation / Topbar (হেডারের হাইট ও টেক্সট সেন্টার) --- */
+
+/* ==========================================
+   TOPBAR
+========================================== */
+
 .topbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 70px; /* হাইট বাড়ানো হয়েছে */
+    width: 100%;
+    height: 70px;
     padding: 0 20px;
     background-color: var(--card-bg);
     border-bottom: 1px solid var(--border-color);
@@ -108,12 +77,17 @@ body.admin-mode .topbar .top-actions {
     gap: 8px;
 }
 
-/* ছোট সাইজের এডমিন বাটন */
+
+/* ছোট Admin Button */
+
 .btn-admin-small {
     padding: 5px 10px !important;
     font-size: 12px !important;
     border-radius: 6px !important;
 }
+
+
+/* Icon Button */
 
 .icon-btn {
     background: transparent;
@@ -129,6 +103,11 @@ body.admin-mode .topbar .top-actions {
 .icon-btn:hover {
     background-color: var(--border-color);
 }
+
+
+/* ==========================================
+   BUTTONS
+========================================== */
 
 .primary-btn {
     background-color: var(--primary-color);
@@ -164,12 +143,21 @@ body.admin-mode .topbar .top-actions {
     cursor: pointer;
 }
 
-/* --- Container --- */
+
+/* ==========================================
+   CONTAINER
+========================================== */
+
 .container {
     max-width: 800px;
     margin: 20px auto;
     padding: 0 16px;
 }
+
+
+/* ==========================================
+   DASHBOARD HEADER
+========================================== */
 
 .dashboard-header {
     display: flex;
@@ -194,8 +182,13 @@ body.admin-mode .topbar .top-actions {
     gap: 12px;
 }
 
-/* --- Category & Subcategory Cards --- */
-.category-card, .subcategory-card {
+
+/* ==========================================
+   CATEGORY & SUBCATEGORY
+========================================== */
+
+.category-card,
+.subcategory-card {
     height: 90px;
     display: flex;
     align-items: center;
@@ -209,12 +202,14 @@ body.admin-mode .topbar .top-actions {
     transition: all 0.25s ease;
 }
 
-.category-card:hover, .subcategory-card:hover {
+.category-card:hover,
+.subcategory-card:hover {
     transform: translateY(-3px);
     box-shadow: var(--shadow-md);
 }
 
-.cat-click, .sub-click {
+.cat-click,
+.sub-click {
     flex-grow: 1;
     cursor: pointer;
     display: flex;
@@ -222,13 +217,18 @@ body.admin-mode .topbar .top-actions {
     height: 100%;
 }
 
-.category-card h3, .subcategory-card h3 {
+.category-card h3,
+.subcategory-card h3 {
     font-size: 19px;
     font-weight: 700;
     color: var(--text-main);
 }
 
-/* --- Data Cards --- */
+
+/* ==========================================
+   DATA CARD
+========================================== */
+
 .data-card-item {
     height: 120px;
     display: flex;
@@ -248,6 +248,9 @@ body.admin-mode .topbar .top-actions {
     box-shadow: var(--shadow-md);
 }
 
+
+/* Data Avatar */
+
 .data-card-avatar {
     width: 65px;
     height: 65px;
@@ -261,6 +264,9 @@ body.admin-mode .topbar .top-actions {
     font-size: 30px;
     object-fit: cover;
 }
+
+
+/* Data Information */
 
 .data-card-info {
     display: flex;
@@ -288,6 +294,9 @@ body.admin-mode .topbar .top-actions {
     text-overflow: ellipsis;
 }
 
+
+/* Action Buttons */
+
 .custom-action-btn {
     background: transparent;
     border: none;
@@ -296,7 +305,11 @@ body.admin-mode .topbar .top-actions {
     padding: 4px;
 }
 
-/* --- Single Data Full View Page --- */
+
+/* ==========================================
+   SINGLE DATA DETAILS
+========================================== */
+
 .details-container-card {
     background-color: var(--card-bg);
     border: 1px solid var(--border-color);
@@ -330,7 +343,11 @@ body.admin-mode .topbar .top-actions {
     box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
 }
 
-/* ৪টি বাটন গ্রিড */
+
+/* ==========================================
+   QUICK ACTION GRID
+========================================== */
+
 .quick-action-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -351,20 +368,36 @@ body.admin-mode .topbar .top-actions {
     border: none;
     cursor: pointer;
     text-decoration: none;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
     transition: transform 0.2s, box-shadow 0.2s;
     user-select: none;
 }
 
 .action-btn-round:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
 
-.btn-call-round { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
-.btn-phone-round { background: linear-gradient(135deg, #4b5563, #374151); }
-.btn-email-round { background: linear-gradient(135deg, #ea4335, #c5221f); }
-.btn-share-round { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+.btn-call-round {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.btn-phone-round {
+    background: linear-gradient(135deg, #4b5563, #374151);
+}
+
+.btn-email-round {
+    background: linear-gradient(135deg, #ea4335, #c5221f);
+}
+
+.btn-share-round {
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+}
+
+
+/* ==========================================
+   DETAILS INFORMATION
+========================================== */
 
 .details-info-list {
     display: flex;
@@ -393,7 +426,11 @@ body.admin-mode .topbar .top-actions {
     color: var(--text-main);
 }
 
-/* --- Search Box & Headers --- */
+
+/* ==========================================
+   SEARCH BOX
+========================================== */
+
 .search-box {
     display: flex;
     gap: 8px;
@@ -418,20 +455,133 @@ body.admin-mode .topbar .top-actions {
     cursor: pointer;
 }
 
+
+/* ==========================================
+   DATA HEADER BOX
+========================================== */
+
 .header-box {
     margin-bottom: 20px;
 }
 
+
+/* ------------------------------------------
+   Data Header / Header Banner
+------------------------------------------ */
+
 .header-banner {
+    position: relative;
+
     background-color: var(--border-color);
+
     padding: 8px 14px;
+
     border-radius: 8px;
+
     margin-bottom: 10px;
+
     display: flex;
-    justify-content: space-between;
+
     align-items: center;
+
+    justify-content: space-between;
+
+    min-height: 48px;
+
     font-weight: bold;
 }
+
+
+/* ==========================================
+   DATA HEADER — ADMIN
+   Admin হলে Header Text বাম পাশে
+========================================== */
+
+.topbar.admin-header ~ .container .header-banner > span {
+    display: block;
+
+    text-align: left;
+
+    margin-right: auto;
+
+    position: static;
+
+    transform: none;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    max-width: calc(100% - 110px);
+}
+
+
+/* ==========================================
+   DATA HEADER — USER
+   User হলে Header Text Center
+========================================== */
+
+.topbar.user-header ~ .container .header-banner > span {
+    position: absolute;
+
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    display: block;
+
+    text-align: center;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    max-width: calc(100% - 110px);
+
+    width: max-content;
+}
+
+
+/* ------------------------------------------
+   Header-এর Admin Action Buttons
+------------------------------------------ */
+
+.header-banner > div {
+    display: flex;
+
+    align-items: center;
+
+    gap: 4px;
+
+    margin-left: auto;
+
+    flex-shrink: 0;
+}
+
+
+/* Action Button */
+
+.header-banner .custom-action-btn {
+    flex-shrink: 0;
+}
+
+
+/* ==========================================
+   NO HEADER DATA
+========================================== */
+
+.header-box .header-banner {
+    font-weight: 700;
+}
+
+
+/* ==========================================
+   EMPTY STATE
+========================================== */
 
 .empty-state {
     text-align: center;
@@ -441,46 +591,83 @@ body.admin-mode .topbar .top-actions {
     border: 1px solid var(--border-color);
 }
 
-.empty-icon { font-size: 40px; margin-bottom: 10px; }
+.empty-icon {
+    font-size: 40px;
+    margin-bottom: 10px;
+}
 
-/* --- Modals & Toast --- */
+
+/* ==========================================
+   MODAL
+========================================== */
+
 .modal {
     position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
+
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
     background: rgba(0, 0, 0, 0.6);
+
     display: flex;
+
     align-items: center;
+
     justify-content: center;
+
     z-index: 1000;
+
     padding: 16px;
 }
 
 .modal-content {
     background-color: var(--card-bg);
+
     color: var(--text-main);
+
     border-radius: 20px;
+
     padding: 24px;
+
     width: 100%;
+
     max-width: 480px;
+
     max-height: 90vh;
+
     overflow-y: auto;
+
     border: 1px solid var(--border-color);
 }
 
 .modal-header {
     display: flex;
+
     justify-content: space-between;
+
     align-items: center;
+
     margin-bottom: 16px;
 }
 
 .close-btn {
     background: transparent;
+
     border: none;
+
     font-size: 20px;
+
     color: var(--text-main);
+
     cursor: pointer;
 }
+
+
+/* ==========================================
+   FORM
+========================================== */
 
 .form-group {
     margin-bottom: 14px;
@@ -488,67 +675,274 @@ body.admin-mode .topbar .top-actions {
 
 .form-group label {
     display: block;
+
     margin-bottom: 6px;
+
     font-size: 13px;
+
     font-weight: 600;
 }
 
-.form-group input, .form-group textarea, .form-group select {
+.form-group input,
+.form-group textarea,
+.form-group select {
     width: 100%;
+
     padding: 10px 12px;
+
     border-radius: 8px;
+
     border: 1px solid var(--border-color);
+
     background-color: var(--bg-color);
+
     color: var(--text-main);
 }
 
+
+/* ==========================================
+   MODAL ACTIONS
+========================================== */
+
 .modal-actions {
     display: flex;
+
     justify-content: flex-end;
+
     gap: 10px;
+
     margin-top: 20px;
 }
 
+
 /* ==========================================
-   ২. পিন আইটেম স্টাইল
-   ========================================== */
+   PINNED BADGE
+========================================== */
 
 .pinned-badge {
     background-color: #f59e0b;
+
     color: #fff;
+
     font-size: 11px;
+
     padding: 2px 8px;
+
     border-radius: 12px;
+
     margin-left: 8px;
+
     font-weight: 600;
 }
 
+
 /* ==========================================
-   ৩. নোটিফিকেশন টোস্ট ও টুলবার স্টাইল
-   ========================================== */
+   TOAST
+========================================== */
 
 .toast {
     position: fixed;
+
     bottom: 20px;
+
     left: 50%;
+
     transform: translateX(-50%) translateY(100px);
+
     background-color: var(--text-main);
+
     color: var(--bg-color);
+
     padding: 10px 20px;
+
     border-radius: 50px;
+
     font-weight: 600;
+
     opacity: 0;
+
     transition: all 0.3s ease;
+
     z-index: 2000;
 }
 
 .toast.show {
     transform: translateX(-50%) translateY(0);
+
     opacity: 1;
 }
 
+
+/* ==========================================
+   SECTION TOOLBAR
+========================================== */
+
 .section-toolbar {
     display: flex;
+
     gap: 10px;
+
     margin-bottom: 20px;
+}
+
+
+/* ==========================================
+   MOBILE RESPONSIVE
+========================================== */
+
+@media (max-width: 600px) {
+
+    .topbar {
+        height: 70px;
+
+        padding: 0 12px;
+    }
+
+    .app-title {
+        font-size: 18px;
+    }
+
+    .top-actions {
+        gap: 5px;
+    }
+
+    .container {
+        margin-top: 16px;
+
+        padding: 0 12px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 22px;
+    }
+
+
+    /* Data Header */
+
+    .header-banner {
+        min-height: 48px;
+
+        padding: 8px 12px;
+    }
+
+
+    /* User Header Center */
+
+    .topbar.user-header ~ .container .header-banner > span {
+        max-width: calc(100% - 95px);
+
+        font-size: 17px;
+    }
+
+
+    /* Admin Header Left */
+
+    .topbar.admin-header ~ .container .header-banner > span {
+        max-width: calc(100% - 95px);
+
+        font-size: 17px;
+    }
+
+
+    /* Data Card */
+
+    .data-card-item {
+        height: 120px;
+
+        padding: 10px 12px;
+    }
+
+    .data-card-avatar {
+        width: 58px;
+
+        height: 58px;
+
+        min-width: 58px;
+
+        margin-right: 10px;
+    }
+
+    .data-card-name {
+        font-size: 17px;
+    }
+
+    .data-card-detail {
+        font-size: 13px;
+    }
+
+
+    /* Buttons */
+
+    .primary-btn,
+    .secondary-btn {
+        padding: 8px 12px;
+    }
+
+
+    /* Section Toolbar */
+
+    .section-toolbar {
+        flex-wrap: wrap;
+    }
+
+    .section-toolbar .primary-btn,
+    .section-toolbar .secondary-btn {
+        flex: 0 0 auto;
+    }
+
+
+    /* Quick Action */
+
+    .quick-action-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+}
+
+
+/* ==========================================
+   VERY SMALL SCREEN
+========================================== */
+
+@media (max-width: 400px) {
+
+    .topbar {
+        padding: 0 8px;
+    }
+
+    .app-title {
+        font-size: 17px;
+    }
+
+    .icon-btn {
+        padding: 7px 9px;
+    }
+
+    .btn-admin-small {
+        padding: 5px 8px !important;
+    }
+
+
+    .topbar.user-header ~ .container .header-banner > span,
+    .topbar.admin-header ~ .container .header-banner > span {
+        font-size: 16px;
+    }
+
+
+    .data-card-avatar {
+        width: 52px;
+
+        height: 52px;
+
+        min-width: 52px;
+    }
+
+    .data-card-name {
+        font-size: 16px;
+    }
+
+    .data-card-detail {
+        font-size: 12px;
+    }
+
 }
