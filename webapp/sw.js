@@ -1,11 +1,11 @@
 // sw.js
 
-const CACHE_NAME = 'phonebook-v1.3';
+const CACHE_NAME = 'Police phonebook-v1.0';
 
 const urlsToCache = [
     './',
-    './mtcontacts.html',
-    './manifest.json?v=1.3'
+    './index.html',
+    './manifest.json?v=1.0'
 ];
 
 
