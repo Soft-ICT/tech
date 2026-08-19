@@ -9,14 +9,37 @@
     <link rel="icon" type="image/png" sizes="32x32" href="icon-192.png">
     <link rel="apple-touch-icon" href="icon-192.png">
 
-    <!-- PWA Manifest & Theme Color -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1e3a8a">
-
     <!-- CSS (আপনার প্রজেক্টের CSS ফাইল লিংক এখানে দিন) -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
+    <!-- PWA Manifest & Theme Link (Version added to prevent caching) -->
+    <link rel="manifest" href="manifest.json?v=1.0">
+    <meta name="theme-color" content="#0d6efd">
+
+    <!-- Service Worker Register Script with Cache Buster -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                // v=1.0 যোগ করা হয়েছে যাতে গিটহাব আপডেটের পর ব্রাউজার নতুন সার্ভিস ওয়ার্কার লোড করে
+                navigator.serviceWorker.register('./sw.js?v=1.0')
+                    .then(reg => {
+                        console.log('Service Worker নিবন্ধিত হয়েছে:', reg);
+                        // নতুন আপডেট থাকলে স্বয়ংক্রিয়ভাবে আপডেট করবে
+                        reg.onupdatefound = () => {
+                            const installingWorker = reg.installing;
+                            installingWorker.onstatechange = () => {
+                                if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    window.location.reload();
+                                }
+                            };
+                        };
+                    })
+                    .catch(err => console.log('Service Worker ত্রুটি:', err));
+            });
+        }
+    </script>
 
 
 <header class="topbar">
