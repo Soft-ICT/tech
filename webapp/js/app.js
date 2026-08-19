@@ -1,119 +1,71 @@
 import { auth, db, subscribeToDatabase } from "./firebase.js";
-import {
-    signInWithEmailAndPassword,
-    signOut,
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import {
-    ref,
-    push,
-    set,
-    remove,
-    update
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { ref, push, set, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-// ==========================================
-// STATE MANAGEMENT
-// ==========================================
+// Global Variables
 let currentCategoryId = null;
 let currentDataId = null;
 let allCategoriesData = {};
 
-// ==========================================
-// DOM ELEMENTS
-// ==========================================
+// DOM elements
 const mainDashboardView = document.getElementById("mainDashboardView");
 const categoryDetailsView = document.getElementById("categoryDetailsView");
 const dataDetailsView = document.getElementById("dataDetailsView");
-
 const categoryList = document.getElementById("categoryList");
 const emptyState = document.getElementById("emptyState");
 const categoryCount = document.getElementById("categoryCount");
 
-const searchBox = document.getElementById("searchBox");
-const searchInput = document.getElementById("searchInput");
-
-// Modals
-const loginModal = document.getElementById("loginModal");
-const categoryModal = document.getElementById("categoryModal");
-const headerModal = document.getElementById("headerModal");
-const dataModal = document.getElementById("dataModal");
-const moveDataModal = document.getElementById("moveDataModal");
-
-// Toast
-const toast = document.getElementById("toast");
-
-// ==========================================
-// INITIALIZATION
-// ==========================================
 document.addEventListener("DOMContentLoaded", () => {
     initAuthListener();
-    initTheme();
-    loadAllCategories();
+    loadCategoriesData();
     setupEventListeners();
 });
 
-// ==========================================
-// AUTHENTICATION & ADMIN UI
-// ==========================================
+// Auth Listener
 function initAuthListener() {
     onAuthStateChanged(auth, (user) => {
-        const body = document.body;
-        const loginFormContainer = document.getElementById("loginFormContainer");
-        const logoutContainer = document.getElementById("logoutContainer");
-
         if (user) {
-            body.classList.add("is-admin");
-            if (loginFormContainer) loginFormContainer.classList.add("hidden");
-            if (logoutContainer) logoutContainer.classList.remove("hidden");
+            document.body.classList.add("is-admin");
         } else {
-            body.classList.remove("is-admin");
-            if (loginFormContainer) loginFormContainer.classList.remove("hidden");
-            if (logoutContainer) logoutContainer.classList.add("hidden");
+            document.body.classList.remove("is-admin");
         }
     });
 }
 
-// ==========================================
-// DATA LOADING (OFFLINE SUPPORTED)
-// ==========================================
-function loadAllCategories() {
-    // subscribeToDatabase অফলাইন ও অনলাইন দুই অবস্থাতেই ডাটা রিটার্ন করবে
+// Data Fetching
+function loadCategoriesData() {
     subscribeToDatabase("categories", (data) => {
         allCategoriesData = data || {};
         renderCategoriesList(allCategoriesData);
 
-        // যদি কোনো ক্যাটাগরি ডিটেইলস পেজ খোলা থাকে, সেটাও রিয়েলটাইমে আপডেট হবে
         if (currentCategoryId && allCategoriesData[currentCategoryId]) {
             renderCategoryDetailsPage(currentCategoryId);
         }
     });
 }
 
-// ==========================================
-// RENDER FUNCTIONS
-// ==========================================
+// Render Categories List
 function renderCategoriesList(categories) {
+    if (!categoryList) return;
     categoryList.innerHTML = "";
+    
     const keys = Object.keys(categories);
-
-    categoryCount.textContent = `${keys.length}টি Category`;
+    if (categoryCount) categoryCount.textContent = `${keys.length}টি Category`;
 
     if (keys.length === 0) {
-        emptyState.classList.remove("hidden");
+        if (emptyState) emptyState.classList.remove("hidden");
         categoryList.classList.add("hidden");
         return;
     }
 
-    emptyState.classList.add("hidden");
+    if (emptyState) emptyState.classList.add("hidden");
     categoryList.classList.remove("hidden");
 
     keys.forEach((id) => {
         const cat = categories[id];
         const card = document.createElement("div");
         card.className = "category-card";
-        
-        // Data count calculation
+
         let itemCount = 0;
         if (cat.data) itemCount += Object.keys(cat.data).length;
         if (cat.headers) {
@@ -123,47 +75,58 @@ function renderCategoriesList(categories) {
         }
 
         card.innerHTML = `
-            <div class="cat-info" onclick="openCategoryDetails('${id}')">
+            <div class="cat-info">
                 <h3>${cat.name || "Unnamed"}</h3>
                 <p>${itemCount}টি ডাটা এন্ট্রি</p>
             </div>
             <div class="cat-actions admin-only">
-                <button onclick="editCategory('${id}', '${cat.name}')" class="icon-btn-sm">✏️</button>
-                <button onclick="deleteCategory('${id}')" class="icon-btn-sm danger">🗑️</button>
+                <button class="delete-cat-btn icon-btn-sm danger">🗑️</button>
             </div>
         `;
+
+        card.querySelector(".cat-info").addEventListener("click", () => openCategoryDetails(id));
+        const delBtn = card.querySelector(".delete-cat-btn");
+        if (delBtn) {
+            delBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                deleteCategory(id);
+            });
+        }
+
         categoryList.appendChild(card);
     });
 }
 
-window.openCategoryDetails = function (catId) {
+function openCategoryDetails(catId) {
     currentCategoryId = catId;
     renderCategoryDetailsPage(catId);
     
     mainDashboardView.classList.add("hidden");
     categoryDetailsView.classList.remove("hidden");
     dataDetailsView.classList.add("hidden");
-};
+}
 
 function renderCategoryDetailsPage(catId) {
     const cat = allCategoriesData[catId];
     if (!cat) return;
 
-    document.getElementById("detailsTitle").textContent = cat.name;
+    const detailsTitle = document.getElementById("detailsTitle");
     const detailsContent = document.getElementById("detailsContent");
-    detailsContent.innerHTML = "";
 
-    // 1. Unheadered Data Render
+    if (detailsTitle) detailsTitle.textContent = cat.name;
+    if (detailsContent) detailsContent.innerHTML = "";
+
+    // 1. Direct Data Render
     if (cat.data) {
-        const directDataGroup = document.createElement("div");
-        directDataGroup.className = "data-group";
+        const directGroup = document.createElement("div");
+        directGroup.className = "data-group";
         Object.keys(cat.data).forEach(dataId => {
-            directDataGroup.appendChild(createDataCard(cat.data[dataId], dataId, catId, null));
+            directGroup.appendChild(createDataCard(cat.data[dataId], dataId, catId, null));
         });
-        detailsContent.appendChild(directDataGroup);
+        detailsContent.appendChild(directGroup);
     }
 
-    // 2. Headers & Headered Data Render
+    // 2. Header & Headered Data Render
     if (cat.headers) {
         Object.keys(cat.headers).forEach(headerId => {
             const headerObj = cat.headers[headerId];
@@ -173,11 +136,14 @@ function renderCategoryDetailsPage(catId) {
             headerSection.innerHTML = `
                 <div class="header-title-bar">
                     <h2>📌 ${headerObj.name}</h2>
-                    <div class="admin-only">
-                        <button onclick="deleteHeader('${catId}', '${headerId}')" class="icon-btn-sm danger">🗑️</button>
-                    </div>
+                    <button class="del-header-btn icon-btn-sm danger admin-only">🗑️</button>
                 </div>
             `;
+
+            const delHeaderBtn = headerSection.querySelector(".del-header-btn");
+            if(delHeaderBtn) {
+                delHeaderBtn.addEventListener("click", () => deleteHeader(catId, headerId));
+            }
 
             const dataGroup = document.createElement("div");
             dataGroup.className = "data-group";
@@ -192,14 +158,14 @@ function renderCategoryDetailsPage(catId) {
             detailsContent.appendChild(headerSection);
         });
     }
-};
+}
 
 function createDataCard(item, dataId, catId, headerId) {
     const card = document.createElement("div");
     card.className = "data-card";
     
     card.innerHTML = `
-        <div class="data-card-body" onclick="openDataDetails('${catId}', '${headerId || ''}', '${dataId}')">
+        <div class="data-card-body">
             <img src="${item.photo || 'https://via.placeholder.com/60'}" class="avatar" alt="photo" onerror="this.src='https://via.placeholder.com/60'">
             <div class="data-text">
                 <h4>${item.name || 'নাম নেই'}</h4>
@@ -208,16 +174,23 @@ function createDataCard(item, dataId, catId, headerId) {
             </div>
         </div>
         <div class="data-card-actions admin-only">
-            <button onclick="editData('${catId}', '${headerId || ''}', '${dataId}')" class="icon-btn-sm">✏️</button>
-            <button onclick="openMoveModal('${catId}', '${headerId || ''}', '${dataId}')" class="icon-btn-sm">📦</button>
-            <button onclick="deleteData('${catId}', '${headerId || ''}', '${dataId}')" class="icon-btn-sm danger">🗑️</button>
+            <button class="del-data-btn icon-btn-sm danger">🗑️</button>
         </div>
     `;
+
+    card.querySelector(".data-card-body").addEventListener("click", () => openDataDetails(catId, headerId, dataId));
+    const delDataBtn = card.querySelector(".del-data-btn");
+    if(delDataBtn) {
+        delDataBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            deleteData(catId, headerId, dataId);
+        });
+    }
+
     return card;
 }
 
-window.openDataDetails = function (catId, headerId, dataId) {
-    currentDataId = dataId;
+function openDataDetails(catId, headerId, dataId) {
     let item = null;
 
     if (headerId && headerId !== 'null' && headerId !== '') {
@@ -231,7 +204,7 @@ window.openDataDetails = function (catId, headerId, dataId) {
     const dataPageContent = document.getElementById("dataPageContent");
     dataPageContent.innerHTML = `
         <div class="profile-header">
-            <img src="${item.photo || 'https://via.placeholder.com/120'}" class="profile-avatar">
+            <img src="${item.photo || 'https://via.placeholder.com/120'}" class="profile-avatar" onerror="this.src='https://via.placeholder.com/120'">
             <h2>${item.name || ''}</h2>
             <p class="badge">${item.designation || ''}</p>
         </div>
@@ -248,234 +221,111 @@ window.openDataDetails = function (catId, headerId, dataId) {
     mainDashboardView.classList.add("hidden");
     categoryDetailsView.classList.add("hidden");
     dataDetailsView.classList.remove("hidden");
-};
-
-// ==========================================
-// EVENT LISTENERS & MODAL HANDLERS
-// ==========================================
-function setupEventListeners() {
-    // Navigation
-    document.getElementById("backToMainBtn").addEventListener("click", () => {
-        currentCategoryId = null;
-        categoryDetailsView.classList.add("hidden");
-        mainDashboardView.classList.remove("hidden");
-    });
-
-    document.getElementById("backFromDataBtn").addEventListener("click", () => {
-        dataDetailsView.classList.add("hidden");
-        if (currentCategoryId) {
-            categoryDetailsView.classList.remove("hidden");
-        } else {
-            mainDashboardView.classList.remove("hidden");
-        }
-    });
-
-    // Top Action Buttons
-    document.getElementById("adminLoginBtn").addEventListener("click", () => showModal(loginModal));
-    document.getElementById("addCategoryBtn").addEventListener("click", () => showModal(categoryModal));
-    document.getElementById("emptyAddBtn").addEventListener("click", () => showModal(categoryModal));
-    
-    document.getElementById("addHeaderBtn").addEventListener("click", () => showModal(headerModal));
-    document.getElementById("addDataBtn").addEventListener("click", () => {
-        populateHeaderDropdown();
-        showModal(dataModal);
-    });
-
-    // Close Modal Handler
-    document.querySelectorAll("[data-close]").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-            const modalId = e.target.getAttribute("data-close");
-            hideModal(document.getElementById(modalId));
-        });
-    });
-
-    // Admin Login/Logout Actions
-    document.getElementById("submitLoginBtn").addEventListener("click", handleLogin);
-    document.getElementById("logoutBtn").addEventListener("click", handleLogout);
-
-    // CRUD Save Actions
-    document.getElementById("saveCategoryBtn").addEventListener("click", saveCategory);
-    document.getElementById("saveHeaderBtn").addEventListener("click", saveHeader);
-    document.getElementById("saveDataBtn").addEventListener("click", saveData);
-
-    // Search Toggle
-    document.getElementById("searchBtn").addEventListener("click", () => {
-        searchBox.classList.toggle("hidden");
-        if (!searchBox.classList.contains("hidden")) searchInput.focus();
-    });
-
-    document.getElementById("clearSearch").addEventListener("click", () => {
-        searchInput.value = "";
-        renderCategoriesList(allCategoriesData);
-    });
-
-    searchInput.addEventListener("input", handleSearch);
 }
 
-// ==========================================
-// FIREBASE DATABASE WRITE ACTIONS
-// ==========================================
-function saveCategory() {
-    const name = document.getElementById("categoryNameInput").value.trim();
-    if (!name) return showToast("ক্যাটাগরির নাম লিখুন!");
+function setupEventListeners() {
+    const backToMainBtn = document.getElementById("backToMainBtn");
+    if (backToMainBtn) {
+        backToMainBtn.addEventListener("click", () => {
+            currentCategoryId = null;
+            categoryDetailsView.classList.add("hidden");
+            mainDashboardView.classList.remove("hidden");
+        });
+    }
 
-    const newRef = push(ref(db, "categories"));
-    set(newRef, { name: name })
+    const backFromDataBtn = document.getElementById("backFromDataBtn");
+    if (backFromDataBtn) {
+        backFromDataBtn.addEventListener("click", () => {
+            dataDetailsView.classList.add("hidden");
+            if (currentCategoryId) {
+                categoryDetailsView.classList.remove("hidden");
+            } else {
+                mainDashboardView.classList.remove("hidden");
+            }
+        });
+    }
+
+    // Modal Actions
+    const saveCategoryBtn = document.getElementById("saveCategoryBtn");
+    if (saveCategoryBtn) saveCategoryBtn.addEventListener("click", saveCategory);
+
+    const saveHeaderBtn = document.getElementById("saveHeaderBtn");
+    if (saveHeaderBtn) saveHeaderBtn.addEventListener("click", saveHeader);
+
+    const saveDataBtn = document.getElementById("saveDataBtn");
+    if (saveDataBtn) saveDataBtn.addEventListener("click", saveData);
+}
+
+// Database Actions
+function saveCategory() {
+    const input = document.getElementById("categoryNameInput");
+    const name = input ? input.value.trim() : "";
+    if (!name) return alert("ক্যাটাগরির নাম দিন");
+
+    push(ref(db, "categories"), { name: name })
         .then(() => {
-            showToast("Category সফলভাবে যোগ হয়েছে");
-            document.getElementById("categoryNameInput").value = "";
-            hideModal(categoryModal);
-        })
-        .catch(err => showToast("ত্রুটি: " + err.message));
+            if (input) input.value = "";
+            document.getElementById("categoryModal")?.classList.add("hidden");
+        });
 }
 
 function saveHeader() {
-    const name = document.getElementById("headerNameInput").value.trim();
-    if (!name || !currentCategoryId) return showToast("Header নাম দিন!");
+    const input = document.getElementById("headerNameInput");
+    const name = input ? input.value.trim() : "";
+    if (!name || !currentCategoryId) return alert("Header এর নাম দিন");
 
-    const newRef = push(ref(db, `categories/${currentCategoryId}/headers`));
-    set(newRef, { name: name })
+    push(ref(db, `categories/${currentCategoryId}/headers`), { name: name })
         .then(() => {
-            showToast("Header সফলভাবে যোগ হয়েছে");
-            document.getElementById("headerNameInput").value = "";
-            hideModal(headerModal);
-        })
-        .catch(err => showToast("ত্রুটি: " + err.message));
+            if (input) input.value = "";
+            document.getElementById("headerModal")?.classList.add("hidden");
+        });
 }
 
 function saveData() {
     if (!currentCategoryId) return;
 
     const dataObj = {
-        photo: document.getElementById("dataPhoto").value.trim(),
-        name: document.getElementById("dataName").value.trim(),
-        mobile: document.getElementById("dataMobile").value.trim(),
-        phone: document.getElementById("dataPhone").value.trim(),
-        designation: document.getElementById("dataDesignation").value.trim(),
-        email: document.getElementById("dataEmail").value.trim(),
-        currentOffice: document.getElementById("dataCurrentOffice").value.trim(),
-        permanentAddress: document.getElementById("dataPermanentAddress").value.trim(),
-        adminInfo: document.getElementById("dataAdminInfo").value.trim()
+        photo: document.getElementById("dataPhoto")?.value.trim() || "",
+        name: document.getElementById("dataName")?.value.trim() || "",
+        mobile: document.getElementById("dataMobile")?.value.trim() || "",
+        phone: document.getElementById("dataPhone")?.value.trim() || "",
+        designation: document.getElementById("dataDesignation")?.value.trim() || "",
+        email: document.getElementById("dataEmail")?.value.trim() || "",
+        currentOffice: document.getElementById("dataCurrentOffice")?.value.trim() || "",
+        permanentAddress: document.getElementById("dataPermanentAddress")?.value.trim() || "",
+        adminInfo: document.getElementById("dataAdminInfo")?.value.trim() || ""
     };
 
-    const selectedHeader = document.getElementById("dataHeaderSelect").value;
+    const selectedHeader = document.getElementById("dataHeaderSelect")?.value;
     let targetPath = `categories/${currentCategoryId}/data`;
     if (selectedHeader) {
         targetPath = `categories/${currentCategoryId}/headers/${selectedHeader}/data`;
     }
 
-    const newRef = push(ref(db, targetPath));
-    set(newRef, dataObj)
+    push(ref(db, targetPath), dataObj)
         .then(() => {
-            showToast("Data সফলভাবে সংরক্ষণ করা হয়েছে");
-            clearDataModalInputs();
-            hideModal(dataModal);
-        })
-        .catch(err => showToast("ত্রুটি: " + err.message));
+            document.getElementById("dataModal")?.classList.add("hidden");
+        });
 }
 
-// Global Delete Handlers
-window.deleteCategory = function (catId) {
-    if (confirm("আপনি কি নিশ্চিত এই Category মুছে ফেলতে চান?")) {
-        remove(ref(db, `categories/${catId}`))
-            .then(() => showToast("Category ডিলিট করা হয়েছে"))
-            .catch(err => showToast("ত্রুটি: " + err.message));
+function deleteCategory(catId) {
+    if (confirm("Category মুছে ফেলতে চান?")) {
+        remove(ref(db, `categories/${catId}`));
     }
-};
+}
 
-window.deleteHeader = function (catId, headerId) {
-    if (confirm("আপনি কি এই Header-টি মুছে ফেলতে চান?")) {
-        remove(ref(db, `categories/${catId}/headers/${headerId}`))
-            .then(() => showToast("Header ডিলিট করা হয়েছে"))
-            .catch(err => showToast("ত্রুটি: " + err.message));
+function deleteHeader(catId, headerId) {
+    if (confirm("Header মুছে ফেলতে চান?")) {
+        remove(ref(db, `categories/${catId}/headers/${headerId}`));
     }
-};
+}
 
-window.deleteData = function (catId, headerId, dataId) {
-    if (confirm("আপনি কি এই Data-টি মুছে ফেলতে চান?")) {
+function deleteData(catId, headerId, dataId) {
+    if (confirm("Data মুছে ফেলতে চান?")) {
         let path = `categories/${catId}/data/${dataId}`;
         if (headerId && headerId !== 'null' && headerId !== '') {
             path = `categories/${catId}/headers/${headerId}/data/${dataId}`;
         }
-        remove(ref(db, path))
-            .then(() => showToast("Data ডিলিট করা হয়েছে"))
-            .catch(err => showToast("ত্রুটি: " + err.message));
+        remove(ref(db, path));
     }
-};
-
-// ==========================================
-// UTILITY HELPERS
-// ==========================================
-function populateHeaderDropdown() {
-    const select = document.getElementById("dataHeaderSelect");
-    select.innerHTML = '<option value="">Header ছাড়া</option>';
-
-    if (currentCategoryId && allCategoriesData[currentCategoryId]?.headers) {
-        const headers = allCategoriesData[currentCategoryId].headers;
-        Object.keys(headers).forEach(hId => {
-            select.innerHTML += `<option value="${hId}">${headers[hId].name}</option>`;
-        });
-    }
-}
-
-function handleLogin() {
-    const email = document.getElementById("loginEmail").value;
-    const pass = document.getElementById("loginPassword").value;
-    
-    signInWithEmailAndPassword(auth, email, pass)
-        .then(() => {
-            showToast("অ্যাডমিন লগইন সফল!");
-            hideModal(loginModal);
-        })
-        .catch(err => showToast("লগইন ব্যর্থ: " + err.message));
-}
-
-function handleLogout() {
-    signOut(auth).then(() => {
-        showToast("লগআউট করা হয়েছে");
-        hideModal(loginModal);
-    });
-}
-
-function handleSearch(e) {
-    const query = e.target.value.toLowerCase().trim();
-    if (!query) {
-        renderCategoriesList(allCategoriesData);
-        return;
-    }
-
-    const filtered = {};
-    Object.keys(allCategoriesData).forEach(catId => {
-        const cat = allCategoriesData[catId];
-        if (cat.name.toLowerCase().includes(query)) {
-            filtered[catId] = cat;
-        }
-    });
-
-    renderCategoriesList(filtered);
-}
-
-function initTheme() {
-    const themeBtn = document.getElementById("themeBtn");
-    if (!themeBtn) return;
-    
-    themeBtn.addEventListener("click", () => {
-        document.body.classList.toggle("dark-mode");
-        const isDark = document.body.classList.contains("dark-mode");
-        themeBtn.textContent = isDark ? "☀️" : "🌙";
-    });
-}
-
-function showModal(modal) { modal.classList.remove("hidden"); }
-function hideModal(modal) { modal.classList.add("hidden"); }
-
-function showToast(msg) {
-    toast.textContent = msg;
-    toast.classList.add("show");
-    setTimeout(() => toast.classList.remove("show"), 3000);
-}
-
-function clearDataModalInputs() {
-    ["dataPhoto", "dataName", "dataMobile", "dataPhone", "dataDesignation", "dataEmail", "dataCurrentOffice", "dataPermanentAddress", "dataAdminInfo"]
-        .forEach(id => document.getElementById(id).value = "");
 }
