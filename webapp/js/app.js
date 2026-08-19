@@ -1,1308 +1,481 @@
+import { auth, db, subscribeToDatabase } from "./firebase.js";
 import {
-    watchAuth,
-    loginAdmin,
-    logoutAdmin
-} from "./auth.js";
-
+    signInWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import {
     ref,
+    push,
     set,
-    get,
-    onValue
+    remove,
+    update
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
-import {
-    db
-} from "./firebase.js";
-
-"use strict";
-
-/* =========================================
-   IndexedDB Offline Storage Setup
-========================================= */
-
-const DB_NAME = "PolicePhonebookDB";
-const STORE_NAME = "public_data";
-const DB_VERSION = 1;
-
-function openOfflineDB() {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, DB_VERSION);
-        request.onupgradeneeded = (e) => {
-            const dbInstance = e.target.result;
-            if (!dbInstance.objectStoreNames.contains(STORE_NAME)) {
-                dbInstance.createObjectStore(STORE_NAME);
-            }
-        };
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = (e) => reject(e);
-    });
-}
-
-async function saveOfflineData(data) {
-    try {
-        const idb = await openOfflineDB();
-        const tx = idb.transaction(STORE_NAME, "readwrite");
-        const store = tx.objectStore(STORE_NAME);
-        store.put(data, "current_data");
-    } catch (e) {
-        console.error("IndexedDB Save Error:", e);
-    }
-}
-
-async function getOfflineData() {
-    try {
-        const idb = await openOfflineDB();
-        return new Promise((resolve) => {
-            const tx = idb.transaction(STORE_NAME, "readonly");
-            const store = tx.objectStore(STORE_NAME);
-            const req = store.get("current_data");
-            req.onsuccess = () => resolve(req.result || null);
-            req.onerror = () => resolve(null);
-        });
-    } catch (e) {
-        console.error("IndexedDB Get Error:", e);
-        return null;
-    }
-}
-
-/* =========================================
-   HTML Escape
-========================================= */
-
-function escapeHTML(str) {
-    return String(str || "").replace(
-        /[&<>"']/g,
-        match => ({
-            "&": "&amp;",
-            "<": "&lt;",
-            ">": "&gt;",
-            '"': "&quot;",
-            "'": "&#039;"
-        }[match])
-    );
-}
-
-/* =========================================
-   Global Variables
-========================================= */
-
-let database = {
-    categories: [],
-    headers: [],
-    data: []
-};
-
+// ==========================================
+// STATE MANAGEMENT
+// ==========================================
 let currentCategoryId = null;
 let currentDataId = null;
-let editingItem = null;
-let movingDataId = null;
+let allCategoriesData = {};
 
-window.currentUserRole = "guest";
+// ==========================================
+// DOM ELEMENTS
+// ==========================================
+const mainDashboardView = document.getElementById("mainDashboardView");
+const categoryDetailsView = document.getElementById("categoryDetailsView");
+const dataDetailsView = document.getElementById("dataDetailsView");
 
-/* =========================================
-   Authentication
-========================================= */
+const categoryList = document.getElementById("categoryList");
+const emptyState = document.getElementById("emptyState");
+const categoryCount = document.getElementById("categoryCount");
 
-watchAuth((user, role) => {
-    const adminBtn = document.getElementById("adminLoginBtn");
+const searchBox = document.getElementById("searchBox");
+const searchInput = document.getElementById("searchInput");
 
-    if (!user) {
-        window.currentUser = null;
-        window.currentUserRole = "guest";
-        if (adminBtn) {
-            adminBtn.textContent = "🔑 Admin";
-        }
-    } else {
-        window.currentUser = user;
-        window.currentUserRole = role || "admin";
-        if (adminBtn) {
-            adminBtn.textContent = "👤 Admin";
-        }
-    }
+// Modals
+const loginModal = document.getElementById("loginModal");
+const categoryModal = document.getElementById("categoryModal");
+const headerModal = document.getElementById("headerModal");
+const dataModal = document.getElementById("dataModal");
+const moveDataModal = document.getElementById("moveDataModal");
 
-    updateAdminUI();
-    loadDatabase();
-});
+// Toast
+const toast = document.getElementById("toast");
 
-/* =========================================
-   Admin / User UI
-========================================= */
-
-function updateAdminUI() {
-    const isAdmin = window.currentUserRole === "admin";
-    const topbar = document.querySelector(".topbar");
-
-    if (topbar) {
-        if (isAdmin) {
-            topbar.classList.add("admin-header");
-            topbar.classList.remove("user-header");
-        } else {
-            topbar.classList.add("user-header");
-            topbar.classList.remove("admin-header");
-        }
-    }
-
-    document.querySelectorAll(".admin-only").forEach(el => {
-        if (isAdmin) {
-            el.classList.remove("hidden");
-        } else {
-            el.classList.add("hidden");
-        }
-    });
-
-    const loginForm = document.getElementById("loginFormContainer");
-    const logoutContainer = document.getElementById("logoutContainer");
-
-    if (loginForm) {
-        loginForm.style.display = isAdmin ? "none" : "block";
-    }
-
-    if (logoutContainer) {
-        if (isAdmin) {
-            logoutContainer.classList.remove("hidden");
-        } else {
-            logoutContainer.classList.add("hidden");
-        }
-    }
-}
-
-/* =========================================
-   DOM Ready
-========================================= */
-
+// ==========================================
+// INITIALIZATION
+// ==========================================
 document.addEventListener("DOMContentLoaded", () => {
-    setupEvents();
+    initAuthListener();
     initTheme();
-    updateAdminUI();
-
-    history.replaceState({ page: "home" }, "");
-    window.addEventListener("popstate", handlePopState);
-
-    window.addEventListener("online", async () => {
-        showToast("ইন্টারনেট সংযুক্ত হয়েছে, সিঙ্ক করা হচ্ছে...");
-        await saveDatabase();
-    });
+    loadAllCategories();
+    setupEventListeners();
 });
 
-/* =========================================
-   Browser Back
-========================================= */
+// ==========================================
+// AUTHENTICATION & ADMIN UI
+// ==========================================
+function initAuthListener() {
+    onAuthStateChanged(auth, (user) => {
+        const body = document.body;
+        const loginFormContainer = document.getElementById("loginFormContainer");
+        const logoutContainer = document.getElementById("logoutContainer");
 
-function handlePopState(event) {
-    const state = event.state;
-
-    if (!state || state.page === "home") {
-        showMainDashboardView(false);
-    } else if (state.page === "category") {
-        showCategoryView(state.categoryId, false);
-    } else if (state.page === "data") {
-        showDataPage(state.dataId, false);
-    }
-}
-
-/* =========================================
-   Theme
-========================================= */
-
-function initTheme() {
-    if (localStorage.getItem("theme") === "dark") {
-        document.body.classList.add("dark-mode");
-    }
-}
-
-function toggleTheme() {
-    document.body.classList.toggle("dark-mode");
-    const isDark = document.body.classList.contains("dark-mode");
-    localStorage.setItem("theme", isDark ? "dark" : "light");
-
-    showToast(isDark ? "নাইট মোড অন করা হয়েছে" : "ডে মোড অন করা হয়েছে");
-}
-
-/* =========================================
-   Database Load (Online & Offline Support)
-========================================= */
-
-async function loadDatabase() {
-    // ১. প্রথমে IndexedDB থেকে লোড করার চেষ্টা করা হবে (অফলাইনেও কাজ করবে)
-    const localData = await getOfflineData();
-    if (localData) {
-        database = localData;
-        refreshCurrentView();
-    }
-
-    // ২. অনলাইন থাকলে রিয়েল-টাইম Firebase Data Listen করা হবে
-    if (navigator.onLine) {
-        try {
-            const dataRef = ref(db, "webapp/public_data");
-            onValue(dataRef, async (snapshot) => {
-                if (snapshot.exists()) {
-                    database = snapshot.val();
-                    if (!database.categories) database.categories = [];
-                    if (!database.headers) database.headers = [];
-                    if (!database.data) database.data = [];
-
-                    await saveOfflineData(database);
-                    refreshCurrentView();
-                }
-            });
-        } catch (error) {
-            console.error("Database load error:", error);
-        }
-    }
-}
-
-/* =========================================
-   Database Save (Online & Offline Support)
-========================================= */
-
-async function saveDatabase() {
-    if (window.currentUserRole !== "admin") {
-        showToast("শুধুমাত্র Admin পরিবর্তন সেভ করতে পারবেন");
-        return;
-    }
-
-    // অফলাইন স্টোরেজে সেভ করা
-    await saveOfflineData(database);
-
-    // অনলাইন থাকলে Firebase-এ আপডেট করা
-    if (navigator.onLine) {
-        try {
-            await set(ref(db, "webapp/public_data"), database);
-        } catch (error) {
-            console.error("Database save error:", error);
-            showToast("অনলাইনে ডাটা সিঙ্ক করতে সমস্যা হয়েছে");
-        }
-    } else {
-        showToast("অফলাইনে সেভ হয়েছে। অনলাইনে এলে অটো সিঙ্ক হবে।");
-    }
-}
-
-/* =========================================
-   Generate ID
-========================================= */
-
-function generateId(prefix) {
-    return prefix + "_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8);
-}
-
-/* =========================================
-   Pin Sorting
-========================================= */
-
-function sortItemsByPin(items) {
-    return items.sort((a, b) => {
-        if (a.pinned && b.pinned) {
-            return (a.pinnedAt || 0) - (b.pinnedAt || 0);
-        }
-        if (a.pinned) return -1;
-        if (b.pinned) return 1;
-        return 0;
-    });
-}
-
-/* =========================================
-   Setup Events
-========================================= */
-
-function setupEvents() {
-    document.getElementById("themeBtn")?.addEventListener("click", toggleTheme);
-
-    document.getElementById("searchBtn")?.addEventListener("click", () => {
-        const searchBox = document.getElementById("searchBox");
-        searchBox?.classList.toggle("hidden");
-
-        if (!searchBox?.classList.contains("hidden")) {
-            document.getElementById("searchInput")?.focus();
-        }
-    });
-
-    document.getElementById("clearSearch")?.addEventListener("click", () => {
-        const input = document.getElementById("searchInput");
-        if (input) input.value = "";
-        handleSearch();
-    });
-
-    document.getElementById("searchInput")?.addEventListener("input", handleSearch);
-
-    document.getElementById("adminLoginBtn")?.addEventListener("click", () => openModal("loginModal"));
-
-    document.getElementById("submitLoginBtn")?.addEventListener("click", async () => {
-        const email = document.getElementById("loginEmail")?.value.trim();
-        const password = document.getElementById("loginPassword")?.value.trim();
-
-        if (!email || !password) {
-            return showToast("ইমেইল এবং পাসওয়ার্ড দিন");
-        }
-
-        const res = await loginAdmin(email, password);
-
-        if (res.success) {
-            showToast("অ্যাডমিন লগইন সফল হয়েছে!");
-            closeModal("loginModal");
+        if (user) {
+            body.classList.add("is-admin");
+            if (loginFormContainer) loginFormContainer.classList.add("hidden");
+            if (logoutContainer) logoutContainer.classList.remove("hidden");
         } else {
-            showToast("লগইন ব্যর্থ হয়েছে: " + res.error);
+            body.classList.remove("is-admin");
+            if (loginFormContainer) loginFormContainer.classList.remove("hidden");
+            if (logoutContainer) logoutContainer.classList.add("hidden");
         }
-    });
-
-    document.getElementById("logoutBtn")?.addEventListener("click", async () => {
-        const result = await logoutAdmin();
-        if (result.success) {
-            closeModal("loginModal");
-            showToast("লগআউট করা হয়েছে");
-        }
-    });
-
-    document.getElementById("addCategoryBtn")?.addEventListener("click", () => openCategoryModal(false));
-    document.getElementById("emptyAddBtn")?.addEventListener("click", () => openCategoryModal(false));
-    document.getElementById("addSubCategoryBtn")?.addEventListener("click", () => openCategoryModal(true));
-    document.getElementById("saveCategoryBtn")?.addEventListener("click", saveCategory);
-
-    document.getElementById("saveHeaderBtn")?.addEventListener("click", saveHeader);
-    document.getElementById("saveDataBtn")?.addEventListener("click", saveData);
-    document.getElementById("confirmMoveBtn")?.addEventListener("click", confirmMoveData);
-
-    document.getElementById("addHeaderBtn")?.addEventListener("click", () => openHeaderModal());
-    document.getElementById("addDataBtn")?.addEventListener("click", () => openDataModal());
-
-    document.getElementById("backToMainBtn")?.addEventListener("click", () => history.back());
-    document.getElementById("backFromDataBtn")?.addEventListener("click", () => history.back());
-
-    document.querySelectorAll("[data-close]").forEach(btn => {
-        btn.addEventListener("click", () => closeModal(btn.dataset.close));
     });
 }
 
-/* =========================================
-   Search
-========================================= */
+// ==========================================
+// DATA LOADING (OFFLINE SUPPORTED)
+// ==========================================
+function loadAllCategories() {
+    // subscribeToDatabase অফলাইন ও অনলাইন দুই অবস্থাতেই ডাটা রিটার্ন করবে
+    subscribeToDatabase("categories", (data) => {
+        allCategoriesData = data || {};
+        renderCategoriesList(allCategoriesData);
 
-function handleSearch() {
-    const searchVal = document.getElementById("searchInput")?.value.trim().toLowerCase();
-
-    if (currentCategoryId) {
-        renderCategoryDetails(searchVal);
-    } else {
-        renderCategories(searchVal);
-    }
+        // যদি কোনো ক্যাটাগরি ডিটেইলস পেজ খোলা থাকে, সেটাও রিয়েলটাইমে আপডেট হবে
+        if (currentCategoryId && allCategoriesData[currentCategoryId]) {
+            renderCategoryDetailsPage(currentCategoryId);
+        }
+    });
 }
 
-/* =========================================
-   Render Categories
-========================================= */
+// ==========================================
+// RENDER FUNCTIONS
+// ==========================================
+function renderCategoriesList(categories) {
+    categoryList.innerHTML = "";
+    const keys = Object.keys(categories);
 
-function renderCategories(searchVal = "") {
-    const list = document.getElementById("categoryList");
-    const emptyState = document.getElementById("emptyState");
-    const countElement = document.getElementById("categoryCount");
+    categoryCount.textContent = `${keys.length}টি Category`;
 
-    if (!list || !emptyState) return;
-
-    let categoriesToShow = database.categories.filter(cat => !cat.parentId);
-
-    if (searchVal) {
-        categoriesToShow = categoriesToShow.filter(cat =>
-            String(cat.name).toLowerCase().includes(searchVal)
-        );
-    }
-
-    categoriesToShow = sortItemsByPin(categoriesToShow);
-    list.innerHTML = "";
-
-    if (countElement) {
-        countElement.textContent = `${categoriesToShow.length}টি Category`;
-    }
-
-    if (categoriesToShow.length === 0) {
+    if (keys.length === 0) {
         emptyState.classList.remove("hidden");
-        list.classList.add("hidden");
+        categoryList.classList.add("hidden");
         return;
     }
 
     emptyState.classList.add("hidden");
-    list.classList.remove("hidden");
+    categoryList.classList.remove("hidden");
 
-    const isAdmin = window.currentUserRole === "admin";
-
-    categoriesToShow.forEach(category => {
+    keys.forEach((id) => {
+        const cat = categories[id];
         const card = document.createElement("div");
         card.className = "category-card";
-
-        const pinIcon = category.pinned ? "📌" : "📍";
-
-        const adminActions = isAdmin
-            ? `
-                <div class="action-btn-group">
-                    <button class="btn-pin-cat custom-action-btn" title="পিন করুন">${pinIcon}</button>
-                    <button class="btn-edit-cat custom-action-btn">✏️</button>
-                    <button class="btn-del-cat custom-action-btn" style="color:#ef4444">🗑️</button>
-                </div>
-            `
-            : "";
-
-        const pinBadge = (isAdmin && category.pinned)
-            ? '<span class="pinned-badge">Pinned</span>'
-            : "";
+        
+        // Data count calculation
+        let itemCount = 0;
+        if (cat.data) itemCount += Object.keys(cat.data).length;
+        if (cat.headers) {
+            Object.values(cat.headers).forEach(h => {
+                if (h.data) itemCount += Object.keys(h.data).length;
+            });
+        }
 
         card.innerHTML = `
-            <div class="cat-click">
-                <h3>
-                    ${escapeHTML(category.name)}
-                    ${pinBadge}
-                </h3>
+            <div class="cat-info" onclick="openCategoryDetails('${id}')">
+                <h3>${cat.name || "Unnamed"}</h3>
+                <p>${itemCount}টি ডাটা এন্ট্রি</p>
             </div>
-            ${adminActions}
+            <div class="cat-actions admin-only">
+                <button onclick="editCategory('${id}', '${cat.name}')" class="icon-btn-sm">✏️</button>
+                <button onclick="deleteCategory('${id}')" class="icon-btn-sm danger">🗑️</button>
+            </div>
         `;
-
-        card.querySelector(".cat-click").addEventListener("click", () => openCategory(category.id));
-
-        if (isAdmin) {
-            card.querySelector(".btn-pin-cat")?.addEventListener("click", e => {
-                e.stopPropagation();
-                togglePinCategory(category.id);
-            });
-
-            card.querySelector(".btn-edit-cat")?.addEventListener("click", e => {
-                e.stopPropagation();
-                editCategory(category.id);
-            });
-
-            card.querySelector(".btn-del-cat")?.addEventListener("click", e => {
-                e.stopPropagation();
-                deleteCategory(category.id);
-            });
-        }
-
-        list.appendChild(card);
+        categoryList.appendChild(card);
     });
-
-    updateAdminUI();
 }
 
-/* =========================================
-   Category Modal
-========================================= */
+window.openCategoryDetails = function (catId) {
+    currentCategoryId = catId;
+    renderCategoryDetailsPage(catId);
+    
+    mainDashboardView.classList.add("hidden");
+    categoryDetailsView.classList.remove("hidden");
+    dataDetailsView.classList.add("hidden");
+};
 
-function openCategoryModal(isSubCategory = false, editObj = null) {
-    if (window.currentUserRole !== "admin") return;
+function renderCategoryDetailsPage(catId) {
+    const cat = allCategoriesData[catId];
+    if (!cat) return;
 
-    editingItem = editObj;
+    document.getElementById("detailsTitle").textContent = cat.name;
+    const detailsContent = document.getElementById("detailsContent");
+    detailsContent.innerHTML = "";
 
-    const title = document.getElementById("categoryModalTitle");
-    const input = document.getElementById("categoryNameInput");
-
-    if (editObj) {
-        title.textContent = "Category এডিট করুন";
-        input.value = editObj.name;
-    } else {
-        title.textContent = isSubCategory ? "নতুন Sub-Category" : "নতুন Category";
-        input.value = "";
+    // 1. Unheadered Data Render
+    if (cat.data) {
+        const directDataGroup = document.createElement("div");
+        directDataGroup.className = "data-group";
+        Object.keys(cat.data).forEach(dataId => {
+            directDataGroup.appendChild(createDataCard(cat.data[dataId], dataId, catId, null));
+        });
+        detailsContent.appendChild(directDataGroup);
     }
 
-    openModal("categoryModal");
-}
+    // 2. Headers & Headered Data Render
+    if (cat.headers) {
+        Object.keys(cat.headers).forEach(headerId => {
+            const headerObj = cat.headers[headerId];
+            const headerSection = document.createElement("div");
+            headerSection.className = "header-section";
+            
+            headerSection.innerHTML = `
+                <div class="header-title-bar">
+                    <h2>📌 ${headerObj.name}</h2>
+                    <div class="admin-only">
+                        <button onclick="deleteHeader('${catId}', '${headerId}')" class="icon-btn-sm danger">🗑️</button>
+                    </div>
+                </div>
+            `;
 
-/* =========================================
-   Save Category
-========================================= */
+            const dataGroup = document.createElement("div");
+            dataGroup.className = "data-group";
 
-async function saveCategory() {
-    if (window.currentUserRole !== "admin") return;
+            if (headerObj.data) {
+                Object.keys(headerObj.data).forEach(dataId => {
+                    dataGroup.appendChild(createDataCard(headerObj.data[dataId], dataId, catId, headerId));
+                });
+            }
 
-    const name = document.getElementById("categoryNameInput")?.value.trim();
-
-    if (!name) {
-        return showToast("Category Name লিখুন");
-    }
-
-    if (editingItem) {
-        editingItem.name = name;
-        editingItem = null;
-    } else {
-        database.categories.push({
-            id: generateId("cat"),
-            name: name,
-            parentId: currentCategoryId ? currentCategoryId : null,
-            pinned: false,
-            pinnedAt: 0,
-            createdAt: Date.now()
+            headerSection.appendChild(dataGroup);
+            detailsContent.appendChild(headerSection);
         });
     }
+};
 
-    await saveDatabase();
-    closeModal("categoryModal");
-    refreshCurrentView();
-    showToast("সেভ করা হয়েছে");
-}
-
-/* =========================================
-   Pin Category
-========================================= */
-
-async function togglePinCategory(id) {
-    const cat = database.categories.find(c => c.id === id);
-
-    if (cat) {
-        cat.pinned = !cat.pinned;
-        cat.pinnedAt = cat.pinned ? Date.now() : 0;
-
-        await saveDatabase();
-        refreshCurrentView();
-        showToast(cat.pinned ? "পিন করা হয়েছে" : "আনপিন করা হয়েছে");
-    }
-}
-
-/* =========================================
-   Edit Category
-========================================= */
-
-function editCategory(id) {
-    const cat = database.categories.find(c => c.id === id);
-    if (cat) openCategoryModal(false, cat);
-}
-
-/* =========================================
-   Delete Category
-========================================= */
-
-async function deleteCategory(id) {
-    if (!confirm("আপনি কি নিশ্চিত এই Category মুছে ফেলতে চান?")) return;
-
-    database.categories = database.categories.filter(c => c.id !== id && c.parentId !== id);
-    database.headers = database.headers.filter(h => h.categoryId !== id);
-    database.data = database.data.filter(d => d.categoryId !== id);
-
-    await saveDatabase();
-    refreshCurrentView();
-    showToast("ডিলিট করা হয়েছে");
-}
-
-/* =========================================
-   Header Actions
-========================================= */
-
-function openHeaderModal(editObj = null) {
-    if (window.currentUserRole !== "admin") return;
-
-    editingItem = editObj;
-
-    const input = document.getElementById("headerNameInput");
-    if (input) {
-        input.value = editObj ? editObj.title : "";
-    }
-
-    openModal("headerModal");
-}
-
-/* =========================================
-   Save Header
-========================================= */
-
-async function saveHeader() {
-    if (window.currentUserRole !== "admin") return;
-
-    const title = document.getElementById("headerNameInput")?.value.trim();
-
-    if (!title || !currentCategoryId) {
-        return showToast("হেডার নাম লিখুন");
-    }
-
-    if (editingItem) {
-        editingItem.title = title;
-        editingItem = null;
-    } else {
-        database.headers.push({
-            id: generateId("header"),
-            categoryId: currentCategoryId,
-            title: title,
-            pinned: false,
-            pinnedAt: 0
-        });
-    }
-
-    await saveDatabase();
-    closeModal("headerModal");
-    refreshCurrentView();
-    showToast("Header সেভ করা হয়েছে");
-}
-
-/* =========================================
-   Pin Header
-========================================= */
-
-async function togglePinHeader(id) {
-    const header = database.headers.find(h => h.id === id);
-
-    if (header) {
-        header.pinned = !header.pinned;
-        header.pinnedAt = header.pinned ? Date.now() : 0;
-
-        await saveDatabase();
-        refreshCurrentView();
-        showToast(header.pinned ? "হেডার পিন করা হয়েছে" : "হেডার আনপিন করা হয়েছে");
-    }
-}
-
-/* =========================================
-   Edit Header
-========================================= */
-
-function editHeader(id) {
-    const h = database.headers.find(item => item.id === id);
-    if (h) openHeaderModal(h);
-}
-
-/* =========================================
-   Delete Header
-========================================= */
-
-async function deleteHeader(id) {
-    if (!confirm("এই Header ডিলিট করতে চান? ডাটাগুলো সরানো হবে না।")) return;
-
-    database.headers = database.headers.filter(h => h.id !== id);
-    database.data.forEach(d => {
-        if (d.headerId === id) d.headerId = null;
-    });
-
-    await saveDatabase();
-    refreshCurrentView();
-    showToast("Header ডিলিট করা হয়েছে");
-}
-
-/* =========================================
-   Create Data Card
-========================================= */
-
-function createDataCardElement(item) {
-    const isAdmin = window.currentUserRole === "admin";
-    const dataEl = document.createElement("div");
-    dataEl.className = "data-card-item";
-
-    const name = escapeHTML(item.name || "নাম পাওয়া যায়নি");
-    const mobile = escapeHTML(item.mobile || "মোবাইল নেই");
-    const phone = escapeHTML(item.phone || "টেলিফোন নেই");
-    const designation = escapeHTML(item.designation || "পদবী নেই");
-    const photo = item.photo ? escapeHTML(item.photo) : null;
-
-    const avatarHtml = photo
-        ? `<img src="${photo}" alt="${name}" class="data-card-avatar">`
-        : `<div class="data-card-avatar">👤</div>`;
-
-    const pinIcon = item.pinned ? "📌" : "📍";
-
-    const adminActions = isAdmin
-        ? `
-            <div style="display:flex;gap:4px;" onclick="event.stopPropagation()">
-                <button class="btn-pin-data custom-action-btn" title="পিন">${pinIcon}</button>
-                <button class="btn-move-data custom-action-btn" title="মুভ">📦</button>
-                <button class="btn-edit-data custom-action-btn" title="এডিট">✏️</button>
-                <button class="btn-del-data custom-action-btn" style="color:#ef4444" title="ডিলিট">🗑️</button>
+function createDataCard(item, dataId, catId, headerId) {
+    const card = document.createElement("div");
+    card.className = "data-card";
+    
+    card.innerHTML = `
+        <div class="data-card-body" onclick="openDataDetails('${catId}', '${headerId || ''}', '${dataId}')">
+            <img src="${item.photo || 'https://via.placeholder.com/60'}" class="avatar" alt="photo" onerror="this.src='https://via.placeholder.com/60'">
+            <div class="data-text">
+                <h4>${item.name || 'নাম নেই'}</h4>
+                <p>💼 ${item.designation || 'পদবী নেই'}</p>
+                <p>📞 ${item.mobile || 'নম্বর নেই'}</p>
             </div>
-        `
-        : "";
-
-    const dataPinMark = (isAdmin && item.pinned) ? "📌" : "";
-
-    dataEl.innerHTML = `
-        ${avatarHtml}
-        <div class="data-card-info">
-            <div class="data-card-name">${name} ${dataPinMark}</div>
-            <div class="data-card-detail">📱 মোবাইল: ${mobile}</div>
-            <div class="data-card-detail">☎️ টেলিফোন: ${phone}</div>
-            <div class="data-card-detail">💼 পদবী: ${designation}</div>
         </div>
-        ${adminActions}
+        <div class="data-card-actions admin-only">
+            <button onclick="editData('${catId}', '${headerId || ''}', '${dataId}')" class="icon-btn-sm">✏️</button>
+            <button onclick="openMoveModal('${catId}', '${headerId || ''}', '${dataId}')" class="icon-btn-sm">📦</button>
+            <button onclick="deleteData('${catId}', '${headerId || ''}', '${dataId}')" class="icon-btn-sm danger">🗑️</button>
+        </div>
     `;
-
-    dataEl.addEventListener("click", () => openDataPage(item.id));
-
-    if (isAdmin) {
-        dataEl.querySelector(".btn-pin-data")?.addEventListener("click", e => {
-            e.stopPropagation();
-            togglePinData(item.id);
-        });
-
-        dataEl.querySelector(".btn-move-data")?.addEventListener("click", e => {
-            e.stopPropagation();
-            openMoveDataModal(item.id);
-        });
-
-        dataEl.querySelector(".btn-edit-data")?.addEventListener("click", e => {
-            e.stopPropagation();
-            editData(item.id);
-        });
-
-        dataEl.querySelector(".btn-del-data")?.addEventListener("click", e => {
-            e.stopPropagation();
-            deleteData(item.id);
-        });
-    }
-
-    return dataEl;
+    return card;
 }
 
-/* =========================================
-   Data Modal
-========================================= */
+window.openDataDetails = function (catId, headerId, dataId) {
+    currentDataId = dataId;
+    let item = null;
 
-function openDataModal(editObj = null) {
-    if (window.currentUserRole !== "admin") return;
-
-    editingItem = editObj;
-
-    const title = document.getElementById("dataModalTitle");
-    if (title) {
-        title.textContent = editObj ? "Data এডিট করুন" : "Data যোগ করুন";
-    }
-
-    document.getElementById("dataPhoto").value = editObj?.photo || "";
-    document.getElementById("dataName").value = editObj?.name || "";
-    document.getElementById("dataMobile").value = editObj?.mobile || "";
-    document.getElementById("dataPhone").value = editObj?.phone || "";
-    document.getElementById("dataDesignation").value = editObj?.designation || "";
-    document.getElementById("dataEmail").value = editObj?.email || "";
-    document.getElementById("dataCurrentOffice").value = editObj?.currentOffice || "";
-    document.getElementById("dataPermanentAddress").value = editObj?.permanentAddress || "";
-    document.getElementById("dataAdminInfo").value = editObj?.adminInfo || "";
-
-    const select = document.getElementById("dataHeaderSelect");
-
-    if (select) {
-        select.innerHTML = `<option value="">Header ছাড়া</option>`;
-
-        database.headers
-            .filter(h => h.categoryId === currentCategoryId)
-            .forEach(h => {
-                select.innerHTML += `
-                    <option value="${h.id}" ${editObj?.headerId === h.id ? "selected" : ""}>
-                        ${escapeHTML(h.title)}
-                    </option>
-                `;
-            });
-    }
-
-    openModal("dataModal");
-}
-
-/* =========================================
-   Save Data
-========================================= */
-
-async function saveData() {
-    if (window.currentUserRole !== "admin") return;
-
-    if (!currentCategoryId && !editingItem) {
-        return showToast("ক্যাটাগরি সিলেক্ট করা নেই");
-    }
-
-    const name = document.getElementById("dataName")?.value.trim() || "";
-    if (!name) {
-        return showToast("নাম প্রদান করুন");
-    }
-
-    const payload = {
-        photo: document.getElementById("dataPhoto")?.value.trim() || "",
-        name: name,
-        mobile: document.getElementById("dataMobile")?.value.trim() || "",
-        phone: document.getElementById("dataPhone")?.value.trim() || "",
-        designation: document.getElementById("dataDesignation")?.value.trim() || "",
-        email: document.getElementById("dataEmail")?.value.trim() || "",
-        currentOffice: document.getElementById("dataCurrentOffice")?.value.trim() || "",
-        permanentAddress: document.getElementById("dataPermanentAddress")?.value.trim() || "",
-        adminInfo: document.getElementById("dataAdminInfo")?.value.trim() || "",
-        headerId: document.getElementById("dataHeaderSelect")?.value || null
-    };
-
-    if (editingItem) {
-        Object.assign(editingItem, payload);
-        editingItem = null;
+    if (headerId && headerId !== 'null' && headerId !== '') {
+        item = allCategoriesData[catId]?.headers?.[headerId]?.data?.[dataId];
     } else {
-        database.data.push({
-            id: generateId("data"),
-            categoryId: currentCategoryId,
-            ...payload,
-            pinned: false,
-            pinnedAt: 0
-        });
+        item = allCategoriesData[catId]?.data?.[dataId];
     }
 
-    await saveDatabase();
-    closeModal("dataModal");
-    refreshCurrentView();
-    showToast("ডাটা সেভ হয়েছে");
-}
-
-/* =========================================
-   Edit Data
-========================================= */
-
-function editData(id) {
-    const item = database.data.find(d => d.id === id);
-    if (item) openDataModal(item);
-}
-
-/* =========================================
-   Delete Data
-========================================= */
-
-async function deleteData(id) {
-    if (!confirm("আপনি কি এই Data মুছে ফেলতে চান?")) return;
-
-    database.data = database.data.filter(d => d.id !== id);
-
-    await saveDatabase();
-    refreshCurrentView();
-    showToast("ডাটা ডিলিট করা হয়েছে");
-}
-
-/* =========================================
-   Pin Data
-========================================= */
-
-async function togglePinData(id) {
-    const item = database.data.find(d => d.id === id);
-
-    if (item) {
-        item.pinned = !item.pinned;
-        item.pinnedAt = item.pinned ? Date.now() : 0;
-
-        await saveDatabase();
-        refreshCurrentView();
-        showToast(item.pinned ? "ডাটা পিন করা হয়েছে" : "ডাটা আনপিন করা হয়েছে");
-    }
-}
-
-/* =========================================
-   Move Data
-========================================= */
-
-function openMoveDataModal(id) {
-    movingDataId = id;
-
-    const catSelect = document.getElementById("moveCategorySelect");
-
-    if (catSelect) {
-        catSelect.innerHTML = "";
-        database.categories.forEach(c => {
-            catSelect.innerHTML += `
-                <option value="${c.id}">
-                    ${escapeHTML(c.name)}
-                </option>
-            `;
-        });
-        catSelect.value = currentCategoryId;
-    }
-
-    updateMoveHeaderOptions();
-    catSelect?.addEventListener("change", updateMoveHeaderOptions);
-
-    openModal("moveDataModal");
-}
-
-function updateMoveHeaderOptions() {
-    const catId = document.getElementById("moveCategorySelect")?.value;
-    const headSelect = document.getElementById("moveHeaderSelect");
-
-    if (headSelect) {
-        headSelect.innerHTML = `<option value="">Header ছাড়া</option>`;
-        database.headers
-            .filter(h => h.categoryId === catId)
-            .forEach(h => {
-                headSelect.innerHTML += `
-                    <option value="${h.id}">
-                        ${escapeHTML(h.title)}
-                    </option>
-                `;
-            });
-    }
-}
-
-async function confirmMoveData() {
-    const catId = document.getElementById("moveCategorySelect")?.value;
-    const headId = document.getElementById("moveHeaderSelect")?.value || null;
-
-    const item = database.data.find(d => d.id === movingDataId);
-
-    if (item && catId) {
-        item.categoryId = catId;
-        item.headerId = headId;
-
-        await saveDatabase();
-        closeModal("moveDataModal");
-        refreshCurrentView();
-        showToast("ডাটা সফলভাবে মুভ করা হয়েছে!");
-    }
-}
-
-/* =========================================
-   Navigation
-========================================= */
-
-function openCategory(id, pushHistory = true) {
-    if (pushHistory) {
-        history.pushState({ page: "category", categoryId: id }, "");
-    }
-    showCategoryView(id);
-}
-
-function showCategoryView(id) {
-    const category = database.categories.find(item => item.id === id);
-    if (!category) return;
-
-    currentCategoryId = id;
-    currentDataId = null;
-
-    document.getElementById("mainDashboardView")?.classList.add("hidden");
-    document.getElementById("dataDetailsView")?.classList.add("hidden");
-    document.getElementById("categoryDetailsView")?.classList.remove("hidden");
-
-    document.getElementById("detailsTitle").textContent = category.name;
-
-    const headersCount = database.headers.filter(h => h.categoryId === id).length;
-    const dataCount = database.data.filter(d => d.categoryId === id).length;
-
-    document.getElementById("detailsSubtitle").textContent = `${headersCount} Header • ${dataCount} Data`;
-
-    renderCategoryDetails(
-        document.getElementById("searchInput")?.value.trim().toLowerCase()
-    );
-}
-
-function showMainDashboardView(updateHistory = true) {
-    currentCategoryId = null;
-    currentDataId = null;
-
-    document.getElementById("categoryDetailsView")?.classList.add("hidden");
-    document.getElementById("dataDetailsView")?.classList.add("hidden");
-    document.getElementById("mainDashboardView")?.classList.remove("hidden");
-
-    renderCategories(
-        document.getElementById("searchInput")?.value.trim().toLowerCase()
-    );
-}
-
-function refreshCurrentView() {
-    if (currentDataId) {
-        showDataPage(currentDataId, false);
-    } else if (currentCategoryId) {
-        showCategoryView(currentCategoryId);
-    } else {
-        showMainDashboardView(false);
-    }
-}
-
-/* =========================================
-   Render Category Details
-========================================= */
-
-function renderCategoryDetails(searchVal = "") {
-    const container = document.getElementById("detailsContent");
-    if (!container) return;
-
-    container.innerHTML = "";
-    const isAdmin = window.currentUserRole === "admin";
-
-    /* Sub Categories */
-    let subCategories = database.categories.filter(cat => cat.parentId === currentCategoryId);
-
-    if (searchVal) {
-        subCategories = subCategories.filter(sub =>
-            sub.name.toLowerCase().includes(searchVal)
-        );
-    }
-
-    subCategories = sortItemsByPin(subCategories);
-
-    if (subCategories.length > 0) {
-        const subWrapper = document.createElement("div");
-        subWrapper.style.marginBottom = "20px";
-
-        subCategories.forEach(sub => {
-            const item = document.createElement("div");
-            item.className = "subcategory-card";
-
-            const pinIcon = sub.pinned ? "📌" : "📍";
-
-            const adminActions = isAdmin
-                ? `
-                    <div>
-                        <button class="btn-pin-sub custom-action-btn" title="পিন">${pinIcon}</button>
-                        <button class="btn-edit-sub custom-action-btn">✏️</button>
-                        <button class="btn-del-sub custom-action-btn" style="color:#ef4444">🗑️</button>
-                    </div>
-                `
-                : "";
-
-            const subPinBadge = (isAdmin && sub.pinned)
-                ? '<span class="pinned-badge">Pinned</span>'
-                : "";
-
-            item.innerHTML = `
-                <div class="sub-click">
-                    <h3>${escapeHTML(sub.name)} ${subPinBadge}</h3>
-                </div>
-                ${adminActions}
-            `;
-
-            item.querySelector(".sub-click").addEventListener("click", () => openCategory(sub.id));
-
-            if (isAdmin) {
-                item.querySelector(".btn-pin-sub")?.addEventListener("click", () => togglePinCategory(sub.id));
-                item.querySelector(".btn-edit-sub")?.addEventListener("click", () => editCategory(sub.id));
-                item.querySelector(".btn-del-sub")?.addEventListener("click", () => deleteCategory(sub.id));
-            }
-
-            subWrapper.appendChild(item);
-        });
-
-        container.appendChild(subWrapper);
-    }
-
-    /* Headers & Category Data */
-    let headers = database.headers.filter(h => h.categoryId === currentCategoryId);
-    headers = sortItemsByPin(headers);
-
-    let categoryData = database.data.filter(d => d.categoryId === currentCategoryId);
-    categoryData = sortItemsByPin(categoryData);
-
-    if (searchVal) {
-        categoryData = categoryData.filter(d =>
-            (d.name && d.name.toLowerCase().includes(searchVal)) ||
-            (d.mobile && d.mobile.toLowerCase().includes(searchVal)) ||
-            (d.phone && d.phone.toLowerCase().includes(searchVal)) ||
-            (d.designation && d.designation.toLowerCase().includes(searchVal))
-        );
-    }
-
-    /* Render Each Header */
-    headers.forEach(header => {
-        const headerItems = categoryData.filter(d => d.headerId === header.id);
-
-        if (!searchVal || headerItems.length > 0 || header.title.toLowerCase().includes(searchVal)) {
-            const headerBox = document.createElement("div");
-            headerBox.className = "header-box";
-
-            const pinIcon = header.pinned ? "📌" : "📍";
-
-            const adminActions = isAdmin
-                ? `
-                    <div>
-                        <button class="btn-pin-head custom-action-btn" title="পিন">${pinIcon}</button>
-                        <button class="btn-edit-head custom-action-btn">✏️</button>
-                        <button class="btn-del-head custom-action-btn" style="color:#ef4444">🗑️</button>
-                    </div>
-                `
-                : "";
-
-            const headerPinMark = (isAdmin && header.pinned) ? "📌" : "";
-
-            headerBox.innerHTML = `
-                <div class="header-banner">
-                    <span>${escapeHTML(header.title)} ${headerPinMark}</span>
-                    ${adminActions}
-                </div>
-            `;
-
-            if (isAdmin) {
-                headerBox.querySelector(".btn-pin-head")?.addEventListener("click", () => togglePinHeader(header.id));
-                headerBox.querySelector(".btn-edit-head")?.addEventListener("click", () => editHeader(header.id));
-                headerBox.querySelector(".btn-del-head")?.addEventListener("click", () => deleteHeader(header.id));
-            }
-
-            headerItems.forEach(item => {
-                headerBox.appendChild(createDataCardElement(item));
-            });
-
-            container.appendChild(headerBox);
-        }
-    });
-
-    /* Data Without Header */
-    const noHeaderData = categoryData.filter(d => !d.headerId);
-
-    if (noHeaderData.length > 0) {
-        const noHeaderBox = document.createElement("div");
-        noHeaderBox.className = "header-box";
-
-        noHeaderBox.innerHTML = `
-            <div class="header-banner">
-                <span>📄 সাধারণ Data</span>
-            </div>
-        `;
-
-        noHeaderData.forEach(item => {
-            noHeaderBox.appendChild(createDataCardElement(item));
-        });
-
-        container.appendChild(noHeaderBox);
-    }
-
-    updateAdminUI();
-}
-
-/* =========================================
-   Open Data Page
-========================================= */
-
-function openDataPage(dataId, pushHistory = true) {
-    if (pushHistory) {
-        history.pushState({ page: "data", dataId: dataId }, "");
-    }
-    showDataPage(dataId);
-}
-
-/* =========================================
-   Data Details Page
-========================================= */
-
-function showDataPage(dataId) {
-    const item = database.data.find(d => d.id === dataId);
     if (!item) return;
 
-    currentDataId = dataId;
-
-    document.getElementById("mainDashboardView")?.classList.add("hidden");
-    document.getElementById("categoryDetailsView")?.classList.add("hidden");
-    document.getElementById("dataDetailsView")?.classList.remove("hidden");
-
-    const container = document.getElementById("dataPageContent");
-    if (!container) return;
-
-    const name = escapeHTML(item.name || "নাম পাওয়া যায়নি");
-    const designation = escapeHTML(item.designation || "পদবী নেই");
-    const mobile = escapeHTML(item.mobile || "মোবাইল নেই");
-    const phone = escapeHTML(item.phone || "টেলিফোন নেই");
-    const email = escapeHTML(item.email || "ইমেইল নেই");
-    const currentOffice = escapeHTML(item.currentOffice || "");
-    const permanentAddress = escapeHTML(item.permanentAddress || "");
-    const adminInfo = escapeHTML(item.adminInfo || "");
-    const photo = item.photo ? escapeHTML(item.photo) : null;
-
-    const avatarHtml = photo
-        ? `<img src="${photo}" alt="${name}" class="details-avatar-large">`
-        : `<div class="details-avatar-large">👤</div>`;
-
-    container.innerHTML = `
-        <div class="details-header-section">
-            <div class="avatar-wrapper">${avatarHtml}</div>
-            <h2 style="font-size:22px;font-weight:700;">${name}</h2>
-            <p style="color:var(--text-muted);font-size:15px;">${designation}</p>
+    const dataPageContent = document.getElementById("dataPageContent");
+    dataPageContent.innerHTML = `
+        <div class="profile-header">
+            <img src="${item.photo || 'https://via.placeholder.com/120'}" class="profile-avatar">
+            <h2>${item.name || ''}</h2>
+            <p class="badge">${item.designation || ''}</p>
         </div>
-
-        <div class="quick-action-grid">
-            <a href="${item.mobile ? "tel:" + item.mobile : "#"}" id="btnMobileCall" class="action-btn-round btn-call-round">📱 মোবাইল</a>
-            <a href="${item.phone ? "tel:" + item.phone : "#"}" id="btnPhoneCall" class="action-btn-round btn-phone-round">☎️ টেলিফোন</a>
-            <a href="${item.email ? "mailto:" + item.email : "#"}" class="action-btn-round btn-email-round">✉️ ইমেইল</a>
-            <button id="btnShareContact" class="action-btn-round btn-share-round">🔗 শেয়ার কন্টাক্ট</button>
-        </div>
-
-        <div class="details-info-list">
-            <div class="details-info-box">
-                <div class="info-label">📱 মোবাইল</div>
-                <div class="info-value">${mobile}</div>
-            </div>
-            <div class="details-info-box">
-                <div class="info-label">☎️ টেলিফোন</div>
-                <div class="info-value">${phone}</div>
-            </div>
-            <div class="details-info-box">
-                <div class="info-label">💼 পদবী</div>
-                <div class="info-value">${designation}</div>
-            </div>
-            <div class="details-info-box">
-                <div class="info-label">✉️ ই-মেইল</div>
-                <div class="info-value">${email}</div>
-            </div>
-            ${currentOffice ? `
-                <div class="details-info-box">
-                    <div class="info-label">🏢 বর্তমান ঠিকানা</div>
-                    <div class="info-value">${currentOffice}</div>
-                </div>` : ""
-            }
-            ${permanentAddress ? `
-                <div class="details-info-box">
-                    <div class="info-label">🏠 স্থায়ী ঠিকানা</div>
-                    <div class="info-value">${permanentAddress}</div>
-                </div>` : ""
-            }
-            ${adminInfo ? `
-                <div class="details-info-box" style="border-left:4px solid #f59e0b;">
-                    <div class="info-label">📝 প্রশাসনিক তথ্য</div>
-                    <div class="info-value">${adminInfo}</div>
-                </div>` : ""
-            }
+        <div class="profile-details">
+            <p><strong>📱 মোবাইল:</strong> <a href="tel:${item.mobile}">${item.mobile || 'N/A'}</a></p>
+            <p><strong>☎️ টেলিফোন:</strong> ${item.phone || 'N/A'}</p>
+            <p><strong>✉️ ই-মেইল:</strong> <a href="mailto:${item.email}">${item.email || 'N/A'}</a></p>
+            <p><strong>🏢 বর্তমান কর্মস্থল:</strong> ${item.currentOffice || 'N/A'}</p>
+            <p><strong>🏠 স্থায়ী ঠিকানা:</strong> ${item.permanentAddress || 'N/A'}</p>
+            <p><strong>📝 প্রশাসনিক তথ্য:</strong> ${item.adminInfo || 'N/A'}</p>
         </div>
     `;
 
-    setupLongPressWhatsApp(document.getElementById("btnMobileCall"), item.mobile);
-    setupLongPressWhatsApp(document.getElementById("btnPhoneCall"), item.phone);
+    mainDashboardView.classList.add("hidden");
+    categoryDetailsView.classList.add("hidden");
+    dataDetailsView.classList.remove("hidden");
+};
 
-    document.getElementById("btnShareContact")?.addEventListener("click", () => {
-        const shareText =
-            `👤 নাম: ${item.name || ""}\n` +
-            `📱 মোবাইল: ${item.mobile || ""}\n` +
-            `☎️ টেলিফোন: ${item.phone || ""}\n` +
-            `✉️ ইমেইল: ${item.email || ""}\n` +
-            `💼 পদবী: ${item.designation || ""}`;
+// ==========================================
+// EVENT LISTENERS & MODAL HANDLERS
+// ==========================================
+function setupEventListeners() {
+    // Navigation
+    document.getElementById("backToMainBtn").addEventListener("click", () => {
+        currentCategoryId = null;
+        categoryDetailsView.classList.add("hidden");
+        mainDashboardView.classList.remove("hidden");
+    });
 
-        if (navigator.share) {
-            navigator.share({ title: item.name, text: shareText }).catch(() => {});
+    document.getElementById("backFromDataBtn").addEventListener("click", () => {
+        dataDetailsView.classList.add("hidden");
+        if (currentCategoryId) {
+            categoryDetailsView.classList.remove("hidden");
         } else {
-            navigator.clipboard.writeText(shareText);
-            showToast("কন্টাক্ট কপি করা হয়েছে!");
+            mainDashboardView.classList.remove("hidden");
         }
+    });
+
+    // Top Action Buttons
+    document.getElementById("adminLoginBtn").addEventListener("click", () => showModal(loginModal));
+    document.getElementById("addCategoryBtn").addEventListener("click", () => showModal(categoryModal));
+    document.getElementById("emptyAddBtn").addEventListener("click", () => showModal(categoryModal));
+    
+    document.getElementById("addHeaderBtn").addEventListener("click", () => showModal(headerModal));
+    document.getElementById("addDataBtn").addEventListener("click", () => {
+        populateHeaderDropdown();
+        showModal(dataModal);
+    });
+
+    // Close Modal Handler
+    document.querySelectorAll("[data-close]").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            const modalId = e.target.getAttribute("data-close");
+            hideModal(document.getElementById(modalId));
+        });
+    });
+
+    // Admin Login/Logout Actions
+    document.getElementById("submitLoginBtn").addEventListener("click", handleLogin);
+    document.getElementById("logoutBtn").addEventListener("click", handleLogout);
+
+    // CRUD Save Actions
+    document.getElementById("saveCategoryBtn").addEventListener("click", saveCategory);
+    document.getElementById("saveHeaderBtn").addEventListener("click", saveHeader);
+    document.getElementById("saveDataBtn").addEventListener("click", saveData);
+
+    // Search Toggle
+    document.getElementById("searchBtn").addEventListener("click", () => {
+        searchBox.classList.toggle("hidden");
+        if (!searchBox.classList.contains("hidden")) searchInput.focus();
+    });
+
+    document.getElementById("clearSearch").addEventListener("click", () => {
+        searchInput.value = "";
+        renderCategoriesList(allCategoriesData);
+    });
+
+    searchInput.addEventListener("input", handleSearch);
+}
+
+// ==========================================
+// FIREBASE DATABASE WRITE ACTIONS
+// ==========================================
+function saveCategory() {
+    const name = document.getElementById("categoryNameInput").value.trim();
+    if (!name) return showToast("ক্যাটাগরির নাম লিখুন!");
+
+    const newRef = push(ref(db, "categories"));
+    set(newRef, { name: name })
+        .then(() => {
+            showToast("Category সফলভাবে যোগ হয়েছে");
+            document.getElementById("categoryNameInput").value = "";
+            hideModal(categoryModal);
+        })
+        .catch(err => showToast("ত্রুটি: " + err.message));
+}
+
+function saveHeader() {
+    const name = document.getElementById("headerNameInput").value.trim();
+    if (!name || !currentCategoryId) return showToast("Header নাম দিন!");
+
+    const newRef = push(ref(db, `categories/${currentCategoryId}/headers`));
+    set(newRef, { name: name })
+        .then(() => {
+            showToast("Header সফলভাবে যোগ হয়েছে");
+            document.getElementById("headerNameInput").value = "";
+            hideModal(headerModal);
+        })
+        .catch(err => showToast("ত্রুটি: " + err.message));
+}
+
+function saveData() {
+    if (!currentCategoryId) return;
+
+    const dataObj = {
+        photo: document.getElementById("dataPhoto").value.trim(),
+        name: document.getElementById("dataName").value.trim(),
+        mobile: document.getElementById("dataMobile").value.trim(),
+        phone: document.getElementById("dataPhone").value.trim(),
+        designation: document.getElementById("dataDesignation").value.trim(),
+        email: document.getElementById("dataEmail").value.trim(),
+        currentOffice: document.getElementById("dataCurrentOffice").value.trim(),
+        permanentAddress: document.getElementById("dataPermanentAddress").value.trim(),
+        adminInfo: document.getElementById("dataAdminInfo").value.trim()
+    };
+
+    const selectedHeader = document.getElementById("dataHeaderSelect").value;
+    let targetPath = `categories/${currentCategoryId}/data`;
+    if (selectedHeader) {
+        targetPath = `categories/${currentCategoryId}/headers/${selectedHeader}/data`;
+    }
+
+    const newRef = push(ref(db, targetPath));
+    set(newRef, dataObj)
+        .then(() => {
+            showToast("Data সফলভাবে সংরক্ষণ করা হয়েছে");
+            clearDataModalInputs();
+            hideModal(dataModal);
+        })
+        .catch(err => showToast("ত্রুটি: " + err.message));
+}
+
+// Global Delete Handlers
+window.deleteCategory = function (catId) {
+    if (confirm("আপনি কি নিশ্চিত এই Category মুছে ফেলতে চান?")) {
+        remove(ref(db, `categories/${catId}`))
+            .then(() => showToast("Category ডিলিট করা হয়েছে"))
+            .catch(err => showToast("ত্রুটি: " + err.message));
+    }
+};
+
+window.deleteHeader = function (catId, headerId) {
+    if (confirm("আপনি কি এই Header-টি মুছে ফেলতে চান?")) {
+        remove(ref(db, `categories/${catId}/headers/${headerId}`))
+            .then(() => showToast("Header ডিলিট করা হয়েছে"))
+            .catch(err => showToast("ত্রুটি: " + err.message));
+    }
+};
+
+window.deleteData = function (catId, headerId, dataId) {
+    if (confirm("আপনি কি এই Data-টি মুছে ফেলতে চান?")) {
+        let path = `categories/${catId}/data/${dataId}`;
+        if (headerId && headerId !== 'null' && headerId !== '') {
+            path = `categories/${catId}/headers/${headerId}/data/${dataId}`;
+        }
+        remove(ref(db, path))
+            .then(() => showToast("Data ডিলিট করা হয়েছে"))
+            .catch(err => showToast("ত্রুটি: " + err.message));
+    }
+};
+
+// ==========================================
+// UTILITY HELPERS
+// ==========================================
+function populateHeaderDropdown() {
+    const select = document.getElementById("dataHeaderSelect");
+    select.innerHTML = '<option value="">Header ছাড়া</option>';
+
+    if (currentCategoryId && allCategoriesData[currentCategoryId]?.headers) {
+        const headers = allCategoriesData[currentCategoryId].headers;
+        Object.keys(headers).forEach(hId => {
+            select.innerHTML += `<option value="${hId}">${headers[hId].name}</option>`;
+        });
+    }
+}
+
+function handleLogin() {
+    const email = document.getElementById("loginEmail").value;
+    const pass = document.getElementById("loginPassword").value;
+    
+    signInWithEmailAndPassword(auth, email, pass)
+        .then(() => {
+            showToast("অ্যাডমিন লগইন সফল!");
+            hideModal(loginModal);
+        })
+        .catch(err => showToast("লগইন ব্যর্থ: " + err.message));
+}
+
+function handleLogout() {
+    signOut(auth).then(() => {
+        showToast("লগআউট করা হয়েছে");
+        hideModal(loginModal);
     });
 }
 
-/* =========================================
-   Long Press WhatsApp
-========================================= */
+function handleSearch(e) {
+    const query = e.target.value.toLowerCase().trim();
+    if (!query) {
+        renderCategoriesList(allCategoriesData);
+        return;
+    }
 
-function setupLongPressWhatsApp(element, num) {
-    if (!element || !num) return;
+    const filtered = {};
+    Object.keys(allCategoriesData).forEach(catId => {
+        const cat = allCategoriesData[catId];
+        if (cat.name.toLowerCase().includes(query)) {
+            filtered[catId] = cat;
+        }
+    });
 
-    let timer = null;
-
-    const start = () => {
-        timer = setTimeout(() => {
-            const cleanNum = num.replace(/[^\d+]/g, "");
-            window.open(`https://wa.me/${cleanNum}`, "_blank");
-        }, 800);
-    };
-
-    const cancel = () => {
-        if (timer) clearTimeout(timer);
-    };
-
-    element.addEventListener("mousedown", start);
-    element.addEventListener("touchstart", start);
-    element.addEventListener("mouseup", cancel);
-    element.addEventListener("touchend", cancel);
-    element.addEventListener("mouseleave", cancel);
+    renderCategoriesList(filtered);
 }
 
-/* =========================================
-   Modal
-========================================= */
-
-function openModal(id) {
-    document.getElementById(id)?.classList.remove("hidden");
+function initTheme() {
+    const themeBtn = document.getElementById("themeBtn");
+    if (!themeBtn) return;
+    
+    themeBtn.addEventListener("click", () => {
+        document.body.classList.toggle("dark-mode");
+        const isDark = document.body.classList.contains("dark-mode");
+        themeBtn.textContent = isDark ? "☀️" : "🌙";
+    });
 }
 
-function closeModal(id) {
-    document.getElementById(id)?.classList.add("hidden");
-}
-
-/* =========================================
-   Toast
-========================================= */
+function showModal(modal) { modal.classList.remove("hidden"); }
+function hideModal(modal) { modal.classList.add("hidden"); }
 
 function showToast(msg) {
-    const toast = document.getElementById("toast");
-    if (!toast) return;
-
     toast.textContent = msg;
     toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 3000);
+}
 
-    setTimeout(() => toast.classList.remove("show"), 2000);
+function clearDataModalInputs() {
+    ["dataPhoto", "dataName", "dataMobile", "dataPhone", "dataDesignation", "dataEmail", "dataCurrentOffice", "dataPermanentAddress", "dataAdminInfo"]
+        .forEach(id => document.getElementById(id).value = "");
 }
