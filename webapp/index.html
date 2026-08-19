@@ -25,6 +25,10 @@
         </div>
 
         <div class="top-actions">
+            <!-- PWA Install Button -->
+            <button id="pwaInstallBtn" class="primary-btn hidden" type="button" style="background-color: #28a745;">
+                📥 Install App
+            </button>
             <button id="adminLoginBtn" class="primary-btn active-btn btn-admin-small" type="button">🔑 Admin</button>
             <button id="themeBtn" class="icon-btn" title="নাইট/ডে মোড" type="button">🌙</button>
             <button id="searchBtn" class="icon-btn" title="সার্চ করুন" type="button">🔍</button>
@@ -272,27 +276,47 @@
     <!-- Main JavaScript App -->
     <script type="module" src="js/app.js"></script>
 
-    <!-- Service Worker Register Script for PWA -->
+    <!-- Service Worker & PWA Install Prompt Handler Script -->
     <script>
+        // Service Worker Register
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
-                    .then(reg => {
-                        console.log('Service Worker Registered Successfully:', reg);
-                        reg.onupdatefound = () => {
-                            const installingWorker = reg.installing;
-                            if (installingWorker) {
-                                installingWorker.onstatechange = () => {
-                                    if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                        window.location.reload();
-                                    }
-                                };
-                            }
-                        };
-                    })
+                    .then(reg => console.log('Service Worker Registered Successfully:', reg))
                     .catch(err => console.log('Service Worker Registration Failed:', err));
             });
         }
+
+        // PWA Install Prompt Handler
+        let deferredPrompt;
+        const installBtn = document.getElementById('pwaInstallBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // ব্রাউজারের ডিফল্ট প্রম্পট বন্ধ করা
+            e.preventDefault();
+            deferredPrompt = e;
+            // হেডার অপশনে Install App বাটনটি দৃশ্যমান করা
+            if (installBtn) {
+                installBtn.classList.remove('hidden');
+            }
+        });
+
+        if (installBtn) {
+            installBtn.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    console.log(`User response to install prompt: ${outcome}`);
+                    deferredPrompt = null;
+                    installBtn.classList.add('hidden');
+                }
+            });
+        }
+
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA installed successfully');
+            if (installBtn) installBtn.classList.add('hidden');
+        });
     </script>
 </body>
 </html>
