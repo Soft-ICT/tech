@@ -5,41 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Police Phonebook & Directory</title>
 
-    <!-- Favicon & Touch Icon -->
+       <!-- <head> অংশে বসাবেন -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d6efd">
+    <link rel="apple-touch-icon" href="icon-192.png">   
     <link rel="icon" type="image/png" sizes="32x32" href="icon-192.png">
-    <link rel="apple-touch-icon" href="icon-192.png">
 
-    <!-- CSS (আপনার প্রজেক্টের CSS ফাইল লিংক এখানে দিন) -->
-    <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
 
     <!-- PWA Manifest & Theme Link (Version added to prevent caching) -->
-    <link rel="manifest" href="manifest.json?v=1.0">
-    <meta name="theme-color" content="#0d6efd">
-
-    <!-- Service Worker Register Script with Cache Buster -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                // v=1.0 যোগ করা হয়েছে যাতে গিটহাব আপডেটের পর ব্রাউজার নতুন সার্ভিস ওয়ার্কার লোড করে
-                navigator.serviceWorker.register('./sw.js?v=1.0')
-                    .then(reg => {
-                        console.log('Service Worker নিবন্ধিত হয়েছে:', reg);
-                        // নতুন আপডেট থাকলে স্বয়ংক্রিয়ভাবে আপডেট করবে
-                        reg.onupdatefound = () => {
-                            const installingWorker = reg.installing;
+    <!-- </body> এর ঠিক উপরে বসাবেন -->
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => {
+                    console.log('Service Worker Registered:', reg);
+                    reg.onupdatefound = () => {
+                        const installingWorker = reg.installing;
+                        if (installingWorker) {
                             installingWorker.onstatechange = () => {
                                 if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
                                     window.location.reload();
                                 }
                             };
-                        };
-                    })
-                    .catch(err => console.log('Service Worker ত্রুটি:', err));
-            });
-        }
-    </script>
+                        }
+                    };
+                })
+                .catch(err => console.log('Service Worker Error:', err));
+        });
+    }
+</script>
+
+        <!-- CSS (আপনার প্রজেক্টের CSS ফাইল লিংক এখানে দিন) -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
 
 
 <header class="topbar">
