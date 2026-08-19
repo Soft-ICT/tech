@@ -16,14 +16,38 @@
 </head>
 <body>
 
-    <!-- আপনার এইচটিএমএল কন্টেন্ট এখানে থাকবে -->
+    <!-- আপনার ওয়েবসাইটের সব এইচটিএমএল ডিজাইন উপাদান এখানে রাখুন -->
+    <header class="topbar">
+        <button id="menuBtn" class="icon-btn">...</button>
+    </header>
 
     <!-- Script Module -->
     <script type="module" src="js/app.js"></script>
+
+    <!-- Service Worker Register Script -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => {
+                        console.log('Service Worker Registered Successfully:', reg);
+                        reg.onupdatefound = () => {
+                            const installingWorker = reg.installing;
+                            if (installingWorker) {
+                                installingWorker.onstatechange = () => {
+                                    if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                        window.location.reload();
+                                    }
+                                };
+                            }
+                        };
+                    })
+                    .catch(err => console.log('Service Worker Registration Failed:', err));
+            });
+        }
+    </script>
 </body>
 </html>
-
-
 
 <header class="topbar">
 
