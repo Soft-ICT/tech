@@ -165,11 +165,12 @@ function toggleTheme() {
 }
 
 /* =========================================
-   Firebase Database Load
+   Firebase Database Load (With Offline Fallback)
 ========================================= */
 
 async function loadDatabase() {
     try {
+        // ১. আগে ফায়ারবেস থেকে লাইভ ডাটা লোড করার চেষ্টা করবে
         const snapshot = await get(ref(db, "webapp/public_data"));
 
         if (snapshot.exists()) {
@@ -177,6 +178,9 @@ async function loadDatabase() {
             if (!database.categories) database.categories = [];
             if (!database.headers) database.headers = [];
             if (!database.data) database.data = [];
+
+            // ২. অফলাইনের জন্য লোকাল স্টোরেজে ডাটা আপডেট সেভ রাখা
+            localStorage.setItem("offline_pwa_db", JSON.stringify(database));
         } else {
             database = {
                 categories: [],
@@ -187,13 +191,22 @@ async function loadDatabase() {
 
         refreshCurrentView();
     } catch (error) {
-        console.error("Database load error:", error);
-        showToast("ডাটা লোড করতে সমস্যা হয়েছে");
+        console.warn("অনলাইন থেকে ডাটা লোড হয়নি, অফলাইন ক্যাশ চেক করা হচ্ছে...", error);
+        
+        // ৩. ইন্টারনেট না থাকলে লোকাল সেভ করা ডাটা থেকে শো করবে
+        const localData = localStorage.getItem("offline_pwa_db");
+        if (localData) {
+            database = JSON.parse(localData);
+            refreshCurrentView();
+            showToast("অফলাইন মোডে ডাটা দেখানো হচ্ছে");
+        } else {
+            showToast("ডাটা লোড করতে সমস্যা হয়েছে");
+        }
     }
 }
 
 /* =========================================
-   Firebase Database Save
+   Firebase Database Save (With Offline Sync)
 ========================================= */
 
 async function saveDatabase() {
@@ -202,11 +215,14 @@ async function saveDatabase() {
         return;
     }
 
+    // অফলাইনে লোকাল ক্যাশ দ্রুত আপডেট রাখা
+    localStorage.setItem("offline_pwa_db", JSON.stringify(database));
+
     try {
         await set(ref(db, "webapp/public_data"), database);
     } catch (error) {
         console.error("Database save error:", error);
-        showToast("ডাটা সেভ করতে সমস্যা হয়েছে");
+        showToast("অফলাইন ডাটা সেভ রাখা হয়েছে (অনলাইনে সিঙ্ক হবে)");
     }
 }
 
