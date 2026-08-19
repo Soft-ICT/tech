@@ -1,123 +1,54 @@
-// sw.js
-
-const CACHE_NAME = 'Police phonebook-v1.0';
+const CACHE_NAME = 'Police-phonebook-v1.0';
 
 const urlsToCache = [
     './',
     './index.html',
-    './manifest.json?v=1.0'
+    './manifest.json'
 ];
 
-
-// =====================================================
-// INSTALL EVENT
-// =====================================================
-
+// INSTALL
 self.addEventListener('install', (event) => {
-
     event.waitUntil(
-
         caches.open(CACHE_NAME)
-
-            .then((cache) => {
-
-                return cache.addAll(urlsToCache);
-
-            })
-
-            .then(() => {
-
-                // নতুন Service Worker দ্রুত সক্রিয় হবে
-                return self.skipWaiting();
-
-            })
-
+            .then((cache) => cache.addAll(urlsToCache))
+            .then(() => self.skipWaiting())
     );
-
 });
 
-
-// =====================================================
-// ACTIVATE EVENT
-// =====================================================
-
+// ACTIVATE
 self.addEventListener('activate', (event) => {
-
     event.waitUntil(
-
-        caches.keys()
-
-            .then((cacheNames) => {
-
-                return Promise.all(
-
-                    cacheNames.map((cacheName) => {
-
-                        // পুরোনো সব Cache মুছে ফেলবে
-                        if (cacheName !== CACHE_NAME) {
-
-                            console.log(
-                                'পুরোনো Cache মুছে ফেলা হচ্ছে:',
-                                cacheName
-                            );
-
-                            return caches.delete(cacheName);
-
-                        }
-
-                        return Promise.resolve();
-
-                    })
-
-                );
-
-            })
-
-            .then(() => {
-
-                // সব খোলা পেজে নতুন Service Worker নিয়ন্ত্রণ নেবে
-                return self.clients.claim();
-
-            })
-
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames.map((cacheName) => {
+                    if (cacheName !== CACHE_NAME) {
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        }).then(() => self.clients.claim())
     );
-
 });
 
-
-// =====================================================
-// FETCH EVENT
-// =====================================================
-
+// FETCH (Network First with Cache Fallback for dynamic app compatibility)
 self.addEventListener('fetch', (event) => {
-
-    // GET ছাড়া অন্য request Service Worker handle করবে না
-    if (event.request.method !== 'GET') {
-
-        return;
-
-    }
-
+    if (event.request.method !== 'GET') return;
 
     event.respondWith(
-
-        caches.match(event.request)
-
-            .then((cachedResponse) => {
-
-                // Cache-এ থাকলে Cache থেকে দেখাবে
-                if (cachedResponse) {
-
-                    return cachedResponse;
-
+        fetch(event.request)
+            .then((response) => {
+                // নেটওয়ার্ক সফল হলে ক্যাশ আপডেট করবে
+                if (response && response.status === 200 && response.type === 'basic') {
+                    const responseToCache = response.clone();
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(event.request, responseToCache);
+                    });
                 }
-
-
-                // Cache-এ না থাকলে Internet থেকে আনবে
-                return fetch(event.request);
-
+                return response;
             })
-
+            .catch(() => {
+                // অফলাইন থাকলে ক্যাশ থেকে দেখাবে
+                return caches.match(event.request);
+            })
     );
-
 });
