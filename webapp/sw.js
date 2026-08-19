@@ -1,541 +1,110 @@
-/* =========================================================
-   Police Phonebook PWA - Service Worker
-========================================================= */
-
-const CACHE_NAME = "police-phonebook-v2";
-
-
-/* =========================================================
-   App Shell
-========================================================= */
+const CACHE_NAME = "police-phonebook-v2"; // নতুন ভার্সন
 
 const APP_SHELL = [
-
     "./",
     "./index.html",
     "./manifest.json",
-
     "./css/style.css?v=3",
-
     "./js/app.js",
     "./js/auth.js",
     "./js/firebase.js",
-
     "./icons/icon-192.png",
-    "./icons/icon-512.png"
-
+    "./icons/icon-512.png",
+    // ফায়ারবেস SDK ফাইলগুলো অফলাইন ক্যাশে যুক্ত করা হলো
+    "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js",
+    "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js",
+    "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js"
 ];
 
-
-/* =========================================================
+/* =========================
    INSTALL
-========================================================= */
+========================= */
+self.addEventListener("install", function (event) {
+    event.waitUntil(
+        caches.open(CACHE_NAME)
+            .then(function (cache) {
+                return cache.addAll(APP_SHELL);
+            })
+            .then(function () {
+                return self.skipWaiting();
+            })
+    );
+});
 
-self.addEventListener(
-    "install",
-    event => {
-
-        console.log(
-            "[SW] Installing..."
-        );
-
-        event.waitUntil(
-
-            caches
-                .open(CACHE_NAME)
-
-                .then(cache => {
-
-                    console.log(
-                        "[SW] Caching app shell"
-                    );
-
-                    return cache.addAll(
-                        APP_SHELL
-                    );
-
-                })
-
-                .then(() => {
-
-                    console.log(
-                        "[SW] Install complete"
-                    );
-
-                    return self.skipWaiting();
-
-                })
-
-                .catch(error => {
-
-                    console.error(
-                        "[SW] Cache install error:",
-                        error
-                    );
-
-                })
-
-        );
-
-    }
-);
-
-
-/* =========================================================
+/* =========================
    ACTIVATE
-========================================================= */
+========================= */
+self.addEventListener("activate", function (event) {
+    event.waitUntil(
+        caches.keys()
+            .then(function (cacheNames) {
+                return Promise.all(
+                    cacheNames.map(function (cacheName) {
+                        if (cacheName !== CACHE_NAME) {
+                            return caches.delete(cacheName);
+                        }
+                    })
+                );
+            })
+            .then(function () {
+                return self.clients.claim();
+            })
+    );
+});
 
-self.addEventListener(
-    "activate",
-    event => {
-
-        console.log(
-            "[SW] Activating..."
-        );
-
-        event.waitUntil(
-
-            caches
-                .keys()
-
-                .then(cacheNames => {
-
-                    return Promise.all(
-
-                        cacheNames.map(
-                            cacheName => {
-
-                                if (
-                                    cacheName !==
-                                    CACHE_NAME
-                                ) {
-
-                                    console.log(
-                                        "[SW] Removing old cache:",
-                                        cacheName
-                                    );
-
-                                    return caches.delete(
-                                        cacheName
-                                    );
-
-                                }
-
-                                return null;
-
-                            }
-                        )
-
-                    );
-
-                })
-
-                .then(() => {
-
-                    console.log(
-                        "[SW] Activation complete"
-                    );
-
-                    return self.clients.claim();
-
-                })
-
-        );
-
-    }
-);
-
-
-/* =========================================================
+/* =========================
    FETCH
-========================================================= */
-
-self.addEventListener(
-    "fetch",
-    event => {
-
-        const request =
-            event.request;
-
-        const url =
-            new URL(
-                request.url
-            );
-
-
-        /*
-         * শুধু GET request handle করব।
-         */
-
-        if (
-            request.method !== "GET"
-        ) {
-
-            return;
-
-        }
-
-
-        /*
-         * Firebase এবং external API
-         * request cache করা হবে না।
-         */
-
-        if (
-
-            url.hostname.includes(
-                "firebaseio.com"
-            )
-
-            ||
-
-            url.hostname.includes(
-                "googleapis.com"
-            )
-
-            ||
-
-            url.hostname.includes(
-                "gstatic.com"
-            )
-
-        ) {
-
-            return;
-
-        }
-
-
-        /*
-         * Google Fonts
-         */
-
-        if (
-
-            url.hostname.includes(
-                "fonts.googleapis.com"
-            )
-
-            ||
-
-            url.hostname.includes(
-                "fonts.gstatic.com"
-            )
-
-        ) {
-
-            event.respondWith(
-
-                networkFirst(
-                    request
-                )
-
-            );
-
-            return;
-
-        }
-
-
-        /*
-         * App HTML / CSS / JS / Images
-         */
-
-        event.respondWith(
-
-            cacheFirst(
-                request
-            )
-
-        );
-
-    }
-);
-
-
-/* =========================================================
-   CACHE FIRST
-========================================================= */
-
-async function cacheFirst(
-    request
-) {
-
-    try {
-
-        /*
-         * আগে Cache খুঁজবে
-         */
-
-        const cachedResponse =
-            await caches.match(
-                request
-            );
-
-
-        if (
-            cachedResponse
-        ) {
-
-            return cachedResponse;
-
-        }
-
-
-        /*
-         * Cache-এ না থাকলে Internet
-         */
-
-        const networkResponse =
-            await fetch(
-                request
-            );
-
-
-        /*
-         * Valid response হলে cache করবে
-         */
-
-        if (
-
-            networkResponse &&
-
-            networkResponse.status ===
-                200 &&
-
-            networkResponse.type !==
-                "opaque"
-
-        ) {
-
-            const cache =
-                await caches.open(
-                    CACHE_NAME
-                );
-
-            await cache.put(
-
-                request,
-
-                networkResponse.clone()
-
-            );
-
-        }
-
-
-        return networkResponse;
-
+========================= */
+self.addEventListener("fetch", function (event) {
+    const request = event.request;
+
+    /*
+     * শুধুমাত্র লাইভ ডাটাবেজ API এবং অথেন্টিকেশন রিকোয়েস্ট ক্যাশ স্কিপ করবে।
+     * gstatic.com বাদ দেওয়া হয়েছে যেন মডিউল ফাইল ক্যাশ হতে পারে।
+     */
+    if (
+        request.url.includes("firebaseio.com") ||
+        request.url.includes("identitytoolkit.googleapis.com")
+    ) {
+        return;
     }
 
-    catch (error) {
-
-        console.error(
-            "[SW] Cache-first error:",
-            error
-        );
-
-
-        /*
-         * HTML page হলে offline index
-         * ফেরত দেওয়ার চেষ্টা
-         */
-
-        if (
-            request.mode ===
-            "navigate"
-        ) {
-
-            const offlinePage =
-                await caches.match(
-                    "./index.html"
-                );
-
-
-            if (
-                offlinePage
-            ) {
-
-                return offlinePage;
-
-            }
-
-        }
-
-
-        /*
-         * কিছুই পাওয়া না গেলে
-         */
-
-        return new Response(
-
-            "Offline - এই পেজটি বর্তমানে পাওয়া যাচ্ছে না।",
-
-            {
-                status: 503,
-
-                headers: {
-                    "Content-Type":
-                        "text/plain; charset=utf-8"
+    /*
+     * HTML / CSS / JS / Images এবং External CDN
+     * আগে Cache থেকে নেওয়ার চেষ্টা করবে।
+     */
+    event.respondWith(
+        caches.match(request)
+            .then(function (cachedResponse) {
+                if (cachedResponse) {
+                    return cachedResponse;
                 }
 
-            }
+                /*
+                 * Cache-এ না থাকলে Internet থেকে আনবে এবং ক্যাশে রাখবে
+                 */
+                return fetch(request)
+                    .then(function (networkResponse) {
+                        if (
+                            networkResponse &&
+                            networkResponse.status === 200 &&
+                            networkResponse.type !== "opaque"
+                        ) {
+                            const responseClone = networkResponse.clone();
 
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   NETWORK FIRST
-========================================================= */
-
-async function networkFirst(
-    request
-) {
-
-    try {
-
-        const networkResponse =
-            await fetch(
-                request
-            );
-
-
-        if (
-
-            networkResponse &&
-
-            networkResponse.status ===
-                200 &&
-
-            networkResponse.type !==
-                "opaque"
-
-        ) {
-
-            const cache =
-                await caches.open(
-                    CACHE_NAME
-                );
-
-            await cache.put(
-
-                request,
-
-                networkResponse.clone()
-
-            );
-
-        }
-
-
-        return networkResponse;
-
-    }
-
-    catch (error) {
-
-        console.log(
-            "[SW] Network unavailable, using cache"
-        );
-
-
-        const cachedResponse =
-            await caches.match(
-                request
-            );
-
-
-        if (
-            cachedResponse
-        ) {
-
-            return cachedResponse;
-
-        }
-
-
-        return new Response(
-            "",
-            {
-                status: 503
-            }
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   MESSAGE
-========================================================= */
-
-self.addEventListener(
-    "message",
-    event => {
-
-        if (
-            !event.data
-        ) {
-
-            return;
-
-        }
-
-
-        /*
-         * নতুন Service Worker
-         * সঙ্গে সঙ্গে activate
-         */
-
-        if (
-            event.data.type ===
-            "SKIP_WAITING"
-        ) {
-
-            self.skipWaiting();
-
-        }
-
-
-        /*
-         * Cache clear
-         */
-
-        if (
-            event.data.type ===
-            "CLEAR_CACHE"
-        ) {
-
-            event.waitUntil(
-
-                caches
-                    .keys()
-
-                    .then(
-                        cacheNames => {
-
-                            return Promise.all(
-
-                                cacheNames.map(
-                                    cacheName =>
-                                        caches.delete(
-                                            cacheName
-                                        )
-                                )
-
-                            );
-
+                            caches.open(CACHE_NAME)
+                                .then(function (cache) {
+                                    cache.put(request, responseClone);
+                                });
                         }
-                    )
-
-            );
-
-        }
-
-    }
-);
+                        return networkResponse;
+                    })
+                    .catch(function () {
+                        /*
+                         * Internet না থাকলে fallback হিসেবে index.html দেখাবে
+                         */
+                        return caches.match("./index.html");
+                    });
+            })
+    );
+});
