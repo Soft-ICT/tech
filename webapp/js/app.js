@@ -7,7 +7,8 @@ import {
 import {
     ref,
     set,
-    get
+    get,
+    onValue
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
 import {
@@ -15,6 +16,55 @@ import {
 } from "./firebase.js";
 
 "use strict";
+
+/* =========================================
+   IndexedDB Offline Storage Setup
+========================================= */
+
+const DB_NAME = "PolicePhonebookDB";
+const STORE_NAME = "public_data";
+const DB_VERSION = 1;
+
+function openOfflineDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onupgradeneeded = (e) => {
+            const dbInstance = e.target.result;
+            if (!dbInstance.objectStoreNames.contains(STORE_NAME)) {
+                dbInstance.createObjectStore(STORE_NAME);
+            }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = (e) => reject(e);
+    });
+}
+
+async function saveOfflineData(data) {
+    try {
+        const idb = await openOfflineDB();
+        const tx = idb.transaction(STORE_NAME, "readwrite");
+        const store = tx.objectStore(STORE_NAME);
+        store.put(data, "current_data");
+    } catch (e) {
+        console.error("IndexedDB Save Error:", e);
+    }
+}
+
+async function getOfflineData() {
+    try {
+        const idb = await openOfflineDB();
+        return new Promise((resolve) => {
+            const tx = idb.transaction(STORE_NAME, "readonly");
+            const store = tx.objectStore(STORE_NAME);
+            const req = store.get("current_data");
+            req.onsuccess = () => resolve(req.result || null);
+            req.onerror = () => resolve(null);
+        });
+    } catch (e) {
+        console.error("IndexedDB Get Error:", e);
+        return null;
+    }
+}
 
 /* =========================================
    HTML Escape
@@ -128,6 +178,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     history.replaceState({ page: "home" }, "");
     window.addEventListener("popstate", handlePopState);
+
+    window.addEventListener("online", async () => {
+        showToast("ইন্টারনেট সংযুক্ত হয়েছে, সিঙ্ক করা হচ্ছে...");
+        await saveDatabase();
+    });
 });
 
 /* =========================================
@@ -165,35 +220,40 @@ function toggleTheme() {
 }
 
 /* =========================================
-   Firebase Database Load
+   Database Load (Online & Offline Support)
 ========================================= */
 
 async function loadDatabase() {
-    try {
-        const snapshot = await get(ref(db, "webapp/public_data"));
-
-        if (snapshot.exists()) {
-            database = snapshot.val();
-            if (!database.categories) database.categories = [];
-            if (!database.headers) database.headers = [];
-            if (!database.data) database.data = [];
-        } else {
-            database = {
-                categories: [],
-                headers: [],
-                data: []
-            };
-        }
-
+    // ১. প্রথমে IndexedDB থেকে লোড করার চেষ্টা করা হবে (অফলাইনেও কাজ করবে)
+    const localData = await getOfflineData();
+    if (localData) {
+        database = localData;
         refreshCurrentView();
-    } catch (error) {
-        console.error("Database load error:", error);
-        showToast("ডাটা লোড করতে সমস্যা হয়েছে");
+    }
+
+    // ২. অনলাইন থাকলে রিয়েল-টাইম Firebase Data Listen করা হবে
+    if (navigator.onLine) {
+        try {
+            const dataRef = ref(db, "webapp/public_data");
+            onValue(dataRef, async (snapshot) => {
+                if (snapshot.exists()) {
+                    database = snapshot.val();
+                    if (!database.categories) database.categories = [];
+                    if (!database.headers) database.headers = [];
+                    if (!database.data) database.data = [];
+
+                    await saveOfflineData(database);
+                    refreshCurrentView();
+                }
+            });
+        } catch (error) {
+            console.error("Database load error:", error);
+        }
     }
 }
 
 /* =========================================
-   Firebase Database Save
+   Database Save (Online & Offline Support)
 ========================================= */
 
 async function saveDatabase() {
@@ -202,11 +262,19 @@ async function saveDatabase() {
         return;
     }
 
-    try {
-        await set(ref(db, "webapp/public_data"), database);
-    } catch (error) {
-        console.error("Database save error:", error);
-        showToast("ডাটা সেভ করতে সমস্যা হয়েছে");
+    // অফলাইন স্টোরেজে সেভ করা
+    await saveOfflineData(database);
+
+    // অনলাইন থাকলে Firebase-এ আপডেট করা
+    if (navigator.onLine) {
+        try {
+            await set(ref(db, "webapp/public_data"), database);
+        } catch (error) {
+            console.error("Database save error:", error);
+            showToast("অনলাইনে ডাটা সিঙ্ক করতে সমস্যা হয়েছে");
+        }
+    } else {
+        showToast("অফলাইনে সেভ হয়েছে। অনলাইনে এলে অটো সিঙ্ক হবে।");
     }
 }
 
