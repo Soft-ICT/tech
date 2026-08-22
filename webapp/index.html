@@ -16,9 +16,6 @@
     <link rel="manifest" href="manifest.json?v=1.1">
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#2563eb">
-    
 
     <!-- Fonts & CSS -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -27,27 +24,16 @@
     <link rel="stylesheet" href="css/style.css?v=3">
 
     <style>
-        .offline-status-bar {
-            display: none;
-            background-color: #dc3545;
-            color: white;
-            text-align: center;
-            padding: 8px 12px;
-            font-size: 13px;
-            font-weight: 600;
+        /* Topbar Fixed (Sticky) Settings */
+        .topbar {
             position: sticky;
             top: 0;
-            z-index: 9999;
+            z-index: 1000;
         }
     </style>
 </head>
 
 <body>
-
-<!-- Offline Indicator -->
-<div id="offlineStatusBar" class="offline-status-bar">
-    ⚠️ ইন্টারনেট সংযোগ নেই! ক্যাশড (Saved) ডাটা দেখানো হচ্ছে।
-</div>
 
 <header class="topbar">
     <button id="menuBtn" class="icon-btn" type="button">☰</button>
@@ -63,23 +49,15 @@
 </header>
 
 <main class="container">
-    <!-- =========================
-         Search Box
-    ========================== -->
+    <!-- Search Box -->
     <section id="searchBox" class="search-box hidden">
         <input type="search" id="searchInput" placeholder="Category, Header অথবা Data খুঁজুন..." autocomplete="off">
         <button id="clearSearch" type="button">✕</button>
     </section>
 
-    <!-- =========================
-         Page 1: Main Dashboard
-    ========================== -->
+    <!-- Page 1: Main Dashboard -->
     <div id="mainDashboardView">
-        <section class="dashboard-header">
-            <div>
-                <h1>আমার Categories</h1>
-                <p id="categoryCount">0টি Category</p>
-            </div>
+        <section class="dashboard-header" style="justify-content: flex-end; margin-bottom: 10px;">
             <button id="addCategoryBtn" class="primary-btn admin-only" type="button">＋ Category</button>
         </section>
 
@@ -95,9 +73,7 @@
         </section>
     </div>
 
-    <!-- =========================
-         Page 2: Category Details
-    ========================== -->
+    <!-- Page 2: Category Details -->
     <div id="categoryDetailsView" class="hidden">
         <section class="dashboard-header">
             <div class="header-left">
@@ -120,9 +96,7 @@
         <div id="detailsContent"></div>
     </div>
 
-    <!-- =========================
-         Page 3: Data Details
-    ========================== -->
+    <!-- Page 3: Data Details -->
     <div id="dataDetailsView" class="hidden">
         <section class="dashboard-header">
             <button id="backFromDataBtn" class="secondary-btn" type="button">← পেছনে যান</button>
@@ -134,9 +108,7 @@
     </div>
 </main>
 
-<!-- =========================
-     Admin Login Modal
-========================== -->
+<!-- Admin Login Modal -->
 <div id="loginModal" class="modal hidden">
     <div class="modal-content">
         <div class="modal-header">
@@ -159,7 +131,6 @@
             </div>
         </div>
 
-        <!-- Logout -->
         <div id="logoutContainer" class="hidden logout-box">
             <p class="status-ok">✅ আপনি অ্যাডমিন হিসেবে লগইন আছেন</p>
             <div class="modal-actions">
@@ -170,9 +141,7 @@
     </div>
 </div>
 
-<!-- =========================
-     Category Modal
-========================== -->
+<!-- Category Modal -->
 <div id="categoryModal" class="modal hidden">
     <div class="modal-content">
         <div class="modal-header">
