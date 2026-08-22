@@ -753,11 +753,15 @@ body {
 
     color: var(--bg-color);
 
-    padding: 10px 20px;
+    /* পরিবর্তন ১: প্যাডিং কিছুটা কমিয়ে দেয়া হলো */
+    padding: 6px 14px; 
 
     border-radius: 50px;
 
-    font-weight: 600;
+    /* পরিবর্তন ২: ফন্ট সাইজ ছোট করা হলো (প্রয়োজনে ১২px/১৩px করতে পারেন) */
+    font-size: 12px; 
+
+    font-weight: 500;
 
     opacity: 0;
 
@@ -771,6 +775,7 @@ body {
 
     opacity: 1;
 }
+
 
 
 /* ==========================================
