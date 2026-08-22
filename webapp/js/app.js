@@ -49,20 +49,17 @@ let movingDataId = null;
 window.currentUserRole = "guest";
 
 /* =========================================
-   Offline Status Monitoring
+   Offline Status Monitoring (Toast Integrated)
 ========================================= */
 function checkOnlineStatus() {
-    const offlineBar = document.getElementById("offlineStatusBar");
     if (!navigator.onLine) {
-        if (offlineBar) offlineBar.style.display = "block";
+        showToast("⚠️ ইন্টারনেট সংযোগ নেই! ক্যাশড (Saved) ডাটা দেখানো হচ্ছে।");
         loadLocalCache();
-    } else {
-        if (offlineBar) offlineBar.style.display = "none";
     }
 }
 
 window.addEventListener('online', () => {
-    checkOnlineStatus();
+    showToast("⚡ অনলাইন মোডে সংযুক্ত হয়েছেন");
     loadDatabase();
 });
 
@@ -266,7 +263,7 @@ function sortItemsByPin(items) {
             return (a.pinnedAt || 0) - (b.pinnedAt || 0);
         }
         if (a.pinned) return -1;
-        if (b.pinned) return 1;
+        if (a.pinned) return 1;
         return 0;
     });
 }
@@ -365,7 +362,6 @@ function handleSearch() {
 function renderCategories(searchVal = "") {
     const list = document.getElementById("categoryList");
     const emptyState = document.getElementById("emptyState");
-    const countElement = document.getElementById("categoryCount");
 
     if (!list || !emptyState) return;
 
@@ -379,10 +375,6 @@ function renderCategories(searchVal = "") {
 
     categoriesToShow = sortItemsByPin(categoriesToShow);
     list.innerHTML = "";
-
-    if (countElement) {
-        countElement.textContent = `${categoriesToShow.length}টি Category`;
-    }
 
     if (categoriesToShow.length === 0) {
         emptyState.classList.remove("hidden");
@@ -1260,5 +1252,5 @@ function showToast(msg) {
     toast.textContent = msg;
     toast.classList.add("show");
 
-    setTimeout(() => toast.classList.remove("show"), 2200);
+    setTimeout(() => toast.classList.remove("show"), 2500);
 }
