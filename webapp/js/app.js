@@ -918,7 +918,7 @@ function renderCategoryDetails(searchVal = "") {
     container.innerHTML = "";
     const isAdmin = window.currentUserRole === "admin";
 
-    /* Sub Categories */
+    /* 1. Sub Categories */
     let subCategories = database.categories.filter(cat => cat.parentId === currentCategoryId);
 
     if (searchVal) {
@@ -974,10 +974,7 @@ function renderCategoryDetails(searchVal = "") {
         container.appendChild(subWrapper);
     }
 
-    /* Headers & Category Data */
-    let headers = database.headers.filter(h => h.categoryId === currentCategoryId);
-    headers = sortItemsByPin(headers);
-
+    /* Current Category-র সমস্ত ডাটা ফিল্টার ও সর্টিং */
     let categoryData = database.data.filter(d => d.categoryId === currentCategoryId);
     categoryData = sortItemsByPin(categoryData);
 
@@ -990,7 +987,24 @@ function renderCategoryDetails(searchVal = "") {
         );
     }
 
-    /* Render Each Header */
+    /* 2. Data Without Header (হেডার ছাড়া ডাটাগুলো সবার উপরে দেখাবে) */
+    const noHeaderData = categoryData.filter(d => !d.headerId);
+
+    if (noHeaderData.length > 0) {
+        const noHeaderWrapper = document.createElement("div");
+        noHeaderWrapper.style.marginBottom = "15px";
+
+        noHeaderData.forEach(item => {
+            noHeaderWrapper.appendChild(createDataCardElement(item));
+        });
+
+        container.appendChild(noHeaderWrapper);
+    }
+
+    /* 3. Headers & Header-based Data (অন্যান্য সকল হেডার ও তাদের ডাটা নিচে দেখাবে) */
+    let headers = database.headers.filter(h => h.categoryId === currentCategoryId);
+    headers = sortItemsByPin(headers);
+
     headers.forEach(header => {
         const headerItems = categoryData.filter(d => d.headerId === header.id);
 
@@ -1032,26 +1046,6 @@ function renderCategoryDetails(searchVal = "") {
             container.appendChild(headerBox);
         }
     });
-
-    /* Data Without Header */
-    const noHeaderData = categoryData.filter(d => !d.headerId);
-
-    if (noHeaderData.length > 0) {
-        const noHeaderBox = document.createElement("div");
-        noHeaderBox.className = "header-box";
-
-        noHeaderBox.innerHTML = `
-            <div class="header-banner">
-                <span>📄 সাধারণ Data</span>
-            </div>
-        `;
-
-        noHeaderData.forEach(item => {
-            noHeaderBox.appendChild(createDataCardElement(item));
-        });
-
-        container.appendChild(noHeaderBox);
-    }
 
     updateAdminUI();
 }
