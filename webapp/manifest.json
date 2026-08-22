@@ -1,6 +1,7 @@
 {
     "name": "Police Phonebook",
     "short_name": "Phonebook",
+    "id": "com.police.phonebook",
     "description": "Police Phonebook Management System",
     "lang": "bn",
     "dir": "ltr",
