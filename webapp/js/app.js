@@ -870,7 +870,7 @@ function showCategoryView(id) {
     const headersCount = database.headers.filter(h => h.categoryId === id).length;
     const dataCount = database.data.filter(d => d.categoryId === id).length;
 
-    document.getElementById("detailsSubtitle").textContent = `${headersCount} Header • ${dataCount} Data`;
+    
 
     renderCategoryDetails(
         document.getElementById("searchInput")?.value.trim().toLowerCase()
