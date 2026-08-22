@@ -53,13 +53,13 @@ window.currentUserRole = "guest";
 ========================================= */
 function checkOnlineStatus() {
     if (!navigator.onLine) {
-        showToast("⚠️ ইন্টারনেট সংযোগ নেই! ক্যাশড (Saved) ডাটা দেখানো হচ্ছে।");
+        showToast("⚠️ ইন্টারনেট সংযোগ নেই!");
         loadLocalCache();
     }
 }
 
 window.addEventListener('online', () => {
-    showToast("⚡ অনলাইন মোডে সংযুক্ত হয়েছেন");
+    showToast("🟢 অনলাইন মোডে আছেন ");
     loadDatabase();
 });
 
@@ -81,7 +81,7 @@ watchAuth((user, role) => {
         window.currentUser = user;
         window.currentUserRole = role || "admin";
         if (adminBtn) {
-            adminBtn.textContent = "👤 Admin";
+            adminBtn.textContent = "🟢 Admin";
         }
     }
 
