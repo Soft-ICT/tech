@@ -76,12 +76,14 @@ watchAuth((user, role) => {
         window.currentUserRole = "guest";
         if (adminBtn) {
             adminBtn.textContent = "🔑 Admin";
+            adminBtn.classList.add("hidden"); // Guest অবস্থায় বাটন হাইড থাকবে
         }
     } else {
         window.currentUser = user;
         window.currentUserRole = role || "admin";
         if (adminBtn) {
             adminBtn.textContent = "🟢 Admin";
+            adminBtn.classList.remove("hidden"); // Admin logged in থাকলে বাটন শো করবে
         }
     }
 
@@ -344,10 +346,25 @@ function setupEvents() {
 }
 
 /* =========================================
-   Search
+   Search (Admin Secret Trigger Integrated)
 ========================================= */
 function handleSearch() {
-    const searchVal = document.getElementById("searchInput")?.value.trim().toLowerCase();
+    const rawVal = document.getElementById("searchInput")?.value.trim();
+    const searchVal = rawVal ? rawVal.toLowerCase() : "";
+    const adminBtn = document.getElementById("adminLoginBtn");
+
+    // Secret Admin Key Check
+    if (searchVal === "admin@jr") {
+        if (adminBtn) {
+            adminBtn.classList.remove("hidden");
+            showToast("🔑 অ্যাডমিন অপশন অন করা হয়েছে");
+        }
+    } else {
+        // লগইন না থাকা অবস্থায় সার্চ বক্সে 'admin@jr' না থাকলে বাটনটি আবার হাইড হয়ে যাবে
+        if (window.currentUserRole !== "admin" && adminBtn) {
+            adminBtn.classList.add("hidden");
+        }
+    }
 
     if (currentCategoryId) {
         renderCategoryDetails(searchVal);
@@ -367,7 +384,7 @@ function renderCategories(searchVal = "") {
 
     let categoriesToShow = database.categories.filter(cat => !cat.parentId);
 
-    if (searchVal) {
+    if (searchVal && searchVal !== "admin@jr") {
         categoriesToShow = categoriesToShow.filter(cat =>
             String(cat.name).toLowerCase().includes(searchVal)
         );
@@ -867,11 +884,6 @@ function showCategoryView(id) {
 
     document.getElementById("detailsTitle").textContent = category.name;
 
-    const headersCount = database.headers.filter(h => h.categoryId === id).length;
-    const dataCount = database.data.filter(d => d.categoryId === id).length;
-
-    
-
     renderCategoryDetails(
         document.getElementById("searchInput")?.value.trim().toLowerCase()
     );
@@ -909,13 +921,14 @@ function renderCategoryDetails(searchVal = "") {
 
     container.innerHTML = "";
     const isAdmin = window.currentUserRole === "admin";
+    const filterText = searchVal === "admin@jr" ? "" : searchVal;
 
     /* 1. Sub Categories */
     let subCategories = database.categories.filter(cat => cat.parentId === currentCategoryId);
 
-    if (searchVal) {
+    if (filterText) {
         subCategories = subCategories.filter(sub =>
-            sub.name.toLowerCase().includes(searchVal)
+            sub.name.toLowerCase().includes(filterText)
         );
     }
 
@@ -970,15 +983,15 @@ function renderCategoryDetails(searchVal = "") {
     let categoryData = database.data.filter(d => d.categoryId === currentCategoryId);
     categoryData = sortItemsByPin(categoryData);
 
-    /* 2. Data Without Header (হেডার ছাড়া ডাটা) */
+    /* 2. Data Without Header */
     let noHeaderData = categoryData.filter(d => !d.headerId);
 
-    if (searchVal) {
+    if (filterText) {
         noHeaderData = noHeaderData.filter(d =>
-            (d.name && d.name.toLowerCase().includes(searchVal)) ||
-            (d.mobile && d.mobile.toLowerCase().includes(searchVal)) ||
-            (d.phone && d.phone.toLowerCase().includes(searchVal)) ||
-            (d.designation && d.designation.toLowerCase().includes(searchVal))
+            (d.name && d.name.toLowerCase().includes(filterText)) ||
+            (d.mobile && d.mobile.toLowerCase().includes(filterText)) ||
+            (d.phone && d.phone.toLowerCase().includes(filterText)) ||
+            (d.designation && d.designation.toLowerCase().includes(filterText))
         );
     }
 
@@ -993,28 +1006,26 @@ function renderCategoryDetails(searchVal = "") {
         container.appendChild(noHeaderWrapper);
     }
 
-    /* 3. Headers & Header-based Data (সার্চ লজিক আপডেট করা হয়েছে) */
+    /* 3. Headers & Header-based Data */
     let headers = database.headers.filter(h => h.categoryId === currentCategoryId);
     headers = sortItemsByPin(headers);
 
     headers.forEach(header => {
         const headerAllData = categoryData.filter(d => d.headerId === header.id);
         
-        // হেডার নাম সার্চ করা হয়েছে কিনা
-        const isHeaderMatched = searchVal && header.title.toLowerCase().includes(searchVal);
+        const isHeaderMatched = filterText && header.title.toLowerCase().includes(filterText);
 
-        // অভ্যন্তরের ডাটা সার্চ করা হয়েছে কিনা
         let matchedData = headerAllData;
-        if (searchVal && !isHeaderMatched) {
+        if (filterText && !isHeaderMatched) {
             matchedData = headerAllData.filter(d =>
-                (d.name && d.name.toLowerCase().includes(searchVal)) ||
-                (d.mobile && d.mobile.toLowerCase().includes(searchVal)) ||
-                (d.phone && d.phone.toLowerCase().includes(searchVal)) ||
-                (d.designation && d.designation.toLowerCase().includes(searchVal))
+                (d.name && d.name.toLowerCase().includes(filterText)) ||
+                (d.mobile && d.mobile.toLowerCase().includes(filterText)) ||
+                (d.phone && d.phone.toLowerCase().includes(filterText)) ||
+                (d.designation && d.designation.toLowerCase().includes(filterText))
             );
         }
 
-        if (!searchVal || isHeaderMatched || matchedData.length > 0) {
+        if (!filterText || isHeaderMatched || matchedData.length > 0) {
             const displayData = isHeaderMatched ? headerAllData : matchedData;
 
             const headerBox = document.createElement("div");
