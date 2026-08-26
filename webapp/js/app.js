@@ -140,7 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initTheme();
     updateAdminUI();
 
-    // ইন্সট্যান্ট লোডিং নিশ্চিত করার জন্য DOM প্রস্তুত হলেই ক্যাশ লোড করা হচ্ছে
+    // ইন্সট্যান্ট ডাটা লোডের জন্য লোকাল ক্যাশ ব্যবহার
     loadLocalCache();
     checkOnlineStatus();
 
@@ -181,7 +181,7 @@ function toggleTheme() {
 }
 
 /* =========================================
-   Database Load & Cache (Local & Firebase)
+   Database Load & Cache (Fast Stale-While-Revalidate)
 ========================================= */
 function loadLocalCache() {
     const cached = localStorage.getItem("police_phonebook_data");
@@ -199,12 +199,12 @@ function loadLocalCache() {
 }
 
 async function loadDatabase() {
-    // ১. অ্যাপ সাথে সাথে ওপেন করার জন্য লোকাল ক্যাশ রেন্ডার করা হলো
+    // ১. সঙ্গে সঙ্গে স্ক্রিনে ডাটা দেখাতে ক্যাশ ডাটা লোড
     loadLocalCache();
 
     if (!navigator.onLine) return;
 
-    // ২. ব্যাকগ্রাউন্ডে ফায়ারবেস থেকে ডাটা ফেচ করে স্ক্রিন ও ক্যাশ সিঙ্ক করা হচ্ছে
+    // ২. ব্যাকগ্রাউন্ডে ফায়ারবেস থেকে আপডেট ডাটা ফেচ
     try {
         const snapshot = await get(ref(db, "webapp/public_data"));
 
@@ -214,7 +214,6 @@ async function loadDatabase() {
             if (!database.headers) database.headers = [];
             if (!database.data) database.data = [];
             
-            // Save to offline storage
             localStorage.setItem("police_phonebook_data", JSON.stringify(database));
             refreshCurrentView();
         }
@@ -345,7 +344,7 @@ function setupEvents() {
 }
 
 /* =========================================
-   Search (Admin Secret Trigger Integrated)
+   Search
 ========================================= */
 function handleSearch() {
     const rawVal = document.getElementById("searchInput")?.value.trim();
@@ -446,6 +445,7 @@ function renderCategories(searchVal = "") {
 
             card.querySelector(".btn-del-cat")?.addEventListener("click", e => {
                 e.stopPropagation();
+                e.preventDefault();
                 deleteCategory(category.id);
             });
         }
@@ -613,7 +613,7 @@ async function deleteHeader(id) {
 }
 
 /* =========================================
-   Create Data Card
+   Create Data Card (Fixed Event Bubbling Problem)
 ========================================= */
 function createDataCardElement(item) {
     const isAdmin = window.currentUserRole === "admin";
@@ -634,7 +634,7 @@ function createDataCardElement(item) {
 
     const adminActions = isAdmin
         ? `
-            <div style="display:flex;gap:4px;" onclick="event.stopPropagation()">
+            <div class="card-admin-actions" style="display:flex;gap:4px;">
                 <button class="btn-pin-data custom-action-btn" title="পিন">${pinIcon}</button>
                 <button class="btn-move-data custom-action-btn" title="মুভ">📦</button>
                 <button class="btn-edit-data custom-action-btn" title="এডিট">✏️</button>
@@ -656,9 +656,15 @@ function createDataCardElement(item) {
         ${adminActions}
     `;
 
+    // মূল কার্ড ক্লিক
     dataEl.addEventListener("click", () => openDataPage(item.id));
 
     if (isAdmin) {
+        const actionGroup = dataEl.querySelector(".card-admin-actions");
+        if (actionGroup) {
+            actionGroup.addEventListener("click", e => e.stopPropagation());
+        }
+
         dataEl.querySelector(".btn-pin-data")?.addEventListener("click", e => {
             e.stopPropagation();
             togglePinData(item.id);
@@ -674,8 +680,10 @@ function createDataCardElement(item) {
             editData(item.id);
         });
 
+        // ডিলিট বাটন ক্লিক নিশ্চিত করতে প্রপাগেশন বন্ধ
         dataEl.querySelector(".btn-del-data")?.addEventListener("click", e => {
             e.stopPropagation();
+            e.preventDefault();
             deleteData(item.id);
         });
     }
@@ -965,9 +973,19 @@ function renderCategoryDetails(searchVal = "") {
             item.querySelector(".sub-click").addEventListener("click", () => openCategory(sub.id));
 
             if (isAdmin) {
-                item.querySelector(".btn-pin-sub")?.addEventListener("click", () => togglePinCategory(sub.id));
-                item.querySelector(".btn-edit-sub")?.addEventListener("click", () => editCategory(sub.id));
-                item.querySelector(".btn-del-sub")?.addEventListener("click", () => deleteCategory(sub.id));
+                item.querySelector(".btn-pin-sub")?.addEventListener("click", e => {
+                    e.stopPropagation();
+                    togglePinCategory(sub.id);
+                });
+                item.querySelector(".btn-edit-sub")?.addEventListener("click", e => {
+                    e.stopPropagation();
+                    editCategory(sub.id);
+                });
+                item.querySelector(".btn-del-sub")?.addEventListener("click", e => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    deleteCategory(sub.id);
+                });
             }
 
             subWrapper.appendChild(item);
@@ -976,7 +994,7 @@ function renderCategoryDetails(searchVal = "") {
         container.appendChild(subWrapper);
     }
 
-    /* Current Category-র সমস্ত ডাটা ফিল্টার ও সর্টিং */
+    /* Current Category-র সমস্ত ডাটা 필্টার ও সর্টিং */
     let categoryData = database.data.filter(d => d.categoryId === currentCategoryId);
     categoryData = sortItemsByPin(categoryData);
 
@@ -1050,9 +1068,19 @@ function renderCategoryDetails(searchVal = "") {
             `;
 
             if (isAdmin) {
-                headerBox.querySelector(".btn-pin-head")?.addEventListener("click", () => togglePinHeader(header.id));
-                headerBox.querySelector(".btn-edit-head")?.addEventListener("click", () => editHeader(header.id));
-                headerBox.querySelector(".btn-del-head")?.addEventListener("click", () => deleteHeader(header.id));
+                headerBox.querySelector(".btn-pin-head")?.addEventListener("click", e => {
+                    e.stopPropagation();
+                    togglePinHeader(header.id);
+                });
+                headerBox.querySelector(".btn-edit-head")?.addEventListener("click", e => {
+                    e.stopPropagation();
+                    editHeader(header.id);
+                });
+                headerBox.querySelector(".btn-del-head")?.addEventListener("click", e => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    deleteHeader(header.id);
+                });
             }
 
             displayData.forEach(item => {
@@ -1077,7 +1105,7 @@ function openDataPage(dataId, pushHistory = true) {
 }
 
 /* =========================================
-   Data Details Page (Smart Dial & WhatsApp)
+   Data Details Page
 ========================================= */
 function showDataPage(dataId) {
     const item = database.data.find(d => d.id === dataId);
