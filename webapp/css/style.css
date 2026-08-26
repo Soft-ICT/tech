@@ -143,6 +143,26 @@ body {
     cursor: pointer;
 }
 
+/* ==========================================
+   ALL SEARCH BUTTON (TOPBAR MATCHED STYLE)
+========================================== */
+
+#allSearchBtn {
+    background-color: var(--primary-color);
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+#allSearchBtn:hover {
+    background-color: var(--primary-hover);
+    opacity: 0.95;
+}
+
 
 /* ==========================================
    CONTAINER
@@ -471,77 +491,49 @@ body {
 
 .header-banner {
     position: relative;
-
     background-color: var(--border-color);
-
     padding: 8px 14px;
-
     border-radius: 8px;
-
     margin-bottom: 10px;
-
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
-
     min-height: 48px;
-
     font-weight: bold;
 }
 
 
 /* ==========================================
    DATA HEADER — ADMIN
-   Admin হলে Header Text বাম পাশে
 ========================================== */
 
 .topbar.admin-header ~ .container .header-banner > span {
     display: block;
-
     text-align: left;
-
     margin-right: auto;
-
     position: static;
-
     transform: none;
-
     white-space: nowrap;
-
     overflow: hidden;
-
     text-overflow: ellipsis;
-
     max-width: calc(100% - 110px);
 }
 
 
 /* ==========================================
    DATA HEADER — USER
-   User হলে Header Text Center
 ========================================== */
 
 .topbar.user-header ~ .container .header-banner > span {
     position: absolute;
-
     left: 50%;
-
     transform: translateX(-50%);
-
     display: block;
-
     text-align: center;
-
     white-space: nowrap;
-
     overflow: hidden;
-
     text-overflow: ellipsis;
-
     max-width: calc(100% - 110px);
-
     width: max-content;
 }
 
@@ -552,18 +544,12 @@ body {
 
 .header-banner > div {
     display: flex;
-
     align-items: center;
-
     gap: 4px;
-
     margin-left: auto;
-
     flex-shrink: 0;
 }
 
-
-/* Action Button */
 
 .header-banner .custom-action-btn {
     flex-shrink: 0;
@@ -603,64 +589,42 @@ body {
 
 .modal {
     position: fixed;
-
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-
     background: rgba(0, 0, 0, 0.6);
-
     display: flex;
-
     align-items: center;
-
     justify-content: center;
-
     z-index: 1000;
-
     padding: 16px;
 }
 
 .modal-content {
     background-color: var(--card-bg);
-
     color: var(--text-main);
-
     border-radius: 20px;
-
     padding: 24px;
-
     width: 100%;
-
     max-width: 480px;
-
     max-height: 90vh;
-
     overflow-y: auto;
-
     border: 1px solid var(--border-color);
 }
 
 .modal-header {
     display: flex;
-
     justify-content: space-between;
-
     align-items: center;
-
     margin-bottom: 16px;
 }
 
 .close-btn {
     background: transparent;
-
     border: none;
-
     font-size: 20px;
-
     color: var(--text-main);
-
     cursor: pointer;
 }
 
@@ -675,11 +639,8 @@ body {
 
 .form-group label {
     display: block;
-
     margin-bottom: 6px;
-
     font-size: 13px;
-
     font-weight: 600;
 }
 
@@ -687,15 +648,10 @@ body {
 .form-group textarea,
 .form-group select {
     width: 100%;
-
     padding: 10px 12px;
-
     border-radius: 8px;
-
     border: 1px solid var(--border-color);
-
     background-color: var(--bg-color);
-
     color: var(--text-main);
 }
 
@@ -706,11 +662,8 @@ body {
 
 .modal-actions {
     display: flex;
-
     justify-content: flex-end;
-
     gap: 10px;
-
     margin-top: 20px;
 }
 
@@ -721,17 +674,11 @@ body {
 
 .pinned-badge {
     background-color: #f59e0b;
-
     color: #fff;
-
     font-size: 11px;
-
     padding: 2px 8px;
-
     border-radius: 12px;
-
     margin-left: 8px;
-
     font-weight: 600;
 }
 
@@ -742,40 +689,24 @@ body {
 
 .toast {
     position: fixed;
-
     bottom: 20px;
-
     left: 50%;
-
     transform: translateX(-50%) translateY(100px);
-
     background-color: var(--text-main);
-
     color: var(--bg-color);
-
-    /* পরিবর্তন ১: প্যাডিং কিছুটা কমিয়ে দেয়া হলো */
     padding: 6px 14px; 
-
     border-radius: 50px;
-
-    /* পরিবর্তন ২: ফন্ট সাইজ ছোট করা হলো (প্রয়োজনে ১২px/১৩px করতে পারেন) */
     font-size: 14px; 
-
     font-weight: 500;
-
     opacity: 0;
-
     transition: all 0.3s ease;
-
     z-index: 2000;
 }
 
 .toast.show {
     transform: translateX(-50%) translateY(0);
-
     opacity: 1;
 }
-
 
 
 /* ==========================================
@@ -784,9 +715,7 @@ body {
 
 .section-toolbar {
     display: flex;
-
     gap: 10px;
-
     margin-bottom: 20px;
 }
 
@@ -799,7 +728,6 @@ body {
 
     .topbar {
         height: 70px;
-
         padding: 0 12px;
     }
 
@@ -813,7 +741,6 @@ body {
 
     .container {
         margin-top: 16px;
-
         padding: 0 12px;
     }
 
@@ -821,49 +748,30 @@ body {
         font-size: 22px;
     }
 
-
-    /* Data Header */
-
     .header-banner {
         min-height: 48px;
-
         padding: 8px 12px;
     }
 
-
-    /* User Header Center */
-
     .topbar.user-header ~ .container .header-banner > span {
         max-width: calc(100% - 95px);
-
         font-size: 17px;
     }
-
-
-    /* Admin Header Left */
 
     .topbar.admin-header ~ .container .header-banner > span {
         max-width: calc(100% - 95px);
-
         font-size: 17px;
     }
 
-
-    /* Data Card */
-
     .data-card-item {
         height: 120px;
-
         padding: 10px 12px;
     }
 
     .data-card-avatar {
         width: 58px;
-
         height: 58px;
-
         min-width: 58px;
-
         margin-right: 10px;
     }
 
@@ -875,16 +783,10 @@ body {
         font-size: 13px;
     }
 
-
-    /* Buttons */
-
     .primary-btn,
     .secondary-btn {
         padding: 8px 12px;
     }
-
-
-    /* Section Toolbar */
 
     .section-toolbar {
         flex-wrap: wrap;
@@ -895,15 +797,11 @@ body {
         flex: 0 0 auto;
     }
 
-
-    /* Quick Action */
-
     .quick-action-grid {
         grid-template-columns: repeat(2, 1fr);
     }
 
 }
-
 
 
 /* ==========================================
@@ -928,18 +826,14 @@ body {
         padding: 5px 8px !important;
     }
 
-
     .topbar.user-header ~ .container .header-banner > span,
     .topbar.admin-header ~ .container .header-banner > span {
         font-size: 16px;
     }
 
-
     .data-card-avatar {
         width: 52px;
-
         height: 52px;
-
         min-width: 52px;
     }
 
