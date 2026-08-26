@@ -46,6 +46,10 @@ let currentDataId = null;
 let editingItem = null;
 let movingDataId = null;
 
+// Custom Delete Variables
+let targetDeleteId = null;
+let deleteType = null; // 'category', 'header', or 'data'
+
 window.currentUserRole = "guest";
 
 /* =========================================
@@ -199,12 +203,10 @@ function loadLocalCache() {
 }
 
 async function loadDatabase() {
-    // ১. সঙ্গে সঙ্গে স্ক্রিনে ডাটা দেখাতে ক্যাশ ডাটা লোড
     loadLocalCache();
 
     if (!navigator.onLine) return;
 
-    // ২. ব্যাকগ্রাউন্ডে ফায়ারবেস থেকে আপডেট ডাটা ফেচ
     try {
         const snapshot = await get(ref(db, "webapp/public_data"));
 
@@ -231,7 +233,6 @@ async function saveDatabase() {
         return;
     }
 
-    // Save to LocalCache immediately
     localStorage.setItem("police_phonebook_data", JSON.stringify(database));
 
     if (!navigator.onLine) {
@@ -266,6 +267,21 @@ function sortItemsByPin(items) {
         if (b.pinned) return 1;
         return 0;
     });
+}
+
+/* =========================================
+   Custom Delete Modal Trigger & Action
+========================================= */
+function triggerDelete(id, type, message = "আপনি কি নিশ্চিত এটি মুছে ফেলতে চান?") {
+    targetDeleteId = id;
+    deleteType = type;
+
+    const modalText = document.getElementById("deleteModalText");
+    if (modalText) {
+        modalText.textContent = message;
+    }
+
+    openModal("deleteModal");
 }
 
 /* =========================================
@@ -337,6 +353,38 @@ function setupEvents() {
 
     document.getElementById("backToMainBtn")?.addEventListener("click", () => history.back());
     document.getElementById("backFromDataBtn")?.addEventListener("click", () => history.back());
+
+    // Custom Delete Confirmation Modal Listeners
+    document.getElementById("cancelDeleteBtn")?.addEventListener("click", () => {
+        closeModal("deleteModal");
+        targetDeleteId = null;
+        deleteType = null;
+    });
+
+    document.getElementById("confirmDeleteBtn")?.addEventListener("click", async () => {
+        if (!targetDeleteId || !deleteType) return;
+
+        if (deleteType === "category") {
+            database.categories = database.categories.filter(c => c.id !== targetDeleteId && c.parentId !== targetDeleteId);
+            database.headers = database.headers.filter(h => h.categoryId !== targetDeleteId);
+            database.data = database.data.filter(d => d.categoryId !== targetDeleteId);
+        } else if (deleteType === "header") {
+            database.headers = database.headers.filter(h => h.id !== targetDeleteId);
+            database.data.forEach(d => {
+                if (d.headerId === targetDeleteId) d.headerId = null;
+            });
+        } else if (deleteType === "data") {
+            database.data = database.data.filter(d => d.id !== targetDeleteId);
+        }
+
+        await saveDatabase();
+        closeModal("deleteModal");
+        refreshCurrentView();
+        showToast("ডিলিট করা হয়েছে");
+
+        targetDeleteId = null;
+        deleteType = null;
+    });
 
     document.querySelectorAll("[data-close]").forEach(btn => {
         btn.addEventListener("click", () => closeModal(btn.dataset.close));
@@ -446,7 +494,7 @@ function renderCategories(searchVal = "") {
             card.querySelector(".btn-del-cat")?.addEventListener("click", e => {
                 e.stopPropagation();
                 e.preventDefault();
-                deleteCategory(category.id);
+                triggerDelete(category.id, "category", "আপনি কি নিশ্চিত এই Category মুছে ফেলতে চান?");
             });
         }
 
@@ -525,18 +573,6 @@ function editCategory(id) {
     if (cat) openCategoryModal(false, cat);
 }
 
-async function deleteCategory(id) {
-    if (!confirm("আপনি কি নিশ্চিত এই Category মুছে ফেলতে চান?")) return;
-
-    database.categories = database.categories.filter(c => c.id !== id && c.parentId !== id);
-    database.headers = database.headers.filter(h => h.categoryId !== id);
-    database.data = database.data.filter(d => d.categoryId !== id);
-
-    await saveDatabase();
-    refreshCurrentView();
-    showToast("ডিলিট করা হয়েছে");
-}
-
 /* =========================================
    Header Actions
 ========================================= */
@@ -599,21 +635,8 @@ function editHeader(id) {
     if (h) openHeaderModal(h);
 }
 
-async function deleteHeader(id) {
-    if (!confirm("এই Header ডিলিট করতে চান? ডাটাগুলো সরানো হবে না।")) return;
-
-    database.headers = database.headers.filter(h => h.id !== id);
-    database.data.forEach(d => {
-        if (d.headerId === id) d.headerId = null;
-    });
-
-    await saveDatabase();
-    refreshCurrentView();
-    showToast("Header ডিলিট করা হয়েছে");
-}
-
 /* =========================================
-   Create Data Card (Fixed Event Bubbling Problem)
+   Create Data Card
 ========================================= */
 function createDataCardElement(item) {
     const isAdmin = window.currentUserRole === "admin";
@@ -656,7 +679,6 @@ function createDataCardElement(item) {
         ${adminActions}
     `;
 
-    // মূল কার্ড ক্লিক
     dataEl.addEventListener("click", () => openDataPage(item.id));
 
     if (isAdmin) {
@@ -680,11 +702,10 @@ function createDataCardElement(item) {
             editData(item.id);
         });
 
-        // ডিলিট বাটন ক্লিক নিশ্চিত করতে প্রপাগেশন বন্ধ
         dataEl.querySelector(".btn-del-data")?.addEventListener("click", e => {
             e.stopPropagation();
             e.preventDefault();
-            deleteData(item.id);
+            triggerDelete(item.id, "data", "আপনি কি নিশ্চিত এই Data মুছে ফেলতে চান?");
         });
     }
 
@@ -780,16 +801,6 @@ async function saveData() {
 function editData(id) {
     const item = database.data.find(d => d.id === id);
     if (item) openDataModal(item);
-}
-
-async function deleteData(id) {
-    if (!confirm("আপনি কি এই Data মুছে ফেলতে চান?")) return;
-
-    database.data = database.data.filter(d => d.id !== id);
-
-    await saveDatabase();
-    refreshCurrentView();
-    showToast("ডাটা ডিলিট করা হয়েছে");
 }
 
 async function togglePinData(id) {
@@ -984,7 +995,7 @@ function renderCategoryDetails(searchVal = "") {
                 item.querySelector(".btn-del-sub")?.addEventListener("click", e => {
                     e.stopPropagation();
                     e.preventDefault();
-                    deleteCategory(sub.id);
+                    triggerDelete(sub.id, "category", "আপনি কি নিশ্চিত এই Sub-Category মুছে ফেলতে চান?");
                 });
             }
 
@@ -994,7 +1005,7 @@ function renderCategoryDetails(searchVal = "") {
         container.appendChild(subWrapper);
     }
 
-    /* Current Category-র সমস্ত ডাটা 필্টার ও সর্টিং */
+    /* Current Category-র সমস্ত ডাটা ফিল্টার ও সর্টিং */
     let categoryData = database.data.filter(d => d.categoryId === currentCategoryId);
     categoryData = sortItemsByPin(categoryData);
 
@@ -1079,7 +1090,7 @@ function renderCategoryDetails(searchVal = "") {
                 headerBox.querySelector(".btn-del-head")?.addEventListener("click", e => {
                     e.stopPropagation();
                     e.preventDefault();
-                    deleteHeader(header.id);
+                    triggerDelete(header.id, "header", "এই Header ডিলিট করতে চান? ডাটাগুলো সরানো হবে না।");
                 });
             }
 
