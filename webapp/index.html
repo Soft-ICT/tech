@@ -21,10 +21,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=3">
+    <link rel="stylesheet" href="css/style.css?v=4">
 
     <style>
-        /* Topbar Fixed (Sticky) Settings */
         .topbar {
             position: sticky;
             top: 0;
@@ -42,7 +41,6 @@
     </div>
 
     <div class="top-actions">
-        <!-- Admin Button hidden by default -->
         <button id="adminLoginBtn" class="primary-btn active-btn btn-admin-small hidden" type="button">🔑 Admin</button>
         <button id="themeBtn" class="icon-btn" title="নাইট/ডে মোড" type="button">🌙</button>
         <button id="searchBtn" class="icon-btn" title="সার্চ করুন" type="button">🔍</button>
@@ -58,9 +56,9 @@
 
     <!-- Page 1: Main Dashboard -->
     <div id="mainDashboardView">
-        <section class="dashboard-header" style="justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <section class="dashboard-header">
             <button id="allSearchBtn" class="primary-btn" type="button">🌐 All Search</button>
-            <button id="addCategoryBtn" class="primary-btn admin-only" type="button">＋ Category</button>
+            <button id="addCategoryBtn" class="primary-btn admin-only" type="button" style="width:100%; margin-top:8px;">＋ Category</button>
         </section>
 
         <!-- Categories List -->
