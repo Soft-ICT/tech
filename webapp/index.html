@@ -256,6 +256,23 @@
     </div>
 </div>
 
+<!-- Custom Confirmation Modal -->
+<div id="customConfirmModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="confirmModalTitle">নিশ্চিতকরণ</h2>
+            <button class="close-btn" data-close="customConfirmModal" type="button">✕</button>
+        </div>
+        <div style="padding: 15px 0;">
+            <p id="confirmModalMessage" style="font-size: 16px; color: var(--text-color);">আপনি কি নিশ্চিত?</p>
+        </div>
+        <div class="modal-actions">
+            <button id="cancelConfirmBtn" class="secondary-btn" type="button">বাতিল</button>
+            <button id="okConfirmBtn" class="danger-btn" type="button">হ্যাঁ, মুছুন</button>
+        </div>
+    </div>
+</div>
+
 <!-- Toast -->
 <div id="toast" class="toast"></div>
 
