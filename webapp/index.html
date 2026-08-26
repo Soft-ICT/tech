@@ -4,7 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Police Phonebook</title>
-    <link rel="stylesheet" href="style.css">
+    
+    <!-- External CSS with cache-bypassing version -->
+    <link rel="stylesheet" href="style.css?v=1.2">
+
+    <!-- Emergency Inline CSS Fix for Hidden & Modals -->
+    <style>
+        .hidden {
+            display: none !important;
+        }
+
+        .modal-overlay {
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .modal-overlay.hidden {
+            display: none !important;
+        }
+
+        .modal-card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        body.dark-mode .modal-card {
+            background: #1e293b;
+            color: #ffffff;
+        }
+    </style>
 </head>
 <body>
 
@@ -160,7 +200,7 @@
         </div>
     </div>
 
-    <!-- Custom Delete Confirmation Modal (NEW) -->
+    <!-- Custom Delete Confirmation Modal -->
     <div id="deleteModal" class="modal-overlay hidden">
         <div class="modal-card">
             <h3 style="color:#ef4444;">⚠️ ডিলিট নিশ্চিতকরণ</h3>
@@ -172,6 +212,6 @@
         </div>
     </div>
 
-    <script type="module" src="app.js"></script>
+    <script type="module" src="app.js?v=1.2"></script>
 </body>
 </html>
