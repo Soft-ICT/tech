@@ -28,6 +28,41 @@
             position: sticky;
             top: 0;
             z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            gap: 8px;
+        }
+
+        /* Topbar Dynamic Search Box Styles */
+        .header-search-box {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2px 8px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .header-search-box input {
+            width: 100%;
+            border: none;
+            outline: none;
+            background: transparent;
+            color: inherit;
+            font-size: 14px;
+            padding: 6px 4px;
+        }
+
+        .header-search-box button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: inherit;
         }
     </style>
 </head>
@@ -36,11 +71,18 @@
 
 <header class="topbar">
     <button id="menuBtn" class="icon-btn" type="button">☰</button>
-    <div class="app-title">
+    <div class="app-title" id="appTitle">
         <span class="app-title-text">Police Phonebook</span>
     </div>
 
-    <div class="top-actions">
+    <!-- Red Area: Search Box Inside Header -->
+    <div id="searchBox" class="header-search-box hidden">
+        <button id="closeSearchBtn" class="icon-btn" type="button" title="পিছনে যান">←</button>
+        <input type="search" id="searchInput" placeholder="Category, Header অথবা Data খুঁজুন..." autocomplete="off">
+        <button id="clearSearch" class="icon-btn" type="button">✕</button>
+    </div>
+
+    <div class="top-actions" id="topActions">
         <button id="adminLoginBtn" class="primary-btn active-btn btn-admin-small hidden" type="button">🔑 Admin</button>
         <button id="themeBtn" class="icon-btn" title="নাইট/ডে মোড" type="button">🌙</button>
         <button id="searchBtn" class="icon-btn" title="সার্চ করুন" type="button">🔍</button>
@@ -48,12 +90,6 @@
 </header>
 
 <main class="container">
-    <!-- Search Box -->
-    <section id="searchBox" class="search-box hidden">
-        <input type="search" id="searchInput" placeholder="Category, Header অথবা Data খুঁজুন..." autocomplete="off">
-        <button id="clearSearch" type="button">✕</button>
-    </section>
-
     <!-- Page 1: Main Dashboard -->
     <div id="mainDashboardView">
         <section class="dashboard-header">
