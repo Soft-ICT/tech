@@ -58,12 +58,16 @@
 
     <!-- Page 1: Main Dashboard -->
     <div id="mainDashboardView">
-        <section class="dashboard-header" style="justify-content: flex-end; margin-bottom: 10px;">
+        <section class="dashboard-header" style="justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <button id="allSearchBtn" class="primary-btn" type="button">🌐 All Search</button>
             <button id="addCategoryBtn" class="primary-btn admin-only" type="button">＋ Category</button>
         </section>
 
         <!-- Categories List -->
         <section id="categoryList" class="category-list"></section>
+
+        <!-- All Search View Container -->
+        <div id="allSearchContainer" class="hidden" style="margin-top: 15px;"></div>
 
         <!-- Empty State -->
         <section id="emptyState" class="empty-state hidden">
