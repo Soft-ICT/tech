@@ -77,17 +77,11 @@ body {
     gap: 8px;
 }
 
-
-/* ছোট Admin Button */
-
 .btn-admin-small {
     padding: 5px 10px !important;
     font-size: 12px !important;
     border-radius: 6px !important;
 }
-
-
-/* Icon Button */
 
 .icon-btn {
     background: transparent;
@@ -144,23 +138,26 @@ body {
 }
 
 /* ==========================================
-   ALL SEARCH BUTTON (TOPBAR MATCHED STYLE)
+   ALL SEARCH BUTTON (FULL WIDTH)
 ========================================== */
 
 #allSearchBtn {
+    width: 100%;
+    display: block;
+    padding: 12px 16px;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
     background-color: var(--primary-color);
     color: #ffffff;
     border: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-weight: 600;
+    border-radius: 12px;
     cursor: pointer;
-    transition: background-color 0.2s ease, opacity 0.2s ease;
+    transition: background-color 0.2s ease;
 }
 
 #allSearchBtn:hover {
     background-color: var(--primary-hover);
-    opacity: 0.95;
 }
 
 
@@ -181,8 +178,8 @@ body {
 
 .dashboard-header {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 12px;
     margin-bottom: 20px;
 }
 
@@ -268,9 +265,6 @@ body {
     box-shadow: var(--shadow-md);
 }
 
-
-/* Data Avatar */
-
 .data-card-avatar {
     width: 65px;
     height: 65px;
@@ -284,9 +278,6 @@ body {
     font-size: 30px;
     object-fit: cover;
 }
-
-
-/* Data Information */
 
 .data-card-info {
     display: flex;
@@ -313,9 +304,6 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
 }
-
-
-/* Action Buttons */
 
 .custom-action-btn {
     background: transparent;
@@ -398,21 +386,10 @@ body {
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
 
-.btn-call-round {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
-}
-
-.btn-phone-round {
-    background: linear-gradient(135deg, #4b5563, #374151);
-}
-
-.btn-email-round {
-    background: linear-gradient(135deg, #ea4335, #c5221f);
-}
-
-.btn-share-round {
-    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-}
+.btn-call-round { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+.btn-phone-round { background: linear-gradient(135deg, #4b5563, #374151); }
+.btn-email-round { background: linear-gradient(135deg, #ea4335, #c5221f); }
+.btn-share-round { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
 
 
 /* ==========================================
@@ -484,11 +461,6 @@ body {
     margin-bottom: 20px;
 }
 
-
-/* ------------------------------------------
-   Data Header / Header Banner
------------------------------------------- */
-
 .header-banner {
     position: relative;
     background-color: var(--border-color);
@@ -502,11 +474,6 @@ body {
     font-weight: bold;
 }
 
-
-/* ==========================================
-   DATA HEADER — ADMIN
-========================================== */
-
 .topbar.admin-header ~ .container .header-banner > span {
     display: block;
     text-align: left;
@@ -518,11 +485,6 @@ body {
     text-overflow: ellipsis;
     max-width: calc(100% - 110px);
 }
-
-
-/* ==========================================
-   DATA HEADER — USER
-========================================== */
 
 .topbar.user-header ~ .container .header-banner > span {
     position: absolute;
@@ -537,11 +499,6 @@ body {
     width: max-content;
 }
 
-
-/* ------------------------------------------
-   Header-এর Admin Action Buttons
------------------------------------------- */
-
 .header-banner > div {
     display: flex;
     align-items: center;
@@ -550,15 +507,9 @@ body {
     flex-shrink: 0;
 }
 
-
 .header-banner .custom-action-btn {
     flex-shrink: 0;
 }
-
-
-/* ==========================================
-   NO HEADER DATA
-========================================== */
 
 .header-box .header-banner {
     font-weight: 700;
@@ -589,10 +540,7 @@ body {
 
 .modal {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0, 0, 0, 0.6);
     display: flex;
     align-items: center;
@@ -655,22 +603,12 @@ body {
     color: var(--text-main);
 }
 
-
-/* ==========================================
-   MODAL ACTIONS
-========================================== */
-
 .modal-actions {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
     margin-top: 20px;
 }
-
-
-/* ==========================================
-   PINNED BADGE
-========================================== */
 
 .pinned-badge {
     background-color: #f59e0b;
@@ -708,11 +646,6 @@ body {
     opacity: 1;
 }
 
-
-/* ==========================================
-   SECTION TOOLBAR
-========================================== */
-
 .section-toolbar {
     display: flex;
     gap: 10px;
@@ -725,39 +658,27 @@ body {
 ========================================== */
 
 @media (max-width: 600px) {
-
     .topbar {
         height: 70px;
         padding: 0 12px;
     }
 
-    .app-title {
-        font-size: 18px;
-    }
-
-    .top-actions {
-        gap: 5px;
-    }
+    .app-title { font-size: 18px; }
+    .top-actions { gap: 5px; }
 
     .container {
         margin-top: 16px;
         padding: 0 12px;
     }
 
-    .dashboard-header h1 {
-        font-size: 22px;
-    }
+    .dashboard-header h1 { font-size: 22px; }
 
     .header-banner {
         min-height: 48px;
         padding: 8px 12px;
     }
 
-    .topbar.user-header ~ .container .header-banner > span {
-        max-width: calc(100% - 95px);
-        font-size: 17px;
-    }
-
+    .topbar.user-header ~ .container .header-banner > span,
     .topbar.admin-header ~ .container .header-banner > span {
         max-width: calc(100% - 95px);
         font-size: 17px;
@@ -775,56 +696,22 @@ body {
         margin-right: 10px;
     }
 
-    .data-card-name {
-        font-size: 17px;
-    }
+    .data-card-name { font-size: 17px; }
+    .data-card-detail { font-size: 13px; }
 
-    .data-card-detail {
-        font-size: 13px;
-    }
+    .primary-btn, .secondary-btn { padding: 8px 12px; }
 
-    .primary-btn,
-    .secondary-btn {
-        padding: 8px 12px;
-    }
+    .section-toolbar { flex-wrap: wrap; }
+    .section-toolbar .primary-btn, .section-toolbar .secondary-btn { flex: 0 0 auto; }
 
-    .section-toolbar {
-        flex-wrap: wrap;
-    }
-
-    .section-toolbar .primary-btn,
-    .section-toolbar .secondary-btn {
-        flex: 0 0 auto;
-    }
-
-    .quick-action-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
+    .quick-action-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
-
-/* ==========================================
-   VERY SMALL SCREEN
-========================================== */
-
 @media (max-width: 400px) {
-
-    .topbar {
-        padding: 0 8px;
-    }
-
-    .app-title {
-        font-size: 17px;
-    }
-
-    .icon-btn {
-        padding: 7px 9px;
-    }
-
-    .btn-admin-small {
-        padding: 5px 8px !important;
-    }
+    .topbar { padding: 0 8px; }
+    .app-title { font-size: 17px; }
+    .icon-btn { padding: 7px 9px; }
+    .btn-admin-small { padding: 5px 8px !important; }
 
     .topbar.user-header ~ .container .header-banner > span,
     .topbar.admin-header ~ .container .header-banner > span {
@@ -837,12 +724,6 @@ body {
         min-width: 52px;
     }
 
-    .data-card-name {
-        font-size: 16px;
-    }
-
-    .data-card-detail {
-        font-size: 12px;
-    }
-
+    .data-card-name { font-size: 16px; }
+    .data-card-detail { font-size: 12px; }
 }
