@@ -1,165 +1,308 @@
 <!DOCTYPE html>
 <html lang="bn">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Police Phonebook - Dynamic Header</title>
-  
-  <!-- Font Awesome Icons for Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0d6efd">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Police Phonebook">
 
-  <style>
-    /* Global Styles */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
+    <title>Police Phonebook</title>
 
-    body {
-      background-color: #f4f6f9;
-    }
+    <!-- PWA Manifest & Icons -->
+    <link rel="manifest" href="manifest.json?v=1.1">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
 
-    /* Header Main Container */
-    .app-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background-color: #0d233a; /* Police Theme Blue */
-      color: #ffffff;
-      height: 60px;
-      padding: 0 15px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    }
+    <!-- Fonts & CSS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css?v=4">
 
-    /* Left Menu / Back Icon Area */
-    .icon-left {
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      font-size: 20px;
-      cursor: pointer;
-    }
-
-    /* Title Area */
-    .header-title {
-      flex: 1;
-      font-size: 18px;
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      margin-left: 10px;
-    }
-
-    /* Search Bar Area */
-    .search-wrapper {
-      flex: 1;
-      margin: 0 10px;
-      display: flex;
-      align-items: center;
-    }
-
-    .search-input {
-      width: 100%;
-      padding: 8px 12px;
-      border: none;
-      border-radius: 4px;
-      outline: none;
-      font-size: 15px;
-      background-color: #ffffff;
-      color: #333333;
-    }
-
-    /* Right Action Icon Area */
-    .icon-right {
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      font-size: 18px;
-      cursor: pointer;
-    }
-
-    /* Helper Utility Class to Hide Elements */
-    .hidden {
-      display: none !important;
-    }
-  </style>
+    <style>
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+    </style>
 </head>
+
 <body>
 
-  <!-- Header Start -->
-  <header class="app-header">
-    
-    <!-- Left Icon (Toggles Menu <-> Back) -->
-    <div class="icon-left" id="btn-left-icon">
-      <i class="fa-solid fa-bars" id="icon-menu"></i>
-      <i class="fa-solid fa-arrow-left hidden" id="icon-back"></i>
+<header class="topbar">
+    <button id="menuBtn" class="icon-btn" type="button">☰</button>
+    <div class="app-title">
+        <span class="app-title-text">Police Phonebook</span>
     </div>
 
-    <!-- Title (Hides when search is active) -->
-    <h1 class="header-title" id="title-text">Police Phonebook</h1>
+    <div class="top-actions">
+        <button id="adminLoginBtn" class="primary-btn active-btn btn-admin-small hidden" type="button">🔑 Admin</button>
+        <button id="themeBtn" class="icon-btn" title="নাইট/ডে মোড" type="button">🌙</button>
+        <button id="searchBtn" class="icon-btn" title="সার্চ করুন" type="button">🔍</button>
+    </div>
+</header>
 
-    <!-- Search Input (Shows when search is active) -->
-    <div class="search-wrapper hidden" id="search-box">
-      <input type="text" class="search-input" id="search-input" placeholder="খুঁজুন (নাম বা নম্বর)...">
+<main class="container">
+    <!-- Search Box -->
+    <section id="searchBox" class="search-box hidden">
+        <input type="search" id="searchInput" placeholder="Category, Header অথবা Data খুঁজুন..." autocomplete="off">
+        <button id="clearSearch" type="button">✕</button>
+    </section>
+
+    <!-- Page 1: Main Dashboard -->
+    <div id="mainDashboardView">
+        <section class="dashboard-header">
+            <button id="allSearchBtn" class="primary-btn" type="button">🌐 All Search</button>
+            <button id="addCategoryBtn" class="primary-btn admin-only" type="button" style="width:100%; margin-top:8px;">＋ Category</button>
+        </section>
+
+        <!-- Categories List -->
+        <section id="categoryList" class="category-list"></section>
+
+        <!-- All Search View Container -->
+        <div id="allSearchContainer" class="hidden" style="margin-top: 15px;"></div>
+
+        <!-- Empty State -->
+        <section id="emptyState" class="empty-state hidden">
+            <div class="empty-icon">📂</div>
+            <h2>এখনো কোনো Category নেই</h2>
+            <p>ডাটা দেখতে অপেক্ষা করুন, প্রয়োজনে রিফ্রেস করুন।</p>
+            <button id="emptyAddBtn" class="primary-btn admin-only" type="button">＋ প্রথম Category তৈরি করুন</button>
+        </section>
     </div>
 
-    <!-- Right Icon (Search Button) -->
-    <div class="icon-right" id="btn-search-trigger">
-      <i class="fa-solid fa-magnifying-glass"></i>
+    <!-- Page 2: Category Details -->
+    <div id="categoryDetailsView" class="hidden">
+        <section class="dashboard-header">
+            <div class="header-left">
+                <button id="backToMainBtn" class="secondary-btn" type="button">← পেছনে যান</button>
+                <div>
+                    <h1 id="detailsTitle">Category</h1>
+                    <p id="detailsSubtitle"></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Admin Toolbar -->
+        <div class="section-toolbar admin-only">
+            <button id="addSubCategoryBtn" class="primary-btn" type="button">＋ Sub-Category</button>
+            <button id="addHeaderBtn" class="primary-btn" type="button">＋ Header</button>
+            <button id="addDataBtn" class="secondary-btn" type="button">＋ Data</button>
+        </div>
+
+        <!-- Category Details -->
+        <div id="detailsContent"></div>
     </div>
 
-  </header>
-  <!-- Header End -->
+    <!-- Page 3: Data Details -->
+    <div id="dataDetailsView" class="hidden">
+        <section class="dashboard-header">
+            <button id="backFromDataBtn" class="secondary-btn" type="button">← পেছনে যান</button>
+        </section>
 
-  <!-- JavaScript logic -->
-  <script>
-    // DOM Elements selection
-    const iconMenu = document.getElementById('icon-menu');
-    const iconBack = document.getElementById('icon-back');
-    const titleText = document.getElementById('title-text');
-    const searchBox = document.getElementById('search-box');
-    const searchInput = document.getElementById('search-input');
-    const btnSearchTrigger = document.getElementById('btn-search-trigger');
-    const btnLeftIcon = document.getElementById('btn-left-icon');
+        <div class="details-container-card">
+            <div id="dataPageContent"></div>
+        </div>
+    </div>
+</main>
 
-    // Activate Search Mode
-    btnSearchTrigger.addEventListener('click', () => {
-      // Hide title and menu icon
-      titleText.classList.add('hidden');
-      iconMenu.classList.add('hidden');
+<!-- Admin Login Modal -->
+<div id="loginModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Admin Login</h2>
+            <button class="close-btn" data-close="loginModal" type="button">✕</button>
+        </div>
 
-      // Show search bar and back icon
-      searchBox.classList.remove('hidden');
-      iconBack.classList.remove('hidden');
+        <div id="loginFormContainer">
+            <div class="form-group">
+                <label>ইমেইল</label>
+                <input id="loginEmail" type="email" placeholder="admin@example.com">
+            </div>
+            <div class="form-group">
+                <label>পাসওয়ার্ড</label>
+                <input id="loginPassword" type="password" placeholder="******">
+            </div>
+            <div class="modal-actions">
+                <button class="secondary-btn" data-close="loginModal" type="button">বাতিল</button>
+                <button id="submitLoginBtn" class="primary-btn" type="button">লগইন</button>
+            </div>
+        </div>
 
-      // Auto focus on input box
-      searchInput.focus();
+        <div id="logoutContainer" class="hidden logout-box">
+            <p class="status-ok">✅ আপনি অ্যাডমিন হিসেবে লগইন আছেন</p>
+            <div class="modal-actions">
+                <button class="secondary-btn" data-close="loginModal" type="button">বাতিল</button>
+                <button id="logoutBtn" class="danger-btn" type="button">🚪 লগআউট</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Category Modal -->
+<div id="categoryModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="categoryModalTitle">নতুন Category</h2>
+            <button class="close-btn" data-close="categoryModal" type="button">✕</button>
+        </div>
+        <div class="form-group">
+            <label>Category Name</label>
+            <input id="categoryNameInput" type="text" placeholder="যেমন: পুলিশ কর্মকর্তা" maxlength="100">
+        </div>
+        <div class="modal-actions">
+            <button class="secondary-btn" data-close="categoryModal" type="button">বাতিল</button>
+            <button id="saveCategoryBtn" class="primary-btn" type="button">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Header Modal -->
+<div id="headerModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>নতুন Header</h2>
+            <button class="close-btn" data-close="headerModal" type="button">✕</button>
+        </div>
+        <div class="form-group">
+            <label>Header Name</label>
+            <input id="headerNameInput" type="text" placeholder="যেমন: জরুরি যোগাযোগ" maxlength="100">
+        </div>
+        <div class="modal-actions">
+            <button class="secondary-btn" data-close="headerModal" type="button">বাতিল</button>
+            <button id="saveHeaderBtn" class="primary-btn" type="button">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Data Modal -->
+<div id="dataModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="dataModalTitle">Data যোগ করুন</h2>
+            <button class="close-btn" data-close="dataModal" type="button">✕</button>
+        </div>
+        <div class="form-group">
+            <label>ছবি (URL)</label>
+            <input type="url" id="dataPhoto" placeholder="https://example.com/photo.jpg">
+        </div>
+        <div class="form-group">
+            <label>নাম</label>
+            <input type="text" id="dataName" placeholder="নাম লিখুন">
+        </div>
+        <div class="form-group">
+            <label>মোবাইল</label>
+            <input type="text" id="dataMobile" placeholder="মোবাইল নম্বর">
+        </div>
+        <div class="form-group">
+            <label>টেলিফোন</label>
+            <input type="text" id="dataPhone" placeholder="টেলিফোন নম্বর">
+        </div>
+        <div class="form-group">
+            <label>পদবী</label>
+            <input type="text" id="dataDesignation" placeholder="পদবী লিখুন">
+        </div>
+        <div class="form-group">
+            <label>ই-মেইল</label>
+            <input type="email" id="dataEmail" placeholder="ই-মেইল ঠিকানা">
+        </div>
+        <div class="form-group">
+            <label>বর্তমান কর্মস্থল</label>
+            <input type="text" id="dataCurrentOffice" placeholder="বর্তমান ঠিকানা / কর্মস্থল">
+        </div>
+        <div class="form-group">
+            <label>স্থায়ী ঠিকানা</label>
+            <textarea id="dataPermanentAddress" rows="2" placeholder="স্থায়ী ঠিকানা"></textarea>
+        </div>
+        <div class="form-group">
+            <label>প্রশাসনিক তথ্য</label>
+            <textarea id="dataAdminInfo" rows="2" placeholder="প্রশাসনিক তথ্য"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Header</label>
+            <select id="dataHeaderSelect">
+                <option value="">Header ছাড়া</option>
+            </select>
+        </div>
+        <div class="modal-actions">
+            <button class="secondary-btn" data-close="dataModal" type="button">বাতিল</button>
+            <button id="saveDataBtn" class="primary-btn" type="button">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Move Data Modal -->
+<div id="moveDataModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Data সরান (Move Data)</h2>
+            <button class="close-btn" data-close="moveDataModal" type="button">✕</button>
+        </div>
+        <div class="form-group">
+            <label>গন্তব্য Category</label>
+            <select id="moveCategorySelect"></select>
+        </div>
+        <div class="form-group">
+            <label>গন্তব্য Header</label>
+            <select id="moveHeaderSelect"></select>
+        </div>
+        <div class="modal-actions">
+            <button class="secondary-btn" data-close="moveDataModal" type="button">বাতিল</button>
+            <button id="confirmMoveBtn" class="primary-btn" type="button">Move করুন</button>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Confirmation Modal -->
+<div id="customConfirmModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="confirmModalTitle">নিশ্চিতকরণ</h2>
+            <button class="close-btn" data-close="customConfirmModal" type="button">✕</button>
+        </div>
+        <div style="padding: 15px 0;">
+            <p id="confirmModalMessage" style="font-size: 16px; color: var(--text-color);">আপনি কি নিশ্চিত?</p>
+        </div>
+        <div class="modal-actions">
+            <button id="cancelConfirmBtn" class="secondary-btn" type="button">বাতিল</button>
+            <button id="okConfirmBtn" class="danger-btn" type="button">হ্যাঁ, মুছুন</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<!-- JavaScript -->
+<script type="module" src="js/app.js"></script>
+
+<!-- Service Worker Registration -->
+<script>
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+        navigator.serviceWorker.register("./sw.js?v=3.1")
+            .then(function (registration) {
+                console.log("PWA Service Worker registered:", registration.scope);
+                registration.onupdatefound = () => {
+                    const installing = registration.installing;
+                    installing.onstatechange = () => {
+                        if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+                            window.location.reload();
+                        }
+                    };
+                };
+            })
+            .catch(function (error) {
+                console.error("Service Worker registration failed:", error);
+            });
     });
-
-    // Reset to Default Mode (Clicking Back Icon)
-    btnLeftIcon.addEventListener('click', () => {
-      // Check if Back Icon is visible before triggering reset
-      if (!iconBack.classList.contains('hidden')) {
-        // Show title and menu icon
-        titleText.classList.remove('hidden');
-        iconMenu.classList.remove('hidden');
-
-        // Hide search bar and back icon
-        searchBox.classList.add('hidden');
-        iconBack.classList.add('hidden');
-
-        // Clear input value
-        searchInput.value = '';
-      }
-    });
-  </script>
+}
+</script>
 
 </body>
 </html>
