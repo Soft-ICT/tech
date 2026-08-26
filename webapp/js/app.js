@@ -76,14 +76,14 @@ watchAuth((user, role) => {
         window.currentUserRole = "guest";
         if (adminBtn) {
             adminBtn.textContent = "🔑 Admin";
-            adminBtn.classList.add("hidden"); // Guest অবস্থায় বাটন হাইড থাকবে
+            adminBtn.classList.add("hidden");
         }
     } else {
         window.currentUser = user;
         window.currentUserRole = role || "admin";
         if (adminBtn) {
             adminBtn.textContent = "🟢 Admin";
-            adminBtn.classList.remove("hidden"); // Admin logged in থাকলে বাটন শো করবে
+            adminBtn.classList.remove("hidden");
         }
     }
 
@@ -139,6 +139,9 @@ document.addEventListener("DOMContentLoaded", () => {
     setupEvents();
     initTheme();
     updateAdminUI();
+
+    // ইন্সট্যান্ট লোডিং নিশ্চিত করার জন্য DOM প্রস্তুত হলেই ক্যাশ লোড করা হচ্ছে
+    loadLocalCache();
     checkOnlineStatus();
 
     history.replaceState({ page: "home" }, "");
@@ -196,11 +199,12 @@ function loadLocalCache() {
 }
 
 async function loadDatabase() {
-    if (!navigator.onLine) {
-        loadLocalCache();
-        return;
-    }
+    // ১. অ্যাপ সাথে সাথে ওপেন করার জন্য লোকাল ক্যাশ রেন্ডার করা হলো
+    loadLocalCache();
 
+    if (!navigator.onLine) return;
+
+    // ২. ব্যাকগ্রাউন্ডে ফায়ারবেস থেকে ডাটা ফেচ করে স্ক্রিন ও ক্যাশ সিঙ্ক করা হচ্ছে
     try {
         const snapshot = await get(ref(db, "webapp/public_data"));
 
@@ -212,15 +216,10 @@ async function loadDatabase() {
             
             // Save to offline storage
             localStorage.setItem("police_phonebook_data", JSON.stringify(database));
-        } else {
-            database = { categories: [], headers: [], data: [] };
+            refreshCurrentView();
         }
-
-        refreshCurrentView();
     } catch (error) {
         console.error("Database load error:", error);
-        loadLocalCache();
-        showToast("অফলাইন মোড: পূর্বে সেভ থাকা ডাটা দেখানো হচ্ছে");
     }
 }
 
@@ -353,14 +352,12 @@ function handleSearch() {
     const searchVal = rawVal ? rawVal.toLowerCase() : "";
     const adminBtn = document.getElementById("adminLoginBtn");
 
-    // Secret Admin Key Check
     if (searchVal === "admin@jr") {
         if (adminBtn) {
             adminBtn.classList.remove("hidden");
             showToast("🔑 অ্যাডমিন অপশন অন করা হয়েছে");
         }
     } else {
-        // লগইন না থাকা অবস্থায় সার্চ বক্সে 'admin@jr' না থাকলে বাটনটি আবার হাইড হয়ে যাবে
         if (window.currentUserRole !== "admin" && adminBtn) {
             adminBtn.classList.add("hidden");
         }
