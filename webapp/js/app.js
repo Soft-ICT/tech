@@ -45,6 +45,7 @@ let currentCategoryId = null;
 let currentDataId = null;
 let editingItem = null;
 let movingDataId = null;
+let isAllSearchActive = false;
 
 window.currentUserRole = "guest";
 
@@ -291,6 +292,8 @@ function setupEvents() {
 
     document.getElementById("searchInput")?.addEventListener("input", handleSearch);
 
+    document.getElementById("allSearchBtn")?.addEventListener("click", toggleAllSearch);
+
     document.getElementById("adminLoginBtn")?.addEventListener("click", () => openModal("loginModal"));
 
     document.getElementById("submitLoginBtn")?.addEventListener("click", async () => {
@@ -362,11 +365,85 @@ function handleSearch() {
         }
     }
 
-    if (currentCategoryId) {
+    if (isAllSearchActive) {
+        renderAllSearch();
+    } else if (currentCategoryId) {
         renderCategoryDetails(searchVal);
     } else {
         renderCategories(searchVal);
     }
+}
+
+/* =========================================
+   All Search Functionality
+========================================= */
+function toggleAllSearch() {
+    const btn = document.getElementById("allSearchBtn");
+    const container = document.getElementById("allSearchContainer");
+    const list = document.getElementById("categoryList");
+    const emptyState = document.getElementById("emptyState");
+
+    isAllSearchActive = !isAllSearchActive;
+
+    if (isAllSearchActive) {
+        btn.textContent = "📁 Categories";
+        btn.classList.add("secondary-btn");
+        btn.classList.remove("primary-btn");
+        list?.classList.add("hidden");
+        emptyState?.classList.add("hidden");
+        container?.classList.remove("hidden");
+
+        const searchBox = document.getElementById("searchBox");
+        if (searchBox?.classList.contains("hidden")) {
+            searchBox.classList.remove("hidden");
+        }
+        document.getElementById("searchInput")?.focus();
+
+        renderAllSearch();
+    } else {
+        btn.textContent = "🌐 All Search";
+        btn.classList.add("primary-btn");
+        btn.classList.remove("secondary-btn");
+        container?.classList.add("hidden");
+        renderCategories(document.getElementById("searchInput")?.value.trim().toLowerCase());
+    }
+}
+
+function renderAllSearch() {
+    const container = document.getElementById("allSearchContainer");
+    if (!container) return;
+
+    const rawVal = document.getElementById("searchInput")?.value.trim();
+    const searchVal = rawVal ? rawVal.toLowerCase() : "";
+
+    container.innerHTML = "";
+
+    let allData = database.data || [];
+
+    if (searchVal && searchVal !== "admin@jr") {
+        allData = allData.filter(d =>
+            (d.name && d.name.toLowerCase().includes(searchVal)) ||
+            (d.mobile && d.mobile.toLowerCase().includes(searchVal)) ||
+            (d.phone && d.phone.toLowerCase().includes(searchVal)) ||
+            (d.designation && d.designation.toLowerCase().includes(searchVal)) ||
+            (d.email && d.email.toLowerCase().includes(searchVal)) ||
+            (d.currentOffice && d.currentOffice.toLowerCase().includes(searchVal)) ||
+            (d.permanentAddress && d.permanentAddress.toLowerCase().includes(searchVal))
+        );
+    }
+
+    allData = sortItemsByPin(allData);
+
+    if (allData.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--text-muted); font-size: 16px;">🔍 কোনো তথ্য পাওয়া যায়নি</div>`;
+        return;
+    }
+
+    allData.forEach(item => {
+        container.appendChild(createDataCardElement(item));
+    });
+
+    updateAdminUI();
 }
 
 /* =========================================
@@ -885,6 +962,7 @@ function showCategoryView(id) {
 
     currentCategoryId = id;
     currentDataId = null;
+    isAllSearchActive = false;
 
     document.getElementById("mainDashboardView")?.classList.add("hidden");
     document.getElementById("dataDetailsView")?.classList.add("hidden");
@@ -905,9 +983,13 @@ function showMainDashboardView(updateHistory = true) {
     document.getElementById("dataDetailsView")?.classList.add("hidden");
     document.getElementById("mainDashboardView")?.classList.remove("hidden");
 
-    renderCategories(
-        document.getElementById("searchInput")?.value.trim().toLowerCase()
-    );
+    if (isAllSearchActive) {
+        renderAllSearch();
+    } else {
+        renderCategories(
+            document.getElementById("searchInput")?.value.trim().toLowerCase()
+        );
+    }
 }
 
 function refreshCurrentView() {
@@ -915,6 +997,8 @@ function refreshCurrentView() {
         showDataPage(currentDataId, false);
     } else if (currentCategoryId) {
         showCategoryView(currentCategoryId);
+    } else if (isAllSearchActive) {
+        renderAllSearch();
     } else {
         showMainDashboardView(false);
     }
