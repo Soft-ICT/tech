@@ -502,6 +502,9 @@ function renderCategories(searchVal = "") {
 
     if (!list || !emptyState) return;
 
+    const allSearchContainer = document.getElementById("allSearchContainer");
+    if (allSearchContainer) allSearchContainer.classList.add("hidden");
+
     let categoriesToShow = database.categories.filter(cat => !cat.parentId);
 
     if (searchVal && searchVal !== "admin@jr") {
@@ -750,8 +753,8 @@ function createDataCardElement(item) {
     const mobile = escapeHTML(item.mobile || "মোবাইল নেই");
     const phone = escapeHTML(item.phone || "টেলিফোন নেই");
     const designation = escapeHTML(item.designation || "পদবী নেই");
-
     const photo = item.photo ? escapeHTML(item.photo) : null;
+
     const avatarHtml = photo
         ? `<img src="${photo}" alt="${name}" class="data-card-avatar" onerror="this.outerHTML='<div class=\\'data-card-avatar\\'>👤</div>'">`
         : `<div class="data-card-avatar">👤</div>`;
@@ -839,8 +842,10 @@ function openDataModal(editObj = null) {
     document.getElementById("dataAdminInfo").value = editObj?.adminInfo || "";
 
     const select = document.getElementById("dataHeaderSelect");
+
     if (select) {
         select.innerHTML = `<option value="">Header ছাড়া</option>`;
+
         database.headers
             .filter(h => h.categoryId === currentCategoryId)
             .forEach(h => {
@@ -858,17 +863,19 @@ function openDataModal(editObj = null) {
 async function saveData() {
     if (window.currentUserRole !== "admin") return;
 
-    const name = document.getElementById("dataName")?.value.trim();
-    const mobile = document.getElementById("dataMobile")?.value.trim();
-
-    if (!name || !mobile) {
-        return showToast("নাম এবং মোবাইল নম্বর অবশ্যই দিতে হবে");
+    if (!currentCategoryId && !editingItem) {
+        return showToast("ক্যাটাগরি সিলেক্ট করা নেই");
     }
 
-    const itemData = {
+    const name = document.getElementById("dataName")?.value.trim() || "";
+    if (!name) {
+        return showToast("নাম প্রদান করুন");
+    }
+
+    const payload = {
         photo: document.getElementById("dataPhoto")?.value.trim() || "",
         name: name,
-        mobile: mobile,
+        mobile: document.getElementById("dataMobile")?.value.trim() || "",
         phone: document.getElementById("dataPhone")?.value.trim() || "",
         designation: document.getElementById("dataDesignation")?.value.trim() || "",
         email: document.getElementById("dataEmail")?.value.trim() || "",
@@ -879,22 +886,38 @@ async function saveData() {
     };
 
     if (editingItem) {
-        Object.assign(editingItem, itemData);
+        Object.assign(editingItem, payload);
         editingItem = null;
     } else {
         database.data.push({
             id: generateId("data"),
             categoryId: currentCategoryId,
+            ...payload,
             pinned: false,
-            pinnedAt: 0,
-            ...itemData
+            pinnedAt: 0
         });
     }
 
     await saveDatabase();
     closeModal("dataModal");
     refreshCurrentView();
-    showToast("Data সেভ করা হয়েছে");
+    showToast("ডাটা সেভ হয়েছে");
+}
+
+function editData(id) {
+    const item = database.data.find(d => d.id === id);
+    if (item) openDataModal(item);
+}
+
+async function deleteData(id) {
+    const isConfirmed = await customConfirm("আপনি কি এই Data মুছে ফেলতে চান?");
+    if (!isConfirmed) return;
+
+    database.data = database.data.filter(d => d.id !== id);
+
+    await saveDatabase();
+    refreshCurrentView();
+    showToast("ডাটা ডিলিট করা হয়েছে");
 }
 
 async function togglePinData(id) {
@@ -906,97 +929,85 @@ async function togglePinData(id) {
 
         await saveDatabase();
         refreshCurrentView();
-        showToast(item.pinned ? "পিন করা হয়েছে" : "আনপিন করা হয়েছে");
+        showToast(item.pinned ? "ডাটা পিন করা হয়েছে" : "ডাটা আনপিন করা হয়েছে");
     }
 }
 
-function editData(id) {
-    const item = database.data.find(d => d.id === id);
-    if (item) openDataModal(item);
-}
-
-async function deleteData(id) {
-    const isConfirmed = await customConfirm("আপনি কি নিশ্চিত এই Data মুছে ফেলতে চান?");
-    if (!isConfirmed) return;
-
-    database.data = database.data.filter(d => d.id !== id);
-
-    await saveDatabase();
-    refreshCurrentView();
-    showToast("Data ডিলিট করা হয়েছে");
-}
-
 /* =========================================
-   Move Data Modal
+   Move Data
 ========================================= */
 function openMoveDataModal(id) {
-    if (window.currentUserRole !== "admin") return;
-
     movingDataId = id;
+
     const catSelect = document.getElementById("moveCategorySelect");
-    const headerSelect = document.getElementById("moveHeaderSelect");
 
-    if (!catSelect || !headerSelect) return;
+    if (catSelect) {
+        catSelect.innerHTML = "";
+        database.categories.forEach(c => {
+            catSelect.innerHTML += `
+                <option value="${c.id}">
+                    ${escapeHTML(c.name)}
+                </option>
+            `;
+        });
+        catSelect.value = currentCategoryId;
+    }
 
-    catSelect.innerHTML = `<option value="">Category সিলেক্ট করুন</option>`;
-    headerSelect.innerHTML = `<option value="">Header ছাড়া (ঐচ্ছিক)</option>`;
-
-    database.categories.forEach(cat => {
-        catSelect.innerHTML += `<option value="${cat.id}">${escapeHTML(cat.name)}</option>`;
-    });
-
-    catSelect.onchange = () => {
-        const selectedCatId = catSelect.value;
-        headerSelect.innerHTML = `<option value="">Header ছাড়া (ঐচ্ছিক)</option>`;
-
-        if (selectedCatId) {
-            database.headers
-                .filter(h => h.categoryId === selectedCatId)
-                .forEach(h => {
-                    headerSelect.innerHTML += `<option value="${h.id}">${escapeHTML(h.title)}</option>`;
-                });
-        }
-    };
+    updateMoveHeaderOptions();
+    catSelect?.addEventListener("change", updateMoveHeaderOptions);
 
     openModal("moveDataModal");
 }
 
-async function confirmMoveData() {
-    if (!movingDataId || window.currentUserRole !== "admin") return;
+function updateMoveHeaderOptions() {
+    const catId = document.getElementById("moveCategorySelect")?.value;
+    const headSelect = document.getElementById("moveHeaderSelect");
 
-    const catSelect = document.getElementById("moveCategorySelect");
-    const headerSelect = document.getElementById("moveHeaderSelect");
-
-    const targetCatId = catSelect?.value;
-    const targetHeaderId = headerSelect?.value || null;
-
-    if (!targetCatId) {
-        return showToast("Category সিলেক্ট করুন");
+    if (headSelect) {
+        headSelect.innerHTML = `<option value="">Header ছাড়া</option>`;
+        database.headers
+            .filter(h => h.categoryId === catId)
+            .forEach(h => {
+                headSelect.innerHTML += `
+                    <option value="${h.id}">
+                        ${escapeHTML(h.title)}
+                    </option>
+                `;
+            });
     }
+}
+
+async function confirmMoveData() {
+    const catId = document.getElementById("moveCategorySelect")?.value;
+    const headId = document.getElementById("moveHeaderSelect")?.value || null;
 
     const item = database.data.find(d => d.id === movingDataId);
 
-    if (item) {
-        item.categoryId = targetCatId;
-        item.headerId = targetHeaderId;
+    if (item && catId) {
+        item.categoryId = catId;
+        item.headerId = headId;
 
         await saveDatabase();
         closeModal("moveDataModal");
-        movingDataId = null;
         refreshCurrentView();
-        showToast("Data সফলভাবে মুভ করা হয়েছে");
+        showToast("ডাটা সফলভাবে মুভ করা হয়েছে!");
     }
 }
 
 /* =========================================
-   Category Details View
+   Navigation
 ========================================= */
-function openCategory(id) {
-    history.pushState({ page: "category", categoryId: id }, "");
-    showCategoryView(id, false);
+function openCategory(id, pushHistory = true) {
+    if (pushHistory) {
+        history.pushState({ page: "category", categoryId: id }, "");
+    }
+    showCategoryView(id);
 }
 
-function showCategoryView(id, isBack = false) {
+function showCategoryView(id) {
+    const category = database.categories.find(item => item.id === id);
+    if (!category) return;
+
     currentCategoryId = id;
     currentDataId = null;
 
@@ -1004,284 +1015,14 @@ function showCategoryView(id, isBack = false) {
     document.getElementById("dataDetailsView")?.classList.add("hidden");
     document.getElementById("categoryDetailsView")?.classList.remove("hidden");
 
-    renderCategoryDetails(document.getElementById("searchInput")?.value.trim().toLowerCase());
+    document.getElementById("detailsTitle").textContent = category.name;
+
+    renderCategoryDetails(
+        document.getElementById("searchInput")?.value.trim().toLowerCase()
+    );
 }
 
-function renderCategoryDetails(searchVal = "") {
-    const cat = database.categories.find(c => c.id === currentCategoryId);
-    const titleEl = document.getElementById("detailsTitle");
-    const subtitleEl = document.getElementById("detailsSubtitle");
-    const content = document.getElementById("detailsContent");
-
-    if (!cat || !content) return;
-
-    if (titleEl) titleEl.textContent = cat.name;
-
-    const parentCat = cat.parentId ? database.categories.find(c => c.id === cat.parentId) : null;
-    if (subtitleEl) {
-        subtitleEl.textContent = parentCat ? `Parent: ${parentCat.name}` : "";
-    }
-
-    content.innerHTML = "";
-
-    const isAdmin = window.currentUserRole === "admin";
-
-    // 1. Subcategories
-    let subCats = database.categories.filter(c => c.parentId === currentCategoryId);
-    if (searchVal && searchVal !== "admin@jr") {
-        subCats = subCats.filter(c => String(c.name).toLowerCase().includes(searchVal));
-    }
-
-    subCats = sortItemsByPin(subCats);
-
-    if (subCats.length > 0) {
-        const subSection = document.createElement("div");
-        subSection.className = "subcategory-section";
-        subSection.innerHTML = `<h3 style="margin-bottom:10px; font-size:16px; color:var(--text-muted);">📁 Sub Categories</h3>`;
-
-        subCats.forEach(sub => {
-            const card = document.createElement("div");
-            card.className = "subcategory-card";
-
-            const pinIcon = sub.pinned ? "📌" : "📍";
-
-            const adminActions = isAdmin
-                ? `
-                    <div class="action-btn-group">
-                        <button class="btn-pin-cat custom-action-btn" title="পিন করুন">${pinIcon}</button>
-                        <button class="btn-edit-cat custom-action-btn">✏️</button>
-                        <button class="btn-del-cat custom-action-btn" style="color:#ef4444">🗑️</button>
-                    </div>
-                `
-                : "";
-
-            card.innerHTML = `
-                <div class="sub-click">
-                    <h3>${escapeHTML(sub.name)}</h3>
-                </div>
-                ${adminActions}
-            `;
-
-            card.querySelector(".sub-click").addEventListener("click", () => openCategory(sub.id));
-
-            if (isAdmin) {
-                card.querySelector(".btn-pin-cat")?.addEventListener("click", e => {
-                    e.stopPropagation();
-                    togglePinCategory(sub.id);
-                });
-
-                card.querySelector(".btn-edit-cat")?.addEventListener("click", e => {
-                    e.stopPropagation();
-                    editCategory(sub.id);
-                });
-
-                card.querySelector(".btn-del-cat")?.addEventListener("click", e => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    deleteCategory(sub.id);
-                });
-            }
-
-            subSection.appendChild(card);
-        });
-
-        content.appendChild(subSection);
-    }
-
-    // 2. Headers & Data
-    let catHeaders = database.headers.filter(h => h.categoryId === currentCategoryId);
-    catHeaders = sortItemsByPin(catHeaders);
-
-    let catData = database.data.filter(d => d.categoryId === currentCategoryId);
-    if (searchVal && searchVal !== "admin@jr") {
-        catData = catData.filter(d =>
-            (d.name && d.name.toLowerCase().includes(searchVal)) ||
-            (d.mobile && d.mobile.toLowerCase().includes(searchVal)) ||
-            (d.phone && d.phone.toLowerCase().includes(searchVal)) ||
-            (d.designation && d.designation.toLowerCase().includes(searchVal))
-        );
-    }
-
-    // Render Data by Header
-    catHeaders.forEach(h => {
-        let headerData = catData.filter(d => d.headerId === h.id);
-        headerData = sortItemsByPin(headerData);
-
-        if (headerData.length > 0 || isAdmin) {
-            const hSec = document.createElement("div");
-            hSec.style.marginTop = "20px";
-
-            const pinIcon = h.pinned ? "📌" : "📍";
-            const adminHeaderActions = isAdmin
-                ? `
-                    <span style="font-size:14px; margin-left:8px;">
-                        <button class="btn-pin-head custom-action-btn" title="পিন">${pinIcon}</button>
-                        <button class="btn-edit-head custom-action-btn" title="এডিট">✏️</button>
-                        <button class="btn-del-head custom-action-btn" style="color:#ef4444" title="ডিলিট">🗑️</button>
-                    </span>
-                `
-                : "";
-
-            hSec.innerHTML = `
-                <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:2px solid var(--primary-color); padding-bottom:4px; margin-bottom:12px;">
-                    <h2 style="font-size:18px; color:var(--primary-color);">${escapeHTML(h.title)}</h2>
-                    ${adminHeaderActions}
-                </div>
-            `;
-
-            if (isAdmin) {
-                hSec.querySelector(".btn-pin-head")?.addEventListener("click", () => togglePinHeader(h.id));
-                hSec.querySelector(".btn-edit-head")?.addEventListener("click", () => editHeader(h.id));
-                hSec.querySelector(".btn-del-head")?.addEventListener("click", () => deleteHeader(h.id));
-            }
-
-            const listDiv = document.createElement("div");
-
-            if (headerData.length === 0) {
-                listDiv.innerHTML = `<div style="color:var(--text-muted); padding:10px 0; font-size:14px;">কোনো ডাটা নেই</div>`;
-            } else {
-                headerData.forEach(item => {
-                    listDiv.appendChild(createDataCardElement(item));
-                });
-            }
-
-            hSec.appendChild(listDiv);
-            content.appendChild(hSec);
-        }
-    });
-
-    // Data without Header
-    let noHeaderData = catData.filter(d => !d.headerId);
-    noHeaderData = sortItemsByPin(noHeaderData);
-
-    if (noHeaderData.length > 0) {
-        const noHSec = document.createElement("div");
-        noHSec.style.marginTop = "20px";
-
-        if (catHeaders.length > 0) {
-            noHSec.innerHTML = `<h3 style="font-size:16px; color:var(--text-muted); margin-bottom:10px;">অন্যান্য ডাটা</h3>`;
-        }
-
-        noHeaderData.forEach(item => {
-            noHSec.appendChild(createDataCardElement(item));
-        });
-
-        content.appendChild(noHSec);
-    }
-
-    if (subCats.length === 0 && catHeaders.length === 0 && catData.length === 0) {
-        content.innerHTML += `<div style="text-align:center; padding:40px; color:var(--text-muted);">এই Category তে কোনো তথ্য নেই</div>`;
-    }
-
-    updateAdminUI();
-}
-
-/* =========================================
-   Single Data Page
-========================================= */
-function openDataPage(id) {
-    history.pushState({ page: "data", dataId: id }, "");
-    showDataPage(id, false);
-}
-
-function showDataPage(id, isBack = false) {
-    currentDataId = id;
-
-    document.getElementById("mainDashboardView")?.classList.add("hidden");
-    document.getElementById("categoryDetailsView")?.classList.add("hidden");
-    document.getElementById("dataDetailsView")?.classList.remove("hidden");
-
-    renderSingleDataPage();
-}
-
-function renderSingleDataPage() {
-    const item = database.data.find(d => d.id === currentDataId);
-    const container = document.getElementById("dataPageContent");
-
-    if (!item || !container) return;
-
-    const isAdmin = window.currentUserRole === "admin";
-
-    const name = escapeHTML(item.name || "নাম পাওয়া যায়নি");
-    const mobile = escapeHTML(item.mobile || "");
-    const phone = escapeHTML(item.phone || "");
-    const designation = escapeHTML(item.designation || "পদবী নেই");
-    const email = escapeHTML(item.email || "");
-    const currentOffice = escapeHTML(item.currentOffice || "তথ্য নেই");
-    const permanentAddress = escapeHTML(item.permanentAddress || "তথ্য নেই");
-    const adminInfo = escapeHTML(item.adminInfo || "কোনো গোপনীয় তথ্য নেই");
-
-    const photo = item.photo ? escapeHTML(item.photo) : null;
-    const avatarHtml = photo
-        ? `<img src="${photo}" alt="${name}" class="details-avatar-large" onerror="this.outerHTML='<div class=\\'details-avatar-large\\'>👤</div>'">`
-        : `<div class="details-avatar-large">👤</div>`;
-
-    const adminSection = isAdmin
-        ? `
-            <div style="margin-top:20px; padding:15px; background:rgba(239,68,68,0.1); border-left:4px solid #ef4444; border-radius:8px;">
-                <h4 style="color:#ef4444; margin-bottom:6px;">🔒 Admin Confidential Info</h4>
-                <p style="font-size:14px;">${adminInfo}</p>
-            </div>
-        `
-        : "";
-
-    container.innerHTML = `
-        <div class="details-header-section">
-            <div class="avatar-wrapper">
-                ${avatarHtml}
-            </div>
-            <h2 style="font-size:22px; font-weight:700;">${name}</h2>
-            <p style="color:var(--primary-color); font-weight:600; font-size:15px; margin-top:2px;">${designation}</p>
-        </div>
-
-        <div class="quick-action-grid">
-            ${mobile ? `<a href="tel:${mobile}" class="action-btn-round btn-call-round">📞 কল দিন</a>` : ""}
-            ${phone ? `<a href="tel:${phone}" class="action-btn-round btn-phone-round">☎️ টেলিফোন</a>` : ""}
-            ${email ? `<a href="mailto:${email}" class="action-btn-round btn-email-round">✉️ ইমেইল</a>` : ""}
-            <button id="shareDataBtn" class="action-btn-round btn-share-round" type="button">🔗 শেয়ার</button>
-        </div>
-
-        <div style="display:flex; flex-direction:column; gap:12px; font-size:15px;">
-            <div style="padding:12px; background:var(--bg-color); border-radius:12px; border:1px solid var(--border-color);">
-                <strong>📱 মোবাইল:</strong> ${mobile || "নেই"}
-            </div>
-            <div style="padding:12px; background:var(--bg-color); border-radius:12px; border:1px solid var(--border-color);">
-                <strong>☎️ টেলিফোন:</strong> ${phone || "নেই"}
-            </div>
-            <div style="padding:12px; background:var(--bg-color); border-radius:12px; border:1px solid var(--border-color);">
-                <strong>✉️ ইমেইল:</strong> ${email || "নেই"}
-            </div>
-            <div style="padding:12px; background:var(--bg-color); border-radius:12px; border:1px solid var(--border-color);">
-                <strong>🏢 বর্তমান কর্মস্থল:</strong> ${currentOffice}
-            </div>
-            <div style="padding:12px; background:var(--bg-color); border-radius:12px; border:1px solid var(--border-color);">
-                <strong>🏠 স্থায়ী ঠিকানা:</strong> ${permanentAddress}
-            </div>
-        </div>
-
-        ${adminSection}
-    `;
-
-    document.getElementById("shareDataBtn")?.addEventListener("click", () => {
-        if (navigator.share) {
-            navigator.share({
-                title: name,
-                text: `${name} (${designation})\nমোবাইল: ${mobile}`,
-                url: window.location.href
-            }).catch(() => {});
-        } else {
-            navigator.clipboard.writeText(`${name} (${designation}) - মোবাইল: ${mobile}`);
-            showToast("তথ্য কপি করা হয়েছে!");
-        }
-    });
-
-    updateAdminUI();
-}
-
-/* =========================================
-   Show Main Dashboard
-========================================= */
-function showMainDashboardView(isBack = false) {
+function showMainDashboardView(updateHistory = true) {
     currentCategoryId = null;
     currentDataId = null;
 
@@ -1289,23 +1030,391 @@ function showMainDashboardView(isBack = false) {
     document.getElementById("dataDetailsView")?.classList.add("hidden");
     document.getElementById("mainDashboardView")?.classList.remove("hidden");
 
-    renderCategories(document.getElementById("searchInput")?.value.trim().toLowerCase());
+    if (isAllSearchActive) {
+        renderAllSearch();
+    } else {
+        renderCategories(
+            document.getElementById("searchInput")?.value.trim().toLowerCase()
+        );
+    }
 }
 
 function refreshCurrentView() {
-    if (isAllSearchActive) {
-        renderAllSearch();
-    } else if (currentDataId) {
-        renderSingleDataPage();
+    if (currentDataId) {
+        showDataPage(currentDataId, false);
     } else if (currentCategoryId) {
-        renderCategoryDetails(document.getElementById("searchInput")?.value.trim().toLowerCase());
+        showCategoryView(currentCategoryId);
+    } else if (isAllSearchActive) {
+        renderAllSearch();
     } else {
-        renderCategories(document.getElementById("searchInput")?.value.trim().toLowerCase());
+        showMainDashboardView(false);
     }
 }
 
 /* =========================================
-   Modal Utilities
+   Render Category Details
+========================================= */
+function renderCategoryDetails(searchVal = "") {
+    const container = document.getElementById("detailsContent");
+    if (!container) return;
+
+    container.innerHTML = "";
+    const isAdmin = window.currentUserRole === "admin";
+    const filterText = searchVal === "admin@jr" ? "" : searchVal;
+
+    let subCategories = database.categories.filter(cat => cat.parentId === currentCategoryId);
+
+    if (filterText) {
+        subCategories = subCategories.filter(sub =>
+            sub.name.toLowerCase().includes(filterText)
+        );
+    }
+
+    subCategories = sortItemsByPin(subCategories);
+
+    if (subCategories.length > 0) {
+        const subWrapper = document.createElement("div");
+        subWrapper.style.marginBottom = "20px";
+
+        subCategories.forEach(sub => {
+            const item = document.createElement("div");
+            item.className = "subcategory-card";
+
+            const pinIcon = sub.pinned ? "📌" : "📍";
+
+            const adminActions = isAdmin
+                ? `
+                    <div>
+                        <button class="btn-pin-sub custom-action-btn" title="পিন">${pinIcon}</button>
+                        <button class="btn-edit-sub custom-action-btn">✏️</button>
+                        <button class="btn-del-sub custom-action-btn" style="color:#ef4444">🗑️</button>
+                    </div>
+                `
+                : "";
+
+            const subPinBadge = (isAdmin && sub.pinned)
+                ? '<span class="pinned-badge">Pinned</span>'
+                : "";
+
+            item.innerHTML = `
+                <div class="sub-click">
+                    <h3>${escapeHTML(sub.name)} ${subPinBadge}</h3>
+                </div>
+                ${adminActions}
+            `;
+
+            item.querySelector(".sub-click").addEventListener("click", () => openCategory(sub.id));
+
+            if (isAdmin) {
+                item.querySelector(".btn-pin-sub")?.addEventListener("click", e => {
+                    e.stopPropagation();
+                    togglePinCategory(sub.id);
+                });
+                item.querySelector(".btn-edit-sub")?.addEventListener("click", e => {
+                    e.stopPropagation();
+                    editCategory(sub.id);
+                });
+                item.querySelector(".btn-del-sub")?.addEventListener("click", e => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    deleteCategory(sub.id);
+                });
+            }
+
+            subWrapper.appendChild(item);
+        });
+
+        container.appendChild(subWrapper);
+    }
+
+    let categoryData = database.data.filter(d => d.categoryId === currentCategoryId);
+    categoryData = sortItemsByPin(categoryData);
+
+    let noHeaderData = categoryData.filter(d => !d.headerId);
+
+    if (filterText) {
+        noHeaderData = noHeaderData.filter(d =>
+            (d.name && d.name.toLowerCase().includes(filterText)) ||
+            (d.mobile && d.mobile.toLowerCase().includes(filterText)) ||
+            (d.phone && d.phone.toLowerCase().includes(filterText)) ||
+            (d.designation && d.designation.toLowerCase().includes(filterText))
+        );
+    }
+
+    if (noHeaderData.length > 0) {
+        const noHeaderWrapper = document.createElement("div");
+        noHeaderWrapper.style.marginBottom = "15px";
+
+        noHeaderData.forEach(item => {
+            noHeaderWrapper.appendChild(createDataCardElement(item));
+        });
+
+        container.appendChild(noHeaderWrapper);
+    }
+
+    let headers = database.headers.filter(h => h.categoryId === currentCategoryId);
+    headers = sortItemsByPin(headers);
+
+    headers.forEach(header => {
+        const headerAllData = categoryData.filter(d => d.headerId === header.id);
+        
+        const isHeaderMatched = filterText && header.title.toLowerCase().includes(filterText);
+
+        let matchedData = headerAllData;
+        if (filterText && !isHeaderMatched) {
+            matchedData = headerAllData.filter(d =>
+                (d.name && d.name.toLowerCase().includes(filterText)) ||
+                (d.mobile && d.mobile.toLowerCase().includes(filterText)) ||
+                (d.phone && d.phone.toLowerCase().includes(filterText)) ||
+                (d.designation && d.designation.toLowerCase().includes(filterText))
+            );
+        }
+
+        if (!filterText || isHeaderMatched || matchedData.length > 0) {
+            const displayData = isHeaderMatched ? headerAllData : matchedData;
+
+            const headerBox = document.createElement("div");
+            headerBox.className = "header-box";
+
+            const pinIcon = header.pinned ? "📌" : "📍";
+
+            const adminActions = isAdmin
+                ? `
+                    <div>
+                        <button class="btn-pin-head custom-action-btn" title="পিন">${pinIcon}</button>
+                        <button class="btn-edit-head custom-action-btn">✏️</button>
+                        <button class="btn-del-head custom-action-btn" style="color:#ef4444">🗑️</button>
+                    </div>
+                `
+                : "";
+
+            const headerPinMark = (isAdmin && header.pinned) ? "📌" : "";
+
+            headerBox.innerHTML = `
+                <div class="header-banner">
+                    <span>${escapeHTML(header.title)} ${headerPinMark}</span>
+                    ${adminActions}
+                </div>
+            `;
+
+            if (isAdmin) {
+                headerBox.querySelector(".btn-pin-head")?.addEventListener("click", e => {
+                    e.stopPropagation();
+                    togglePinHeader(header.id);
+                });
+                headerBox.querySelector(".btn-edit-head")?.addEventListener("click", e => {
+                    e.stopPropagation();
+                    editHeader(header.id);
+                });
+                headerBox.querySelector(".btn-del-head")?.addEventListener("click", e => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    deleteHeader(header.id);
+                });
+            }
+
+            displayData.forEach(item => {
+                headerBox.appendChild(createDataCardElement(item));
+            });
+
+            container.appendChild(headerBox);
+        }
+    });
+
+    updateAdminUI();
+}
+
+/* =========================================
+   Open Data Page
+========================================= */
+function openDataPage(dataId, pushHistory = true) {
+    if (pushHistory) {
+        history.pushState({ page: "data", dataId: dataId }, "");
+    }
+    showDataPage(dataId);
+}
+
+/* =========================================
+   Data Details Page
+========================================= */
+function showDataPage(dataId) {
+    const item = database.data.find(d => d.id === dataId);
+    if (!item) return;
+
+    currentDataId = dataId;
+
+    document.getElementById("mainDashboardView")?.classList.add("hidden");
+    document.getElementById("categoryDetailsView")?.classList.add("hidden");
+    document.getElementById("dataDetailsView")?.classList.remove("hidden");
+
+    const container = document.getElementById("dataPageContent");
+    if (!container) return;
+
+    const name = escapeHTML(item.name || "নাম পাওয়া যায়নি");
+    const designation = escapeHTML(item.designation || "পদবী নেই");
+    const mobile = escapeHTML(item.mobile || "মোবাইল নেই");
+    const phone = escapeHTML(item.phone || "টেলিফোন নেই");
+    const email = escapeHTML(item.email || "ইমেইল নেই");
+    const currentOffice = escapeHTML(item.currentOffice || "");
+    const permanentAddress = escapeHTML(item.permanentAddress || "");
+    const adminInfo = escapeHTML(item.adminInfo || "");
+    const photo = item.photo ? escapeHTML(item.photo) : null;
+
+    const avatarHtml = photo
+        ? `<img src="${photo}" alt="${name}" class="details-avatar-large" onerror="this.outerHTML='<div class=\\'details-avatar-large\\'>👤</div>'">`
+        : `<div class="details-avatar-large">👤</div>`;
+
+    container.innerHTML = `
+        <div class="details-header-section">
+            <div class="avatar-wrapper">${avatarHtml}</div>
+            <h2 style="font-size:22px;font-weight:700;">${name}</h2>
+            <p style="color:var(--text-muted);font-size:15px;">${designation}</p>
+        </div>
+
+        <div class="quick-action-grid">
+            <button id="btnMobileCall" class="action-btn-round btn-call-round">📱 মোবাইল</button>
+            <button id="btnPhoneCall" class="action-btn-round btn-phone-round">☎️ টেলিফোন</button>
+            <a href="${item.email ? "mailto:" + item.email : "#"}" class="action-btn-round btn-email-round">✉️ ইমেইল</a>
+            <button id="btnShareContact" class="action-btn-round btn-share-round">🔗 শেয়ার কন্টাক্ট</button>
+        </div>
+
+        <div class="details-info-list">
+            <div class="details-info-box">
+                <div class="info-label">📱 মোবাইল</div>
+                <div class="info-value">${mobile}</div>
+            </div>
+            <div class="details-info-box">
+                <div class="info-label">☎️ টেলিফোন</div>
+                <div class="info-value">${phone}</div>
+            </div>
+            <div class="details-info-box">
+                <div class="info-label">💼 পদবী</div>
+                <div class="info-value">${designation}</div>
+            </div>
+            <div class="details-info-box">
+                <div class="info-label">✉️ ই-মেইল</div>
+                <div class="info-value">${email}</div>
+            </div>
+            ${currentOffice ? `
+                <div class="details-info-box">
+                    <div class="info-label">🏢 বর্তমান ঠিকানা</div>
+                    <div class="info-value">${currentOffice}</div>
+                </div>` : ""
+            }
+            ${permanentAddress ? `
+                <div class="details-info-box">
+                    <div class="info-label">🏠 স্থায়ী ঠিকানা</div>
+                    <div class="info-value">${permanentAddress}</div>
+                </div>` : ""
+            }
+            ${adminInfo ? `
+                <div class="details-info-box" style="border-left:4px solid #f59e0b;">
+                    <div class="info-label">📝 প্রশাসনিক তথ্য</div>
+                    <div class="info-value">${adminInfo}</div>
+                </div>` : ""
+            }
+        </div>
+    `;
+
+    setupSmartCallAndWhatsApp(document.getElementById("btnMobileCall"), item.mobile);
+    setupSmartCallAndWhatsApp(document.getElementById("btnPhoneCall"), item.phone);
+
+    document.getElementById("btnShareContact")?.addEventListener("click", () => {
+        const shareText =
+            `👤 নাম: ${item.name || ""}\n` +
+            `📱 মোবাইল: ${item.mobile || ""}\n` +
+            `☎️ টেলিফোন: ${item.phone || ""}\n` +
+            `✉️ ইমেইল: ${item.email || ""}\n` +
+            `💼 পদবী: ${item.designation || ""}`;
+
+        if (navigator.share) {
+            navigator.share({ title: item.name, text: shareText }).catch(() => {});
+        } else {
+            navigator.clipboard.writeText(shareText);
+            showToast("কন্টাক্ট কপি করা হয়েছে!");
+        }
+    });
+}
+
+/* =========================================
+   Smart Dial & Long Press WhatsApp Handler
+========================================= */
+function setupSmartCallAndWhatsApp(element, rawNumber) {
+    if (!element || !rawNumber || rawNumber === "মোবাইল নেই" || rawNumber === "টেলিফোন নেই") {
+        if (element) {
+            element.style.opacity = "0.5";
+            element.style.cursor = "not-allowed";
+        }
+        return;
+    }
+
+    let pressTimer = null;
+    let isLongPress = false;
+
+    const startPress = () => {
+        isLongPress = false;
+
+        pressTimer = setTimeout(() => {
+            isLongPress = true;
+
+            if (navigator.vibrate) {
+                navigator.vibrate(60);
+            }
+
+            let cleanNumber = rawNumber.replace(/\D/g, '');
+            if (cleanNumber.length === 11 && cleanNumber.startsWith('0')) {
+                cleanNumber = '88' + cleanNumber;
+            }
+
+            if (cleanNumber) {
+                window.open(`https://wa.me/${cleanNumber}`, '_blank');
+            } else {
+                showToast("সঠিক নাম্বার পাওয়া যায়নি!");
+            }
+        }, 600);
+    };
+
+    const cancelPress = () => {
+        if (pressTimer) {
+            clearTimeout(pressTimer);
+            pressTimer = null;
+        }
+    };
+
+    element.addEventListener('mousedown', startPress);
+    element.addEventListener('touchstart', startPress, { passive: true });
+
+    element.addEventListener('mouseup', cancelPress);
+    element.addEventListener('mouseleave', cancelPress);
+    element.addEventListener('touchend', cancelPress);
+    element.addEventListener('touchcancel', cancelPress);
+
+    element.addEventListener('click', (e) => {
+        e.preventDefault();
+
+        if (!isLongPress) {
+            let cleanNumber = rawNumber.replace(/[^\d+]/g, '');
+
+            if (cleanNumber) {
+                const callLink = document.createElement('a');
+                callLink.href = `tel:${cleanNumber}`;
+                callLink.style.display = 'none';
+                document.body.appendChild(callLink);
+                callLink.click();
+
+                setTimeout(() => {
+                    if (callLink.parentNode) {
+                        callLink.parentNode.removeChild(callLink);
+                    }
+                }, 1000);
+            }
+        }
+        isLongPress = false;
+    });
+}
+
+/* =========================================
+   Modal Helpers
 ========================================= */
 function openModal(id) {
     document.getElementById(id)?.classList.remove("hidden");
@@ -1313,11 +1422,13 @@ function openModal(id) {
 
 function closeModal(id) {
     document.getElementById(id)?.classList.add("hidden");
-    editingItem = null;
 }
 
+/* =========================================
+   Custom Confirm Promise Helper
+========================================= */
 function customConfirm(message, title = "নিশ্চিতকরণ", confirmText = "হ্যাঁ, মুছুন") {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
         const modal = document.getElementById("customConfirmModal");
         const msgEl = document.getElementById("confirmModalMessage");
         const titleEl = document.getElementById("confirmModalTitle");
