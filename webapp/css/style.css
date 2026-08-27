@@ -42,7 +42,7 @@ body {
 
 
 /* ==========================================
-   TOPBAR
+   TOPBAR & SEARCH DESIGN
 ========================================== */
 
 .topbar {
@@ -83,7 +83,8 @@ body {
     border-radius: 6px !important;
 }
 
-.icon-btn {
+.icon-btn,
+.topbar-btn {
     background: transparent;
     border: 1px solid var(--border-color);
     color: var(--text-main);
@@ -92,10 +93,46 @@ body {
     cursor: pointer;
     font-size: 15px;
     transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.icon-btn:hover {
+.icon-btn:hover,
+.topbar-btn:hover {
     background-color: var(--border-color);
+}
+
+.topbar-btn:active {
+    transform: scale(0.95);
+}
+
+/* Dynamic Expandable Search Input */
+.header-search-box {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    margin: 0 10px;
+}
+
+.header-search-box input {
+    width: 100%;
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 8px 16px;
+    color: var(--text-main);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.header-search-box input:focus {
+    border-color: var(--primary-color);
+}
+
+.header-search-box input::placeholder {
+    color: var(--text-muted);
 }
 
 
@@ -710,7 +747,7 @@ body {
 @media (max-width: 400px) {
     .topbar { padding: 0 8px; }
     .app-title { font-size: 17px; }
-    .icon-btn { padding: 7px 9px; }
+    .icon-btn, .topbar-btn { padding: 7px 9px; }
     .btn-admin-small { padding: 5px 8px !important; }
 
     .topbar.user-header ~ .container .header-banner > span,
