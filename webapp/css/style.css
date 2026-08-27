@@ -727,3 +727,33 @@ body {
     .data-card-name { font-size: 16px; }
     .data-card-detail { font-size: 12px; }
 }
+
+/* ==========================================
+   SUB-TOOLBAR UNDER TOPBAR (ALL SEARCH BAR)
+========================================== */
+
+.sub-toolbar {
+    position: sticky;
+    top: 70px;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center; /* মাঝখানে আনার জন্য এটি পরিবর্তন করা হয়েছে */
+    width: 100%;
+    height: 48px;
+    padding: 0 16px;
+    background-color: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+    transition: background-color 0.2s ease;
+}
+
+.sub-toolbar-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    justify-content: center; /* টেক্সট সেন্টারে রাখার জন্য */
+    gap: 6px;
+}
