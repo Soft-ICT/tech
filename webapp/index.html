@@ -141,8 +141,18 @@
 
 <div id="toast" class="toast"></div>
 
-<!-- JavaScript -->
+<!-- JavaScript Module -->
 <script type="module" src="js/app.js"></script>
+
+<!-- Event Listener for Move/Edit/Delete Fallback -->
+<script>
+    document.addEventListener('click', function (e) {
+        const targetBtn = e.target.closest('.custom-action-btn, .btn-edit, .btn-delete, .btn-move');
+        if (targetBtn) {
+            e.stopPropagation();
+        }
+    });
+</script>
 
 </body>
 </html>
