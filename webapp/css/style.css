@@ -6,25 +6,25 @@
 }
 
 :root {
-    --bg-color: #f8fafc;
-    --card-bg: #ffffff;
-    --text-main: #0f172a;
-    --text-muted: #64748b;
-    --border-color: #e2e8f0;
+    --bg-color: #0d131f;
+    --card-bg: #161e2e;
+    --text-main: #ffffff;
+    --text-muted: #94a3b8;
+    --border-color: rgba(255, 255, 255, 0.12);
     --primary-color: #2563eb;
     --primary-hover: #1d4ed8;
-    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 10px 20px -3px rgba(0, 0, 0, 0.08);
+    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 10px 20px -3px rgba(0, 0, 0, 0.5);
 }
 
 body.dark-mode {
-    --bg-color: #0f172a;
-    --card-bg: #1e293b;
-    --text-main: #f8fafc;
+    --bg-color: #0d131f;
+    --card-bg: #161e2e;
+    --text-main: #ffffff;
     --text-muted: #94a3b8;
-    --border-color: #334155;
-    --primary-color: #3b82f6;
-    --primary-hover: #2563eb;
+    --border-color: rgba(255, 255, 255, 0.12);
+    --primary-color: #2563eb;
+    --primary-hover: #1d4ed8;
     --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 10px 20px -3px rgba(0, 0, 0, 0.5);
 }
@@ -42,7 +42,7 @@ body {
 
 
 /* ==========================================
-   TOPBAR & SEARCH DESIGN
+   TOPBAR
 ========================================== */
 
 .topbar {
@@ -50,9 +50,9 @@ body {
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    height: 70px;
-    padding: 0 20px;
-    background-color: var(--card-bg);
+    height: 65px;
+    padding: 0 16px;
+    background-color: #121824;
     border-bottom: 1px solid var(--border-color);
     position: sticky;
     top: 0;
@@ -85,29 +85,31 @@ body {
 
 .icon-btn,
 .topbar-btn {
-    background: transparent;
+    background: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--border-color);
     color: var(--text-main);
-    padding: 8px 12px;
-    border-radius: 8px;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
     cursor: pointer;
-    font-size: 15px;
-    transition: all 0.2s;
+    font-size: 16px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.2s ease;
 }
 
 .icon-btn:hover,
 .topbar-btn:hover {
-    background-color: var(--border-color);
+    background-color: rgba(255, 255, 255, 0.08);
 }
 
+.icon-btn:active,
 .topbar-btn:active {
     transform: scale(0.95);
 }
 
-/* Dynamic Expandable Search Input */
+/* Header Search Box */
 .header-search-box {
     flex: 1;
     display: flex;
@@ -124,15 +126,6 @@ body {
     color: var(--text-main);
     font-size: 14px;
     outline: none;
-    transition: border-color 0.2s ease;
-}
-
-.header-search-box input:focus {
-    border-color: var(--primary-color);
-}
-
-.header-search-box input::placeholder {
-    color: var(--text-muted);
 }
 
 
@@ -175,26 +168,28 @@ body {
 }
 
 /* ==========================================
-   ALL SEARCH BUTTON (FULL WIDTH)
+   ALL SEARCH BUTTON (হুবহু ছবির মতো স্বচ্ছ টেক্সট)
 ========================================== */
 
 #allSearchBtn {
     width: 100%;
     display: block;
-    padding: 12px 16px;
-    font-size: 16px;
-    font-weight: 600;
+    padding: 12px 0 6px 0;
+    font-size: 22px;
+    font-weight: 500;
     text-align: center;
-    background-color: var(--primary-color);
-    color: #ffffff;
+    background-color: transparent !important;
+    color: var(--text-main);
     border: none;
-    border-radius: 12px;
+    border-radius: 0;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    box-shadow: none;
+    letter-spacing: 0.5px;
 }
 
 #allSearchBtn:hover {
-    background-color: var(--primary-hover);
+    background-color: transparent !important;
+    opacity: 0.8;
 }
 
 
@@ -204,7 +199,7 @@ body {
 
 .container {
     max-width: 800px;
-    margin: 20px auto;
+    margin: 10px auto;
     padding: 0 16px;
 }
 
@@ -243,7 +238,7 @@ body {
 
 .category-card,
 .subcategory-card {
-    height: 90px;
+    height: 80px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -258,7 +253,7 @@ body {
 
 .category-card:hover,
 .subcategory-card:hover {
-    transform: translateY(-3px);
+    transform: translateY(-2px);
     box-shadow: var(--shadow-md);
 }
 
@@ -273,7 +268,7 @@ body {
 
 .category-card h3,
 .subcategory-card h3 {
-    font-size: 19px;
+    font-size: 20px;
     font-weight: 700;
     color: var(--text-main);
 }
@@ -696,15 +691,15 @@ body {
 
 @media (max-width: 600px) {
     .topbar {
-        height: 70px;
+        height: 65px;
         padding: 0 12px;
     }
 
     .app-title { font-size: 18px; }
-    .top-actions { gap: 5px; }
+    .top-actions { gap: 6px; }
 
     .container {
-        margin-top: 16px;
+        margin-top: 10px;
         padding: 0 12px;
     }
 
@@ -747,7 +742,11 @@ body {
 @media (max-width: 400px) {
     .topbar { padding: 0 8px; }
     .app-title { font-size: 17px; }
-    .icon-btn, .topbar-btn { padding: 7px 9px; }
+    .icon-btn, .topbar-btn { 
+        width: 38px;
+        height: 38px;
+        font-size: 15px;
+    }
     .btn-admin-small { padding: 5px 8px !important; }
 
     .topbar.user-header ~ .container .header-banner > span,
