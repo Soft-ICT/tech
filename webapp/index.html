@@ -21,13 +21,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=5">
+    <link rel="stylesheet" href="css/style.css?v=6">
 </head>
 
 <body>
 
+<!-- MAIN TOPBAR -->
 <header class="topbar">
-    <!-- Combined Menu and Back Button -->
     <button id="navToggleBtn" class="icon-btn" type="button" title="মেনু">
         <span id="menuIcon">☰</span>
         <span id="backIcon" class="hidden">←</span>
@@ -37,7 +37,6 @@
         <span class="app-title-text">Police Phonebook</span>
     </div>
 
-    <!-- Header Search Box -->
     <div id="searchBox" class="header-search-box hidden">
         <input type="search" id="searchInput" placeholder="Category, Header অথবা Data খুঁজুন..." autocomplete="off">
     </div>
@@ -49,14 +48,15 @@
     </div>
 </header>
 
+<!-- NEW SUB-TOOLBAR FOR ALL SEARCH -->
+<div class="sub-toolbar">
+    <div class="sub-toolbar-title">দ্রুত সার্চ ও নেভিগেশন</div>
+    <button id="allSearchBtn" class="sub-toolbar-btn" type="button" title="সব খুঁজুন">🌐 All Search</button>
+</div>
+
 <main class="container">
     <!-- Page 1: Main Dashboard -->
     <div id="mainDashboardView">
-        <!-- All Search Button under Topbar -->
-        <div class="all-search-wrapper">
-            <button id="allSearchBtn" class="topbar-search-btn" type="button" title="সব খুঁজুন">🌐 All Search</button>
-        </div>
-
         <section class="dashboard-header">
             <button id="addCategoryBtn" class="primary-btn admin-only" type="button" style="width:100%; margin-top:8px;">＋ Category</button>
         </section>
@@ -88,14 +88,12 @@
             </div>
         </section>
 
-        <!-- Admin Toolbar -->
         <div class="section-toolbar admin-only">
             <button id="addSubCategoryBtn" class="primary-btn" type="button">＋ Sub-Category</button>
             <button id="addHeaderBtn" class="primary-btn" type="button">＋ Header</button>
             <button id="addDataBtn" class="secondary-btn" type="button">＋ Data</button>
         </div>
 
-        <!-- Category Details -->
         <div id="detailsContent"></div>
     </div>
 
@@ -111,7 +109,7 @@
     </div>
 </main>
 
-<!-- Modals -->
+<!-- Modals & Toasts -->
 <div id="loginModal" class="modal hidden">
     <div class="modal-content">
         <div class="modal-header">
@@ -142,164 +140,10 @@
     </div>
 </div>
 
-<!-- Category Modal -->
-<div id="categoryModal" class="modal hidden">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2 id="categoryModalTitle">নতুন Category</h2>
-            <button class="close-btn" data-close="categoryModal" type="button">✕</button>
-        </div>
-        <div class="form-group">
-            <label>Category Name</label>
-            <input id="categoryNameInput" type="text" placeholder="যেমন: পুলিশ হেডকোয়ার্টার্স">
-        </div>
-        <div class="modal-actions">
-            <button class="secondary-btn" data-close="categoryModal" type="button">বাতিল</button>
-            <button id="saveCategoryBtn" class="primary-btn" type="button">সেভ করুন</button>
-        </div>
-    </div>
-</div>
-
-<!-- Header Modal -->
-<div id="headerModal" class="modal hidden">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2 id="headerModalTitle">নতুন Header</h2>
-            <button class="close-btn" data-close="headerModal" type="button">✕</button>
-        </div>
-        <div class="form-group">
-            <label>Header Title</label>
-            <input id="headerNameInput" type="text" placeholder="যেমন: অফিসারবৃন্দ">
-        </div>
-        <div class="modal-actions">
-            <button class="secondary-btn" data-close="headerModal" type="button">বাতিল</button>
-            <button id="saveHeaderBtn" class="primary-btn" type="button">সেভ করুন</button>
-        </div>
-    </div>
-</div>
-
-<!-- Data Modal -->
-<div id="dataModal" class="modal hidden">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2 id="dataModalTitle">Data যোগ করুন</h2>
-            <button class="close-btn" data-close="dataModal" type="button">✕</button>
-        </div>
-
-        <div class="form-group">
-            <label>ছবি URL (ঐচ্ছিক)</label>
-            <input id="dataPhoto" type="url" placeholder="https://example.com/photo.jpg">
-        </div>
-
-        <div class="form-group">
-            <label>Header সিলেক্ট করুন (ঐচ্ছিক)</label>
-            <select id="dataHeaderSelect"></select>
-        </div>
-
-        <div class="form-group">
-            <label>নাম *</label>
-            <input id="dataName" type="text" placeholder="যেমন: মোঃ রফিকুল ইসলাম">
-        </div>
-
-        <div class="form-group">
-            <label>মোবাইল *</label>
-            <input id="dataMobile" type="tel" placeholder="01711000000">
-        </div>
-
-        <div class="form-group">
-            <label>টেলিফোন</label>
-            <input id="dataPhone" type="tel" placeholder="029999999">
-        </div>
-
-        <div class="form-group">
-            <label>পদবী</label>
-            <input id="dataDesignation" type="text" placeholder="যেমন: আইজিপি">
-        </div>
-
-        <div class="form-group">
-            <label>ইমেইল</label>
-            <input id="dataEmail" type="email" placeholder="example@police.gov.bd">
-        </div>
-
-        <div class="form-group">
-            <label>বর্তমান কর্মস্থল</label>
-            <input id="dataCurrentOffice" type="text" placeholder="যেমন: পুলিশ হেডকোয়ার্টার্স, ঢাকা">
-        </div>
-
-        <div class="form-group">
-            <label>স্থায়ী ঠিকানা</label>
-            <input id="dataPermanentAddress" type="text" placeholder="যেমন: ধানমন্ডি, ঢাকা">
-        </div>
-
-        <div class="form-group">
-            <label>অ্যাডমিন তথ্য (শুধুমাত্র এডমিন দেখবেন)</label>
-            <textarea id="dataAdminInfo" placeholder="গোপনীয় নোট..."></textarea>
-        </div>
-
-        <div class="modal-actions">
-            <button class="secondary-btn" data-close="dataModal" type="button">বাতিল</button>
-            <button id="saveDataBtn" class="primary-btn" type="button">সেভ করুন</button>
-        </div>
-    </div>
-</div>
-
-<!-- Move Data Modal -->
-<div id="moveDataModal" class="modal hidden">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>Data মুভ করুন</h2>
-            <button class="close-btn" data-close="moveDataModal" type="button">✕</button>
-        </div>
-        <div class="form-group">
-            <label>টার্গেট Category সিলেক্ট করুন</label>
-            <select id="moveCategorySelect"></select>
-        </div>
-        <div class="form-group">
-            <label>টার্গেট Header সিলেক্ট করুন (ঐচ্ছিক)</label>
-            <select id="moveHeaderSelect"></select>
-        </div>
-        <div class="modal-actions">
-            <button class="secondary-btn" data-close="moveDataModal" type="button">বাতিল</button>
-            <button id="confirmMoveBtn" class="primary-btn" type="button">Move করুন</button>
-        </div>
-    </div>
-</div>
-
-<div id="customConfirmModal" class="modal hidden">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2 id="confirmModalTitle">নিশ্চিতকরণ</h2>
-            <button class="close-btn" data-close="customConfirmModal" type="button">✕</button>
-        </div>
-        <div style="padding: 15px 0;">
-            <p id="confirmModalMessage" style="font-size: 16px; color: var(--text-color);">আপনি কি নিশ্চিত?</p>
-        </div>
-        <div class="modal-actions">
-            <button id="cancelConfirmBtn" class="secondary-btn" type="button">বাতিল</button>
-            <button id="okConfirmBtn" class="danger-btn" type="button">হ্যাঁ, মুছুন</button>
-        </div>
-    </div>
-</div>
-
-<!-- Toast -->
 <div id="toast" class="toast"></div>
 
 <!-- JavaScript -->
 <script type="module" src="js/app.js"></script>
 
-<!-- Service Worker Registration -->
-<script>
-if ("serviceWorker" in navigator) {
-    window.addEventListener("load", function () {
-        navigator.serviceWorker.register("./sw.js?v=3.1")
-            .then(function (registration) {
-                console.log("PWA Service Worker registered:", registration.scope);
-            })
-            .catch(function (error) {
-                console.error("PWA Registration failed:", error);
-            });
-    });
-}
-</script>
 </body>
 </html>
