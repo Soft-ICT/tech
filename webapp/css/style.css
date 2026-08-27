@@ -138,8 +138,25 @@ body {
 }
 
 /* ==========================================
+   THEME VARIABLES FOR ALL SEARCH
+========================================== */
+
+/* ১. ডে মোড (Light Mode) */
+:root {
+    --all-search-bg: transparent;       /* কোনো সলিড ব্যাকগ্রাউন্ড থাকবে না */
+    --all-search-text: #0f172a;         /* ডার্ক টেক্সট কালার */
+    --all-search-icon: #0088ff;        /* নীল রঙের গ্লোব আইকন */
+}
+
+/* ২. নাইট মোড (Dark Mode) */
+body.dark-mode {
+    --all-search-bg: transparent;       /* স্বচ্ছ ব্যাকগ্রাউন্ড */
+    --all-search-text: #ffffff;         /* সাদা টেক্সট কালার */
+    --all-search-icon: #38bdf8;        /* হালকা উজ্জ্বল নীল গ্লোব আইকন */
+}
+
 /* ==========================================
-   ALL SEARCH BUTTON (THEME ADAPTIVE)
+   ALL SEARCH BUTTON (হুবহু ছবির মতো ডিজাইন)
 ========================================== */
 
 #allSearchBtn {
@@ -148,32 +165,29 @@ body {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 14px 16px;
-    font-size: 17px;
+    padding: 10px 0;
+    font-size: 19px;
     font-weight: 600;
     text-align: center;
-    
-    /* ভ্যারিয়েবল ব্যবহারের মাধ্যমে অটো থিম সাপোর্ট */
-    background-color: var(--all-search-bg);
+    background: var(--all-search-bg) !important;
     color: var(--all-search-text);
-    
     border: none;
-    border-radius: 14px;
+    border-radius: 0;
     cursor: pointer;
-    box-shadow: 0 4px 12px var(--all-search-shadow);
-    transition: background-color 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease;
+    box-shadow: none;
+    transition: color 0.25s ease;
 }
 
-/* হোভার ইফেক্ট */
+/* আইকনের কালার ডায়নামিক রাখার জন্য */
+#allSearchBtn span,
+#allSearchBtn svg {
+    color: var(--all-search-icon);
+}
+
 #allSearchBtn:hover {
-    background-color: var(--all-search-hover);
-    transform: translateY(-1px);
+    opacity: 0.8;
 }
 
-/* প্রেস/ক্লিক ইফেক্ট */
-#allSearchBtn:active {
-    transform: translateY(0);
-}
 
 
 
