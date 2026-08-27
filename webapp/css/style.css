@@ -56,7 +56,7 @@ body {
     border-bottom: 1px solid var(--border-color);
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 1000;
     box-shadow: var(--shadow-sm);
 }
 
@@ -100,6 +100,48 @@ body {
 
 
 /* ==========================================
+   SUB-TOOLBAR (DESIGNED LIKE MAIN TOOLBAR)
+========================================== */
+
+.sub-toolbar {
+    position: sticky;
+    top: 70px;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 50px;
+    padding: 0 20px;
+    background-color: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    user-select: none;
+}
+
+.sub-toolbar:hover {
+    background-color: var(--bg-color);
+}
+
+.sub-toolbar-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: color 0.2s ease;
+}
+
+.sub-toolbar:hover .sub-toolbar-title {
+    color: var(--primary-color);
+}
+
+
+/* ==========================================
    BUTTONS
 ========================================== */
 
@@ -137,29 +179,63 @@ body {
     cursor: pointer;
 }
 
+
 /* ==========================================
-   ALL SEARCH OPTION (TEXT ONLY WITH CLICK)
+   MODERN SEARCH BOX DESIGN
 ========================================== */
 
-#allSearchBtn {
-    width: 100%;
+.search-box, 
+.header-search-box {
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 10px 16px;
-    font-size: 15px;
-    font-weight: 600;
-    text-align: center;
-    background: transparent;
-    color: var(--text-main);
-    border: none;
-    cursor: pointer;
-    transition: opacity 0.2s ease, color 0.2s ease;
+    gap: 10px;
+    width: 100%;
+    margin-bottom: 20px;
+    background-color: var(--card-bg);
+    border: 1.5px solid var(--border-color);
+    border-radius: 50px;
+    padding: 6px 16px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
 }
 
-#allSearchBtn:hover {
-    color: var(--primary-color);
-    opacity: 0.8;
+.search-box:focus-within, 
+.header-search-box:focus-within {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.search-box input, 
+.header-search-box input {
+    flex-grow: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--text-main);
+    font-size: 15px;
+    font-weight: 500;
+    padding: 6px 0;
+}
+
+.search-box input::placeholder, 
+.header-search-box input::placeholder {
+    color: var(--text-muted);
+    font-weight: 400;
+}
+
+.search-box button {
+    background: var(--primary-color);
+    border: none;
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.search-box button:hover {
+    background-color: var(--primary-hover);
 }
 
 
@@ -427,35 +503,6 @@ body {
 
 
 /* ==========================================
-   SEARCH BOX
-========================================== */
-
-.search-box {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-}
-
-.search-box input {
-    flex-grow: 1;
-    padding: 10px 16px;
-    border-radius: 10px;
-    border: 1px solid var(--border-color);
-    background-color: var(--card-bg);
-    color: var(--text-main);
-}
-
-.search-box button {
-    background: transparent;
-    border: 1px solid var(--border-color);
-    color: var(--text-main);
-    padding: 0 14px;
-    border-radius: 10px;
-    cursor: pointer;
-}
-
-
-/* ==========================================
    DATA HEADER BOX
 ========================================== */
 
@@ -474,6 +521,12 @@ body {
     justify-content: space-between;
     min-height: 48px;
     font-weight: bold;
+}
+
+/* ALL SEARCH এ ডাটা হেডার বন্ধ রাখার রুল */
+.all-search-mode .header-banner,
+#allSearchContainer .header-banner {
+    display: none !important;
 }
 
 .topbar.admin-header ~ .container .header-banner > span {
@@ -665,6 +718,11 @@ body {
         padding: 0 12px;
     }
 
+    .sub-toolbar {
+        height: 46px;
+        padding: 0 12px;
+    }
+
     .app-title { font-size: 18px; }
     .top-actions { gap: 5px; }
 
@@ -728,33 +786,4 @@ body {
 
     .data-card-name { font-size: 16px; }
     .data-card-detail { font-size: 12px; }
-}
-/* ==========================================
-   SUB-TOOLBAR UNDER TOPBAR (ALL SEARCH BAR)
-========================================== */
-
-.sub-toolbar {
-    position: sticky;
-    top: 70px;
-    z-index: 999;
-    display: flex;
-    align-items: center;
-    justify-content: center; /* মাঝখানে আনার জন্য এটি পরিবর্তন করা হয়েছে */
-    width: 100%;
-    height: 48px;
-    padding: 0 16px;
-    background-color: var(--card-bg);
-    border-bottom: 1px solid var(--border-color);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
-    transition: background-color 0.2s ease;
-}
-
-.sub-toolbar-title {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--text-main);
-    display: flex;
-    align-items: center;
-    justify-content: center; /* টেক্সট সেন্টারে রাখার জন্য */
-    gap: 6px;
 }
