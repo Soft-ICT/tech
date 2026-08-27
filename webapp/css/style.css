@@ -40,7 +40,6 @@ body {
     display: none !important;
 }
 
-
 /* ==========================================
    TOPBAR & ICON BUTTONS (ALIGNED)
 ========================================== */
@@ -103,9 +102,8 @@ body {
     background-color: var(--border-color);
 }
 
-
 /* ==========================================
-   SUB-TOOLBAR (DESIGNED LIKE MAIN TOOLBAR)
+   SUB-TOOLBAR
 ========================================== */
 
 .sub-toolbar {
@@ -145,9 +143,8 @@ body {
     color: var(--primary-color);
 }
 
-
 /* ==========================================
-   BUTTONS
+   BUTTONS & ACTIONS FIX
 ========================================== */
 
 .primary-btn {
@@ -184,6 +181,16 @@ body {
     cursor: pointer;
 }
 
+/* Move, Edit, Delete বাটনের জন্য Z-Index ও ক্লিক সুনিশ্চিত করার রুল */
+.custom-action-btn, 
+.header-banner .custom-action-btn,
+.data-card-item .custom-action-btn,
+.btn-edit, .btn-delete, .btn-move {
+    position: relative;
+    z-index: 10;
+    pointer-events: auto !important;
+    cursor: pointer;
+}
 
 /* ==========================================
    COMPACT & ALIGNED SEARCH BOX DESIGN
@@ -229,9 +236,8 @@ body {
     color: var(--text-muted);
 }
 
-
 /* ==========================================
-   CONTAINER
+   CONTAINER & CARDS
 ========================================== */
 
 .container {
@@ -239,11 +245,6 @@ body {
     margin: 20px auto;
     padding: 0 16px;
 }
-
-
-/* ==========================================
-   DASHBOARD HEADER
-========================================== */
 
 .dashboard-header {
     display: flex;
@@ -267,11 +268,6 @@ body {
     align-items: center;
     gap: 12px;
 }
-
-
-/* ==========================================
-   CATEGORY & SUBCATEGORY
-========================================== */
 
 .category-card,
 .subcategory-card {
@@ -309,11 +305,6 @@ body {
     font-weight: 700;
     color: var(--text-main);
 }
-
-
-/* ==========================================
-   DATA CARD
-========================================== */
 
 .data-card-item {
     height: 120px;
@@ -382,11 +373,6 @@ body {
     padding: 4px;
 }
 
-
-/* ==========================================
-   SINGLE DATA DETAILS
-========================================== */
-
 .details-container-card {
     background-color: var(--card-bg);
     border: 1px solid var(--border-color);
@@ -419,11 +405,6 @@ body {
     border: 4px solid var(--card-bg);
     box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
 }
-
-
-/* ==========================================
-   QUICK ACTION GRID
-========================================== */
 
 .quick-action-grid {
     display: grid;
@@ -460,11 +441,6 @@ body {
 .btn-email-round { background: linear-gradient(135deg, #ea4335, #c5221f); }
 .btn-share-round { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
 
-
-/* ==========================================
-   DETAILS INFORMATION
-========================================== */
-
 .details-info-list {
     display: flex;
     flex-direction: column;
@@ -491,11 +467,6 @@ body {
     font-weight: 600;
     color: var(--text-main);
 }
-
-
-/* ==========================================
-   DATA HEADER BOX
-========================================== */
 
 .header-box {
     margin-bottom: 20px;
@@ -552,19 +523,6 @@ body {
     flex-shrink: 0;
 }
 
-.header-banner .custom-action-btn {
-    flex-shrink: 0;
-}
-
-.header-box .header-banner {
-    font-weight: 700;
-}
-
-
-/* ==========================================
-   EMPTY STATE
-========================================== */
-
 .empty-state {
     text-align: center;
     padding: 40px 20px;
@@ -577,11 +535,6 @@ body {
     font-size: 40px;
     margin-bottom: 10px;
 }
-
-
-/* ==========================================
-   MODAL
-========================================== */
 
 .modal {
     position: fixed;
@@ -620,11 +573,6 @@ body {
     color: var(--text-main);
     cursor: pointer;
 }
-
-
-/* ==========================================
-   FORM
-========================================== */
 
 .form-group {
     margin-bottom: 14px;
@@ -665,11 +613,6 @@ body {
     font-weight: 600;
 }
 
-
-/* ==========================================
-   TOAST
-========================================== */
-
 .toast {
     position: fixed;
     bottom: 20px;
@@ -697,63 +640,26 @@ body {
     margin-bottom: 20px;
 }
 
-
-/* ==========================================
-   MOBILE RESPONSIVE
-========================================== */
-
 @media (max-width: 600px) {
-    .topbar {
-        height: 58px;
-        padding: 0 10px;
-    }
-
-    .sub-toolbar {
-        height: 46px;
-        padding: 0 12px;
-    }
-
+    .topbar { height: 58px; padding: 0 10px; }
+    .sub-toolbar { height: 46px; padding: 0 12px; }
     .app-title { font-size: 18px; }
     .top-actions { gap: 5px; }
-
-    .container {
-        margin-top: 16px;
-        padding: 0 12px;
-    }
-
+    .container { margin-top: 16px; padding: 0 12px; }
     .dashboard-header h1 { font-size: 22px; }
-
-    .header-banner {
-        min-height: 48px;
-        padding: 8px 12px;
-    }
-
+    .header-banner { min-height: 48px; padding: 8px 12px; }
     .topbar.user-header ~ .container .header-banner > span,
     .topbar.admin-header ~ .container .header-banner > span {
         max-width: calc(100% - 95px);
         font-size: 17px;
     }
-
-    .data-card-item {
-        height: 120px;
-        padding: 10px 12px;
-    }
-
-    .data-card-avatar {
-        width: 58px;
-        height: 58px;
-        min-width: 58px;
-        margin-right: 10px;
-    }
-
+    .data-card-item { height: 120px; padding: 10px 12px; }
+    .data-card-avatar { width: 58px; height: 58px; min-width: 58px; margin-right: 10px; }
     .data-card-name { font-size: 17px; }
     .data-card-detail { font-size: 13px; }
-
     .primary-btn, .secondary-btn { padding: 8px 12px; }
-
     .section-toolbar { flex-wrap: wrap; }
     .section-toolbar .primary-btn, .section-toolbar .secondary-btn { flex: 0 0 auto; }
-
     .quick-action-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
@@ -761,19 +667,9 @@ body {
     .topbar { padding: 0 6px; }
     .app-title { font-size: 17px; }
     .btn-admin-small { padding: 5px 8px !important; }
-
     .topbar.user-header ~ .container .header-banner > span,
-    .topbar.admin-header ~ .container .header-banner > span {
-        font-size: 16px;
-    }
-
-    .data-card-avatar {
-        width: 52px;
-        height: 52px;
-        min-width: 52px;
-    }
-
+    .topbar.admin-header ~ .container .header-banner > span { font-size: 16px; }
+    .data-card-avatar { width: 52px; height: 52px; min-width: 52px; }
     .data-card-name { font-size: 16px; }
     .data-card-detail { font-size: 12px; }
 }
-
