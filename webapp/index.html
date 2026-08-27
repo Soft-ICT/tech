@@ -109,6 +109,8 @@
 </main>
 
 <!-- Modals & Toasts -->
+
+<!-- Admin Login Modal -->
 <div id="loginModal" class="modal hidden">
     <div class="modal-content">
         <div class="modal-header">
@@ -139,20 +141,110 @@
     </div>
 </div>
 
+<!-- Category Modal -->
+<div id="categoryModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="categoryModalTitle">ক্যাটাগরি</h2>
+            <button class="close-btn" data-close="categoryModal" type="button">✕</button>
+        </div>
+        <div class="form-group">
+            <label>ক্যাটাগরির নাম</label>
+            <input id="categoryNameInput" type="text" placeholder="নাম লিখুন">
+        </div>
+        <div class="modal-actions">
+            <button class="secondary-btn" data-close="categoryModal" type="button">বাতিল</button>
+            <button id="saveCategoryBtn" class="primary-btn" type="button">সেভ করুন</button>
+        </div>
+    </div>
+</div>
+
+<!-- Header Modal -->
+<div id="headerModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Header যুক্ত/এডিট করুন</h2>
+            <button class="close-btn" data-close="headerModal" type="button">✕</button>
+        </div>
+        <div class="form-group">
+            <label>হেডার টাইটেল</label>
+            <input id="headerNameInput" type="text" placeholder="যেমন: কর্মকর্তা/কর্মচারী">
+        </div>
+        <div class="modal-actions">
+            <button class="secondary-btn" data-close="headerModal" type="button">বাতিল</button>
+            <button id="saveHeaderBtn" class="primary-btn" type="button">সেভ করুন</button>
+        </div>
+    </div>
+</div>
+
+<!-- Data Modal -->
+<div id="dataModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="dataModalTitle">Data যুক্ত করুন</h2>
+            <button class="close-btn" data-close="dataModal" type="button">✕</button>
+        </div>
+        <div class="form-group"><label>ছবি লিঙ্ক (URL)</label><input id="dataPhoto" type="url"></div>
+        <div class="form-group"><label>নাম *</label><input id="dataName" type="text"></div>
+        <div class="form-group"><label>মোবাইল</label><input id="dataMobile" type="tel"></div>
+        <div class="form-group"><label>টেলিফোন</label><input id="dataPhone" type="tel"></div>
+        <div class="form-group"><label>পদবী</label><input id="dataDesignation" type="text"></div>
+        <div class="form-group"><label>ইমেইল</label><input id="dataEmail" type="email"></div>
+        <div class="form-group"><label>বর্তমান অফিস/ঠিকানা</label><input id="dataCurrentOffice" type="text"></div>
+        <div class="form-group"><label>স্থায়ী ঠিকানা</label><input id="dataPermanentAddress" type="text"></div>
+        <div class="form-group"><label>প্রশাসনিক তথ্য</label><input id="dataAdminInfo" type="text"></div>
+        <div class="form-group">
+            <label>Header নির্বাচন করুন</label>
+            <select id="dataHeaderSelect"></select>
+        </div>
+        <div class="modal-actions">
+            <button class="secondary-btn" data-close="dataModal" type="button">বাতিল</button>
+            <button id="saveDataBtn" class="primary-btn" type="button">সেভ করুন</button>
+        </div>
+    </div>
+</div>
+
+<!-- Move Data Modal -->
+<div id="moveDataModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>ডাটা মুভ করুন</h2>
+            <button class="close-btn" data-close="moveDataModal" type="button">✕</button>
+        </div>
+        <div class="form-group">
+            <label>নতুন Category</label>
+            <select id="moveCategorySelect"></select>
+        </div>
+        <div class="form-group">
+            <label>নতুন Header</label>
+            <select id="moveHeaderSelect"></select>
+        </div>
+        <div class="modal-actions">
+            <button class="secondary-btn" data-close="moveDataModal" type="button">বাতিল</button>
+            <button id="confirmMoveBtn" class="primary-btn" type="button">মুভ নিশ্চিত করুন</button>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Confirm Modal -->
+<div id="customConfirmModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="confirmModalTitle">নিশ্চিতকরণ</h2>
+            <button class="close-btn" data-close="customConfirmModal" type="button">✕</button>
+        </div>
+        <p id="confirmModalMessage">আপনি কি নিশ্চিত?</p>
+        <div class="modal-actions">
+            <button id="cancelConfirmBtn" class="secondary-btn" type="button">বাতিল</button>
+            <button id="okConfirmBtn" class="danger-btn" type="button">হ্যাঁ, মুছুন</button>
+        </div>
+    </div>
+</div>
+
 <div id="toast" class="toast"></div>
 
 <!-- JavaScript Module -->
 <script type="module" src="js/app.js"></script>
-
-<!-- Event Listener for Move/Edit/Delete Fallback -->
-<script>
-    document.addEventListener('click', function (e) {
-        const targetBtn = e.target.closest('.custom-action-btn, .btn-edit, .btn-delete, .btn-move');
-        if (targetBtn) {
-            e.stopPropagation();
-        }
-    });
-</script>
 
 </body>
 </html>
