@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Police Phonebook</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Hind Siliguri', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+
+        /* ==========================================
+           SPLASH SCREEN DESIGN
+        ========================================== */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #0b1329 0%, #1e293b 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+
+        .splash-content {
+            text-align: center;
+            color: #ffffff;
+            padding: 20px;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        /* পুলিশের গাড়ির ছবি রাখার বক্স */
+        .splash-car-wrapper {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 20px;
+            background: rgba(37, 99, 235, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid #2563eb;
+            box-shadow: 0 0 35px rgba(37, 99, 235, 0.5);
+            overflow: hidden;
+            animation: pulse 2.5s infinite;
+        }
+
+        /* পুলিশের গাড়ির ইমেজের স্টাইল */
+        .police-car-img {
+            width: 85%;
+            height: 85%;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+        }
+
+        .splash-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+            color: #ffffff;
+        }
+
+        .splash-subtitle {
+            font-size: 15px;
+            color: #94a3b8;
+            margin-bottom: 25px;
+        }
+
+        /* লোডার অ্যানিমেশন */
+        .splash-loader {
+            width: 34px;
+            height: 34px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: #3b82f6;
+            margin: 0 auto;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 20px rgba(37, 99, 235, 0.4); }
+            50% { transform: scale(1.04); box-shadow: 0 0 35px rgba(37, 99, 235, 0.7); }
+            100% { transform: scale(1); box-shadow: 0 0 20px rgba(37, 99, 235, 0.4); }
+        }
+
+        #splash-screen.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        /* আসল ওয়েবসাইটের অংশ */
+        .main-app {
+            padding: 30px 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Splash Screen Start -->
+    <div id="splash-screen">
+        <div class="splash-content">
+            <!-- পুলিশ কার এরিয়া -->
+            <div class="splash-car-wrapper">
+                <img src="https://cdn-icons-png.flaticon.com/512/2554/2554936.png" alt="Police Car" class="police-car-img">
+            </div>
+
+            <h1 class="splash-title">Police Phonebook</h1>
+            <p class="splash-subtitle">বাংলাদেশ পুলিশ ডিরেক্টরি</p>
+            <div class="splash-loader"></div>
+        </div>
+    </div>
+    <!-- Splash Screen End -->
+
+    <!-- Main Content -->
+    <div class="main-app">
+        <h2>Police Phonebook - মূল পাতায় স্বাগতম</h2>
+        <p>স্প্ল্যাশ স্ক্রিন শেষ হওয়ার পর মূল ওয়েবসাইটটি এখানে প্রদর্শিত হবে।</p>
+    </div>
+
+    <!-- JavaScript Script -->
+    <script>
+        window.addEventListener('load', function() {
+            // ৩ সেকেন্ড (3000ms) পর স্প্ল্যাশ স্ক্রিন বন্ধ হয়ে মূল পেজ শো করবে
+            setTimeout(function() {
+                const splash = document.getElementById('splash-screen');
+                if (splash) {
+                    splash.classList.add('fade-out');
+                }
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
