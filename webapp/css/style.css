@@ -682,7 +682,7 @@ body {
     .btn-admin-small { padding: 5px 8px !important; }
     .topbar.user-header ~ .container .header-banner > span,
     .topbar.admin-header ~ .container .header-banner > span { font-size: 16px; }
-    .data-card-avatar { width: 52px; height: 52px; min-width: 52px; }
+    .data-card-avatar { width: 60px; height: 60px; min-width: 60px; }
     .data-card-name { font-size: 16px; }
     .data-card-detail { font-size: 12px; }
 }
