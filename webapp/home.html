@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Police Phonebook - Loading</title>
+
+    <link rel="preload" href="index.html" as="document">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap');
 
@@ -12,12 +17,11 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Hind Siliguri', -apple-system, BlinkMacSystemFont, sans-serif;
-            transition: background-color 0.4s ease, color 0.4s ease;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        /* --- Theme Variables --- */
+        /* --- Dynamic Theme Variables --- */
         :root {
-            /* Light Mode */
             --bg-color: #f8fafc;
             --text-primary: #0f172a;
             --text-secondary: #0284c7;
@@ -27,7 +31,6 @@
         }
 
         [data-theme="dark"] {
-            /* Dark Mode */
             --bg-color: #030712;
             --text-primary: #ffffff;
             --text-secondary: #38bdf8;
@@ -56,7 +59,7 @@
             justify-content: center;
             align-items: center;
             z-index: 99999;
-            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s;
+            transition: opacity 0.5s ease-out, visibility 0.5s;
         }
 
         /* --- Background Glows --- */
@@ -71,7 +74,7 @@
             filter: blur(120px);
             top: 15%;
             left: 10%;
-            animation: pulseRed 3s infinite alternate ease-in-out;
+            animation: pulseRed 2.5s infinite alternate ease-in-out;
         }
 
         .siren-glow-blue {
@@ -85,10 +88,10 @@
             filter: blur(120px);
             bottom: 15%;
             right: 10%;
-            animation: pulseBlue 3s infinite alternate ease-in-out 1.5s;
+            animation: pulseBlue 2.5s infinite alternate ease-in-out 1.2s;
         }
 
-        /* --- Main Content --- */
+        /* --- Content Layout --- */
         .splash-content {
             position: relative;
             z-index: 2;
@@ -102,16 +105,16 @@
 
         .shield-container {
             position: relative;
-            width: 120px;
-            height: 120px;
-            margin-bottom: 28px;
+            width: 110px;
+            height: 110px;
+            margin-bottom: 24px;
         }
 
         .shield-icon {
             width: 100%;
             height: 100%;
             filter: drop-shadow(0 12px 24px rgba(37, 99, 235, 0.35));
-            animation: float 3.5s ease-in-out infinite;
+            animation: float 3s ease-in-out infinite;
         }
 
         .gold-ring {
@@ -124,29 +127,29 @@
             border: 2px solid transparent;
             border-top-color: #f59e0b;
             border-bottom-color: #3b82f6;
-            animation: rotateRing 4s linear infinite;
+            animation: rotateRing 3.5s linear infinite;
         }
 
         .splash-title {
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 700;
             color: var(--text-primary);
             letter-spacing: 0.5px;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
         .splash-subtitle {
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-secondary);
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 2.5px;
-            margin-bottom: 36px;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
         }
 
         .loader-bar-bg {
             width: 100%;
-            height: 5px;
+            height: 4px;
             background: var(--loader-bg);
             border-radius: 10px;
             overflow: hidden;
@@ -162,13 +165,13 @@
             background: linear-gradient(90deg, #ef4444, #3b82f6, #06b6d4);
             border-radius: 10px;
             box-shadow: 0 0 12px rgba(59, 130, 246, 0.8);
-            animation: fillProgress 3.2s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+            animation: fillProgress 1.6s cubic-bezier(0.65, 0, 0.35, 1) forwards;
         }
 
         /* --- Animations --- */
         @keyframes float {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+            50% { transform: translateY(-8px); }
         }
 
         @keyframes rotateRing {
@@ -188,7 +191,6 @@
 
         @keyframes fillProgress {
             0% { width: 0%; }
-            50% { width: 65%; }
             100% { width: 100%; }
         }
 
@@ -201,11 +203,9 @@
 <body>
 
     <div id="splash-screen">
-        <!-- Siren Glow Effect -->
         <div class="siren-glow-red"></div>
         <div class="siren-glow-blue"></div>
 
-        <!-- Center Content -->
         <div class="splash-content">
             <div class="shield-container">
                 <div class="gold-ring"></div>
@@ -240,23 +240,22 @@
     </div>
 
     <script>
-        // ১. ডিভাইস বা index.html থেকে পূর্বে সেভ হওয়া থিম অটোমেটিক চেক করবে
+        // ১. অটোমেটিক থিম সেটআপ
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         const savedTheme = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light');
-
-        // ২. কোনো বাটন ছাড়া স্বয়ংক্রিয়ভাবে থিম অ্যাপ্লাই করে দেবে
         document.documentElement.setAttribute('data-theme', savedTheme);
 
-        // ৩. প্রোগ্রেস বার শেষ হলে অটোমেটিক index.html পেজে রিডাইরেক্ট করবে
+        // ২. রিডাইরেক্ট লজিক (১.৬ সেকেন্ড সময় যাতে ব্যবহারকারীকে বেশিক্ষণ না থামতে হয়)
         window.addEventListener('load', function() {
             setTimeout(function() {
                 const splash = document.getElementById('splash-screen');
                 if (splash) splash.classList.add('fade-out');
 
                 setTimeout(function() {
-                    window.location.href = "index.html"; 
-                }, 600);
-            }, 3200);
+                    // replace ব্যবহার করার কারণে ব্রাউজারের হিস্ট্রি তৈরি হবে না (Back মারলে আবার স্প্ল্যাশে ফিরবে না)
+                    window.location.replace("index.html"); 
+                }, 400);
+            }, 1600);
         });
     </script>
 </body>
