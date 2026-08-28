@@ -45,7 +45,7 @@
     </div>
 </header>
 
-<div class="sub-toolbar" id="subToolbar" style="cursor: pointer;" title="অল সার্চ অপশন">
+<div class="sub-toolbar" id="allSearchBtn" style="cursor: pointer;" title="অল সার্চ অপশন">
     <div class="sub-toolbar-title">🌐 Search All Units & Numbers</div>
 </div>
 
@@ -226,27 +226,20 @@
     document.addEventListener("DOMContentLoaded", () => {
         const subToolbar = document.querySelector('.sub-toolbar');
         const mainDashboard = document.getElementById('mainDashboardView');
-        const categoryList = document.getElementById('categoryList');
-        const navToggleBtn = document.getElementById('navToggleBtn');
 
-        // ক্যাটাগরি বা সাব-ক্যাটাগরির ভেতরে প্রবেশের সমায় ক্লিক সনাক্ত করা
-        if (categoryList) {
-            categoryList.addEventListener('click', (e) => {
-                if (e.target.closest('.cat-click, .category-card, .subcategory-card')) {
-                    if (subToolbar) subToolbar.classList.add('hidden');
-                }
-            });
-        }
+        // MutationObserver দিয়ে স্ক্রিন পরিবর্তন পর্যবেক্ষণ করা
+        const observer = new MutationObserver(() => {
+            if (mainDashboard && mainDashboard.classList.contains('hidden')) {
+                // ক্যাটাগরির ভেতরে সফলতা সহকারে প্রবেশ করলে তবেই হাইড হবে
+                if (subToolbar) subToolbar.classList.add('hidden');
+            } else {
+                // মেইন ড্যাশবোর্ড বা হোম পেজে থাকলে সাব-টুলবার শো করবে
+                if (subToolbar) subToolbar.classList.remove('hidden');
+            }
+        });
 
-        // হোম বা ব্যাক পেজে ফিরলে সাব-টুলবার পুনরায় প্রদর্শন করার জন্য
-        if (navToggleBtn) {
-            navToggleBtn.addEventListener('click', () => {
-                setTimeout(() => {
-                    if (mainDashboard && !mainDashboard.classList.contains('hidden')) {
-                        if (subToolbar) subToolbar.classList.remove('hidden');
-                    }
-                }, 50);
-            });
+        if (mainDashboard) {
+            observer.observe(mainDashboard, { attributes: true, attributeFilter: ['class'] });
         }
     });
 </script>
