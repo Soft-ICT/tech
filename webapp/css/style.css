@@ -63,7 +63,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    margin-right: 16px; /* বামে নিয়ে বাটনগুলোর সাথে মার্জিন দেওয়া হয়েছে */
+    margin-right: 16px;
     gap: 8px;
     font-size: 19px;
     font-weight: 700;
@@ -104,7 +104,7 @@ body {
 }
 
 /* ==========================================
-   SUB-TOOLBAR
+   SUB-TOOLBAR (HIDE IN CATEGORY/SUBCATEGORY)
 ========================================== */
 
 .sub-toolbar {
@@ -142,6 +142,13 @@ body {
 
 .sub-toolbar:hover .sub-toolbar-title {
     color: var(--primary-color);
+}
+
+/* ক্যাটাগরি বা সাব-ক্যাটাগরির ভেতরে ঢুকলে Sub-Toolbar হাইড থাকবে */
+body:has(.container:not(.all-search-mode)) .sub-toolbar,
+.category-view .sub-toolbar,
+.subcategory-view .sub-toolbar {
+    display: none !important;
 }
 
 /* ==========================================
@@ -639,15 +646,6 @@ body {
     display: flex;
     gap: 10px;
     margin-bottom: 20px;
-}
-
-/* ==========================================
-   CATEGORY SPECIFIC SEARCH HIDE
-========================================== */
-
-/* ক্যাটাগরি বা সাব-ক্যাটাগরির ভেতরে প্রবেশ করলে Search All হাইড থাকবে */
-.container:not(.all-search-mode) #allSearchContainer {
-    display: none !important;
 }
 
 /* ==========================================
