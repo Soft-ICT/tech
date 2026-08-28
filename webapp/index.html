@@ -45,7 +45,7 @@
     </div>
 </header>
 
-<div class="sub-toolbar" id="allSearchBtn" style="cursor: pointer;" title="অল সার্চ অপশন">
+<div class="sub-toolbar" id="subToolbar" style="cursor: pointer;" title="অল সার্চ অপশন">
     <div class="sub-toolbar-title">🌐 Search All Units & Numbers</div>
 </div>
 
@@ -221,6 +221,35 @@
 <div id="toast" class="toast"></div>
 
 <script type="module" src="js/app.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const subToolbar = document.querySelector('.sub-toolbar');
+        const mainDashboard = document.getElementById('mainDashboardView');
+        const categoryList = document.getElementById('categoryList');
+        const navToggleBtn = document.getElementById('navToggleBtn');
+
+        // ক্যাটাগরি বা সাব-ক্যাটাগরির ভেতরে প্রবেশের সমায় ক্লিক সনাক্ত করা
+        if (categoryList) {
+            categoryList.addEventListener('click', (e) => {
+                if (e.target.closest('.cat-click, .category-card, .subcategory-card')) {
+                    if (subToolbar) subToolbar.classList.add('hidden');
+                }
+            });
+        }
+
+        // হোম বা ব্যাক পেজে ফিরলে সাব-টুলবার পুনরায় প্রদর্শন করার জন্য
+        if (navToggleBtn) {
+            navToggleBtn.addEventListener('click', () => {
+                setTimeout(() => {
+                    if (mainDashboard && !mainDashboard.classList.contains('hidden')) {
+                        if (subToolbar) subToolbar.classList.remove('hidden');
+                    }
+                }, 50);
+            });
+        }
+    });
+</script>
 
 </body>
 </html>
