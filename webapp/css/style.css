@@ -239,11 +239,6 @@ body {
     color: var(--text-muted);
 }
 
-/* ক্যাটাগরি বা সাব-ক্যাটাগরিতে প্রবেশ করলে Search All হাইড করার জন্য */
-.container:not(.all-search-mode) #allSearchContainer {
-    display: none !important;
-}
-
 
 /* ==========================================
    CONTAINER & CARDS
