@@ -63,15 +63,13 @@ body {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    margin-right: auto;
+    margin-right: 16px; /* বামে নিয়ে বাটনগুলোর সাথে মার্জিন দেওয়া হয়েছে */
     gap: 8px;
-    font-size: 20px;
+    font-size: 19px;
     font-weight: 700;
     height: 100%;
     line-height: 1;
 }
-
-
 
 .top-actions {
     display: flex;
@@ -238,7 +236,6 @@ body {
 .header-search-box input::placeholder {
     color: var(--text-muted);
 }
-
 
 /* ==========================================
    CONTAINER & CARDS
@@ -644,10 +641,23 @@ body {
     margin-bottom: 20px;
 }
 
+/* ==========================================
+   CATEGORY SPECIFIC SEARCH HIDE
+========================================== */
+
+/* ক্যাটাগরি বা সাব-ক্যাটাগরির ভেতরে প্রবেশ করলে Search All হাইড থাকবে */
+.container:not(.all-search-mode) #allSearchContainer {
+    display: none !important;
+}
+
+/* ==========================================
+   MEDIA QUERIES
+========================================== */
+
 @media (max-width: 600px) {
     .topbar { height: 58px; padding: 0 10px; }
     .sub-toolbar { height: 46px; padding: 0 12px; }
-    .app-title { font-size: 18px; }
+    .app-title { font-size: 18px; margin-right: 12px; }
     .top-actions { gap: 5px; }
     .container { margin-top: 16px; padding: 0 12px; }
     .dashboard-header h1 { font-size: 22px; }
@@ -669,7 +679,7 @@ body {
 
 @media (max-width: 400px) {
     .topbar { padding: 0 6px; }
-    .app-title { font-size: 17px; }
+    .app-title { font-size: 17px; margin-right: 8px; }
     .btn-admin-small { padding: 5px 8px !important; }
     .topbar.user-header ~ .container .header-banner > span,
     .topbar.admin-header ~ .container .header-banner > span { font-size: 16px; }
