@@ -5,7 +5,7 @@
     "description": "Police Phonebook Management System",
     "lang": "bn",
     "dir": "ltr",
-    "start_url": "./index.html",
+    "start_url": "./home.html",
     "scope": "./",
     "display": "standalone",
     "orientation": "portrait",
