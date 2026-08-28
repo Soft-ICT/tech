@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Police Phonebook - Loading</title>
-    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap');
 
@@ -13,126 +12,175 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Hind Siliguri', -apple-system, BlinkMacSystemFont, sans-serif;
+            transition: background-color 0.4s ease, color 0.4s ease;
         }
 
-        body {
-            background-color: #030712;
-            color: #ffffff;
+        /* --- Theme Variables --- */
+        :root {
+            /* Day / Light Mode */
+            --bg-color: #f8fafc;
+            --text-primary: #0f172a;
+            --text-secondary: #0284c7;
+            --siren-red: rgba(239, 68, 68, 0.12);
+            --siren-blue: rgba(37, 99, 235, 0.15);
+            --loader-bg: rgba(15, 23, 42, 0.08);
+            --btn-bg: rgba(0, 0, 0, 0.05);
+            --btn-border: rgba(0, 0, 0, 0.1);
+            --icon-fill: #0f172a;
+        }
+
+        [data-theme="dark"] {
+            /* Dark Mode */
+            --bg-color: #030712;
+            --text-primary: #ffffff;
+            --text-secondary: #38bdf8;
+            --siren-red: rgba(239, 68, 68, 0.25);
+            --siren-blue: rgba(37, 99, 235, 0.3);
+            --loader-bg: rgba(255, 255, 255, 0.1);
+            --btn-bg: rgba(255, 255, 255, 0.08);
+            --btn-border: rgba(255, 255, 255, 0.15);
+            --icon-fill: #ffffff;
+        }
+
+        /* --- Fullscreen Setup --- */
+        html, body {
+            width: 100vw;
+            height: 100vh;
             overflow: hidden;
+            background-color: var(--bg-color);
         }
 
-        /* ==========================================
-           ULTRA PREMIUM SPLASH SCREEN
-        ========================================== */
         #splash-screen {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
+            width: 100vw;
             height: 100vh;
-            background: radial-gradient(circle at 50% 30%, #0f172a 0%, #030712 100%);
+            background-color: var(--bg-color);
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 99999;
             transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s;
         }
 
-        /* সাইরেন নেবুলা গ্লো */
+        /* --- Theme Toggle Button --- */
+        .theme-toggle-btn {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            width: 44px;
+            height: 44px;
+            background: var(--btn-bg);
+            border: 1px solid var(--btn-border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            outline: none;
+        }
+
+        .theme-toggle-btn svg {
+            width: 22px;
+            height: 22px;
+            fill: var(--icon-fill);
+        }
+
+        /* --- Fullscreen Background Glows --- */
         .siren-glow-red {
             position: absolute;
-            width: 280px;
-            height: 280px;
-            background: rgba(239, 68, 68, 0.18);
+            width: 60vw;
+            height: 60vw;
+            max-width: 500px;
+            max-height: 500px;
+            background: var(--siren-red);
             border-radius: 50%;
-            filter: blur(100px);
-            top: 25%;
-            left: 20%;
-            animation: pulseRed 2s infinite alternate ease-in-out;
+            filter: blur(120px);
+            top: 15%;
+            left: 10%;
+            animation: pulseRed 3s infinite alternate ease-in-out;
         }
 
         .siren-glow-blue {
             position: absolute;
-            width: 280px;
-            height: 280px;
-            background: rgba(37, 99, 235, 0.25);
+            width: 60vw;
+            height: 60vw;
+            max-width: 500px;
+            max-height: 500px;
+            background: var(--siren-blue);
             border-radius: 50%;
-            filter: blur(100px);
-            bottom: 25%;
-            right: 20%;
-            animation: pulseBlue 2s infinite alternate ease-in-out 1s;
+            filter: blur(120px);
+            bottom: 15%;
+            right: 10%;
+            animation: pulseBlue 3s infinite alternate ease-in-out 1.5s;
         }
 
-        /* ৩D গ্লাস কার্ড */
-        .premium-card {
+        /* --- Main Content Wrap --- */
+        .splash-content {
             position: relative;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 32px;
-            padding: 45px 35px;
-            text-align: center;
-            max-width: 380px;
-            width: 88%;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
             z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            width: 85%;
+            max-width: 320px;
         }
 
-        /* ব্যাজ অ্যানিমেশন */
+        /* --- Badge & Animation --- */
         .shield-container {
             position: relative;
             width: 120px;
             height: 120px;
-            margin: 0 auto 28px;
-            perspective: 1000px;
+            margin-bottom: 28px;
         }
 
         .shield-icon {
             width: 100%;
             height: 100%;
-            filter: drop-shadow(0 12px 20px rgba(37, 99, 235, 0.4));
-            animation: float3D 3.5s ease-in-out infinite;
+            filter: drop-shadow(0 12px 24px rgba(37, 99, 235, 0.35));
+            animation: float 3.5s ease-in-out infinite;
         }
 
         .gold-ring {
             position: absolute;
-            top: -6px;
-            left: -6px;
-            right: -6px;
-            bottom: -6px;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
             border-radius: 50%;
-            border: 1.5px solid transparent;
+            border: 2px solid transparent;
             border-top-color: #f59e0b;
             border-bottom-color: #3b82f6;
             animation: rotateRing 4s linear infinite;
         }
 
+        /* --- Typography --- */
         .splash-title {
             font-size: 28px;
             font-weight: 700;
-            background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--text-primary);
             letter-spacing: 0.5px;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
         }
 
         .splash-subtitle {
-            font-size: 13px;
-            color: #38bdf8;
+            font-size: 14px;
+            color: var(--text-secondary);
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 30px;
+            letter-spacing: 2.5px;
+            margin-bottom: 36px;
         }
 
-        /* প্রোগ্রেস লোডার */
+        /* --- Full-width Progress Bar --- */
         .loader-bar-bg {
             width: 100%;
             height: 5px;
-            background: rgba(255, 255, 255, 0.08);
+            background: var(--loader-bg);
             border-radius: 10px;
             overflow: hidden;
             position: relative;
@@ -144,16 +192,16 @@
             left: 0;
             height: 100%;
             width: 0%;
-            background: linear-gradient(90deg, #ef4444, #3b82f6, #60a5fa);
+            background: linear-gradient(90deg, #ef4444, #3b82f6, #06b6d4);
             border-radius: 10px;
             box-shadow: 0 0 12px rgba(59, 130, 246, 0.8);
             animation: fillProgress 3.2s cubic-bezier(0.65, 0, 0.35, 1) forwards;
         }
 
-        /* ANIMATION KEYFRAMES */
-        @keyframes float3D {
-            0%, 100% { transform: translateY(0) rotateY(0deg); }
-            50% { transform: translateY(-10px) rotateY(12deg); }
+        /* --- Animations --- */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
 
         @keyframes rotateRing {
@@ -162,13 +210,13 @@
         }
 
         @keyframes pulseRed {
-            0% { opacity: 0.2; transform: scale(0.9); }
-            100% { opacity: 0.6; transform: scale(1.1); }
+            0% { opacity: 0.3; transform: scale(0.9); }
+            100% { opacity: 0.8; transform: scale(1.1); }
         }
 
         @keyframes pulseBlue {
             0% { opacity: 0.3; transform: scale(0.9); }
-            100% { opacity: 0.7; transform: scale(1.15); }
+            100% { opacity: 0.8; transform: scale(1.1); }
         }
 
         @keyframes fillProgress {
@@ -185,12 +233,18 @@
 </head>
 <body>
 
-    <!-- Splash Screen Start -->
     <div id="splash-screen">
+        <!-- Day/Dark Theme Toggle -->
+        <button class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle Theme">
+            <svg id="themeIcon" viewBox="0 0 24 24"></svg>
+        </button>
+
+        <!-- Siren Glow Effect -->
         <div class="siren-glow-red"></div>
         <div class="siren-glow-blue"></div>
 
-        <div class="premium-card">
+        <!-- Clean Center Content -->
+        <div class="splash-content">
             <div class="shield-container">
                 <div class="gold-ring"></div>
                 <svg class="shield-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -222,23 +276,41 @@
             </div>
         </div>
     </div>
-    <!-- Splash Screen End -->
 
-    <!-- JavaScript Redirect Code -->
     <script>
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const themeIcon = document.getElementById('themeIcon');
+        
+        const sunIcon = `<path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>`;
+        const moonIcon = `<path d="M12.3 2c.43 0 .77.35.75.78-.29 5.08 3.76 9.13 8.84 8.84.43-.02.78.32.78.75-.45 5.86-5.34 10.43-11.37 10.43-6.29 0-11.4-5.11-11.4-11.4C1.9 5.37 6.47.48 12.3 2z"/>`;
+
+        // Check Device Preference
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        let currentTheme = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light');
+
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            themeIcon.innerHTML = theme === 'dark' ? sunIcon : moonIcon;
+            localStorage.setItem('theme', theme);
+        }
+
+        applyTheme(currentTheme);
+
+        // Toggle Theme
+        themeToggleBtn.addEventListener('click', () => {
+            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyTheme(currentTheme);
+        });
+
+        // Redirect after animation
         window.addEventListener('load', function() {
-            // ৩.২ সেকেন্ড (3200ms) পর পরবর্তী পেজ `index.html` ওপেন হবে
             setTimeout(function() {
                 const splash = document.getElementById('splash-screen');
-                if (splash) {
-                    splash.classList.add('fade-out');
-                }
-                
-                // নেক্সট পেজ এ রিডাইরেক্ট করার কোড
+                if (splash) splash.classList.add('fade-out');
+
                 setTimeout(function() {
                     window.location.href = "index.html"; 
-                }, 600); // ফেড-আউট ইফেক্ট শেষ হওয়ার পর পেজ রিডাইরেক্ট হবে
-
+                }, 600);
             }, 3200);
         });
     </script>
