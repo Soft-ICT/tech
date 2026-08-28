@@ -63,7 +63,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    margin-right: 16px;
+    margin-right: 4px;
     gap: 8px;
     font-size: 20px;
     font-weight: 700;
