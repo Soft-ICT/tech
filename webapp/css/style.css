@@ -66,7 +66,7 @@ body {
     margin-right: auto;
     margin-left: 8px;
     gap: 8px;
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 700;
     height: 100%;
     line-height: 1;
@@ -255,7 +255,7 @@ body {
 }
 
 .dashboard-header h1 {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 700;
 }
 
@@ -302,8 +302,8 @@ body {
 
 /* Category/Subcategory Image Styling */
 .cat-card-img {
-    width: 42px;
-    height: 42px;
+    width: 60px;
+    height: 60px;
     object-fit: cover;
     border-radius: 10px;
     margin-right: 14px;
@@ -313,13 +313,13 @@ body {
 
 .category-card h3,
 .subcategory-card h3 {
-    font-size: 19px;
+    font-size: 15px;
     font-weight: 700;
     color: var(--text-main);
 }
 
 .data-card-item {
-    height: 120px;
+    height: 110px;
     display: flex;
     align-items: center;
     padding: 12px 18px;
