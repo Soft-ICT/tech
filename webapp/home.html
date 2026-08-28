@@ -1,83 +1,246 @@
 <!DOCTYPE html>
 <html lang="bn">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0d6efd">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Police Phonebook">
+
     <title>Police Phonebook</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Hind Siliguri', -apple-system, sans-serif;
-        }
 
-        body {
-            background-color: #f8fafc;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
+    <link rel="manifest" href="manifest.json?v=1.1">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
 
-        .splash-container {
-            text-align: center;
-            animation: fadeIn 0.8s ease-in-out;
-        }
-
-        .splash-icon {
-            font-size: 70px;
-            margin-bottom: 15px;
-            animation: pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .splash-title {
-            font-size: 26px;
-            font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 24px;
-        }
-
-        .spinner {
-            width: 36px;
-            height: 36px;
-            border: 3px solid #e2e8f0;
-            border-top: 3px solid #2563eb;
-            border-radius: 50%;
-            margin: 0 auto;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @keyframes pop {
-            0% { transform: scale(0); }
-            100% { transform: scale(1); }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css?v=6">
 </head>
+
 <body>
 
-    <div class="splash-container">
-        <div class="splash-icon">🚓</div>
-        <h1 class="splash-title">Police Phonebook</h1>
-        <div class="spinner"></div>
+<header class="topbar">
+    <button id="navToggleBtn" class="icon-btn" type="button" aria-label="Menu">☰</button>
+
+    <div class="brand">
+        <span class="app-title">Police Phonebook</span>
     </div>
 
-    <script>
-        // ২ সেকেন্ড (2000ms) পর আসল ফাইল index.html এ চলে যাবে
-        setTimeout(() => {
-            window.location.href = "index.html"; 
-        }, 2000);
-    </script>
+    <div class="top-actions">
+        <button id="searchModeBtn" class="icon-btn" type="button" title="খুঁজুন">🔍</button>
+        <button id="themeToggleBtn" class="icon-btn" type="button" title="Theme">🌙</button>
+        <button id="adminLoginBtn" class="primary-btn sm" type="button">লগইন</button>
+        <button id="adminLogoutBtn" class="danger-btn sm hidden" type="button">লগআউট</button>
+    </div>
+</header>
+
+<div id="subToolbar" class="sub-toolbar hidden">
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="নাম, পদবী, বিপি বা ফোন দিয়ে খুঁজুন..." autocomplete="off">
+        <button id="searchCloseBtn" class="icon-btn sm-icon" type="button">✕</button>
+    </div>
+    <div class="search-options">
+        <label><input type="checkbox" id="searchAllCheck"> সব ক্যাটাগরিতে খুঁজুন</label>
+    </div>
+</div>
+
+<div class="app-layout">
+
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h3>ক্যাটাগরি সমূহ</h3>
+            <button id="closeSidebarBtn" class="icon-btn" type="button">✕</button>
+        </div>
+
+        <div class="admin-only hidden" style="padding: 10px 15px;">
+            <button id="addCategoryBtn" class="primary-btn block" type="button">＋ নতুন ক্যাটাগরি</button>
+        </div>
+
+        <nav id="categoryList" class="category-list">
+            </nav>
+    </aside>
+
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+    <main class="main-content">
+        <div class="container">
+
+            <div id="dashboardView" class="dashboard-view">
+                <div class="dashboard-header">
+                    <h1>ক্যাটাগরি নির্বাচন করুন</h1>
+                    <p>ফোনবুক তথ্য দেখতে বামপাশের মেনু থেকে একটি ক্যাটাগরি বেছে নিন।</p>
+                </div>
+                <div id="dashboardCategories" class="dashboard-grid">
+                    </div>
+            </div>
+
+            <div id="dataView" class="data-view hidden">
+                <div class="header-banner">
+                    <span id="currentCategoryTitle">ক্যাটাগরি নাম</span>
+                    <div class="admin-only hidden">
+                        <button id="addHeaderBtn" class="secondary-btn sm" type="button">＋ Sub-Category</button>
+                    </div>
+                </div>
+
+                <div id="headersContainer" class="headers-container">
+                    </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<div id="loginModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>অ্যাডমিন লগইন</h2>
+            <button class="close-btn" data-close="loginModal" type="button">✕</button>
+        </div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="adminEmail">ইমেইল</label>
+                <input type="email" id="adminEmail" required placeholder="admin@example.com">
+            </div>
+            <div class="form-group">
+                <label for="adminPassword">পাসওয়ার্ড</label>
+                <input type="password" id="adminPassword" required placeholder="******">
+            </div>
+            <div class="modal-actions">
+                <button class="secondary-btn" data-close="loginModal" type="button">বাতিল</button>
+                <button type="submit" class="primary-btn">লগইন করুন</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="categoryModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="categoryModalTitle">নতুন ক্যাটাগরি</h2>
+            <button class="close-btn" data-close="categoryModal" type="button">✕</button>
+        </div>
+        <form id="categoryForm">
+            <input type="hidden" id="categoryId">
+            <div class="form-group">
+                <label for="categoryName">ক্যাটাগরির নাম</label>
+                <input type="text" id="categoryName" required placeholder="যেমন: জেলা পুলিশ কার্যালয়">
+            </div>
+            <div class="modal-actions">
+                <button class="secondary-btn" data-close="categoryModal" type="button">বাতিল</button>
+                <button type="submit" class="primary-btn">সংরক্ষণ করুন</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="headerModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="headerModalTitle">নতুন Sub-Category / Header</h2>
+            <button class="close-btn" data-close="headerModal" type="button">✕</button>
+        </div>
+        <form id="headerForm">
+            <input type="hidden" id="headerId">
+            <div class="form-group">
+                <label for="headerTitle">শিরোনাম / Header</label>
+                <input type="text" id="headerTitle" required placeholder="যেমন: কোতোয়ালী থানা">
+            </div>
+            <div class="modal-actions">
+                <button class="secondary-btn" data-close="headerModal" type="button">বাতিল</button>
+                <button type="submit" class="primary-btn">সংরক্ষণ করুন</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="dataModal" class="modal hidden">
+    <div class="modal-content modal-lg">
+        <div class="modal-header">
+            <h2 id="dataModalTitle">তথ্য যোগ / সম্পাদনা</h2>
+            <button class="close-btn" data-close="dataModal" type="button">✕</button>
+        </div>
+        <form id="dataForm">
+            <input type="hidden" id="dataId">
+            <input type="hidden" id="dataHeaderId">
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="dataRank">পদবী</label>
+                    <input type="text" id="dataRank" placeholder="যেমন: ওসি / পরিদর্শক">
+                </div>
+                <div class="form-group">
+                    <label for="dataName">নাম</label>
+                    <input type="text" id="dataName" required placeholder="যেমন: মোঃ রফিকুল ইসলাম">
+                </div>
+                <div class="form-group">
+                    <label for="dataBp">বিপি নম্বর</label>
+                    <input type="text" id="dataBp" placeholder="যেমন: BP1234567890">
+                </div>
+                <div class="form-group">
+                    <label for="dataGovtPhone">সরকারি নম্বর</label>
+                    <input type="tel" id="dataGovtPhone" placeholder="যেমন: 01700000000">
+                </div>
+                <div class="form-group">
+                    <label for="dataPersonalPhone">ব্যক্তিগত নম্বর</label>
+                    <input type="tel" id="dataPersonalPhone" placeholder="যেমন: 01800000000">
+                </div>
+                <div class="form-group">
+                    <label for="dataPhoto">ছবি লিঙ্ক (URL)</label>
+                    <input type="url" id="dataPhoto" placeholder="https://example.com/photo.jpg">
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="secondary-btn" data-close="dataModal" type="button">বাতিল</button>
+                <button type="submit" class="primary-btn">সংরক্ষণ করুন</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="moveDataModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>ডাটা মুভ করুন</h2>
+            <button class="close-btn" data-close="moveDataModal" type="button">✕</button>
+        </div>
+        <div class="form-group">
+            <label>নতুন Category</label>
+            <select id="moveCategorySelect"></select>
+        </div>
+        <div class="form-group">
+            <label>নতুন Header</label>
+            <select id="moveHeaderSelect"></select>
+        </div>
+        <div class="modal-actions">
+            <button class="secondary-btn" data-close="moveDataModal" type="button">বাতিল</button>
+            <button id="confirmMoveBtn" class="primary-btn" type="button">মুভ নিশ্চিত করুন</button>
+        </div>
+    </div>
+</div>
+
+<div id="customConfirmModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="confirmModalTitle">নিশ্চিতকরণ</h2>
+            <button class="close-btn" data-close="customConfirmModal" type="button">✕</button>
+        </div>
+        <p id="confirmModalMessage">আপনি কি নিশ্চিত?</p>
+        <div class="modal-actions">
+            <button id="cancelConfirmBtn" class="secondary-btn" type="button">বাতিল</button>
+            <button id="okConfirmBtn" class="danger-btn" type="button">হ্যাঁ, মুছুন</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script type="module" src="js/app.js?v=6"></script>
 </body>
+
 </html>
