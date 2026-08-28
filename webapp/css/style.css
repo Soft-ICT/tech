@@ -319,7 +319,7 @@ body {
 }
 
 .data-card-item {
-    height: 190px;
+    height: 100px;
     display: flex;
     align-items: center;
     padding: 12px 18px;
@@ -666,8 +666,8 @@ body {
         max-width: calc(100% - 95px);
         font-size: 17px;
     }
-    .data-card-item { height: 120px; padding: 10px 12px; }
-    .data-card-avatar { width: 58px; height: 58px; min-width: 58px; margin-right: 10px; }
+    .data-card-item { height: 100px; padding: 10px 12px; }
+    .data-card-avatar { width: 60px; height: 60px; min-width: 60px; margin-right: 10px; }
     .data-card-name { font-size: 17px; }
     .data-card-detail { font-size: 13px; }
     .primary-btn, .secondary-btn { padding: 8px 12px; }
