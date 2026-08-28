@@ -64,16 +64,13 @@ body {
     align-items: center;
     justify-content: flex-start;
     margin-right: auto;
-    margin-left: 8px; /* বাম পাশে প্রয়োজনীয় স্পেস পেতে এটি যোগ করুন */
+    margin-left: 8px;
     gap: 8px;
     font-size: 20px;
     font-weight: 700;
     height: 100%;
     line-height: 1;
 }
-
-
-
 
 .top-actions {
     display: flex;
@@ -186,7 +183,6 @@ body {
     cursor: pointer;
 }
 
-/* Move, Edit, Delete বাটনের জন্য Z-Index ও ক্লিক সুনিশ্চিত করার রুল */
 .custom-action-btn, 
 .header-banner .custom-action-btn,
 .data-card-item .custom-action-btn,
@@ -240,7 +236,6 @@ body {
 .header-search-box input::placeholder {
     color: var(--text-muted);
 }
-
 
 /* ==========================================
    CONTAINER & CARDS
@@ -303,6 +298,17 @@ body {
     display: flex;
     align-items: center;
     height: 100%;
+}
+
+/* Category/Subcategory Image Styling */
+.cat-card-img {
+    width: 42px;
+    height: 42px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-right: 14px;
+    flex-shrink: 0;
+    border: 1px solid var(--border-color);
 }
 
 .category-card h3,
