@@ -12,12 +12,10 @@
 
     <title>Police Phonebook</title>
 
-    <!-- PWA Manifest & Icons -->
     <link rel="manifest" href="manifest.json?v=1.1">
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
 
-    <!-- Fonts & CSS -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -26,7 +24,6 @@
 
 <body>
 
-<!-- MAIN TOPBAR -->
 <header class="topbar">
     <button id="navToggleBtn" class="icon-btn" type="button" title="মেনু">
         <span id="menuIcon">☰</span>
@@ -48,25 +45,20 @@
     </div>
 </header>
 
-<!-- NEW SUB-TOOLBAR FOR ALL SEARCH -->
 <div class="sub-toolbar" id="allSearchBtn" style="cursor: pointer;" title="অল সার্চ অপশন">
     <div class="sub-toolbar-title">🌐 Search All Units & Numbers</div>
 </div>
 
 <main class="container">
-    <!-- Page 1: Main Dashboard -->
     <div id="mainDashboardView">
         <section class="dashboard-header">
             <button id="addCategoryBtn" class="primary-btn admin-only" type="button" style="width:100%; margin-top:8px;">＋ Category</button>
         </section>
 
-        <!-- Categories List -->
         <section id="categoryList" class="category-list"></section>
 
-        <!-- All Search View Container -->
         <div id="allSearchContainer" class="hidden" style="margin-top: 15px;"></div>
 
-        <!-- Empty State -->
         <section id="emptyState" class="empty-state hidden">
             <div class="empty-icon">📂</div>
             <h2>এখনো কোনো Category নেই</h2>
@@ -75,11 +67,9 @@
         </section>
     </div>
 
-    <!-- Page 2: Category Details -->
     <div id="categoryDetailsView" class="hidden">
         <section class="dashboard-header">
             <div class="header-left">
-                <button id="backToMainBtn" class="secondary-btn" type="button">← পেছনে যান</button>
                 <div>
                     <h1 id="detailsTitle">Category</h1>
                     <p id="detailsSubtitle"></p>
@@ -96,21 +86,13 @@
         <div id="detailsContent"></div>
     </div>
 
-    <!-- Page 3: Data Details -->
     <div id="dataDetailsView" class="hidden">
-        <section class="dashboard-header">
-            <button id="backFromDataBtn" class="secondary-btn" type="button">← পেছনে যান</button>
-        </section>
-
         <div class="details-container-card">
             <div id="dataPageContent"></div>
         </div>
     </div>
 </main>
 
-<!-- Modals & Toasts -->
-
-<!-- Admin Login Modal -->
 <div id="loginModal" class="modal hidden">
     <div class="modal-content">
         <div class="modal-header">
@@ -141,7 +123,6 @@
     </div>
 </div>
 
-<!-- Category Modal -->
 <div id="categoryModal" class="modal hidden">
     <div class="modal-content">
         <div class="modal-header">
@@ -159,7 +140,6 @@
     </div>
 </div>
 
-<!-- Header Modal -->
 <div id="headerModal" class="modal hidden">
     <div class="modal-content">
         <div class="modal-header">
@@ -177,7 +157,6 @@
     </div>
 </div>
 
-<!-- Data Modal -->
 <div id="dataModal" class="modal hidden">
     <div class="modal-content">
         <div class="modal-header">
@@ -204,7 +183,6 @@
     </div>
 </div>
 
-<!-- Move Data Modal -->
 <div id="moveDataModal" class="modal hidden">
     <div class="modal-content">
         <div class="modal-header">
@@ -226,7 +204,6 @@
     </div>
 </div>
 
-<!-- Custom Confirm Modal -->
 <div id="customConfirmModal" class="modal hidden">
     <div class="modal-content">
         <div class="modal-header">
@@ -243,7 +220,6 @@
 
 <div id="toast" class="toast"></div>
 
-<!-- JavaScript Module -->
 <script type="module" src="js/app.js"></script>
 
 </body>
