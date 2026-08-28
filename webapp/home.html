@@ -25,181 +25,165 @@
 <body>
 
 <header class="topbar">
-    <button id="navToggleBtn" class="icon-btn" type="button" aria-label="Menu">☰</button>
+    <button id="navToggleBtn" class="icon-btn" type="button" title="মেনু">
+        <span id="menuIcon">☰</span>
+        <span id="backIcon" class="hidden">←</span>
+    </button>
 
-    <div class="brand">
-        <span class="app-title">Police Phonebook</span>
+    <div class="app-title" id="appTitle">
+        <span class="app-title-text">Police Phonebook</span>
     </div>
 
-    <div class="top-actions">
-        <button id="searchModeBtn" class="icon-btn" type="button" title="খুঁজুন">🔍</button>
-        <button id="themeToggleBtn" class="icon-btn" type="button" title="Theme">🌙</button>
-        <button id="adminLoginBtn" class="primary-btn sm" type="button">লগইন</button>
-        <button id="adminLogoutBtn" class="danger-btn sm hidden" type="button">লগআউট</button>
+    <div id="searchBox" class="header-search-box hidden">
+        <input type="search" id="searchInput" placeholder="Category, Header অথবা Data খুঁজুন..." autocomplete="off">
+    </div>
+
+    <div class="top-actions" id="topActions">
+        <button id="adminLoginBtn" class="primary-btn active-btn btn-admin-small hidden" type="button">🔑 Admin</button>
+       <button id="searchBtn" class="icon-btn" title="সার্চ করুন" type="button">🔍</button>
+        <button id="themeBtn" class="icon-btn" title="নাইট/ডে মোড" type="button">🌙</button>
     </div>
 </header>
 
-<div id="subToolbar" class="sub-toolbar hidden">
-    <div class="search-box">
-        <input type="text" id="searchInput" placeholder="নাম, পদবী, বিপি বা ফোন দিয়ে খুঁজুন..." autocomplete="off">
-        <button id="searchCloseBtn" class="icon-btn sm-icon" type="button">✕</button>
-    </div>
-    <div class="search-options">
-        <label><input type="checkbox" id="searchAllCheck"> সব ক্যাটাগরিতে খুঁজুন</label>
-    </div>
+<div class="sub-toolbar" id="allSearchBtn" style="cursor: pointer;" title="অল সার্চ অপশন">
+    <div class="sub-toolbar-title">🌐 Search All Units & Numbers</div>
 </div>
 
-<div class="app-layout">
+<main class="container">
+    <div id="mainDashboardView">
+        <section class="dashboard-header">
+            <button id="addCategoryBtn" class="primary-btn admin-only" type="button" style="width:100%; margin-top:8px;">＋ Category</button>
+        </section>
 
-    <aside id="sidebar" class="sidebar">
-        <div class="sidebar-header">
-            <h3>ক্যাটাগরি সমূহ</h3>
-            <button id="closeSidebarBtn" class="icon-btn" type="button">✕</button>
-        </div>
+        <section id="categoryList" class="category-list"></section>
 
-        <div class="admin-only hidden" style="padding: 10px 15px;">
-            <button id="addCategoryBtn" class="primary-btn block" type="button">＋ নতুন ক্যাটাগরি</button>
-        </div>
+        <div id="allSearchContainer" class="hidden" style="margin-top: 15px;"></div>
 
-        <nav id="categoryList" class="category-list">
-            </nav>
-    </aside>
+        <section id="emptyState" class="empty-state hidden">
+            <div class="empty-icon">📂</div>
+            <h2>এখনো কোনো Category নেই</h2>
+            <p>ডাটা দেখতে অপেক্ষা করুন, প্রয়োজনে রিফ্রেস করুন।</p>
+            <button id="emptyAddBtn" class="primary-btn admin-only" type="button">＋ প্রথম Category তৈরি করুন</button>
+        </section>
+    </div>
 
-    <div id="sidebarOverlay" class="sidebar-overlay"></div>
-
-    <main class="main-content">
-        <div class="container">
-
-            <div id="dashboardView" class="dashboard-view">
-                <div class="dashboard-header">
-                    <h1>ক্যাটাগরি নির্বাচন করুন</h1>
-                    <p>ফোনবুক তথ্য দেখতে বামপাশের মেনু থেকে একটি ক্যাটাগরি বেছে নিন।</p>
+    <div id="categoryDetailsView" class="hidden">
+        <section class="dashboard-header">
+            <div class="header-left">
+                <div>
+                    <h1 id="detailsTitle">Category</h1>
+                    <p id="detailsSubtitle"></p>
                 </div>
-                <div id="dashboardCategories" class="dashboard-grid">
-                    </div>
             </div>
+        </section>
 
-            <div id="dataView" class="data-view hidden">
-                <div class="header-banner">
-                    <span id="currentCategoryTitle">ক্যাটাগরি নাম</span>
-                    <div class="admin-only hidden">
-                        <button id="addHeaderBtn" class="secondary-btn sm" type="button">＋ Sub-Category</button>
-                    </div>
-                </div>
-
-                <div id="headersContainer" class="headers-container">
-                    </div>
-            </div>
-
+        <div class="section-toolbar admin-only">
+            <button id="addSubCategoryBtn" class="primary-btn" type="button">＋ Sub-Category</button>
+            <button id="addHeaderBtn" class="primary-btn" type="button">＋ Header</button>
+            <button id="addDataBtn" class="secondary-btn" type="button">＋ Data</button>
         </div>
-    </main>
-</div>
+
+        <div id="detailsContent"></div>
+    </div>
+
+    <div id="dataDetailsView" class="hidden">
+        <div class="details-container-card">
+            <div id="dataPageContent"></div>
+        </div>
+    </div>
+</main>
 
 <div id="loginModal" class="modal hidden">
     <div class="modal-content">
         <div class="modal-header">
-            <h2>অ্যাডমিন লগইন</h2>
+            <h2>Admin Login</h2>
             <button class="close-btn" data-close="loginModal" type="button">✕</button>
         </div>
-        <form id="loginForm">
+        <div id="loginFormContainer">
             <div class="form-group">
-                <label for="adminEmail">ইমেইল</label>
-                <input type="email" id="adminEmail" required placeholder="admin@example.com">
+                <label>ইমেইল</label>
+                <input id="loginEmail" type="email" placeholder="admin@example.com">
             </div>
             <div class="form-group">
-                <label for="adminPassword">পাসওয়ার্ড</label>
-                <input type="password" id="adminPassword" required placeholder="******">
+                <label>পাসওয়ার্ড</label>
+                <input id="loginPassword" type="password" placeholder="******">
             </div>
             <div class="modal-actions">
                 <button class="secondary-btn" data-close="loginModal" type="button">বাতিল</button>
-                <button type="submit" class="primary-btn">লগইন করুন</button>
+                <button id="submitLoginBtn" class="primary-btn" type="button">লগইন</button>
             </div>
-        </form>
+        </div>
+        <div id="logoutContainer" class="hidden logout-box">
+            <p class="status-ok">✅ আপনি অ্যাডমিন হিসেবে লগইন আছেন</p>
+            <div class="modal-actions">
+                <button class="secondary-btn" data-close="loginModal" type="button">বন্ধ করুন</button>
+                <button id="logoutBtn" class="danger-btn" type="button">লগআউট</button>
+            </div>
+        </div>
     </div>
 </div>
 
 <div id="categoryModal" class="modal hidden">
     <div class="modal-content">
         <div class="modal-header">
-            <h2 id="categoryModalTitle">নতুন ক্যাটাগরি</h2>
+            <h2 id="categoryModalTitle">ক্যাটাগরি</h2>
             <button class="close-btn" data-close="categoryModal" type="button">✕</button>
         </div>
-        <form id="categoryForm">
-            <input type="hidden" id="categoryId">
-            <div class="form-group">
-                <label for="categoryName">ক্যাটাগরির নাম</label>
-                <input type="text" id="categoryName" required placeholder="যেমন: জেলা পুলিশ কার্যালয়">
-            </div>
-            <div class="modal-actions">
-                <button class="secondary-btn" data-close="categoryModal" type="button">বাতিল</button>
-                <button type="submit" class="primary-btn">সংরক্ষণ করুন</button>
-            </div>
-        </form>
+        <div class="form-group">
+            <label>ছবি লিঙ্ক (URL)</label>
+            <input id="categoryImageInput" type="url" placeholder="https://example.com/image.png">
+        </div>
+        <div class="form-group">
+            <label>ক্যাটাগরির নাম</label>
+            <input id="categoryNameInput" type="text" placeholder="নাম লিখুন">
+        </div>
+        <div class="modal-actions">
+            <button class="secondary-btn" data-close="categoryModal" type="button">বাতিল</button>
+            <button id="saveCategoryBtn" class="primary-btn" type="button">সেভ করুন</button>
+        </div>
     </div>
 </div>
 
 <div id="headerModal" class="modal hidden">
     <div class="modal-content">
         <div class="modal-header">
-            <h2 id="headerModalTitle">নতুন Sub-Category / Header</h2>
+            <h2>Header যুক্ত/এডিট করুন</h2>
             <button class="close-btn" data-close="headerModal" type="button">✕</button>
         </div>
-        <form id="headerForm">
-            <input type="hidden" id="headerId">
-            <div class="form-group">
-                <label for="headerTitle">শিরোনাম / Header</label>
-                <input type="text" id="headerTitle" required placeholder="যেমন: কোতোয়ালী থানা">
-            </div>
-            <div class="modal-actions">
-                <button class="secondary-btn" data-close="headerModal" type="button">বাতিল</button>
-                <button type="submit" class="primary-btn">সংরক্ষণ করুন</button>
-            </div>
-        </form>
+        <div class="form-group">
+            <label>হেডার টাইটেল</label>
+            <input id="headerNameInput" type="text" placeholder="যেমন: কর্মকর্তা/কর্মচারী">
+        </div>
+        <div class="modal-actions">
+            <button class="secondary-btn" data-close="headerModal" type="button">বাতিল</button>
+            <button id="saveHeaderBtn" class="primary-btn" type="button">সেভ করুন</button>
+        </div>
     </div>
 </div>
 
 <div id="dataModal" class="modal hidden">
-    <div class="modal-content modal-lg">
+    <div class="modal-content">
         <div class="modal-header">
-            <h2 id="dataModalTitle">তথ্য যোগ / সম্পাদনা</h2>
+            <h2 id="dataModalTitle">Data যুক্ত করুন</h2>
             <button class="close-btn" data-close="dataModal" type="button">✕</button>
         </div>
-        <form id="dataForm">
-            <input type="hidden" id="dataId">
-            <input type="hidden" id="dataHeaderId">
-
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="dataRank">পদবী</label>
-                    <input type="text" id="dataRank" placeholder="যেমন: ওসি / পরিদর্শক">
-                </div>
-                <div class="form-group">
-                    <label for="dataName">নাম</label>
-                    <input type="text" id="dataName" required placeholder="যেমন: মোঃ রফিকুল ইসলাম">
-                </div>
-                <div class="form-group">
-                    <label for="dataBp">বিপি নম্বর</label>
-                    <input type="text" id="dataBp" placeholder="যেমন: BP1234567890">
-                </div>
-                <div class="form-group">
-                    <label for="dataGovtPhone">সরকারি নম্বর</label>
-                    <input type="tel" id="dataGovtPhone" placeholder="যেমন: 01700000000">
-                </div>
-                <div class="form-group">
-                    <label for="dataPersonalPhone">ব্যক্তিগত নম্বর</label>
-                    <input type="tel" id="dataPersonalPhone" placeholder="যেমন: 01800000000">
-                </div>
-                <div class="form-group">
-                    <label for="dataPhoto">ছবি লিঙ্ক (URL)</label>
-                    <input type="url" id="dataPhoto" placeholder="https://example.com/photo.jpg">
-                </div>
-            </div>
-
-            <div class="modal-actions">
-                <button class="secondary-btn" data-close="dataModal" type="button">বাতিল</button>
-                <button type="submit" class="primary-btn">সংরক্ষণ করুন</button>
-            </div>
-        </form>
+        <div class="form-group"><label>ছবি লিঙ্ক (URL)</label><input id="dataPhoto" type="url"></div>
+        <div class="form-group"><label>নাম *</label><input id="dataName" type="text"></div>
+        <div class="form-group"><label>মোবাইল</label><input id="dataMobile" type="tel"></div>
+        <div class="form-group"><label>টেলিফোন</label><input id="dataPhone" type="tel"></div>
+        <div class="form-group"><label>পদবী</label><input id="dataDesignation" type="text"></div>
+        <div class="form-group"><label>ইমেইল</label><input id="dataEmail" type="email"></div>
+        <div class="form-group"><label>বর্তমান অফিস/ঠিকানা</label><input id="dataCurrentOffice" type="text"></div>
+        <div class="form-group"><label>স্থায়ী ঠিকানা</label><input id="dataPermanentAddress" type="text"></div>
+        <div class="form-group"><label>প্রশাসনিক তথ্য</label><input id="dataAdminInfo" type="text"></div>
+        <div class="form-group">
+            <label>Header নির্বাচন করুন</label>
+            <select id="dataHeaderSelect"></select>
+        </div>
+        <div class="modal-actions">
+            <button class="secondary-btn" data-close="dataModal" type="button">বাতিল</button>
+            <button id="saveDataBtn" class="primary-btn" type="button">সেভ করুন</button>
+        </div>
     </div>
 </div>
 
@@ -240,7 +224,7 @@
 
 <div id="toast" class="toast"></div>
 
-<script type="module" src="js/app.js?v=6"></script>
-</body>
+<script type="module" src="js/app.js"></script>
 
+</body>
 </html>
