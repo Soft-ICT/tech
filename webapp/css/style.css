@@ -63,7 +63,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    margin-right: auto; /* এটি বামে ফিক্স করে বাকি জায়গা ডানে ঠেলে দেবে */
+    margin-right: 16px;
     gap: 8px;
     font-size: 20px;
     font-weight: 700;
