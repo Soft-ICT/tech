@@ -1,230 +1,273 @@
 <!DOCTYPE html>
 <html lang="bn">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0d6efd">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Police Phonebook">
+
     <title>Police Phonebook</title>
-    <link rel="stylesheet" href="css/style.css">
+
+    <link rel="manifest" href="manifest.json?v=1.1">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css?v=6">
 </head>
+
 <body>
 
-    <!-- Topbar Header -->
-    <header class="topbar">
-        <div class="topbar-left">
-            <button id="navToggleBtn" class="icon-btn">
-                <span id="menuIcon">☰</span>
-                <span id="backIcon" class="hidden">⬅</span>
-            </button>
-            <h1 id="appTitle" class="app-title">
-                <span class="app-title-text">Police Phonebook</span>
-                <span id="verifiedBadge" class="verified-badge hidden" title="Verified Device">✔</span>
-            </h1>
-        </div>
-        <div class="topbar-right">
-            <button id="searchBtn" class="icon-btn">🔍</button>
-            <button id="themeBtn" class="icon-btn">🌙</button>
-            
-            <!-- Admin Button: Click = Login | Long Press = Verification Requests -->
-            <button id="adminLoginBtn" class="admin-login-btn hidden">
-                🔑 Admin <span id="reqCountBadge" class="req-badge hidden">0</span>
-            </button>
-        </div>
-    </header>
+<header class="topbar">
+    <button id="navToggleBtn" class="icon-btn" type="button" title="মেনু">
+        <span id="menuIcon">☰</span>
+        <span id="backIcon" class="hidden">←</span>
+    </button>
 
-    <!-- Search Box -->
-    <div id="searchBox" class="search-box-container hidden">
-        <input type="text" id="searchInput" placeholder="নাম, পদবী বা ফোন দিয়ে খুঁজুন..." autocomplete="off">
+    <div class="app-title" id="appTitle">
+        <span class="app-title-text">Police Phonebook</span>
+        <span id="verifiedBadge" class="verified-badge hidden" title="Verified Device">✔</span>
     </div>
 
-    <!-- Main Content Views -->
-    <main class="main-container">
+    <div id="searchBox" class="header-search-box hidden">
+        <input type="search" id="searchInput" placeholder="Category, Header অথবা Data খুঁজুন..." autocomplete="off">
+    </div>
 
-        <!-- All Search Toolbar -->
-        <div id="subToolbar" class="sub-toolbar">
-            <button id="allSearchBtn" class="btn-all-search">🌐 অল সার্চ করুন</button>
-        </div>
+    <div class="top-actions" id="topActions">
+        <button id="adminLoginBtn" class="primary-btn active-btn btn-admin-small hidden" type="button">🔑 Admin</button>
+        <button id="searchBtn" class="icon-btn" title="সার্চ করুন" type="button">🔍</button>
+        <button id="themeBtn" class="icon-btn" title="নাইট/ডে মোড" type="button">🌙</button>
+    </div>
+</header>
 
-        <!-- View 1: Main Dashboard (Categories List) -->
-        <section id="mainDashboardView" class="view-section">
-            <div id="categoryList" class="category-grid"></div>
-            <div id="emptyState" class="empty-state hidden">
-                <p>কোনো ক্যাটাগরি পাওয়া যায়নি</p>
-                <button id="emptyAddBtn" class="btn-primary admin-only hidden">+ নতুন ক্যাটাগরি</button>
-            </div>
-            <div class="fab-container admin-only hidden">
-                <button id="addCategoryBtn" class="fab-btn" title="নতুন ক্যাটাগরি">+ Cat</button>
+<div class="sub-toolbar" id="allSearchBtn" style="cursor: pointer;" title="অল সার্চ অপশন">
+    <div class="sub-toolbar-title">🌐 Search All Units & Numbers</div>
+</div>
+
+<main class="container">
+    <div id="mainDashboardView">
+        <section class="dashboard-header">
+            <button id="addCategoryBtn" class="primary-btn admin-only" type="button" style="width:100%; margin-top:8px;">＋ Category</button>
+        </section>
+
+        <section id="categoryList" class="category-list"></section>
+
+        <div id="allSearchContainer" class="hidden" style="margin-top: 15px;"></div>
+
+        <section id="emptyState" class="empty-state hidden">
+            <div class="empty-icon">📂</div>
+            <h2>এখনো কোনো Category নেই</h2>
+            <p>ডাটা দেখতে অপেক্ষা করুন, প্রয়োজনে রিফ্রেস করুন।</p>
+            <button id="emptyAddBtn" class="primary-btn admin-only" type="button">＋ প্রথম Category তৈরি করুন</button>
+        </section>
+    </div>
+
+    <div id="categoryDetailsView" class="hidden">
+        <section class="dashboard-header">
+            <div class="header-left">
+                <div>
+                    <h1 id="detailsTitle">Category</h1>
+                    <p id="detailsSubtitle"></p>
+                </div>
             </div>
         </section>
 
-        <!-- View 2: Category Details & Sub-categories View -->
-        <section id="categoryDetailsView" class="view-section hidden">
-            <div id="detailsContent" class="details-content"></div>
-            <div class="fab-container admin-only hidden">
-                <button id="addSubCategoryBtn" class="fab-btn" title="Sub Category">+ Sub</button>
-                <button id="addHeaderBtn" class="fab-btn" title="Header">+ Head</button>
-                <button id="addDataBtn" class="fab-btn" title="Data">+ Data</button>
+        <div class="section-toolbar admin-only">
+            <button id="addSubCategoryBtn" class="primary-btn" type="button">＋ Sub-Category</button>
+            <button id="addHeaderBtn" class="primary-btn" type="button">＋ Header</button>
+            <button id="addDataBtn" class="secondary-btn" type="button">＋ Data</button>
+        </div>
+
+        <div id="detailsContent"></div>
+    </div>
+
+    <div id="dataDetailsView" class="hidden">
+        <div class="details-container-card">
+            <div id="dataPageContent"></div>
+        </div>
+    </div>
+</main>
+
+<div id="loginModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Admin Login</h2>
+            <button class="close-btn" data-close="loginModal" type="button">✕</button>
+        </div>
+        <div id="loginFormContainer">
+            <div class="form-group">
+                <label>ইমেইল</label>
+                <input id="loginEmail" type="email" placeholder="admin@example.com">
             </div>
-        </section>
-
-        <!-- View 3: Data Details Single Page -->
-        <section id="dataDetailsView" class="view-section hidden">
-            <div id="dataPageContent" class="data-page-content"></div>
-        </section>
-
-        <!-- View 4: All Search Container -->
-        <section id="allSearchContainer" class="view-section hidden"></section>
-
-    </main>
-
-    <!-- =========================================
-         MODALS SECTION
-    ========================================= -->
-
-    <!-- 1. Admin Login Modal -->
-    <div id="loginModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>🔑 Admin Login</h3>
-                <span class="close-btn" data-close="loginModal">&times;</span>
+            <div class="form-group">
+                <label>পাসওয়ার্ড</label>
+                <input id="loginPassword" type="password" placeholder="******">
             </div>
-            <div class="modal-body">
-                <div id="loginFormContainer">
-                    <input type="email" id="loginEmail" placeholder="অ্যাডমিন ইমেইল">
-                    <input type="password" id="loginPassword" placeholder="পাসওয়ার্ড">
-                    <button id="submitLoginBtn" class="btn-primary" style="width: 100%; margin-top: 10px;">লগইন করুন</button>
-                </div>
-                <div id="logoutContainer" class="hidden" style="text-align: center;">
-                    <p style="color: #22c55e; font-weight: bold; margin-bottom: 15px;">আপনি অ্যাডমিন হিসেবে লগইন আছেন</p>
-                    <button id="logoutBtn" class="btn-danger" style="width: 100%;">লগআউট করুন</button>
-                </div>
+            <div class="modal-actions">
+                <button class="secondary-btn" data-close="loginModal" type="button">বাতিল</button>
+                <button id="submitLoginBtn" class="primary-btn" type="button">লগইন</button>
+            </div>
+        </div>
+        <div id="logoutContainer" class="hidden logout-box">
+            <p class="status-ok">✅ আপনি অ্যাডমিন হিসেবে লগইন আছেন</p>
+            <div class="modal-actions">
+                <button class="secondary-btn" data-close="loginModal" type="button">বন্ধ করুন</button>
+                <button id="logoutBtn" class="danger-btn" type="button">লগআউট</button>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- 2. User Verification Modal -->
-    <div id="verifyModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>প্রশাসনিক তথ্যের জন্য ভেরিফিকেশন রিকোয়েস্ট</h3>
-                <span class="close-btn" data-close="verifyModal">&times;</span>
-            </div>
-            <div class="modal-body">
-                <label>আপনার নাম *</label>
-                <input type="text" id="applicantName" placeholder="যেমন: মোঃ জুয়েল রানা">
-                <label style="margin-top:10px; display:block;">পদবী / পরিচয় *</label>
-                <input type="text" id="applicantDesignation" placeholder="যেমন: কনস্টেবল/৭৪৮">
-                <div style="display: flex; gap: 10px; margin-top: 15px;">
-                    <button class="btn-secondary" data-close="verifyModal" style="flex: 1;">বাতিল</button>
-                    <button id="submitVerifyBtn" class="btn-primary" style="flex: 1;">রিকোয়েস্ট পাঠান</button>
-                </div>
-            </div>
+<div id="verifyModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>প্রশাসনিক তথ্যের জন্য ভেরিফিকেশন রিকোয়েস্ট</h2>
+            <button class="close-btn" data-close="verifyModal" type="button">✕</button>
+        </div>
+        <div class="form-group">
+            <label>আপনার নাম *</label>
+            <input id="applicantName" type="text" placeholder="যেমন: মো: আব্দুর রহিম">
+        </div>
+        <div class="form-group">
+            <label>পদবী / পরিচয় *</label>
+            <input id="applicantDesignation" type="text" placeholder="যেমন: সাব-ইন্সপেক্টর / পরিচয় সংক্রান্ত তথ্য">
+        </div>
+        <div class="modal-actions">
+            <button class="secondary-btn" data-close="verifyModal" type="button">বাতিল</button>
+            <button id="submitVerifyBtn" class="primary-btn" type="button">রিকোয়েস্ট পাঠান</button>
         </div>
     </div>
+</div>
 
-    <!-- 3. Admin Requests List Modal -->
-    <div id="requestsModal" class="modal hidden">
-        <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header">
-                <h3>📩 ভেরিফিকেশন রিকোয়েস্ট তালিকা</h3>
-                <span class="close-btn" data-close="requestsModal">&times;</span>
-            </div>
-            <div class="modal-body">
-                <div id="requestsListContainer" style="max-height: 350px; overflow-y: auto;"></div>
-            </div>
+<div id="requestsModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>ডিভাইস ভেরিফিকেশন রিকোয়েস্টসমূহ</h2>
+            <button class="close-btn" data-close="requestsModal" type="button">✕</button>
+        </div>
+        <div id="requestsListContainer" style="max-height: 350px; overflow-y: auto;"></div>
+        <div class="modal-actions">
+            <button class="secondary-btn" data-close="requestsModal" type="button">বন্ধ করুন</button>
         </div>
     </div>
+</div>
 
-    <!-- 4. Category Modal -->
-    <div id="categoryModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="categoryModalTitle">ক্যাটাগরি যুক্ত করুন</h3>
-                <span class="close-btn" data-close="categoryModal">&times;</span>
-            </div>
-            <div class="modal-body">
-                <input type="text" id="categoryNameInput" placeholder="ক্যাটাগরি নাম">
-                <input type="text" id="categoryImageInput" placeholder="ছবি URL (ঐচ্ছিক)">
-                <button id="saveCategoryBtn" class="btn-primary" style="width: 100%; margin-top: 10px;">সেভ করুন</button>
-            </div>
+<div id="categoryModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="categoryModalTitle">ক্যাটাগরি</h2>
+            <button class="close-btn" data-close="categoryModal" type="button">✕</button>
+        </div>
+        <div class="form-group">
+            <label>ছবি লিঙ্ক (URL)</label>
+            <input id="categoryImageInput" type="url" placeholder="https://example.com/image.png">
+        </div>
+        <div class="form-group">
+            <label>ক্যাটাগরির নাম</label>
+            <input id="categoryNameInput" type="text" placeholder="নাম লিখুন">
+        </div>
+        <div class="modal-actions">
+            <button class="secondary-btn" data-close="categoryModal" type="button">বাতিল</button>
+            <button id="saveCategoryBtn" class="primary-btn" type="button">সেভ করুন</button>
         </div>
     </div>
+</div>
 
-    <!-- 5. Header Modal -->
-    <div id="headerModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>হেডার সেকশন যোগ করুন</h3>
-                <span class="close-btn" data-close="headerModal">&times;</span>
-            </div>
-            <div class="modal-body">
-                <input type="text" id="headerNameInput" placeholder="হেডার টাইটেল">
-                <button id="saveHeaderBtn" class="btn-primary" style="width: 100%; margin-top: 10px;">সেভ করুন</button>
-            </div>
+<div id="headerModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Header যুক্ত/এডিট করুন</h2>
+            <button class="close-btn" data-close="headerModal" type="button">✕</button>
+        </div>
+        <div class="form-group">
+            <label>হেডার টাইটেল</label>
+            <input id="headerNameInput" type="text" placeholder="যেমন: কর্মকর্তা/কর্মচারী">
+        </div>
+        <div class="modal-actions">
+            <button class="secondary-btn" data-close="headerModal" type="button">বাতিল</button>
+            <button id="saveHeaderBtn" class="primary-btn" type="button">সেভ করুন</button>
         </div>
     </div>
+</div>
 
-    <!-- 6. Data Form Modal -->
-    <div id="dataModal" class="modal hidden">
-        <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header">
-                <h3 id="dataModalTitle">ডাটা ইনপুট ফর্ম</h3>
-                <span class="close-btn" data-close="dataModal">&times;</span>
-            </div>
-            <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
-                <input type="text" id="dataPhoto" placeholder="ছবি URL (ঐচ্ছিক)">
-                <input type="text" id="dataName" placeholder="নাম *">
-                <input type="text" id="dataMobile" placeholder="মোবাইল নম্বর">
-                <input type="text" id="dataPhone" placeholder="টেলিফোন নম্বর">
-                <input type="text" id="dataDesignation" placeholder="পদবী">
-                <input type="text" id="dataEmail" placeholder="ইমেইল">
-                <input type="text" id="dataCurrentOffice" placeholder="বর্তমান কর্মস্থল/ঠিকানা">
-                <input type="text" id="dataPermanentAddress" placeholder="স্থায়ী ঠিকানা (🔒 ভেরিফাইড ইউজার)">
-                <textarea id="dataAdminInfo" placeholder="প্রশাসনিক তথ্য (🔒 ভেরিফাইড ইউজার)" rows="3"></textarea>
-                <select id="dataHeaderSelect">
-                    <option value="">Header ছাড়া</option>
-                </select>
-                <button id="saveDataBtn" class="btn-primary" style="width: 100%; margin-top: 10px;">সেভ ডাটা</button>
-            </div>
+<div id="dataModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="dataModalTitle">Data যুক্ত করুন</h2>
+            <button class="close-btn" data-close="dataModal" type="button">✕</button>
+        </div>
+        <div class="form-group"><label>ছবি লিঙ্ক (URL)</label><input id="dataPhoto" type="url"></div>
+        <div class="form-group"><label>নাম *</label><input id="dataName" type="text"></div>
+        <div class="form-group"><label>মোবাইল</label><input id="dataMobile" type="tel"></div>
+        <div class="form-group"><label>টেলিফোন</label><input id="dataPhone" type="tel"></div>
+        <div class="form-group"><label>পদবী</label><input id="dataDesignation" type="text"></div>
+        <div class="form-group"><label>ইমেইল</label><input id="dataEmail" type="email"></div>
+        <div class="form-group"><label>বর্তমান অফিস/ঠিকানা</label><input id="dataCurrentOffice" type="text"></div>
+        <div class="form-group"><label>স্থায়ী ঠিকানা</label><input id="dataPermanentAddress" type="text"></div>
+        <div class="form-group"><label>প্রশাসনিক তথ্য</label><input id="dataAdminInfo" type="text"></div>
+        <div class="form-group">
+            <label>Header নির্বাচন করুন</label>
+            <select id="dataHeaderSelect"></select>
+        </div>
+        <div class="modal-actions">
+            <button class="secondary-btn" data-close="dataModal" type="button">বাতিল</button>
+            <button id="saveDataBtn" class="primary-btn" type="button">সেভ করুন</button>
         </div>
     </div>
+</div>
 
-    <!-- 7. Move Data Modal -->
-    <div id="moveDataModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>ডাটা স্থানান্তরিত করুন</h3>
-                <span class="close-btn" data-close="moveDataModal">&times;</span>
-            </div>
-            <div class="modal-body">
-                <label>ক্যাটাগরি সিলেক্ট করুন:</label>
-                <select id="moveCategorySelect"></select>
-                <label style="margin-top:10px; display:block;">হেডার সিলেক্ট করুন:</label>
-                <select id="moveHeaderSelect"></select>
-                <button id="confirmMoveBtn" class="btn-primary" style="width: 100%; margin-top: 15px;">মুভ করুন</button>
-            </div>
+<div id="moveDataModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>ডাটা মুভ করুন</h2>
+            <button class="close-btn" data-close="moveDataModal" type="button">✕</button>
+        </div>
+        <div class="form-group">
+            <label>নতুন Category</label>
+            <select id="moveCategorySelect"></select>
+        </div>
+        <div class="form-group">
+            <label>নতুন Header</label>
+            <select id="moveHeaderSelect"></select>
+        </div>
+        <div class="modal-actions">
+            <button class="secondary-btn" data-close="moveDataModal" type="button">বাতিল</button>
+            <button id="confirmMoveBtn" class="primary-btn" type="button">মুভ নিশ্চিত করুন</button>
         </div>
     </div>
+</div>
 
-    <!-- 8. Custom Confirmation Dialog Modal -->
-    <div id="customConfirmModal" class="modal hidden">
-        <div class="modal-content" style="max-width: 350px;">
-            <div class="modal-header">
-                <h3 id="confirmModalTitle">নিশ্চিতকরণ</h3>
-                <span class="close-btn" data-close="customConfirmModal">&times;</span>
-            </div>
-            <div class="modal-body">
-                <p id="confirmModalMessage">আপনি কি নিশ্চিত?</p>
-                <div style="display: flex; gap: 10px; margin-top: 15px;">
-                    <button id="cancelConfirmBtn" class="btn-secondary" style="flex: 1;">বাতিল</button>
-                    <button id="okConfirmBtn" class="btn-danger" style="flex: 1;">হ্যাঁ, নিশ্চিত</button>
-                </div>
-            </div>
+<div id="customConfirmModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="confirmModalTitle">নিশ্চিতকরণ</h2>
+            <button class="close-btn" data-close="customConfirmModal" type="button">✕</button>
+        </div>
+        <p id="confirmModalMessage">আপনি কি নিশ্চিত?</p>
+        <div class="modal-actions">
+            <button id="cancelConfirmBtn" class="secondary-btn" type="button">বাতিল</button>
+            <button id="okConfirmBtn" class="danger-btn" type="button">হ্যাঁ, মুছুন</button>
         </div>
     </div>
+</div>
 
-    <!-- Toast Alert Container -->
-    <div id="toast" class="toast"></div>
+<div id="toast" class="toast"></div>
 
-    <script type="module" src="js/app.js"></script>
+<script type="module" src="js/app.js"></script>
+
+<script>
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light');
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+    }
+</script>
+    
 </body>
 </html>
