@@ -1638,7 +1638,7 @@ function renderDataDetailsContent(item) {
             }
             ${showVerifyBtnInDetails ? `
                 <div style="text-align: right; margin-top: 5px;">
-                    <button class="btn-get-verify" id="detailsVerifyBtn" title="প্রশাসনিক ডাটা ও স্থায়ী ঠিকানা দেখার জন্য ১০ সে. চেপে রাখুন">Get Verify</button>
+                    <button class="btn-get-verify" id="detailsVerifyBtn" title="প্রশাসনিক ডাটা ও স্থায়ী ঠিকানা দেখার জন্য ১০ সে. চেপে রাখুন">Get VIP</button>
                 </div>` : ""
             }
         </div>
