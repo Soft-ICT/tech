@@ -65,11 +65,25 @@ body {
     justify-content: flex-start;
     margin-right: auto;
     margin-left: 8px;
-    gap: 8px;
+    gap: 6px;
     font-size: 22px;
     font-weight: 700;
     height: 100%;
     line-height: 1;
+}
+
+.verified-badge {
+    background-color: #0d6efd;
+    color: #ffffff;
+    font-size: 11px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    box-shadow: 0 0 5px rgba(13, 110, 253, 0.5);
 }
 
 .top-actions {
@@ -102,6 +116,46 @@ body {
 
 .icon-btn:hover {
     background-color: var(--border-color);
+}
+
+/* ==========================================
+   GET VERIFY BUTTON & ANIMATION
+========================================== */
+
+.btn-get-verify {
+    background-color: var(--bg-color);
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-left: auto;
+    position: relative;
+    overflow: hidden;
+    user-select: none;
+    transition: all 0.2s;
+}
+
+.btn-get-verify.holding {
+    background-color: rgba(37, 99, 235, 0.1);
+}
+
+.btn-get-verify.holding::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0%;
+    background-color: rgba(37, 99, 235, 0.3);
+    animation: holdProgress 10s linear forwards;
+}
+
+@keyframes holdProgress {
+    from { width: 0%; }
+    to { width: 100%; }
 }
 
 /* ==========================================
@@ -300,7 +354,6 @@ body {
     height: 100%;
 }
 
-/* Category/Subcategory Image Styling */
 .cat-card-img {
     width: 60px;
     height: 60px;
