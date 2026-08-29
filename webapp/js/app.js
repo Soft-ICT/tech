@@ -416,10 +416,79 @@ function setupEvents() {
     });
 
     document.getElementById("logoutBtn")?.addEventListener("click", async () => {
-        const result = await logoutAdmin();
-        if (result.success) {
+
+        const logoutBtn = document.getElementById("logoutBtn");
+
+        if (logoutBtn) {
+            logoutBtn.disabled = true;
+            logoutBtn.textContent = "লগআউট হচ্ছে...";
+        }
+
+        try {
+
+            const result = await logoutAdmin();
+
+            if (!result || !result.success) {
+
+                showToast(
+                    "❌ লগআউট ব্যর্থ হয়েছে" +
+                    (result?.error ? ": " + result.error : "")
+                );
+
+                if (logoutBtn) {
+                    logoutBtn.disabled = false;
+                    logoutBtn.textContent = "লগআউট";
+                }
+
+                return;
+            }
+
+            // Admin state সম্পূর্ণ reset
+            window.currentUser = null;
+            window.currentUserRole = "guest";
+
+            // Admin UI hide
+            updateAdminUI();
+
+            // Admin modal বন্ধ
             closeModal("loginModal");
-            showToast("লগআউট করা হয়েছে");
+            closeModal("adminVerifyRequestsModal");
+            closeModal("categoryModal");
+            closeModal("headerModal");
+            closeModal("dataModal");
+            closeModal("moveDataModal");
+            closeModal("customConfirmModal");
+
+            // Navigation reset
+            currentCategoryId = null;
+            currentDataId = null;
+            isAllSearchActive = false;
+            isSearchMode = false;
+
+            // Search reset
+            const searchInput = document.getElementById("searchInput");
+
+            if (searchInput) {
+                searchInput.value = "";
+            }
+
+            closeAllSearchUI();
+
+            // Home page
+            showMainDashboardView(false);
+
+            showToast("✅ অ্যাডমিন সফলভাবে লগআউট হয়েছে");
+
+        } catch (error) {
+
+            console.error("Admin Logout Error:", error);
+
+            showToast("❌ লগআউট করতে সমস্যা হয়েছে");
+
+            if (logoutBtn) {
+                logoutBtn.disabled = false;
+                logoutBtn.textContent = "লগআউট";
+            }
         }
     });
 
