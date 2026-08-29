@@ -159,6 +159,39 @@ body {
 }
 
 /* ==========================================
+   ADMIN FLOATING ACTION BUTTON (FAB)
+========================================== */
+
+.admin-fab {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    width: 56px;
+    height: 56px;
+    background-color: #10b981;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 24px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.admin-fab:hover {
+    background-color: #059669;
+    transform: scale(1.05);
+}
+
+.admin-fab:active {
+    transform: scale(0.95);
+}
+
+/* ==========================================
    SUB-TOOLBAR
 ========================================== */
 
