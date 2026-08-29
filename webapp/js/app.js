@@ -74,7 +74,6 @@ function checkDeviceVerificationStatus() {
     onValue(approvedRef, (snapshot) => {
         if (snapshot.exists() && snapshot.val().status === "approved") {
             isDeviceVerified = true;
-            // শুধুমাত্র হোম পেজে থাকলেই ভেরিফাই ব্যাচ দেখাবে
             if (!currentCategoryId && !currentDataId && !isAllSearchActive) {
                 document.getElementById("verifiedBadge")?.classList.remove("hidden");
             }
@@ -415,11 +414,14 @@ function setupEvents() {
         }
     });
 
+    // সংশোধিত লগআউট ইভেন্ট লিসেনার
     document.getElementById("logoutBtn")?.addEventListener("click", async () => {
         const result = await logoutAdmin();
         if (result.success) {
             closeModal("loginModal");
             showToast("লগআউট করা হয়েছে");
+            updateAdminUI();
+            refreshCurrentView();
         }
     });
 
@@ -443,7 +445,7 @@ function setupEvents() {
 }
 
 /* =========================================
-   Admin Button Long Press for Verification Requests
+   Admin Button Long Press for Verification Requests (Fixed)
 ========================================= */
 function setupAdminButtonLongPress() {
     const adminLoginBtn = document.getElementById("adminLoginBtn");
@@ -455,6 +457,7 @@ function setupAdminButtonLongPress() {
         if (window.currentUserRole !== "admin") return;
         
         e.preventDefault();
+        e.stopPropagation(); // অতিরিক্ত ক্লিক এড়ানোর জন্য
         adminLoginBtn.classList.add("holding");
 
         adminHoldTimer = setTimeout(() => {
@@ -683,7 +686,6 @@ function activateAllSearchUI() {
     emptyState?.classList.add("hidden");
     container?.classList.remove("hidden");
 
-    // অল সার্চ মোডে গেলে ভেরিফাই ব্যাচ লুকিয়ে রাখা হবে
     document.getElementById("verifiedBadge")?.classList.add("hidden");
 
     openHeaderSearch();
@@ -1268,7 +1270,6 @@ function showCategoryView(id) {
         titleText.textContent = category.name;
     }
 
-    // ক্যাটাগরিতে প্রবেশ করলে ভেরিফাই ব্যাচটি লুকিয়ে ফেলা হবে
     const verifiedBadge = document.getElementById("verifiedBadge");
     if (verifiedBadge) {
         verifiedBadge.classList.add("hidden");
@@ -1305,7 +1306,6 @@ function showMainDashboardView(updateHistory = true) {
         titleText.textContent = "Police Phonebook";
     }
 
-    // মূল হোম পেজে ফিরে আসলে এবং ডিভাইস ভেরিফাইড থাকলে ব্যাচটি দেখানো হবে
     const verifiedBadge = document.getElementById("verifiedBadge");
     if (verifiedBadge && isDeviceVerified) {
         verifiedBadge.classList.remove("hidden");
@@ -1538,7 +1538,6 @@ function showDataPage(dataId) {
 
     currentDataId = dataId;
     
-    // ডাটা পেজে গেলে ভেরিফাই ব্যাচ হাইড করা হবে
     document.getElementById("verifiedBadge")?.classList.add("hidden");
 
     setNavState(true);
@@ -1813,4 +1812,3 @@ function showToast(msg) {
 
     setTimeout(() => toast.classList.remove("show"), 2500);
 }
-
