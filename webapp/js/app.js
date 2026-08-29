@@ -388,9 +388,10 @@ function setupEvents() {
         activateAllSearchUI();
     });
 
-    // এডমিন বাটনে ক্লিক হ্যান্ডলার (লগইন থাকলে সরাসরি লগআউট কনফার্মেশন, না থাকলে লগইন মডাল)
+    // এডমিন বাটনে ক্লিক হ্যান্ডলার (ফেক্স করা হয়েছে যেন লগইন থাকা অবস্থায় কাস্টম ডায়লগ আসে)
     document.getElementById("adminLoginBtn")?.addEventListener("click", async () => {
-        if (window.currentUserRole === "admin") {
+        const role = String(window.currentUserRole || "").toLowerCase();
+        if (window.currentUser || role === "admin" || role === "administrator") {
             const isConfirmed = await customConfirm("আপনি কি লগআউট করতে চান?", "লগআউট নিশ্চিতকরণ", "হ্যাঁ, লগআউট");
             if (!isConfirmed) return;
 
@@ -1812,7 +1813,7 @@ function customConfirm(message, title = "নিশ্চিতকরণ", confir
         if (!modal) return resolve(false);
 
         if (msgEl) msgEl.textContent = message;
-        if (titleEl) titleEl.title = title; // fixed safe assignment
+        if (titleEl) titleEl.title = title;
         if (titleEl) titleEl.textContent = title;
         if (okBtn) okBtn.textContent = confirmText;
 
