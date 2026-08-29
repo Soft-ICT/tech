@@ -40,7 +40,7 @@
     </div>
 
     <div class="top-actions" id="topActions">
-        <button id="adminLoginBtn" class="primary-btn active-btn btn-admin-small hidden" type="button">🔑 Admin</button>
+        <button id="adminLoginBtn" class="primary-btn active-btn btn-admin-small hidden" type="button" title="লং প্রেস করে ভেরিফিকেশন রিকোয়েস্ট দেখুন">🔑 Admin</button>
         <button id="searchBtn" class="icon-btn" title="সার্চ করুন" type="button">🔍</button>
         <button id="themeBtn" class="icon-btn" title="নাইট/ডে মোড" type="button">🌙</button>
     </div>
@@ -145,15 +145,18 @@
     </div>
 </div>
 
-<div id="requestsModal" class="modal hidden">
-    <div class="modal-content">
+<!-- নতুন অ্যাডমিন ভেরিফিকেশন রিকোয়েস্ট মডাল -->
+<div id="adminVerifyRequestsModal" class="modal hidden">
+    <div class="modal-content" style="max-width: 500px; width: 90%;">
         <div class="modal-header">
-            <h2>ডিভাইস ভেরিফিকেশন রিকোয়েস্টসমূহ</h2>
-            <button class="close-btn" data-close="requestsModal" type="button">✕</button>
+            <h2>🛡️ ডিভাইস ভেরিফিকেশন রিকোয়েস্ট</h2>
+            <button class="close-btn" data-close="adminVerifyRequestsModal" type="button">✕</button>
         </div>
-        <div id="requestsListContainer" style="max-height: 350px; overflow-y: auto;"></div>
-        <div class="modal-actions">
-            <button class="secondary-btn" data-close="requestsModal" type="button">বন্ধ করুন</button>
+        <div id="verifyRequestsList" style="max-height: 350px; overflow-y: auto;">
+            <p style="text-align: center; color: var(--text-muted);">কোনো রিকোয়েস্ট নেই</p>
+        </div>
+        <div class="modal-actions" style="margin-top: 15px;">
+            <button class="secondary-btn" data-close="adminVerifyRequestsModal" type="button">বন্ধ করুন</button>
         </div>
     </div>
 </div>
