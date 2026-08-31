@@ -148,7 +148,12 @@ function updateAdminUI() {
 
     document.querySelectorAll(".admin-only").forEach(el => {
         if (isAdmin) {
-            el.classList.remove("hidden");
+            // যদি অল সার্চ মোড একটিভ থাকে, তবে ক্যাটাগরি যোগ করার বাটনটি অ্যাডমিন হলেও হাইড রাখবে
+            if (el.id === "addCategoryBtn" && isAllSearchActive) {
+                el.classList.add("hidden");
+            } else {
+                el.classList.remove("hidden");
+            }
         } else {
             el.classList.add("hidden");
         }
@@ -169,6 +174,7 @@ function updateAdminUI() {
         }
     }
 }
+
 
 /* =========================================
    DOM Ready
