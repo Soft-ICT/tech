@@ -1,10 +1,10 @@
 /* =========================================
-   Notification System Module (Fully Fixed & Stable)
+   Notification System Module (Fixed & Independent Modal)
 ========================================= */
 import { db } from "./firebase-config.js";
 import { ref, set, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-// মডিউলটি ইম্পোর্ট বা লোড হওয়ার সাথে সাথে UI ও ইভেন্ট সেটআপ কল করা
+// পেজ লোড হওয়ার সাথে সাথে ইনিশিয়ালাইজ করা
 if (document.readyState === 'loading') {
     document.addEventListener("DOMContentLoaded", initNotificationSystem);
 } else {
@@ -22,17 +22,17 @@ function createNotificationUI() {
 
     const notificationHTML = `
     <!-- নোটিফিকেশন ম্যানেজমেন্ট প্যানেল মোডাল -->
-    <div id="notificationModal" class="modal hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
-        <div class="modal-content notification-modal-content" style="max-width: 680px; width: 95%; background: var(--bg-card, #fff); border-radius: 8px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
-            <div class="modal-header" style="padding: 15px; border-bottom: 1px solid var(--border-color, #ddd); display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="margin:0; font-size: 18px;">📢 নোটিফিকেশন ম্যানেজমেন্ট প্যানেল</h2>
-                <button class="close-btn" data-close="notificationModal" type="button" style="background:none; border:none; font-size: 18px; cursor:pointer;">✕</button>
+    <div id="notificationModal" class="modal hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 99999; align-items: center; justify-content: center;">
+        <div class="modal-content notification-modal-content" style="max-width: 680px; width: 95%; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 5px 25px rgba(0,0,0,0.4); animation: fadeIn 0.3s ease;">
+            <div class="modal-header" style="padding: 15px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; background: #f8f9fa;">
+                <h2 style="margin:0; font-size: 18px; color: #333;">📢 নোটিফিকেশন ম্যানেজমেন্ট প্যানেল</h2>
+                <button class="close-btn" data-close="notificationModal" type="button" style="background:none; border:none; font-size: 20px; cursor:pointer; color: #666;">✕</button>
             </div>
             
-            <div class="notification-body" style="max-height: 78vh; overflow-y: auto; padding: 15px;">
+            <div class="notification-body" style="max-height: 75vh; overflow-y: auto; padding: 15px;">
                 
                 <!-- View Pager / Tabs Navigation -->
-                <div class="notice-tabs" style="display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid var(--border-color, #ddd); padding-bottom: 10px;">
+                <div class="notice-tabs" style="display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid #ddd; padding-bottom: 10px;">
                     <button type="button" class="tab-btn active-tab" data-target="tabSliding" style="flex: 1; padding: 8px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">Scrolling Notice</button>
                     <button type="button" class="tab-btn" data-target="tabHome" style="flex: 1; padding: 8px; background: #e9ecef; color: #333; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">Home Notice</button>
                     <button type="button" class="tab-btn" data-target="tabPush" style="flex: 1; padding: 8px; background: #e9ecef; color: #333; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">Push Notice</button>
@@ -42,18 +42,18 @@ function createNotificationUI() {
 
                 <!-- TAB 1: SCROLLING NOTICE -->
                 <div id="tabSliding" class="notice-tab-content">
-                    <div class="card" style="padding: 15px; background: var(--bg-card, #f9f9f9); border-radius: 8px; border: 1px solid var(--border-color, #ddd); margin-bottom: 15px;">
+                    <div class="card" style="padding: 15px; background: #f9f9f9; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                             <h3 class="form-title-sliding" style="margin: 0; font-size: 16px;">স্লাইডিং নোটিশ তৈরি করুন</h3>
                             <button type="button" id="toggleSlidingGlobalBtn" style="padding: 4px 10px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer; background: #28a745; color: #fff;">স্ট্যাটাস: চালু আছে</button>
                         </div>
                         <div class="form-group" style="margin-bottom: 10px;">
                             <label style="display:block; margin-bottom: 4px; font-weight: 500;">১. শিরোনাম:</label>
-                            <input type="text" id="slidingTitle" placeholder="যেমন: BREAKING NEWS" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
+                            <input type="text" id="slidingTitle" placeholder="যেমন: BREAKING NEWS" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
                         </div>
                         <div class="form-group" style="margin-bottom: 10px;">
                             <label style="display:block; margin-bottom: 4px; font-weight: 500;">২. বিস্তারিত:</label>
-                            <textarea id="slidingMessage" rows="2" placeholder="বিস্তারিত লিখুন..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);"></textarea>
+                            <textarea id="slidingMessage" rows="2" placeholder="বিস্তারিত লিখুন..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></textarea>
                         </div>
                         <button type="button" class="submit-notice-btn primary-btn" data-type="sliding" style="width: 100%; padding: 9px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer;">ফায়ারবেজে প্রকাশ করুন</button>
                     </div>
@@ -65,22 +65,22 @@ function createNotificationUI() {
 
                 <!-- TAB 2: HOME NOTICE -->
                 <div id="tabHome" class="notice-tab-content hidden" style="display: none;">
-                    <div class="card" style="padding: 15px; background: var(--bg-card, #f9f9f9); border-radius: 8px; border: 1px solid var(--border-color, #ddd); margin-bottom: 15px;">
+                    <div class="card" style="padding: 15px; background: #f9f9f9; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                             <h3 class="form-title-home" style="margin: 0; font-size: 16px;">হোম নোটিশ তৈরি করুন</h3>
                             <button type="button" id="toggleHomeGlobalBtn" style="padding: 4px 10px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer; background: #28a745; color: #fff;">স্ট্যাটাস: চালু আছে</button>
                         </div>
                         <div class="form-group" style="margin-bottom: 10px;">
                             <label style="display:block; margin-bottom: 4px; font-weight: 500;">১. শিরোনাম:</label>
-                            <input type="text" id="homeTitle" placeholder="নোটিশের শিরোনাম..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
+                            <input type="text" id="homeTitle" placeholder="নোটিশের শিরোনাম..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
                         </div>
                         <div class="form-group" style="margin-bottom: 10px;">
                             <label style="display:block; margin-bottom: 4px; font-weight: 500;">২. বিস্তারিত:</label>
-                            <textarea id="homeMessage" rows="2" placeholder="বিস্তারিত বিবরণ..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);"></textarea>
+                            <textarea id="homeMessage" rows="2" placeholder="বিস্তারিত বিবরণ..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></textarea>
                         </div>
                         <div class="form-group" style="margin-bottom: 10px;">
-                            <label style="display:block; margin-bottom: 4px; font-weight: 500;">৩. মিডিয়া বা সাইট লিংক (ইমেজ / ভিডিও / ওয়েবসাইট URL):</label>
-                            <input type="url" id="homeMediaLink" placeholder="https://example.com/image.jpg" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
+                            <label style="display:block; margin-bottom: 4px; font-weight: 500;">৩. মিডিয়া বা সাইট লিংক:</label>
+                            <input type="url" id="homeMediaLink" placeholder="https://example.com/image.jpg" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
                         </div>
                         <button type="button" class="submit-notice-btn primary-btn" data-type="home" style="width: 100%; padding: 9px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer;">ফায়ারবেজে প্রকাশ করুন</button>
                     </div>
@@ -92,19 +92,19 @@ function createNotificationUI() {
 
                 <!-- TAB 3: PUSH NOTICE -->
                 <div id="tabPush" class="notice-tab-content hidden" style="display: none;">
-                    <div class="card" style="padding: 15px; background: var(--bg-card, #f9f9f9); border-radius: 8px; border: 1px solid var(--border-color, #ddd); margin-bottom: 15px;">
+                    <div class="card" style="padding: 15px; background: #f9f9f9; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px;">
                         <h3 class="form-title-push" style="margin: 0; font-size: 16px;">পুশ নোটিশ তৈরি করুন</h3>
                         <div class="form-group" style="margin-bottom: 10px;">
                             <label style="display:block; margin-bottom: 4px; font-weight: 500;">১. শিরোনাম:</label>
-                            <input type="text" id="pushTitle" placeholder="পুশ নোটিফিকেশন শিরোনাম..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
+                            <input type="text" id="pushTitle" placeholder="পুশ নোটিফিকেশন শিরোনাম..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
                         </div>
                         <div class="form-group" style="margin-bottom: 10px;">
                             <label style="display:block; margin-bottom: 4px; font-weight: 500;">২. বিস্তারিত:</label>
-                            <textarea id="pushMessage" rows="2" placeholder="পুশ মেসেজ..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);"></textarea>
+                            <textarea id="pushMessage" rows="2" placeholder="পুশ মেসেজ..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></textarea>
                         </div>
                         <div class="form-group" style="margin-bottom: 10px;">
                             <label style="display:block; margin-bottom: 4px; font-weight: 500;">৩. ইমেজ লিংক:</label>
-                            <input type="url" id="pushImageLink" placeholder="https://example.com/banner.jpg" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
+                            <input type="url" id="pushImageLink" placeholder="https://example.com/banner.jpg" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
                         </div>
                         <button type="button" class="submit-notice-btn primary-btn" data-type="push" style="width: 100%; padding: 9px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer;">ফায়ারবেজে পাঠান</button>
                     </div>
@@ -117,7 +117,7 @@ function createNotificationUI() {
                 <button id="cancelEditBtn" class="secondary-btn hidden" type="button" style="width: 100%; padding: 8px; margin-top: 15px; background: #6c757d; color: #fff; border: none; border-radius: 4px; cursor: pointer; display: none;">এডিট বাতিল করুন</button>
             </div>
             
-            <div class="modal-actions" style="padding: 10px 15px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end;">
+            <div class="modal-actions" style="padding: 10px 15px; border-top: 1px solid #ddd; display: flex; justify-content: flex-end; background: #f8f9fa;">
                 <button class="secondary-btn" data-close="notificationModal" type="button" style="padding: 6px 14px; background: #6c757d; color: #fff; border:none; border-radius:4px; cursor:pointer;">বন্ধ করুন</button>
             </div>
         </div>
@@ -127,7 +127,7 @@ function createNotificationUI() {
 }
 
 function setupNotificationEvents() {
-    // গ্লোবাল ডকুমেন্ট বা ইভেন্ট ডেলিগেশনের মাধ্যমে বাটন ক্লিক হ্যান্ডেল করা যাতে বাটন পরেও লোড হলে সমস্যা না হয়
+    // শুধুমাত্র নোটিফিকেশন বাটনে ক্লিক করলে মোডাল ওপেন হবে (অন্য সার্চ বা লিস্টে প্রভাব ফেলবে না)
     document.addEventListener("click", (e) => {
         const notifBtn = e.target.closest("#notificationBtn");
         if (notifBtn) {
@@ -141,21 +141,20 @@ function setupNotificationEvents() {
         }
     });
 
-    const modal = document.getElementById("notificationModal");
-    const cancelEditBtn = document.getElementById("cancelEditBtn");
-    const toggleSlidingBtn = document.getElementById("toggleSlidingGlobalBtn");
-    const toggleHomeBtn = document.getElementById("toggleHomeGlobalBtn");
-
+    // মোডাল বন্ধ করার ইভেন্ট
     document.addEventListener("click", (e) => {
         if (e.target.matches("[data-close='notificationModal']") || e.target.closest("[data-close='notificationModal']")) {
-            const m = document.getElementById("notificationModal");
-            if (m) {
-                m.classList.add("hidden");
-                m.style.display = "none";
+            const modal = document.getElementById("notificationModal");
+            if (modal) {
+                modal.classList.add("hidden");
+                modal.style.display = "none";
                 resetForm();
             }
         }
     });
+
+    const toggleSlidingBtn = document.getElementById("toggleSlidingGlobalBtn");
+    const toggleHomeBtn = document.getElementById("toggleHomeGlobalBtn");
 
     toggleSlidingBtn?.addEventListener("click", () => {
         let isOff = localStorage.getItem("sliding_notice_disabled") === "true";
@@ -171,7 +170,9 @@ function setupNotificationEvents() {
         renderActiveNotices();
     });
 
+    const modal = document.getElementById("notificationModal");
     const tabBtns = modal?.querySelectorAll(".tab-btn");
+    
     tabBtns?.forEach(btn => {
         btn.addEventListener("click", (e) => {
             tabBtns.forEach(b => {
@@ -204,6 +205,7 @@ function setupNotificationEvents() {
         });
     });
 
+    const cancelEditBtn = document.getElementById("cancelEditBtn");
     if (cancelEditBtn) {
         cancelEditBtn.addEventListener("click", () => resetForm());
     }
