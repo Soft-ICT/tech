@@ -2,8 +2,19 @@
    Notification System Module (Fully Firebase Active)
 ========================================= */
 
-import { database } from "./firebase.js"; // আপনার প্রজেক্টের firebase.js ফাইলের সঠিক পাথ দিন
-import { ref, push, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-database.js";
+import { database } from "./firebase.js";
+import { ref, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+set(ref(database, 'test_notice'), {
+    title: "টেস্ট নোটিশ",
+    message: "এটি টেস্ট মেসেজ",
+    time: "Just now"
+}).then(() => {
+    console.log("সফলভাবে ফায়ারবেজে গেছে!");
+}).catch((error) => {
+    console.error("ফেইল করেছে:", error);
+});
+
 
 export function initNotificationSystem() {
     createNotificationUI();
