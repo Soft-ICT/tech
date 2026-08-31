@@ -1,6 +1,19 @@
 /* =========================================
-   Notification System Module (Separate Lists & Toggle/Disable Support)
+   Notification System Module (Firebase Firestore Version)
 ========================================= */
+
+import { 
+    collection, 
+    addDoc, 
+    getDocs, 
+    doc, 
+    updateDoc, 
+    deleteDoc, 
+    setDoc,
+    getDoc,
+    serverTimestamp 
+} from "firebase/firestore";
+import { db } from "./firebase-config.js"; // আপনার প্রজেক্টের ফায়ারবেজ কনফিগ ফাইলের পাথ এখানে দিন
 
 export function initNotificationSystem() {
     createNotificationUI();
@@ -15,7 +28,7 @@ function createNotificationUI() {
     <div id="notificationModal" class="modal hidden">
         <div class="modal-content notification-modal-content" style="max-width: 680px; width: 95%;">
             <div class="modal-header">
-                <h2>📢 নোটিফিকেশন ম্যানেজমেন্ট প্যানেল</h2>
+                <h2>📢 নোটিফিকেশন ম্যানেজমেন্ট প্যানেল (ফায়ারবেজ)</h2>
                 <button class="close-btn" data-close="notificationModal" type="button">✕</button>
             </div>
             
@@ -24,7 +37,7 @@ function createNotificationUI() {
                 <!-- View Pager / Tabs Navigation -->
                 <div class="notice-tabs" style="display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid var(--border-color, #ddd); padding-bottom: 10px;">
                     <button type="button" class="tab-btn active-tab" data-target="tabSliding" style="flex: 1; padding: 8px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">Scrolling Notice</button>
-                    <button type="button" class="tab-btn" data-target="tabHome" style="flex: 1; padding: 8px; background: #e9ecef; color: #333; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">Home Notice (Popup)</button>
+                    <button type="button" class="tab-btn" data-target="tabHome" style="flex: 1; padding: 8px; background: #e9ecef; color: #333; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">Home Notice</button>
                     <button type="button" class="tab-btn" data-target="tabPush" style="flex: 1; padding: 8px; background: #e9ecef; color: #333; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">Push Notice</button>
                 </div>
 
@@ -48,20 +61,19 @@ function createNotificationUI() {
                         <button type="button" class="submit-notice-btn primary-btn" data-type="sliding" style="width: 100%; padding: 9px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer;">স্লাইডিং নোটিশ প্রকাশ করুন</button>
                     </div>
 
-                    <!-- আলাদা লিস্ট: Scrolling -->
                     <div>
                         <h4 style="margin-bottom: 8px; font-size: 14px; color: var(--text-main);">স্লাইডিং নোটিশের তালিকা</h4>
                         <div id="sentSlidingList" class="notification-list">
-                            <p class="text-muted" style="text-align: center; padding: 10px; font-size: 13px;">কোনো স্লাইডিং নোটিশ নেই।</p>
+                            <p class="text-muted" style="text-align: center; padding: 10px; font-size: 13px;">লোড হচ্ছে...</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- TAB 2: HOME NOTICE (POPUP) -->
+                <!-- TAB 2: HOME NOTICE -->
                 <div id="tabHome" class="notice-tab-content hidden">
                     <div class="card" style="padding: 15px; background: var(--bg-card, #f9f9f9); border-radius: 8px; border: 1px solid var(--border-color, #ddd); margin-bottom: 15px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                            <h3 class="form-title-home" style="margin: 0; font-size: 16px; color: var(--text-main);">হোম নোটিশ পপআপ তৈরি করুন</h3>
+                            <h3 class="form-title-home" style="margin: 0; font-size: 16px; color: var(--text-main);">হোম নোটিশ তৈরি করুন</h3>
                             <button type="button" id="toggleHomeGlobalBtn" style="padding: 4px 10px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer; background: #28a745; color: #fff;">স্ট্যাটাস: চালু আছে</button>
                         </div>
                         <div class="form-group" style="margin-bottom: 10px;">
@@ -69,8 +81,8 @@ function createNotificationUI() {
                             <input type="text" id="homeTitle" placeholder="নোটিশের শিরোনাম..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
                         </div>
                         <div class="form-group" style="margin-bottom: 10px;">
-                            <label style="display:block; margin-bottom: 4px; font-weight: 500;">২. বিস্তারিত বিবরণ:</label>
-                            <textarea id="homeMessage" rows="2" placeholder="ছোট বিবরণ লিখুন..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);"></textarea>
+                            <label style="display:block; margin-bottom: 4px; font-weight: 500;">২. বিস্তারিত:</label>
+                            <textarea id="homeMessage" rows="2" placeholder="বিস্তারিত বিবরণ..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);"></textarea>
                         </div>
                         <div class="form-group" style="margin-bottom: 10px;">
                             <label style="display:block; margin-bottom: 4px; font-weight: 500;">৩. মিডিয়া বা সাইট লিংক (ইমেজ / ভিডিও / ওয়েবসাইট URL):</label>
@@ -79,11 +91,10 @@ function createNotificationUI() {
                         <button type="button" class="submit-notice-btn primary-btn" data-type="home" style="width: 100%; padding: 9px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer;">হোম নোটিশ প্রকাশ করুন</button>
                     </div>
 
-                    <!-- আলাদা লিস্ট: Home -->
                     <div>
                         <h4 style="margin-bottom: 8px; font-size: 14px; color: var(--text-main);">হোম নোটিশের তালিকা</h4>
                         <div id="sentHomeList" class="notification-list">
-                            <p class="text-muted" style="text-align: center; padding: 10px; font-size: 13px;">কোনো হোম নোটিশ নেই।</p>
+                            <p class="text-muted" style="text-align: center; padding: 10px; font-size: 13px;">লোড হচ্ছে...</p>
                         </div>
                     </div>
                 </div>
@@ -107,11 +118,10 @@ function createNotificationUI() {
                         <button type="button" class="submit-notice-btn primary-btn" data-type="push" style="width: 100%; padding: 9px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer;">পুশ নোটিশ পাঠান</button>
                     </div>
 
-                    <!-- আলাদা লিস্ট: Push -->
                     <div>
                         <h4 style="margin-bottom: 8px; font-size: 14px; color: var(--text-main);">পুশ নোটিশের তালিকা</h4>
                         <div id="sentPushList" class="notification-list">
-                            <p class="text-muted" style="text-align: center; padding: 10px; font-size: 13px;">কোনো পুশ নোটিশ নেই।</p>
+                            <p class="text-muted" style="text-align: center; padding: 10px; font-size: 13px;">লোড হচ্ছে...</p>
                         </div>
                     </div>
                 </div>
@@ -150,14 +160,14 @@ function setupNotificationEvents() {
         });
     });
 
-    toggleSlidingBtn?.addEventListener("click", () => {
+    toggleSlidingBtn?.addEventListener("click", async () => {
         let isOff = localStorage.getItem("sliding_notice_disabled") === "true";
         localStorage.setItem("sliding_notice_disabled", !isOff);
         updateToggleButtonsUI();
         renderActiveNotices();
     });
 
-    toggleHomeBtn?.addEventListener("click", () => {
+    toggleHomeBtn?.addEventListener("click", async () => {
         let isOff = localStorage.getItem("home_notice_disabled") === "true";
         localStorage.setItem("home_notice_disabled", !isOff);
         updateToggleButtonsUI();
@@ -216,7 +226,7 @@ function updateToggleButtonsUI() {
     }
 }
 
-function handleSaveOrUpdateNotice(type) {
+async function handleSaveOrUpdateNotice(type) {
     const editId = document.getElementById("editNoticeId").value;
     let title = "";
     let message = "";
@@ -240,48 +250,45 @@ function handleSaveOrUpdateNotice(type) {
         return;
     }
 
-    let notices = JSON.parse(localStorage.getItem("app_custom_notices") || "[]");
+    try {
+        const timeStr = new Date().toLocaleString('bn-BD');
 
-    if (editId) {
-        notices = notices.map(n => {
-            if (n.id == editId) {
-                return { ...n, type, title, message, mediaLink, time: new Date().toLocaleString('bn-BD') + " (এডিটেড)" };
+        if (editId) {
+            // Firestore-এ ডকুমেন্ট আপডেট করা
+            const noticeRef = doc(db, "notices", editId);
+            await updateDoc(noticeRef, {
+                title,
+                message,
+                mediaLink,
+                time: timeStr + " (এডিটেড)"
+            });
+            alert("নোটিশ সফলভাবে আপডেট করা হয়েছে!");
+        } else {
+            // Firestore-এ নতুন নোটিশ সেভ করা
+            const newNoticeData = {
+                type,
+                title,
+                message,
+                mediaLink,
+                time: timeStr,
+                createdAt: serverTimestamp()
+            };
+            const docRef = await addDoc(collection(db, "notices"), newNoticeData);
+
+            // যদি স্লাইডিং বা হোম নোটিশ হয়, তবে ফায়ারবেজের একক একটিভ ডকুমেন্ট বা লোকাল স্টোরেজে লেটেস্ট সেট করা
+            if (type === 'push') {
+                triggerPushBackgroundNotification({ title, message, mediaLink });
             }
-            return n;
-        });
-        alert("নোটিশ সফলভাবে আপডেট করা হয়েছে!");
-    } else {
-        const newNotice = {
-            id: Date.now(),
-            type,
-            title,
-            message,
-            mediaLink,
-            time: new Date().toLocaleString('bn-BD')
-        };
-        notices.unshift(newNotice);
-
-        if (type === 'sliding') {
-            localStorage.setItem("active_sliding_notice", JSON.stringify(newNotice));
-        } else if (type === 'home') {
-            localStorage.setItem("active_home_notice", JSON.stringify(newNotice));
-        } else if (type === 'push') {
-            triggerPushBackgroundNotification(newNotice);
+            alert("নোটিশ সফলভাবে প্রকাশ করা হয়েছে!");
         }
-        alert("নোটিশ সফলভাবে প্রকাশ করা হয়েছে!");
+
+        resetForm();
+        loadAllSeparateLists();
+        renderActiveNotices();
+    } catch (error) {
+        console.error("Error saving notice: ", error);
+        alert("নোটিশ সেভ করতে সমস্যা হয়েছে: " + error.message);
     }
-
-    localStorage.setItem("app_custom_notices", JSON.stringify(notices));
-
-    const latestOfType = notices.find(n => n.type === type);
-    if (latestOfType) {
-        if (type === 'sliding') localStorage.setItem("active_sliding_notice", JSON.stringify(latestOfType));
-        if (type === 'home') localStorage.setItem("active_home_notice", JSON.stringify(latestOfType));
-    }
-
-    resetForm();
-    loadAllSeparateLists();
-    renderActiveNotices();
 }
 
 function triggerPushBackgroundNotification(notice) {
@@ -304,27 +311,43 @@ function triggerPushBackgroundNotification(notice) {
     }
 }
 
-export function renderActiveNotices() {
+export async function renderActiveNotices() {
     const slidingDisabled = localStorage.getItem("sliding_notice_disabled") === "true";
     const ticker = document.getElementById("slidingNoticeTicker");
-    if (slidingDisabled) {
-        if (ticker) ticker.remove();
-    } else {
-        const activeSliding = JSON.parse(localStorage.getItem("active_sliding_notice"));
-        if (activeSliding) {
-            showSlidingBanner(activeSliding);
-        }
-    }
+    
+    try {
+        const querySnapshot = await getDocs(collection(db, "notices"));
+        let notices = [];
+        querySnapshot.forEach((docSnap) => {
+            notices.push({ id: docSnap.id, ...docSnap.data() });
+        });
 
-    const homeDisabled = localStorage.getItem("home_notice_disabled") === "true";
-    const existingPopup = document.getElementById("activeHomeNoticePopupModal");
-    if (homeDisabled) {
-        if (existingPopup) existingPopup.remove();
-    } else {
-        const activeHome = JSON.parse(localStorage.getItem("active_home_notice"));
-        if (activeHome) {
-            showHomeNoticePopup(activeHome);
+        // লেটেস্ট স্লাইডিং নোটিশ খুঁজে বের করা
+        const slidingNotices = notices.filter(n => n.type === 'sliding');
+        if (slidingDisabled) {
+            if (ticker) ticker.remove();
+        } else if (slidingNotices.length > 0) {
+            // ক্রিয়েটেড টাইম অনুযায়ী সর্ট করে লেটেস্টটি নেওয়া
+            slidingNotices.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+            showSlidingBanner(slidingNotices[0]);
         }
+
+        // লেটেস্ট হোম নোটিশ খুঁজে বের করা
+        const homeDisabled = localStorage.getItem("home_notice_disabled") === "true";
+        const homeContainer = document.getElementById("allSearchContainer");
+        const homeNotices = notices.filter(n => n.type === 'home');
+
+        if (homeContainer) {
+            if (homeDisabled) {
+                const bannerEl = document.getElementById("activeHomeNoticeBanner");
+                if (bannerEl) bannerEl.remove();
+            } else if (homeNotices.length > 0) {
+                homeNotices.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+                showHomeNoticeBanner(homeNotices[0]);
+            }
+        }
+    } catch (error) {
+        console.error("Error rendering active notices from Firebase:", error);
     }
 }
 
@@ -356,109 +379,79 @@ function showSlidingBanner(notice) {
     `;
 }
 
-function showHomeNoticePopup(notice) {
-    if (document.getElementById("activeHomeNoticePopupModal")) return;
-
-    let mediaHtml = "";
-    let actionBtnHtml = "";
-
-    if (notice.mediaLink) {
-        const link = notice.mediaLink.toLowerCase();
+function showHomeNoticeBanner(notice) {
+    let container = document.getElementById("allSearchContainer");
+    if (container) {
+        container.classList.remove("hidden");
         
-        if (link.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
-            mediaHtml = `
-                <div style="margin: 12px 0; text-align: center; background: #000; border-radius: 6px; overflow: hidden;">
-                    <img src="${notice.mediaLink}" style="width: 100%; max-height: 280px; object-fit: contain;" alt="Notice Media">
-                </div>`;
-            actionBtnHtml = `<a href="${notice.mediaLink}" target="_blank" class="primary-btn" style="flex: 1; padding: 10px; background: #0d6efd; color: #fff; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 600; text-align: center;">ফুল সাইজ ছবি দেখুন</a>`;
-        } else if (link.includes("youtube.com") || link.includes("youtu.be") || link.match(/\.(mp4|webm)$/i)) {
-            let embedUrl = notice.mediaLink;
-            if (link.includes("watch?v=")) {
-                embedUrl = notice.mediaLink.replace("watch?v=", "embed/");
-            } else if (link.includes("youtu.be/")) {
-                embedUrl = notice.mediaLink.replace("youtu.be/", "www.youtube.com/embed/");
-            }
+        let existingBanner = document.getElementById("activeHomeNoticeBanner");
+        if (existingBanner) existingBanner.remove();
 
-            if (link.match(/\.(mp4|webm)$/i)) {
-                mediaHtml = `
-                    <div style="margin: 12px 0; border-radius: 6px; overflow: hidden; background: #000;">
-                        <video controls style="width: 100%; max-height: 250px;"><source src="${notice.mediaLink}" type="video/mp4">আপনার ব্রাউজার ভিডিও সাপোর্ট করে না।</video>
-                    </div>`;
+        let mediaHtml = "";
+        if (notice.mediaLink) {
+            const link = notice.mediaLink.toLowerCase();
+            if (link.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
+                mediaHtml = `<div style="margin-top: 10px;"><img src="${notice.mediaLink}" style="max-width: 100%; max-height: 220px; border-radius: 6px; object-fit: cover;" alt="Notice Media"></div>`;
+            } else if (link.includes("youtube.com") || link.includes("youtu.be") || link.match(/\.(mp4|webm)$/i)) {
+                mediaHtml = `<div style="margin-top: 10px; font-size: 13px;"><a href="${notice.mediaLink}" target="_blank" style="color: #0d6efd; text-decoration: underline; font-weight: 600;">🎥 ভিডিও লিংক ওপেন করুন</a></div>`;
             } else {
-                mediaHtml = `
-                    <div style="margin: 12px 0; border-radius: 6px; overflow: hidden; background: #000; position: relative; padding-bottom: 56.25%; height: 0;">
-                        <iframe src="${embedUrl}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" allowfullscreen></iframe>
-                    </div>`;
+                mediaHtml = `<div style="margin-top: 10px;"><a href="${notice.mediaLink}" target="_blank" class="primary-btn" style="display: inline-block; padding: 6px 14px; background: #0d6efd; color: #fff; border-radius: 4px; text-decoration: none; font-size: 13px; font-weight: 500;">ওপেন লিংক</a></div>`;
             }
-            actionBtnHtml = `<a href="${notice.mediaLink}" target="_blank" class="primary-btn" style="flex: 1; padding: 10px; background: #dc3545; color: #fff; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 600; text-align: center;">ইউটিউব/ভিডিও লিংকে যান</a>`;
-        } else {
-            actionBtnHtml = `<a href="${notice.mediaLink}" target="_blank" class="primary-btn" style="flex: 1; padding: 10px; background: #0d6efd; color: #fff; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 600; text-align: center;">লিংকে প্রবেশ করুন</a>`;
         }
+
+        const bannerDiv = document.createElement("div");
+        bannerDiv.id = "activeHomeNoticeBanner";
+        bannerDiv.style.cssText = "background: var(--bg-card, #e3f2fd); border-left: 4px solid #0d6efd; padding: 12px; border-radius: 6px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);";
+        bannerDiv.innerHTML = `
+            <h4 style="color: #0d6efd; margin-bottom: 5px; font-size: 15px;">📌 ${notice.title}</h4>
+            <p style="margin: 0; font-size: 14px; color: var(--text-main); line-height: 1.4;">${notice.message}</p>
+            ${mediaHtml}
+            <small style="color: gray; display: block; margin-top: 6px; font-size: 11px;">প্রকাশিত: ${notice.time}</small>
+        `;
+
+        container.prepend(bannerDiv);
     }
-
-    const popupOverlay = document.createElement("div");
-    popupOverlay.id = "activeHomeNoticePopupModal";
-    popupOverlay.style.cssText = "position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center; z-index: 10000; padding: 15px;";
-
-    popupOverlay.innerHTML = `
-        <div style="background: var(--bg-card, #ffffff); width: 100%; max-width: 500px; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); overflow: hidden;">
-            <div style="background: #0d6efd; color: #fff; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-size: 14px; font-weight: 600;">📢 বিশেষ ঘোষণা</span>
-                <button type="button" id="closeHomePopupBtn" style="background: transparent; border: none; color: #fff; font-size: 18px; cursor: pointer;">✕</button>
-            </div>
-            <div style="padding: 20px; max-height: 75vh; overflow-y: auto;">
-                <h2 style="color: var(--text-main, #222); font-size: 22px; font-weight: 700; margin-bottom: 12px; line-height: 1.3;">${notice.title}</h2>
-                <p style="color: var(--text-muted, #555); font-size: 13px; line-height: 1.5; margin-bottom: 10px;">${notice.message}</p>
-                ${mediaHtml}
-                <small style="color: gray; display: block; margin-top: 10px; font-size: 11px;">প্রকাশিত: ${notice.time}</small>
-            </div>
-            <div style="padding: 12px 20px; background: #f1f3f5; display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid var(--border-color, #ddd);">
-                ${actionBtnHtml}
-                <button type="button" id="closeHomePopupBottomBtn" style="padding: 10px 16px; background: #6c757d; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500;">বন্ধ করুন</button>
-            </div>
-        </div>
-    `;
-
-    document.body.appendChild(popupOverlay);
-
-    const closePopup = () => popupOverlay.remove();
-    document.getElementById("closeHomePopupBtn").addEventListener("click", closePopup);
-    document.getElementById("closeHomePopupBottomBtn").addEventListener("click", closePopup);
-    popupOverlay.addEventListener("click", (e) => {
-        if (e.target === popupOverlay) closePopup();
-    });
 }
 
-function loadAllSeparateLists() {
-    let notices = JSON.parse(localStorage.getItem("app_custom_notices") || "[]");
-
+async function loadAllSeparateLists() {
     const slidingList = document.getElementById("sentSlidingList");
     const homeList = document.getElementById("sentHomeList");
     const pushList = document.getElementById("sentPushList");
 
-    const slidingNotices = notices.filter(n => n.type === 'sliding');
-    const homeNotices = notices.filter(n => n.type === 'home');
-    const pushNotices = notices.filter(n => n.type === 'push');
+    slidingList.innerHTML = `<p class="text-muted" style="text-align: center; padding: 10px; font-size: 13px;">লোড হচ্ছে...</p>`;
+    homeList.innerHTML = `<p class="text-muted" style="text-align: center; padding: 10px; font-size: 13px;">লোড হচ্ছে...</p>`;
+    pushList.innerHTML = `<p class="text-muted" style="text-align: center; padding: 10px; font-size: 13px;">লোড হচ্ছে...</p>`;
 
-    if (slidingNotices.length === 0) {
-        slidingList.innerHTML = `<p class="text-muted" style="text-align: center; padding: 10px; font-size: 13px;">কোনো স্লাইডিং নোটিশ নেই।</p>`;
-    } else {
-        slidingList.innerHTML = slidingNotices.map(n => renderNoticeCard(n)).join('');
+    try {
+        const querySnapshot = await getDocs(collection(db, "notices"));
+        let notices = [];
+        querySnapshot.forEach((docSnap) => {
+            notices.push({ id: docSnap.id, ...docSnap.data() });
+        });
+
+        const slidingNotices = notices.filter(n => n.type === 'sliding');
+        const homeNotices = notices.filter(n => n.type === 'home');
+        const pushNotices = notices.filter(n => n.type === 'push');
+
+        slidingList.innerHTML = slidingNotices.length === 0 ? 
+            `<p class="text-muted" style="text-align: center; padding: 10px; font-size: 13px;">কোনো স্লাইডিং নোটিশ নেই।</p>` : 
+            slidingNotices.map(n => renderNoticeCard(n)).join('');
+
+        homeList.innerHTML = homeNotices.length === 0 ? 
+            `<p class="text-muted" style="text-align: center; padding: 10px; font-size: 13px;">কোনো হোম নোটিশ নেই।</p>` : 
+            homeNotices.map(n => renderNoticeCard(n)).join('');
+
+        pushList.innerHTML = pushNotices.length === 0 ? 
+            `<p class="text-muted" style="text-align: center; padding: 10px; font-size: 13px;">কোনো পুশ নোটিশ নেই।</p>` : 
+            pushNotices.map(n => renderNoticeCard(n)).join('');
+
+        attachListActionEvents(notices);
+    } catch (error) {
+        console.error("Error loading notices from Firebase:", error);
+        slidingList.innerHTML = `<p style="color:red; text-align:center;">লোড করতে সমস্যা হয়েছে।</p>`;
+        homeList.innerHTML = `<p style="color:red; text-align:center;">লোড করতে সমস্যা হয়েছে।</p>`;
+        pushList.innerHTML = `<p style="color:red; text-align:center;">লোড করতে সমস্যা হয়েছে।</p>`;
     }
-
-    if (homeNotices.length === 0) {
-        homeList.innerHTML = `<p class="text-muted" style="text-align: center; padding: 10px; font-size: 13px;">কোনো হোম নোটিশ নেই।</p>`;
-    } else {
-        homeList.innerHTML = homeNotices.map(n => renderNoticeCard(n)).join('');
-    }
-
-    if (pushNotices.length === 0) {
-        pushList.innerHTML = `<p class="text-muted" style="text-align: center; padding: 10px; font-size: 13px;">কোনো পুশ নোটিশ নেই।</p>`;
-    } else {
-        pushList.innerHTML = pushNotices.map(n => renderNoticeCard(n)).join('');
-    }
-
-    attachListActionEvents();
 }
 
 function renderNoticeCard(notif) {
@@ -478,13 +471,12 @@ function renderNoticeCard(notif) {
     `;
 }
 
-function attachListActionEvents() {
+function attachListActionEvents(notices) {
     const modal = document.getElementById("notificationModal");
 
     modal.querySelectorAll(".edit-notice-btn").forEach(btn => {
         btn.addEventListener("click", (e) => {
-            const id = Number(e.target.getAttribute("data-id"));
-            let notices = JSON.parse(localStorage.getItem("app_custom_notices") || "[]");
+            const id = e.target.getAttribute("data-id");
             const noticeToEdit = notices.find(n => n.id === id);
             
             if (noticeToEdit) {
@@ -505,7 +497,7 @@ function attachListActionEvents() {
                 } else if (noticeToEdit.type === 'push') {
                     document.getElementById("pushTitle").value = noticeToEdit.title;
                     document.getElementById("pushMessage").value = noticeToEdit.message;
-                    document.getElementById("pushImageLink").value = noticeToEdit.mediaLink || "",
+                    document.getElementById("pushImageLink").value = noticeToEdit.mediaLink || "";
                     document.querySelector(".form-title-push").innerText = "পুশ নোটিশ এডিট করুন";
                 }
                 
@@ -517,33 +509,30 @@ function attachListActionEvents() {
     });
 
     modal.querySelectorAll(".delete-notice-btn").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-            const id = Number(e.target.getAttribute("data-id"));
+        btn.addEventListener("click", async (e) => {
+            const id = e.target.getAttribute("data-id");
             const type = e.target.getAttribute("data-type");
             
-            let notices = JSON.parse(localStorage.getItem("app_custom_notices") || "[]");
-            notices = notices.filter(n => n.id !== id);
-            localStorage.setItem("app_custom_notices", JSON.stringify(notices));
+            if (confirm("আপনি কি নিশ্চিতভাবে এই নোটিশটি ডিলিট করতে চান?")) {
+                try {
+                    await deleteDoc(doc(db, "notices", id));
 
-            if (type === 'sliding') {
-                const active = JSON.parse(localStorage.getItem("active_sliding_notice"));
-                if (active && active.id === id) {
-                    localStorage.removeItem("active_sliding_notice");
-                    const ticker = document.getElementById("slidingNoticeTicker");
-                    if (ticker) ticker.remove();
-                }
-            } else if (type === 'home') {
-                const active = JSON.parse(localStorage.getItem("active_home_notice"));
-                if (active && active.id === id) {
-                    localStorage.removeItem("active_home_notice");
-                    const popup = document.getElementById("activeHomeNoticePopupModal");
-                    if (popup) popup.remove();
+                    if (type === 'sliding') {
+                        const ticker = document.getElementById("slidingNoticeTicker");
+                        if (ticker) ticker.remove();
+                    } else if (type === 'home') {
+                        const banner = document.getElementById("activeHomeNoticeBanner");
+                        if (banner) banner.remove();
+                    }
+
+                    loadAllSeparateLists();
+                    renderActiveNotices();
+                    alert("নোটিশটি সফলভাবে ডিলিট করা হয়েছে!");
+                } catch (error) {
+                    console.error("Error deleting document: ", error);
+                    alert("ডিলিট করতে সমস্যা হয়েছে: " + error.message);
                 }
             }
-
-            loadAllSeparateLists();
-            renderActiveNotices();
-            alert("নোটিশটি সফলভাবে ডিলিট করা হয়েছে!");
         });
     });
 }
@@ -555,12 +544,12 @@ function resetForm() {
     document.getElementById("homeTitle").value = "";
     document.getElementById("homeMessage").value = "";
     document.getElementById("homeMediaLink").value = "";
-    document.getElementById("pushTitle").value = ""; // Fixed typo from .value.value
+    document.getElementById("pushTitle").value = "";
     document.getElementById("pushMessage").value = "";
     document.getElementById("pushImageLink").value = "";
 
     document.querySelector(".form-title-sliding").innerText = "স্লাইডিং নোটিশ তৈরি করুন";
-    document.querySelector(".form-title-home").innerText = "হোম নোটিশ পপআপ তৈরি করুন";
+    document.querySelector(".form-title-home").innerText = "হোম নোটিশ তৈরি করুন";
     document.querySelector(".form-title-push").innerText = "পুশ নোটিশ তৈরি করুন";
     
     document.querySelectorAll(".submit-notice-btn").forEach((el, idx) => {
