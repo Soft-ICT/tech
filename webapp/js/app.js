@@ -16,6 +16,9 @@ import {
     db
 } from "./firebase.js";
 
+import { initNoticeSystem } from "./notice.js";
+
+
 "use strict";
 
 /* =========================================
