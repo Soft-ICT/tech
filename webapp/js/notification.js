@@ -1,5 +1,5 @@
 /* =========================================
-   Notification System Module (With Edit Option & Clean Design)
+   Notification System Module (Complete & Fixed)
 ========================================= */
 
 export function initNotificationSystem() {
@@ -116,7 +116,6 @@ function handleSaveOrUpdateNotice() {
     let notices = JSON.parse(localStorage.getItem("app_custom_notices") || "[]");
 
     if (editId) {
-        // এডিট বা আপডেট করা
         notices = notices.map(n => {
             if (n.id == editId) {
                 return { ...n, type, title, message, time: new Date().toLocaleString('bn-BD') + " (এডিটেড)" };
@@ -125,7 +124,6 @@ function handleSaveOrUpdateNotice() {
         });
         alert("নোটিশ সফলভাবে আপডেট করা হয়েছে!");
     } else {
-        // নতুন নোটিশ যোগ করা
         const newNotice = {
             id: Date.now(),
             type,
@@ -146,7 +144,6 @@ function handleSaveOrUpdateNotice() {
 
     localStorage.setItem("app_custom_notices", JSON.stringify(notices));
 
-    // যদি এটি স্লাইডিং নোটিশ হয় এবং এডিট করা হয়ে থাকে, তবে লাইভ ব্যানার আপডেট করা
     if (type === 'sliding') {
         const updatedActive = notices.find(n => n.id == (editId || notices[0].id));
         if (updatedActive) {
@@ -174,15 +171,14 @@ function renderActiveSlidingNotice() {
     }
 }
 
-// স্লাইডিং নোটিশের ডিজাইন (লম্বা লাল দাগের পরিবর্তে মানানসই ও প্রিমিয়াম লুক)
+// স্লাইডিং নোটিশ এবং লেখা না কাটার ফিক্সড ডিজাইন
 function showSlidingBanner(notice) {
     let ticker = document.getElementById("slidingNoticeTicker");
     
     if (!ticker) {
         ticker = document.createElement("div");
         ticker.id = "slidingNoticeTicker";
-        // প্রিমিয়াম ও মানানসই বর্ডার স্টাইল (হালকা শেড ও পরিপাটি ডিজাইন)
-        ticker.style.cssText = "background: var(--bg-card, #ffffff); border-bottom: 1px solid var(--border-color, #e0e0e0); border-top: 1px solid var(--border-color, #e0e0e0); display: flex; align-items: center; overflow: hidden; white-space: nowrap; width: 100%; z-index: 999; box-shadow: 0 1px 3px rgba(0,0,0,0.05);";
+        ticker.style.cssText = "background: var(--bg-card, #ffffff); border-bottom: 1px solid var(--border-color, #e0e0e0); border-top: 1px solid var(--border-color, #e0e0e0); display: flex; align-items: center; overflow: hidden; width: 100%; z-index: 999; box-shadow: 0 1px 3px rgba(0,0,0,0.05);";
         
         const subToolbar = document.querySelector(".sub-toolbar");
         if (subToolbar && subToolbar.parentNode) {
@@ -193,11 +189,13 @@ function showSlidingBanner(notice) {
     }
 
     ticker.innerHTML = `
-        <div style="background: var(--primary-color, #0d6efd); color: #fff; padding: 5px 10px; font-weight: 600; font-size: 12px; display: flex; align-items: center; gap: 4px; flex-shrink: 0; border-radius: 0 4px 4px 0;">
+        <div style="background: var(--primary-color, #0d6efd); color: #fff; padding: 6px 12px; font-weight: 600; font-size: 12px; display: flex; align-items: center; gap: 4px; flex-shrink: 0; z-index: 2;">
             🔥 ${notice.title}
         </div>
-        <div style="overflow: hidden; width: 100%;">
-            <marquee scrollamount="5" style="color: var(--text-main, #333); font-weight: 500; font-size: 13px; padding-top: 3px;">${notice.message}</marquee>
+        <div style="flex: 1; overflow: hidden; white-space: nowrap; padding: 0 10px;">
+            <marquee scrollamount="5" style="color: var(--text-main, #333); font-weight: 500; font-size: 13px; display: block; padding-top: 2px;">
+                &nbsp;&nbsp;&nbsp;${notice.message}&nbsp;&nbsp;&nbsp;
+            </marquee>
         </div>
     `;
 }
@@ -260,7 +258,6 @@ function loadSentNotices() {
         </div>
     `).join('');
 
-    // এডিট বাটনের ইভেন্ট হ্যান্ডলার
     listContainer.querySelectorAll(".edit-notice-btn").forEach(btn => {
         btn.addEventListener("click", (e) => {
             const id = Number(e.target.getAttribute("data-id"));
@@ -275,13 +272,11 @@ function loadSentNotices() {
                 document.getElementById("sendNoticeBtn").innerText = "আপডেট করুন";
                 document.getElementById("cancelEditBtn").classList.remove("hidden");
                 
-                // মডালের উপরের দিকে স্ক্রল করা যাতে ফর্মটি সহজে দেখা যায়
                 document.querySelector(".notification-body").scrollTo({ top: 0, behavior: 'smooth' });
             }
         });
     });
 
-    // ডিলিট বাটনের ইভেন্ট হ্যান্ডলার
     listContainer.querySelectorAll(".delete-notice-btn").forEach(btn => {
         btn.addEventListener("click", (e) => {
             const id = Number(e.target.getAttribute("data-id"));
