@@ -100,6 +100,7 @@
     </div>
 </main>
 
+<!-- Login Modal -->
 <div id="loginModal" class="modal hidden">
     <div class="modal-content">
         <div class="modal-header">
@@ -130,6 +131,7 @@
     </div>
 </div>
 
+<!-- Verify Modal -->
 <div id="verifyModal" class="modal hidden">
     <div class="modal-content">
         <div class="modal-header">
@@ -151,6 +153,7 @@
     </div>
 </div>
 
+<!-- Admin Verify Requests Modal -->
 <div id="adminVerifyRequestsModal" class="modal hidden">
     <div class="modal-content" style="max-width: 500px; width: 90%;">
         <div class="modal-header">
@@ -166,6 +169,7 @@
     </div>
 </div>
 
+<!-- Category Modal -->
 <div id="categoryModal" class="modal hidden">
     <div class="modal-content">
         <div class="modal-header">
@@ -187,6 +191,25 @@
     </div>
 </div>
 
+<!-- Sub-Category Modal (সংযোজন করা হয়েছে) -->
+<div id="subCategoryModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="subCategoryModalTitle">সাব-ক্যাটাগরি যুক্ত করুন</h2>
+            <button class="close-btn" data-close="subCategoryModal" type="button">✕</button>
+        </div>
+        <div class="form-group">
+            <label>সাব-ক্যাটাগরির নাম</label>
+            <input id="subCategoryNameInput" type="text" placeholder="সাব-ক্যাটাগরির নাম লিখুন">
+        </div>
+        <div class="modal-actions">
+            <button class="secondary-btn" data-close="subCategoryModal" type="button">বাতিল</button>
+            <button id="saveSubCategoryBtn" class="primary-btn" type="button">সেভ করুন</button>
+        </div>
+    </div>
+</div>
+
+<!-- Header Modal -->
 <div id="headerModal" class="modal hidden">
     <div class="modal-content">
         <div class="modal-header">
@@ -204,6 +227,7 @@
     </div>
 </div>
 
+<!-- Data Modal -->
 <div id="dataModal" class="modal hidden">
     <div class="modal-content">
         <div class="modal-header">
@@ -230,6 +254,7 @@
     </div>
 </div>
 
+<!-- Move Data Modal -->
 <div id="moveDataModal" class="modal hidden">
     <div class="modal-content">
         <div class="modal-header">
@@ -251,6 +276,35 @@
     </div>
 </div>
 
+<!-- Notification Modal (স্লাইডিং নোটিশ এবং নোটিফিকেশন দেখার জন্য সংযোজন করা হয়েছে) -->
+<div id="notificationModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>📢 নোটিফিকেশন প্যানেল</h2>
+            <button class="close-btn" data-close="notificationModal" type="button">✕</button>
+        </div>
+        <div class="admin-only hidden" style="margin-bottom: 15px; border-bottom: 1px solid var(--border-color, #ccc); padding-bottom: 15px;">
+            <h3>স্লাইডিং নোটিশ প্রকাশ করুন</h3>
+            <div class="form-group">
+                <label>শিরোনাম</label>
+                <input id="slidingTitle" type="text" placeholder="নোটিশের শিরোনাম...">
+            </div>
+            <div class="form-group">
+                <label>বিবরণ</label>
+                <textarea id="slidingMessage" placeholder="নোটিশের বিস্তারিত..." style="width: 100%; min-height: 80px; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: transparent; color: inherit;"></textarea>
+            </div>
+            <button id="publishSlidingNoticeBtn" class="primary-btn" type="button">প্রকাশ করুন</button>
+        </div>
+        <div id="notificationListContainer" style="max-height: 300px; overflow-y: auto;">
+            <p style="text-align: center; color: var(--text-muted);">কোনো নোটিফিকেশন নেই</p>
+        </div>
+        <div class="modal-actions" style="margin-top: 15px;">
+            <button class="secondary-btn" data-close="notificationModal" type="button">বন্ধ করুন</button>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Confirm Modal -->
 <div id="customConfirmModal" class="modal hidden">
     <div class="modal-content">
         <div class="modal-header">
@@ -267,17 +321,10 @@
 
 <div id="toast" class="toast"></div>
 
-<!-- মূল অ্যাপ স্ক্রিপ্ট -->
+<!-- মূল অ্যাপ স্ক্রিপ্ট (নোটিফিকেশন সিস্টেমসহ সব লজিক app.js এর ভেতর থেকে মডিউলারভাবে হ্যান্ডেল করা হবে) -->
 <script type="module" src="js/app.js"></script>
 
-<!-- নোটিফিকেশন সিস্টেম ইনিশিয়ালাইজেশন স্ক্রিপ্ট -->
-<script type="module">
-    import { initNotificationSystem } from './js/notification.js';
-    document.addEventListener("DOMContentLoaded", () => {
-        initNotificationSystem();
-    });
-</script>
-
+<!-- থিম ইনিশিয়ালাইজেশন স্ক্রিপ্ট -->
 <script>
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const savedTheme = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light');
