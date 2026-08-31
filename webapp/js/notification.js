@@ -1,5 +1,5 @@
 /* =========================================
-   Notification System Module (Complete & Active - Webapp Path)
+   Notification System Module (Complete & Active)
 ========================================= */
 
 import { db } from "./firebase.js";
@@ -16,7 +16,7 @@ function createNotificationUI() {
 
     const notificationHTML = `
     <div id="notificationModal" class="modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 9999;">
-        <div class="modal-content notification-modal-content" style="background: #fff; max-width: 680px; width: 95%; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+        <div class="modal-content notification-modal-content" style="background: var(--card-bg, #fff); color: var(--text-main, #333); max-width: 680px; width: 95%; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
             <div class="modal-header" style="background: #0d6efd; color: #fff; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center;">
                 <h2 style="margin: 0; font-size: 16px;">📢 ফায়ারবেজ রিয়েল-টাইম নোটিফিকেশন প্যানেল</h2>
                 <button class="close-btn" data-close="notificationModal" type="button" style="background: none; border: none; color: #fff; font-size: 18px; cursor: pointer;">✕</button>
@@ -25,7 +25,7 @@ function createNotificationUI() {
             <div class="notification-body" style="max-height: 75vh; overflow-y: auto; padding: 15px;">
                 
                 <!-- Tabs -->
-                <div class="notice-tabs" style="display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid #ddd; padding-bottom: 10px;">
+                <div class="notice-tabs" style="display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid var(--border-color, #ddd); padding-bottom: 10px;">
                     <button type="button" class="tab-btn active-tab" data-target="tabSliding" style="flex: 1; padding: 8px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">স্লাইডিং নোটিশ</button>
                     <button type="button" class="tab-btn" data-target="tabHome" style="flex: 1; padding: 8px; background: #e9ecef; color: #333; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">হোম নোটিশ (পপআপ)</button>
                     <button type="button" class="tab-btn" data-target="tabPush" style="flex: 1; padding: 8px; background: #e9ecef; color: #333; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">পুশ নোটিশ</button>
@@ -35,18 +35,18 @@ function createNotificationUI() {
 
                 <!-- TAB 1: SLIDING -->
                 <div id="tabSliding" class="notice-tab-content">
-                    <div style="padding: 15px; background: #f9f9f9; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px;">
+                    <div style="padding: 15px; background: var(--bg-color, #f9f9f9); border-radius: 8px; border: 1px solid var(--border-color, #ddd); margin-bottom: 15px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                             <h3 class="form-title-sliding" style="margin: 0; font-size: 15px;">স্লাইডিং নোটিশ তৈরি করুন</h3>
                             <button type="button" id="toggleSlidingGlobalBtn" style="padding: 4px 10px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer; background: #28a745; color: #fff;">স্ট্যাটাস: চালু আছে</button>
                         </div>
                         <div style="margin-bottom: 10px;">
                             <label style="display:block; margin-bottom: 4px; font-size: 13px;">শিরোনাম:</label>
-                            <input type="text" id="slidingTitle" placeholder="শিরোনাম লিখুন..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+                            <input type="text" id="slidingTitle" placeholder="শিরোনাম লিখুন..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color, #ccc); background: var(--card-bg, #fff); color: var(--text-main, #000);">
                         </div>
                         <div style="margin-bottom: 10px;">
                             <label style="display:block; margin-bottom: 4px; font-size: 13px;">বিস্তারিত:</label>
-                            <textarea id="slidingMessage" rows="2" placeholder="বিস্তারিত লিখুন..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></textarea>
+                            <textarea id="slidingMessage" rows="2" placeholder="বিস্তারিত লিখুন..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color, #ccc); background: var(--card-bg, #fff); color: var(--text-main, #000);"></textarea>
                         </div>
                         <button type="button" class="submit-notice-btn" data-type="sliding" style="width: 100%; padding: 9px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer;">স্লাইডিং নোটিশ প্রকাশ করুন</button>
                     </div>
@@ -58,22 +58,22 @@ function createNotificationUI() {
 
                 <!-- TAB 2: HOME -->
                 <div id="tabHome" class="notice-tab-content" style="display: none;">
-                    <div style="padding: 15px; background: #f9f9f9; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px;">
+                    <div style="padding: 15px; background: var(--bg-color, #f9f9f9); border-radius: 8px; border: 1px solid var(--border-color, #ddd); margin-bottom: 15px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                             <h3 class="form-title-home" style="margin: 0; font-size: 15px;">হোম নোটিশ পপআপ তৈরি করুন</h3>
                             <button type="button" id="toggleHomeGlobalBtn" style="padding: 4px 10px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer; background: #28a745; color: #fff;">স্ট্যাটাস: চালু আছে</button>
                         </div>
                         <div style="margin-bottom: 10px;">
                             <label style="display:block; margin-bottom: 4px; font-size: 13px;">শিরোনাম:</label>
-                            <input type="text" id="homeTitle" placeholder="শিরোনাম..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+                            <input type="text" id="homeTitle" placeholder="শিরোনাম..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color, #ccc); background: var(--card-bg, #fff); color: var(--text-main, #000);">
                         </div>
                         <div style="margin-bottom: 10px;">
                             <label style="display:block; margin-bottom: 4px; font-size: 13px;">বিস্তারিত বিবরণ:</label>
-                            <textarea id="homeMessage" rows="2" placeholder="বিবরণ..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></textarea>
+                            <textarea id="homeMessage" rows="2" placeholder="বিবরণ..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color, #ccc); background: var(--card-bg, #fff); color: var(--text-main, #000);"></textarea>
                         </div>
                         <div style="margin-bottom: 10px;">
                             <label style="display:block; margin-bottom: 4px; font-size: 13px;">মিডিয়া বা সাইট লিংক (ঐচ্ছিক):</label>
-                            <input type="url" id="homeMediaLink" placeholder="https://..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+                            <input type="url" id="homeMediaLink" placeholder="https://..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color, #ccc); background: var(--card-bg, #fff); color: var(--text-main, #000);">
                         </div>
                         <button type="button" class="submit-notice-btn" data-type="home" style="width: 100%; padding: 9px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer;">হোম নোটিশ প্রকাশ করুন</button>
                     </div>
@@ -85,19 +85,19 @@ function createNotificationUI() {
 
                 <!-- TAB 3: PUSH -->
                 <div id="tabPush" class="notice-tab-content" style="display: none;">
-                    <div style="padding: 15px; background: #f9f9f9; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px;">
+                    <div style="padding: 15px; background: var(--bg-color, #f9f9f9); border-radius: 8px; border: 1px solid var(--border-color, #ddd); margin-bottom: 15px;">
                         <h3 class="form-title-push" style="margin: 0; font-size: 15px; margin-bottom: 10px;">পুশ নোটিশ তৈরি করুন</h3>
                         <div style="margin-bottom: 10px;">
                             <label style="display:block; margin-bottom: 4px; font-size: 13px;">শিরোনাম:</label>
-                            <input type="text" id="pushTitle" placeholder="শিরোনাম..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+                            <input type="text" id="pushTitle" placeholder="শিরোনাম..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color, #ccc); background: var(--card-bg, #fff); color: var(--text-main, #000);">
                         </div>
                         <div style="margin-bottom: 10px;">
                             <label style="display:block; margin-bottom: 4px; font-size: 13px;">বিস্তারিত:</label>
-                            <textarea id="pushMessage" rows="2" placeholder="মেসেজ..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></textarea>
+                            <textarea id="pushMessage" rows="2" placeholder="মেসেজ..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color, #ccc); background: var(--card-bg, #fff); color: var(--text-main, #000);"></textarea>
                         </div>
                         <div style="margin-bottom: 10px;">
                             <label style="display:block; margin-bottom: 4px; font-size: 13px;">ইমেজ লিংক:</label>
-                            <input type="url" id="pushImageLink" placeholder="https://..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+                            <input type="url" id="pushImageLink" placeholder="https://..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color, #ccc); background: var(--card-bg, #fff); color: var(--text-main, #000);">
                         </div>
                         <button type="button" class="submit-notice-btn" data-type="push" style="width: 100%; padding: 9px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer;">পুশ নোটিশ পাঠান</button>
                     </div>
@@ -110,6 +110,7 @@ function createNotificationUI() {
                 <button id="cancelEditBtn" class="secondary-btn" style="width: 100%; padding: 8px; margin-top: 15px; background: #6c757d; color: #fff; border: none; border-radius: 4px; cursor: pointer; display: none;">এডিট বাতিল করুন</button>
             </div>
         </div>
+    </div>
     `;
 
     document.body.insertAdjacentHTML('beforeend', notificationHTML);
@@ -251,7 +252,7 @@ async function saveOrUpdateToFirebase(type) {
         document.getElementById("notificationModal").style.display = "none";
     } catch (error) {
         console.error("Firebase Error: ", error);
-        alert("ফায়ারবেজে ডাটা সংরক্ষণ করতে সমস্যা হয়েছে।");
+        alert("নোটিশ প্রকাশ করতে ব্যর্থ হয়েছে");
     }
 }
 
@@ -259,8 +260,15 @@ function loadAllFirebaseListsAndListen() {
     const noticesRef = ref(db, 'webapp/notices');
     onValue(noticesRef, (snapshot) => {
         const data = snapshot.val();
-        let notices = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
-        notices.reverse();
+        let notices = [];
+        
+        if (data) {
+            notices = Object.keys(data).map(key => ({
+                id: key,
+                ...data[key]
+            }));
+            notices.reverse();
+        }
 
         const slidingList = document.getElementById("sentSlidingList");
         const homeList = document.getElementById("sentHomeList");
@@ -289,10 +297,10 @@ function loadAllFirebaseListsAndListen() {
 
 function renderCard(n) {
     return `
-        <div style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 8px; background: #fff; display: flex; justify-content: space-between; align-items: center;">
+        <div style="padding: 10px; border: 1px solid var(--border-color, #ddd); border-radius: 6px; margin-bottom: 8px; background: var(--card-bg, #fff); display: flex; justify-content: space-between; align-items: center;">
             <div style="flex: 1; padding-right: 8px;">
-                <strong style="font-size: 13px; color: #333; display:block;">${n.title}</strong>
-                <p style="font-size: 12px; color: #666; margin: 2px 0;">${n.message}</p>
+                <strong style="font-size: 13px; color: var(--text-main, #333); display:block;">${n.title}</strong>
+                <p style="font-size: 12px; color: var(--text-muted, #666); margin: 2px 0;">${n.message}</p>
                 <small style="font-size: 10px; color: #999;">${n.time}</small>
             </div>
             <div style="display: flex; gap: 4px;">
