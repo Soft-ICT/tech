@@ -1,33 +1,40 @@
 /* =========================================
-   Notification System Module (Complete & Active)
+   Notification System Module (Fixed & Updated)
 ========================================= */
+import { db } from "./firebase-config.js";
+import { ref, set, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-import { db } from "./firebase.js";
-import { ref, push, set, update, remove, onValue, get } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+// পেজ লোড হওয়ার সাথে সাথে ইনিশিয়ালাইজ করা
+if (document.readyState === 'loading') {
+    document.addEventListener("DOMContentLoaded", initNotificationSystem);
+} else {
+    initNotificationSystem();
+}
 
 export function initNotificationSystem() {
     createNotificationUI();
     setupNotificationEvents();
-    loadAllFirebaseListsAndListen();
+    listenToFirebaseNotices();
 }
 
 function createNotificationUI() {
     if (document.getElementById("notificationModal")) return;
 
     const notificationHTML = `
-    <div id="notificationModal" class="modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 9999;">
-        <div class="modal-content notification-modal-content" style="background: var(--card-bg, #fff); color: var(--text-main, #333); max-width: 680px; width: 95%; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-            <div class="modal-header" style="background: #0d6efd; color: #fff; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="margin: 0; font-size: 16px;">📢 ফায়ারবেজ রিয়েল-টাইম নোটিফিকেশন প্যানেল</h2>
-                <button class="close-btn" data-close="notificationModal" type="button" style="background: none; border: none; color: #fff; font-size: 18px; cursor: pointer;">✕</button>
+    <!-- নোটিফিকেশন ম্যানেজমেন্ট প্যানেল মোডাল -->
+    <div id="notificationModal" class="modal hidden" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 99999; align-items: center; justify-content: center;">
+        <div class="modal-content notification-modal-content" style="max-width: 680px; width: 95%; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 5px 25px rgba(0,0,0,0.4);">
+            <div class="modal-header" style="padding: 15px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; background: #f8f9fa;">
+                <h2 style="margin:0; font-size: 18px; color: #333;">📢 নোটিফিকেশন ম্যানেজমেন্ট প্যানেল</h2>
+                <button class="close-btn" data-close="notificationModal" type="button" style="background:none; border:none; font-size: 20px; cursor:pointer; color: #666;">✕</button>
             </div>
             
             <div class="notification-body" style="max-height: 75vh; overflow-y: auto; padding: 15px;">
                 
-                <!-- Tabs -->
-                <div class="notice-tabs" style="display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid var(--border-color, #ddd); padding-bottom: 10px;">
+                <!-- Tabs Navigation -->
+                <div class="notice-tabs" style="display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid #ddd; padding-bottom: 10px;">
                     <button type="button" class="tab-btn active-tab" data-target="tabSliding" style="flex: 1; padding: 8px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">স্লাইডিং নোটিশ</button>
-                    <button type="button" class="tab-btn" data-target="tabHome" style="flex: 1; padding: 8px; background: #e9ecef; color: #333; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">হোম নোটিশ (পপআপ)</button>
+                    <button type="button" class="tab-btn" data-target="tabHome" style="flex: 1; padding: 8px; background: #e9ecef; color: #333; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">হোম নোটিশ</button>
                     <button type="button" class="tab-btn" data-target="tabPush" style="flex: 1; padding: 8px; background: #e9ecef; color: #333; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">পুশ নোটিশ</button>
                 </div>
 
@@ -35,112 +42,119 @@ function createNotificationUI() {
 
                 <!-- TAB 1: SLIDING -->
                 <div id="tabSliding" class="notice-tab-content">
-                    <div style="padding: 15px; background: var(--bg-color, #f9f9f9); border-radius: 8px; border: 1px solid var(--border-color, #ddd); margin-bottom: 15px;">
+                    <div class="card" style="padding: 15px; background: #f9f9f9; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                            <h3 class="form-title-sliding" style="margin: 0; font-size: 15px;">স্লাইডিং নোটিশ তৈরি করুন</h3>
+                            <h3 style="margin: 0; font-size: 16px;">স্লাইডিং নোটিশ তৈরি করুন</h3>
                             <button type="button" id="toggleSlidingGlobalBtn" style="padding: 4px 10px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer; background: #28a745; color: #fff;">স্ট্যাটাস: চালু আছে</button>
                         </div>
                         <div style="margin-bottom: 10px;">
-                            <label style="display:block; margin-bottom: 4px; font-size: 13px;">শিরোনাম:</label>
-                            <input type="text" id="slidingTitle" placeholder="শিরোনাম লিখুন..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color, #ccc); background: var(--card-bg, #fff); color: var(--text-main, #000);">
+                            <label style="display:block; margin-bottom: 4px; font-weight: 500;">শিরোনাম:</label>
+                            <input type="text" id="slidingTitle" placeholder="যেমন: BREAKING NEWS" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
                         </div>
                         <div style="margin-bottom: 10px;">
-                            <label style="display:block; margin-bottom: 4px; font-size: 13px;">বিস্তারিত:</label>
-                            <textarea id="slidingMessage" rows="2" placeholder="বিস্তারিত লিখুন..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color, #ccc); background: var(--card-bg, #fff); color: var(--text-main, #000);"></textarea>
+                            <label style="display:block; margin-bottom: 4px; font-weight: 500;">বিস্তারিত:</label>
+                            <textarea id="slidingMessage" rows="2" placeholder="বিস্তারিত লিখুন..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></textarea>
                         </div>
-                        <button type="button" class="submit-notice-btn" data-type="sliding" style="width: 100%; padding: 9px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer;">স্লাইডিং নোটিশ প্রকাশ করুন</button>
+                        <button type="button" class="submit-notice-btn primary-btn" data-type="sliding" style="width: 100%; padding: 9px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer;">ফায়ারবেজে প্রকাশ করুন</button>
                     </div>
                     <div>
                         <h4 style="margin-bottom: 8px; font-size: 14px;">স্লাইডিং নোটিশের তালিকা</h4>
-                        <div id="sentSlidingList"><p style="text-align: center; color: gray; font-size: 13px;">লোড হচ্ছে...</p></div>
+                        <div id="sentSlidingList"><p style="text-align: center; padding: 10px; font-size: 13px; color: gray;">লোড হচ্ছে...</p></div>
                     </div>
                 </div>
 
                 <!-- TAB 2: HOME -->
                 <div id="tabHome" class="notice-tab-content" style="display: none;">
-                    <div style="padding: 15px; background: var(--bg-color, #f9f9f9); border-radius: 8px; border: 1px solid var(--border-color, #ddd); margin-bottom: 15px;">
+                    <div class="card" style="padding: 15px; background: #f9f9f9; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                            <h3 class="form-title-home" style="margin: 0; font-size: 15px;">হোম নোটিশ পপআপ তৈরি করুন</h3>
+                            <h3 style="margin: 0; font-size: 16px;">হোম নোটিশ তৈরি করুন</h3>
                             <button type="button" id="toggleHomeGlobalBtn" style="padding: 4px 10px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer; background: #28a745; color: #fff;">স্ট্যাটাস: চালু আছে</button>
                         </div>
                         <div style="margin-bottom: 10px;">
-                            <label style="display:block; margin-bottom: 4px; font-size: 13px;">শিরোনাম:</label>
-                            <input type="text" id="homeTitle" placeholder="শিরোনাম..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color, #ccc); background: var(--card-bg, #fff); color: var(--text-main, #000);">
+                            <label style="display:block; margin-bottom: 4px; font-weight: 500;">শিরোনাম:</label>
+                            <input type="text" id="homeTitle" placeholder="নোটিশের শিরোনাম..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
                         </div>
                         <div style="margin-bottom: 10px;">
-                            <label style="display:block; margin-bottom: 4px; font-size: 13px;">বিস্তারিত বিবরণ:</label>
-                            <textarea id="homeMessage" rows="2" placeholder="বিবরণ..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color, #ccc); background: var(--card-bg, #fff); color: var(--text-main, #000);"></textarea>
+                            <label style="display:block; margin-bottom: 4px; font-weight: 500;">বিস্তারিত:</label>
+                            <textarea id="homeMessage" rows="2" placeholder="বিস্তারিত বিবরণ..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></textarea>
                         </div>
                         <div style="margin-bottom: 10px;">
-                            <label style="display:block; margin-bottom: 4px; font-size: 13px;">মিডিয়া বা সাইট লিংক (ঐচ্ছিক):</label>
-                            <input type="url" id="homeMediaLink" placeholder="https://..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color, #ccc); background: var(--card-bg, #fff); color: var(--text-main, #000);">
+                            <label style="display:block; margin-bottom: 4px; font-weight: 500;">মিডিয়া বা সাইট লিংক:</label>
+                            <input type="url" id="homeMediaLink" placeholder="https://example.com/image.jpg" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
                         </div>
-                        <button type="button" class="submit-notice-btn" data-type="home" style="width: 100%; padding: 9px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer;">হোম নোটিশ প্রকাশ করুন</button>
+                        <button type="button" class="submit-notice-btn primary-btn" data-type="home" style="width: 100%; padding: 9px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer;">ফায়ারবেজে প্রকাশ করুন</button>
                     </div>
                     <div>
                         <h4 style="margin-bottom: 8px; font-size: 14px;">হোম নোটিশের তালিকা</h4>
-                        <div id="sentHomeList"><p style="text-align: center; color: gray; font-size: 13px;">লোড হচ্ছে...</p></div>
+                        <div id="sentHomeList"><p style="text-align: center; padding: 10px; font-size: 13px; color: gray;">লোড হচ্ছে...</p></div>
                     </div>
                 </div>
 
                 <!-- TAB 3: PUSH -->
                 <div id="tabPush" class="notice-tab-content" style="display: none;">
-                    <div style="padding: 15px; background: var(--bg-color, #f9f9f9); border-radius: 8px; border: 1px solid var(--border-color, #ddd); margin-bottom: 15px;">
-                        <h3 class="form-title-push" style="margin: 0; font-size: 15px; margin-bottom: 10px;">পুশ নোটিশ তৈরি করুন</h3>
+                    <div class="card" style="padding: 15px; background: #f9f9f9; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px;">
+                        <h3 style="margin: 0; font-size: 16px; margin-bottom: 10px;">পুশ নোটিশ তৈরি করুন</h3>
                         <div style="margin-bottom: 10px;">
-                            <label style="display:block; margin-bottom: 4px; font-size: 13px;">শিরোনাম:</label>
-                            <input type="text" id="pushTitle" placeholder="শিরোনাম..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color, #ccc); background: var(--card-bg, #fff); color: var(--text-main, #000);">
+                            <label style="display:block; margin-bottom: 4px; font-weight: 500;">শিরোনাম:</label>
+                            <input type="text" id="pushTitle" placeholder="পুশ নোটিফিকেশন শিরোনাম..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
                         </div>
                         <div style="margin-bottom: 10px;">
-                            <label style="display:block; margin-bottom: 4px; font-size: 13px;">বিস্তারিত:</label>
-                            <textarea id="pushMessage" rows="2" placeholder="মেসেজ..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color, #ccc); background: var(--card-bg, #fff); color: var(--text-main, #000);"></textarea>
+                            <label style="display:block; margin-bottom: 4px; font-weight: 500;">বিস্তারিত:</label>
+                            <textarea id="pushMessage" rows="2" placeholder="পুশ মেসেজ..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></textarea>
                         </div>
                         <div style="margin-bottom: 10px;">
-                            <label style="display:block; margin-bottom: 4px; font-size: 13px;">ইমেজ লিংক:</label>
-                            <input type="url" id="pushImageLink" placeholder="https://..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color, #ccc); background: var(--card-bg, #fff); color: var(--text-main, #000);">
+                            <label style="display:block; margin-bottom: 4px; font-weight: 500;">ইমেজ লিংক:</label>
+                            <input type="url" id="pushImageLink" placeholder="https://example.com/banner.jpg" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
                         </div>
-                        <button type="button" class="submit-notice-btn" data-type="push" style="width: 100%; padding: 9px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer;">পুশ নোটিশ পাঠান</button>
+                        <button type="button" class="submit-notice-btn primary-btn" data-type="push" style="width: 100%; padding: 9px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer;">ফায়ারবেজে পাঠান</button>
                     </div>
                     <div>
                         <h4 style="margin-bottom: 8px; font-size: 14px;">পুশ নোটিশের তালিকা</h4>
-                        <div id="sentPushList"><p style="text-align: center; color: gray; font-size: 13px;">লোড হচ্ছে...</p></div>
+                        <div id="sentPushList"><p style="text-align: center; padding: 10px; font-size: 13px; color: gray;">লোড হচ্ছে...</p></div>
                     </div>
                 </div>
 
-                <button id="cancelEditBtn" class="secondary-btn" style="width: 100%; padding: 8px; margin-top: 15px; background: #6c757d; color: #fff; border: none; border-radius: 4px; cursor: pointer; display: none;">এডিট বাতিল করুন</button>
+                <button id="cancelEditBtn" class="secondary-btn" type="button" style="width: 100%; padding: 8px; margin-top: 15px; background: #6c757d; color: #fff; border: none; border-radius: 4px; cursor: pointer; display: none;">এডিট বাতিল করুন</button>
             </div>
         </div>
-    </div>
-    `;
+    </div>`;
 
     document.body.insertAdjacentHTML('beforeend', notificationHTML);
 }
 
 function setupNotificationEvents() {
-    const notifBtn = document.getElementById("notificationBtn");
-    const modal = document.getElementById("notificationModal");
-    const cancelEditBtn = document.getElementById("cancelEditBtn");
+    document.addEventListener("click", (e) => {
+        const notifBtn = e.target.closest("#notificationBtn");
+        if (notifBtn) {
+            const modal = document.getElementById("notificationModal");
+            if (modal) {
+                modal.classList.remove("hidden");
+                modal.style.display = "flex";
+                loadAllSeparateLists();
+                updateToggleButtonsUI();
+            }
+        }
+    });
+
+    document.addEventListener("click", (e) => {
+        if (e.target.matches("[data-close='notificationModal']") || e.target.closest("[data-close='notificationModal']")) {
+            const modal = document.getElementById("notificationModal");
+            if (modal) {
+                modal.classList.add("hidden");
+                modal.style.display = "none";
+                resetForm();
+            }
+        }
+    });
+
     const toggleSlidingBtn = document.getElementById("toggleSlidingGlobalBtn");
     const toggleHomeBtn = document.getElementById("toggleHomeGlobalBtn");
-
-    if (notifBtn && modal) {
-        notifBtn.addEventListener("click", () => {
-            modal.style.display = "flex";
-            updateToggleButtonsUI();
-        });
-    }
-
-    modal?.querySelectorAll("[data-close]").forEach(btn => {
-        btn.addEventListener("click", () => {
-            modal.style.display = "none";
-            resetForm();
-        });
-    });
 
     toggleSlidingBtn?.addEventListener("click", () => {
         let isOff = localStorage.getItem("sliding_notice_disabled") === "true";
         localStorage.setItem("sliding_notice_disabled", !isOff);
         updateToggleButtonsUI();
+        renderActiveNotices();
     });
 
     toggleHomeBtn?.addEventListener("click", () => {
@@ -149,8 +163,10 @@ function setupNotificationEvents() {
         updateToggleButtonsUI();
     });
 
-    const tabBtns = modal.querySelectorAll(".tab-btn");
-    tabBtns.forEach(btn => {
+    const modal = document.getElementById("notificationModal");
+    const tabBtns = modal?.querySelectorAll(".tab-btn");
+    
+    tabBtns?.forEach(btn => {
         btn.addEventListener("click", (e) => {
             tabBtns.forEach(b => {
                 b.classList.remove("active-tab");
@@ -166,18 +182,21 @@ function setupNotificationEvents() {
             });
 
             const targetTab = e.target.getAttribute("data-target");
-            const targetElement = document.getElementById(targetTab);
-            if (targetElement) targetElement.style.display = "block";
+            const activeContent = document.getElementById(targetTab);
+            if (activeContent) {
+                activeContent.style.display = "block";
+            }
         });
     });
 
-    modal.querySelectorAll(".submit-notice-btn").forEach(btn => {
+    modal?.querySelectorAll(".submit-notice-btn").forEach(btn => {
         btn.addEventListener("click", (e) => {
             const type = e.target.getAttribute("data-type");
-            saveOrUpdateToFirebase(type);
+            handleFirebaseSaveOrUpdate(type);
         });
     });
 
+    const cancelEditBtn = document.getElementById("cancelEditBtn");
     if (cancelEditBtn) {
         cancelEditBtn.addEventListener("click", () => resetForm());
     }
@@ -200,11 +219,9 @@ function updateToggleButtonsUI() {
     }
 }
 
-async function saveOrUpdateToFirebase(type) {
+function handleFirebaseSaveOrUpdate(type) {
     const editId = document.getElementById("editNoticeId").value;
-    let title = "";
-    let message = "";
-    let mediaLink = "";
+    let title = "", message = "", mediaLink = "";
 
     if (type === 'sliding') {
         title = document.getElementById("slidingTitle").value.trim();
@@ -220,169 +237,184 @@ async function saveOrUpdateToFirebase(type) {
     }
 
     if (!title || !message) {
-        alert("দয়া করে শিরোনাম এবং বিস্তারিত বিবরণ লিখুন।");
+        alert("দয়া করে শিরোনাম এবং বিস্তারিত বিবরণ উভয়ই লিখুন।");
         return;
     }
 
-    try {
-        if (editId) {
-            const noticeRef = ref(db, 'webapp/notices/' + editId);
-            await update(noticeRef, {
-                title,
-                message,
-                mediaLink,
-                time: new Date().toLocaleString('bn-BD') + " (এডিটেড)"
-            });
-            alert("ফায়ারবেজে নোটিশ সফলভাবে আপডেট করা হয়েছে!");
-        } else {
-            const noticesRef = ref(db, 'webapp/notices');
-            const newNoticeRef = push(noticesRef);
-            await set(newNoticeRef, {
-                id: newNoticeRef.key,
-                type,
-                title,
-                message,
-                mediaLink,
-                time: new Date().toLocaleString('bn-BD')
-            });
-            alert("ফায়ারবেজে নোটিশ সফলভাবে পাঠানো হয়েছে!");
-        }
+    const noticeId = editId ? editId : 'notice_' + Date.now();
+    const noticeData = {
+        id: noticeId,
+        type,
+        title,
+        message,
+        mediaLink,
+        time: new Date().toLocaleString('bn-BD') + (editId ? " (এডিটেড)" : "")
+    };
 
-        resetForm();
-        document.getElementById("notificationModal").style.display = "none";
-    } catch (error) {
-        console.error("Firebase Error: ", error);
-        alert("নোটিশ প্রকাশ করতে ব্যর্থ হয়েছে");
+    set(ref(db, 'notices/' + noticeId), noticeData)
+        .then(() => {
+            alert(editId ? "নোটিশ সফলভাবে আপডেট হয়েছে!" : "নোটিশ সফলভাবে ফায়ারবেজে প্রকাশ করা হয়েছে!");
+            resetForm();
+            loadAllSeparateLists();
+        })
+        .catch((error) => alert("ত্রুটি: " + error.message));
+}
+
+function listenToFirebaseNotices() {
+    const noticesRef = ref(db, 'notices');
+    onValue(noticesRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            const noticesArray = Object.values(data);
+            localStorage.setItem("app_custom_notices_firebase", JSON.stringify(noticesArray));
+            
+            // সর্বশেষ স্লাইডিং নোটিশটি সিলেক্ট করা
+            const activeSliding = noticesArray.filter(n => n.type === 'sliding').pop();
+            if (activeSliding) {
+                localStorage.setItem("active_sliding_notice", JSON.stringify(activeSliding));
+            } else {
+                localStorage.removeItem("active_sliding_notice");
+            }
+        } else {
+            localStorage.setItem("app_custom_notices_firebase", JSON.stringify([]));
+            localStorage.removeItem("active_sliding_notice");
+        }
+        renderActiveNotices();
+        loadAllSeparateLists();
+    });
+}
+
+export function renderActiveNotices() {
+    const slidingDisabled = localStorage.getItem("sliding_notice_disabled") === "true";
+    let ticker = document.getElementById("slidingNoticeTicker");
+    
+    if (slidingDisabled) {
+        if (ticker) ticker.remove();
+        return;
+    }
+
+    const activeSliding = JSON.parse(localStorage.getItem("active_sliding_notice"));
+    if (activeSliding) {
+        showSlidingBanner(activeSliding);
+    } else if (ticker) {
+        ticker.remove();
     }
 }
 
-function loadAllFirebaseListsAndListen() {
-    const noticesRef = ref(db, 'webapp/notices');
-    onValue(noticesRef, (snapshot) => {
-        const data = snapshot.val();
-        let notices = [];
+function showSlidingBanner(notice) {
+    let ticker = document.getElementById("slidingNoticeTicker");
+    if (!ticker) {
+        ticker = document.createElement("div");
+        ticker.id = "slidingNoticeTicker";
+        ticker.style.cssText = "background: #fff; border-bottom: 1px solid #ddd; display: flex; align-items: center; overflow: hidden; width: 100%; z-index: 998; position: relative;";
         
-        if (data) {
-            notices = Object.keys(data).map(key => ({
-                id: key,
-                ...data[key]
-            }));
-            notices.reverse();
+        // টুলবার এবং সাব-টুলবারের মাঝখানে বা পেজের নির্দিষ্ট এলিমেন্টের উপরে বসানোর লজিক
+        const subToolbar = document.querySelector(".sub-toolbar") || document.querySelector("header") || document.body.firstChild;
+        if (subToolbar && subToolbar.parentNode) {
+            subToolbar.parentNode.insertBefore(ticker, subToolbar.nextSibling);
+        } else {
+            document.body.insertBefore(ticker, document.body.firstChild);
         }
-
-        const slidingList = document.getElementById("sentSlidingList");
-        const homeList = document.getElementById("sentHomeList");
-        const pushList = document.getElementById("sentPushList");
-
-        const slidingNotices = notices.filter(n => n.type === 'sliding');
-        const homeNotices = notices.filter(n => n.type === 'home');
-        const pushNotices = notices.filter(n => n.type === 'push');
-
-        if (slidingList) {
-            slidingList.innerHTML = slidingNotices.length === 0 ? '<p style="text-align: center; color: gray; font-size: 13px;">কোনো স্লাইডিং নোটিশ নেই</p>' : 
-            slidingNotices.map(n => renderCard(n)).join('');
-        }
-        if (homeList) {
-            homeList.innerHTML = homeNotices.length === 0 ? '<p style="text-align: center; color: gray; font-size: 13px;">কোনো হোম নোটিশ নেই</p>' : 
-            homeNotices.map(n => renderCard(n)).join('');
-        }
-        if (pushList) {
-            pushList.innerHTML = pushNotices.length === 0 ? '<p style="text-align: center; color: gray; font-size: 13px;">কোনো পুশ নোটিশ নেই</p>' : 
-            pushNotices.map(n => renderCard(n)).join('');
-        }
-
-        attachCardActions();
-    });
+    }
+    
+    ticker.innerHTML = `
+        <div style="background: #0d6efd; color: #fff; padding: 6px 12px; font-weight: 600; font-size: 12px; white-space: nowrap;">🔥 ${notice.title}</div>
+        <div style="flex: 1; overflow: hidden; white-space: nowrap; padding: 0 10px;">
+            <marquee scrollamount="5" style="font-size: 13px; margin: 0;">${notice.message}</marquee>
+        </div>`;
 }
 
-function renderCard(n) {
+function loadAllSeparateLists() {
+    const notices = JSON.parse(localStorage.getItem("app_custom_notices_firebase") || "[]");
+    const slidingList = document.getElementById("sentSlidingList");
+    const homeList = document.getElementById("sentHomeList");
+    const pushList = document.getElementById("sentPushList");
+
+    const slidingNotices = notices.filter(n => n.type === 'sliding');
+    const homeNotices = notices.filter(n => n.type === 'home');
+    const pushNotices = notices.filter(n => n.type === 'push');
+
+    if (slidingList) slidingList.innerHTML = slidingNotices.length === 0 ? `<p style="text-align: center; padding: 10px; font-size: 13px; color: gray;">কোনো স্লাইডিং নোটিশ নেই।</p>` : slidingNotices.map(n => renderNoticeCard(n)).join('');
+    if (homeList) homeList.innerHTML = homeNotices.length === 0 ? `<p style="text-align: center; padding: 10px; font-size: 13px; color: gray;">কোনো হোম নোটিশ নেই।</p>` : homeNotices.map(n => renderNoticeCard(n)).join('');
+    if (pushList) pushList.innerHTML = pushNotices.length === 0 ? `<p style="text-align: center; padding: 10px; font-size: 13px; color: gray;">কোনো পুশ নোটিশ নেই।</p>` : pushNotices.map(n => renderNoticeCard(n)).join('');
+
+    attachListActionEvents();
+}
+
+function renderNoticeCard(notif) {
     return `
-        <div style="padding: 10px; border: 1px solid var(--border-color, #ddd); border-radius: 6px; margin-bottom: 8px; background: var(--card-bg, #fff); display: flex; justify-content: space-between; align-items: center;">
+        <div style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 8px; background: #fff; display: flex; justify-content: space-between; align-items: center;">
             <div style="flex: 1; padding-right: 8px;">
-                <strong style="font-size: 13px; color: var(--text-main, #333); display:block;">${n.title}</strong>
-                <p style="font-size: 12px; color: var(--text-muted, #666); margin: 2px 0;">${n.message}</p>
-                <small style="font-size: 10px; color: #999;">${n.time}</small>
+                <strong style="font-size: 13px; display:block;">${notif.title}</strong>
+                <p style="font-size: 12px; color: #666; margin: 2px 0;">${notif.message}</p>
+                <small style="font-size: 10px; color: gray;">${notif.time}</small>
             </div>
             <div style="display: flex; gap: 4px;">
-                <button class="edit-btn" data-id="${n.id}" style="padding: 4px 8px; font-size: 11px; background: #ffc107; border: none; border-radius: 4px; cursor: pointer;">এডিট</button>
-                <button class="delete-btn" data-id="${n.id}" style="padding: 4px 8px; font-size: 11px; background: #dc3545; color: #fff; border: none; border-radius: 4px; cursor: pointer;">ডিলিট</button>
+                <button class="edit-notice-btn" data-id="${notif.id}" style="padding: 4px 8px; font-size: 11px; background: #ffc107; border: none; border-radius: 4px; cursor:pointer;">এডিট</button>
+                <button class="delete-notice-btn" data-id="${notif.id}" style="padding: 4px 8px; font-size: 11px; background: #dc3545; color: #fff; border: none; border-radius: 4px; cursor:pointer;">ডিলিট</button>
             </div>
-        </div>
-    `;
+        </div>`;
 }
 
-function attachCardActions() {
+function attachListActionEvents() {
     const modal = document.getElementById("notificationModal");
     if (!modal) return;
 
-    modal.querySelectorAll(".edit-btn").forEach(btn => {
-        btn.addEventListener("click", async (e) => {
+    modal.querySelectorAll(".edit-notice-btn").forEach(btn => {
+        btn.onclick = (e) => {
             const id = e.target.getAttribute("data-id");
-            const snapshot = await get(ref(db, 'webapp/notices/' + id));
-            if (snapshot.exists()) {
-                const notice = snapshot.val();
-                document.getElementById("editNoticeId").value = id;
-
-                const targetTabBtn = modal.querySelector(`.tab-btn[data-target="tab${notice.type.charAt(0).toUpperCase() + notice.type.slice(1)}"]`);
+            let notices = JSON.parse(localStorage.getItem("app_custom_notices_firebase") || "[]");
+            const noticeToEdit = notices.find(n => n.id == id);
+            
+            if (noticeToEdit) {
+                document.getElementById("editNoticeId").value = noticeToEdit.id;
+                const targetTabBtn = modal.querySelector(`.tab-btn[data-target="tab${noticeToEdit.type.charAt(0).toUpperCase() + noticeToEdit.type.slice(1)}"]`);
                 if (targetTabBtn) targetTabBtn.click();
 
-                if (notice.type === 'sliding') {
-                    document.getElementById("slidingTitle").value = notice.title;
-                    document.getElementById("slidingMessage").value = notice.message;
-                } else if (notice.type === 'home') {
-                    document.getElementById("homeTitle").value = notice.title;
-                    document.getElementById("homeMessage").value = notice.message;
-                    document.getElementById("homeMediaLink").value = notice.mediaLink || "";
-                } else if (notice.type === 'push') {
-                    document.getElementById("pushTitle").value = notice.title;
-                    document.getElementById("pushMessage").value = notice.message;
-                    document.getElementById("pushImageLink").value = notice.mediaLink || "";
+                if (noticeToEdit.type === 'sliding') {
+                    document.getElementById("slidingTitle").value = noticeToEdit.title;
+                    document.getElementById("slidingMessage").value = noticeToEdit.message;
+                } else if (noticeToEdit.type === 'home') {
+                    document.getElementById("homeTitle").value = noticeToEdit.title;
+                    document.getElementById("homeMessage").value = noticeToEdit.message;
+                    document.getElementById("homeMediaLink").value = noticeToEdit.mediaLink || "";
+                } else if (noticeToEdit.type === 'push') {
+                    document.getElementById("pushTitle").value = noticeToEdit.title;
+                    document.getElementById("pushMessage").value = notice_to_edit_check(noticeToEdit.message);
+                    document.getElementById("pushImageLink").value = noticeToEdit.mediaLink || "";
                 }
-
+                
                 const cancelBtn = document.getElementById("cancelEditBtn");
                 if (cancelBtn) cancelBtn.style.display = "block";
             }
-        });
+        };
     });
 
-    modal.querySelectorAll(".delete-btn").forEach(btn => {
-        btn.addEventListener("click", async (e) => {
+    modal.querySelectorAll(".delete-notice-btn").forEach(btn => {
+        btn.onclick = (e) => {
             const id = e.target.getAttribute("data-id");
-            if (confirm("আপনি কি এই নোটিশটি ডিলিট করতে চান?")) {
-                await remove(ref(db, 'webapp/notices/' + id));
-                alert("নোটিশটি ডিলিট করা হয়েছে!");
+            if (confirm("আপনি কি নিশ্চিতভাবে এই নোটিশটি ডিলিট করতে চান?")) {
+                remove(ref(db, 'notices/' + id)).then(() => {
+                    alert("ডিলিট সফল হয়েছে!");
+                    loadAllSeparateLists();
+                });
             }
-        });
+        };
     });
+}
+
+function notice_to_edit_check(msg) {
+    return msg;
 }
 
 function resetForm() {
     const editIdInput = document.getElementById("editNoticeId");
     if (editIdInput) editIdInput.value = "";
     
-    const slidingTitle = document.getElementById("slidingTitle");
-    if (slidingTitle) slidingTitle.value = "";
-    
-    const slidingMsg = document.getElementById("slidingMessage");
-    if (slidingMsg) slidingMsg.value = "";
-    
-    const homeTitle = document.getElementById("homeTitle");
-    if (homeTitle) homeTitle.value = "";
-    
-    const homeMsg = document.getElementById("homeMessage");
-    if (homeMsg) homeMsg.value = "";
-    
-    const homeMedia = document.getElementById("homeMediaLink");
-    if (homeMedia) homeMedia.value = "";
-    
-    const pushTitle = document.getElementById("pushTitle");
-    if (pushTitle) pushTitle.value = "";
-    
-    const pushMsg = document.getElementById("pushMessage");
-    if (pushMsg) pushMsg.value = "";
-    
-    const pushImg = document.getElementById("pushImageLink");
-    if (pushImg) pushImg.value = "";
+    ["slidingTitle", "slidingMessage", "homeTitle", "homeMessage", "homeMediaLink", "pushTitle", "pushMessage", "pushImageLink"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = "";
+    });
     
     const cancelBtn = document.getElementById("cancelEditBtn");
     if (cancelBtn) cancelBtn.style.display = "none";
