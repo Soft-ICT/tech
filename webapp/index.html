@@ -42,6 +42,10 @@
     <div class="top-actions" id="topActions">
         <button id="adminLoginBtn" class="primary-btn active-btn btn-admin-small hidden" type="button" title="লং প্রেস করে ভেরিফিকেশন রিকোয়েস্ট দেখুন">🔑 Admin</button>
         <button id="searchBtn" class="icon-btn" title="সার্চ করুন" type="button">🔍</button>
+        <!-- নোটিফিকেশন বাটন সংযুক্ত করা হলো -->
+        <button id="notificationBtn" class="icon-btn" title="নোটিফিকেশন" type="button" style="position: relative;">
+            🔔 <span id="notifBadge" class="badge-dot hidden" style="position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%;"></span>
+        </button>
         <button id="themeBtn" class="icon-btn" title="নাইট/ডে মোড" type="button">🌙</button>
     </div>
 </header>
@@ -261,7 +265,16 @@
 
 <div id="toast" class="toast"></div>
 
+<!-- মূল অ্যাপ স্ক্রিপ্ট -->
 <script type="module" src="js/app.js"></script>
+
+<!-- নোটিফিকেশন সিস্টেম ইনিশিয়ালাইজেশন স্ক্রিপ্ট -->
+<script type="module">
+    import { initNotificationSystem } from './js/notification.js';
+    document.addEventListener("DOMContentLoaded", () => {
+        initNotificationSystem();
+    });
+</script>
 
 <script>
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
