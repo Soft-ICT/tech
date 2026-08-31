@@ -141,7 +141,7 @@ function setupNotificationEvents() {
         let isOff = localStorage.getItem("sliding_notice_disabled") === "true";
         localStorage.setItem("sliding_notice_disabled", !isOff);
         updateToggleButtonsUI();
-        loadAllFirebaseListsAndListen(); // স্ট্যাটাস পরিবর্তনের সাথে সাথে UI আপডেট করার জন্য
+        loadAllFirebaseListsAndListen();
     });
 
     toggleHomeBtn?.addEventListener("click", () => {
@@ -279,19 +279,19 @@ function loadAllFirebaseListsAndListen() {
         const homeNotices = notices.filter(n => n.type === 'home');
         const pushNotices = notices.filter(n => n.type === 'push');
 
-        // টুলবার ও সাব-টুলবারের মাঝখানে স্লাইডিং নোটিশ শো করানোর লজিক
+        // UI-এর সাথে ম্যাচিং ডিজাইন এবং Marquee সহ স্লাইডিং নোটিশ রেন্ডার করা
         const slidingContainer = document.getElementById("slidingNoticeContainer");
         const isSlidingDisabled = localStorage.getItem("sliding_notice_disabled") === "true";
 
         if (slidingContainer) {
             if (!isSlidingDisabled && slidingNotices.length > 0) {
-                const latestNotice = slidingNotices[0]; // সর্বশেষ স্লাইডিং নোটিশটি দেখাবে
+                const latestNotice = slidingNotices[0];
                 slidingContainer.style.display = "block";
                 slidingContainer.innerHTML = `
-                    <div style="padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; background: #fff3cd; color: #856404; font-size: 13px;">
-                        <div>
-                            <strong>📢 ${latestNotice.title}:</strong> ${latestNotice.message}
-                        </div>
+                    <div style="background: var(--card-bg, #fff); border-bottom: 1px solid var(--border-color, #e2e8f0); padding: 8px 12px; display: flex; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+                        <marquee behavior="scroll" direction="left" scrollamount="5" onmouseover="this.stop();" onmouseout="this.start();" style="width: 100%; font-size: 13px; font-weight: 500; color: var(--text-main, #1e293b);">
+                            <span style="color: #0d6efd; font-weight: 600; margin-right: 8px;">📢 ${latestNotice.title}:</span> ${latestNotice.message}
+                        </marquee>
                     </div>
                 `;
             } else {
@@ -395,7 +395,7 @@ function resetForm() {
     if (homeMsg) homeMsg.value = "";
     
     const homeMedia = document.getElementById("homeMediaLink");
-    if (homeMedia) homeMedia.value = "";
+    if (homeMedia) homeMedia.value, homeMedia.value = "";
     
     const pushTitle = document.getElementById("pushTitle");
     if (pushTitle) pushTitle.value = "";
