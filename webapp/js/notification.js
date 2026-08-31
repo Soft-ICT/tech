@@ -141,6 +141,7 @@ function setupNotificationEvents() {
         let isOff = localStorage.getItem("sliding_notice_disabled") === "true";
         localStorage.setItem("sliding_notice_disabled", !isOff);
         updateToggleButtonsUI();
+        loadAllFirebaseListsAndListen(); // স্ট্যাটাস পরিবর্তনের সাথে সাথে UI আপডেট করার জন্য
     });
 
     toggleHomeBtn?.addEventListener("click", () => {
@@ -277,6 +278,27 @@ function loadAllFirebaseListsAndListen() {
         const slidingNotices = notices.filter(n => n.type === 'sliding');
         const homeNotices = notices.filter(n => n.type === 'home');
         const pushNotices = notices.filter(n => n.type === 'push');
+
+        // টুলবার ও সাব-টুলবারের মাঝখানে স্লাইডিং নোটিশ শো করানোর লজিক
+        const slidingContainer = document.getElementById("slidingNoticeContainer");
+        const isSlidingDisabled = localStorage.getItem("sliding_notice_disabled") === "true";
+
+        if (slidingContainer) {
+            if (!isSlidingDisabled && slidingNotices.length > 0) {
+                const latestNotice = slidingNotices[0]; // সর্বশেষ স্লাইডিং নোটিশটি দেখাবে
+                slidingContainer.style.display = "block";
+                slidingContainer.innerHTML = `
+                    <div style="padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; background: #fff3cd; color: #856404; font-size: 13px;">
+                        <div>
+                            <strong>📢 ${latestNotice.title}:</strong> ${latestNotice.message}
+                        </div>
+                    </div>
+                `;
+            } else {
+                slidingContainer.style.display = "none";
+                slidingContainer.innerHTML = "";
+            }
+        }
 
         if (slidingList) {
             slidingList.innerHTML = slidingNotices.length === 0 ? '<p style="text-align: center; color: gray; font-size: 13px;">কোনো স্লাইডিং নোটিশ নেই</p>' : 
