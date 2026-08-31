@@ -42,10 +42,6 @@
     <div class="top-actions" id="topActions">
         <button id="adminLoginBtn" class="primary-btn active-btn btn-admin-small hidden" type="button" title="লং প্রেস করে ভেরিফিকেশন রিকোয়েস্ট দেখুন">🔑 Admin</button>
         <button id="searchBtn" class="icon-btn" title="সার্চ করুন" type="button">🔍</button>
-        <!-- নোটিফিকেশন বাটন সংযুক্ত করা হলো -->
-        <button id="notificationBtn" class="icon-btn" title="নোটিফিকেশন" type="button" style="position: relative;">
-            🔔 <span id="notifBadge" class="badge-dot hidden" style="position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%;"></span>
-        </button>
         <button id="themeBtn" class="icon-btn" title="নাইট/ডে মোড" type="button">🌙</button>
     </div>
 </header>
@@ -57,7 +53,13 @@
 <main class="container">
     <div id="mainDashboardView">
         <section class="dashboard-header">
-            <button id="addCategoryBtn" class="primary-btn admin-only hidden" type="button" style="width:100%; margin-top:8px;">＋ Category</button>
+            <!-- অ্যাডমিন প্যানেল চালু থাকলে দৃশ্যমান সেকশন যেখানে + Category এবং নোটিফিকেশন বাটন পাশাপাশি থাকবে -->
+            <div class="admin-only hidden" style="display: flex; gap: 8px; width: 100%; margin-top: 8px;">
+                <button id="addCategoryBtn" class="primary-btn" type="button" style="flex: 1;">＋ Category</button>
+                <button id="notificationBtn" class="secondary-btn" type="button" style="flex: 1; position: relative;">
+                    🔔 নোটিফিকেশন <span id="notifBadge" class="badge-dot hidden" style="position: absolute; top: 6px; right: 10px; width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%;"></span>
+                </button>
+            </div>
         </section>
 
         <section id="categoryList" class="category-list"></section>
