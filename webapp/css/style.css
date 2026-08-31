@@ -292,6 +292,30 @@ body {
 }
 
 /* ==========================================
+   Notification 
+========================================== */
+.notification-modal-content {
+    max-width: 450px;
+    width: 90%;
+}
+.notification-list {
+    max-height: 350px;
+    overflow-y: auto;
+}
+.badge-dot {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 8px;
+    height: 8px;
+    background-color: #ef4444;
+    border-radius: 50%;
+    display: none; /* নোটিফিকেশন থাকলে এটি block করতে পারেন */
+}
+
+
+
+/* ==========================================
    CONTAINER & CARDS
 ========================================== */
 
