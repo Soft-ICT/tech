@@ -283,14 +283,19 @@ function loadAllFirebaseListsAndListen() {
         const slidingContainer = document.getElementById("slidingNoticeContainer");
         const isSlidingDisabled = localStorage.getItem("sliding_notice_disabled") === "true";
 
-        if (slidingContainer) {
+                if (slidingContainer) {
             if (!isSlidingDisabled && slidingNotices.length > 0) {
                 const latestNotice = slidingNotices[0];
                 slidingContainer.style.display = "block";
                 slidingContainer.innerHTML = `
-                    <div style="background: var(--card-bg, #fff); border-bottom: 1px solid var(--border-color, #e2e8f0); padding: 8px 12px; display: flex; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
-                        <marquee behavior="scroll" direction="left" scrollamount="5" onmouseover="this.stop();" onmouseout="this.start();" style="width: 100%; font-size: 13px; font-weight: 500; color: var(--text-main, #1e293b);">
-                            <span style="color: #0d6efd; font-weight: 600; margin-right: 8px;">📢 ${latestNotice.title}:</span> ${latestNotice.message}
+                    <div style="background: var(--card-bg, #fff); border-bottom: 1px solid var(--border-color, #e2e8f0); display: flex; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.02); overflow: hidden; height: 36px;">
+                        <!-- লাল ব্যাকগ্রাউন্ড এবং স্থির শিরোনাম -->
+                        <div style="background: #dc3545; color: #fff; padding: 0 12px; height: 100%; display: flex; align-items: center; font-size: 13px; font-weight: 600; white-space: nowrap; z-index: 2;">
+                            📢 ${latestNotice.title}:
+                        </div>
+                        <!-- স্লাইডিং বা স্ক্রোলিং বিস্তারিত বার্তা -->
+                        <marquee behavior="scroll" direction="left" scrollamount="5" onmouseover="this.stop();" onmouseout="this.start();" style="width: 100%; font-size: 13px; font-weight: 500; color: var(--text-main, #1e293b); padding-left: 10px;">
+                            ${latestNotice.message}
                         </marquee>
                     </div>
                 `;
@@ -299,6 +304,7 @@ function loadAllFirebaseListsAndListen() {
                 slidingContainer.innerHTML = "";
             }
         }
+
 
         if (slidingList) {
             slidingList.innerHTML = slidingNotices.length === 0 ? '<p style="text-align: center; color: gray; font-size: 13px;">কোনো স্লাইডিং নোটিশ নেই</p>' : 
