@@ -53,7 +53,7 @@
 <main class="container">
     <div id="mainDashboardView">
         <section class="dashboard-header">
-            <button id="addCategoryBtn" class="primary-btn admin-only" type="button" style="width:100%; margin-top:8px;">＋ Category</button>
+            <button id="addCategoryBtn" class="primary-btn admin-only hidden" type="button" style="width:100%; margin-top:8px;">＋ Category</button>
         </section>
 
         <section id="categoryList" class="category-list"></section>
@@ -64,7 +64,7 @@
             <div class="empty-icon">📂</div>
             <h2>এখনো কোনো Category নেই</h2>
             <p>ডাটা দেখতে অপেক্ষা করুন, প্রয়োজনে রিফ্রেস করুন।</p>
-            <button id="emptyAddBtn" class="primary-btn admin-only" type="button">＋ প্রথম Category তৈরি করুন</button>
+            <button id="emptyAddBtn" class="primary-btn admin-only hidden" type="button">＋ প্রথম Category তৈরি করুন</button>
         </section>
     </div>
 
@@ -78,7 +78,7 @@
             </div>
         </section>
 
-        <div class="section-toolbar admin-only">
+        <div class="section-toolbar admin-only hidden">
             <button id="addSubCategoryBtn" class="primary-btn" type="button">＋ Sub-Category</button>
             <button id="addHeaderBtn" class="primary-btn" type="button">＋ Header</button>
             <button id="addDataBtn" class="secondary-btn" type="button">＋ Data</button>
@@ -145,7 +145,6 @@
     </div>
 </div>
 
-<!-- নতুন অ্যাডমিন ভেরিফিকেশন রিকোয়েস্ট মডাল -->
 <div id="adminVerifyRequestsModal" class="modal hidden">
     <div class="modal-content" style="max-width: 500px; width: 90%;">
         <div class="modal-header">
