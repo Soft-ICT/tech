@@ -1,3 +1,6 @@
+/* =========================================
+   Global Reset & Root Variables
+========================================= */
 * {
     margin: 0;
     padding: 0;
@@ -310,10 +313,8 @@ body {
     height: 8px;
     background-color: #ef4444;
     border-radius: 50%;
-    display: none; /* নোটিফিকেশন থাকলে এটি block করতে পারেন */
+    display: none;
 }
-
-
 
 /* ==========================================
    CONTAINER & CARDS
@@ -731,6 +732,9 @@ body {
     margin-bottom: 20px;
 }
 
+/* ==========================================
+   Responsive Breakpoints
+========================================== */
 @media (max-width: 600px) {
     .topbar { height: 58px; padding: 0 10px; }
     .sub-toolbar { height: 46px; padding: 0 12px; }
