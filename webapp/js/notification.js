@@ -1,11 +1,11 @@
 /* =========================================
-   Notification System Module (Tabbed View Pager & Media Support)
+   Notification System Module (Separate Lists & Toggle/Disable Support)
 ========================================= */
 
 export function initNotificationSystem() {
     createNotificationUI();
     setupNotificationEvents();
-    renderActiveSlidingNotice();
+    renderActiveNotices();
 }
 
 function createNotificationUI() {
@@ -13,13 +13,13 @@ function createNotificationUI() {
 
     const notificationHTML = `
     <div id="notificationModal" class="modal hidden">
-        <div class="modal-content notification-modal-content" style="max-width: 650px; width: 95%;">
+        <div class="modal-content notification-modal-content" style="max-width: 680px; width: 95%;">
             <div class="modal-header">
                 <h2>📢 নোটিফিকেশন ম্যানেজমেন্ট প্যানেল</h2>
                 <button class="close-btn" data-close="notificationModal" type="button">✕</button>
             </div>
             
-            <div class="notification-body" style="max-height: 75vh; overflow-y: auto; padding: 15px;">
+            <div class="notification-body" style="max-height: 78vh; overflow-y: auto; padding: 15px;">
                 
                 <!-- View Pager / Tabs Navigation -->
                 <div class="notice-tabs" style="display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid var(--border-color, #ddd); padding-bottom: 10px;">
@@ -29,73 +29,94 @@ function createNotificationUI() {
                 </div>
 
                 <input type="hidden" id="editNoticeId" value="">
-                <input type="hidden" id="activeNoticeType" value="sliding">
 
                 <!-- TAB 1: SCROLLING NOTICE -->
                 <div id="tabSliding" class="notice-tab-content">
-                    <div class="card" style="padding: 15px; background: var(--bg-card, #f9f9f9); border-radius: 8px; border: 1px solid var(--border-color, #ddd); margin-bottom: 20px;">
-                        <h3 class="form-title-text" style="margin-bottom: 12px; font-size: 16px; color: var(--text-main);">স্লাইডিং নোটিশ তৈরি করুন</h3>
-                        <div class="form-group" style="margin-bottom: 12px;">
-                            <label style="display:block; margin-bottom: 5px; font-weight: 500;">১. শিরোনাম:</label>
+                    <div class="card" style="padding: 15px; background: var(--bg-card, #f9f9f9); border-radius: 8px; border: 1px solid var(--border-color, #ddd); margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <h3 class="form-title-sliding" style="margin: 0; font-size: 16px; color: var(--text-main);">স্লাইডিং নোটিশ তৈরি করুন</h3>
+                            <button type="button" id="toggleSlidingGlobalBtn" style="padding: 4px 10px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer; background: #28a745; color: #fff;">স্ট্যাটাস: চালু আছে</button>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label style="display:block; margin-bottom: 4px; font-weight: 500;">১. শিরোনাম:</label>
                             <input type="text" id="slidingTitle" placeholder="যেমন: BREAKING NEWS" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
                         </div>
-                        <div class="form-group" style="margin-bottom: 12px;">
-                            <label style="display:block; margin-bottom: 5px; font-weight: 500;">২. বিস্তারিত:</label>
-                            <textarea id="slidingMessage" rows="3" placeholder="বিস্তারিত লিখুন..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);"></textarea>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label style="display:block; margin-bottom: 4px; font-weight: 500;">২. বিস্তারিত:</label>
+                            <textarea id="slidingMessage" rows="2" placeholder="বিস্তারিত লিখুন..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);"></textarea>
                         </div>
-                        <button type="button" class="submit-notice-btn primary-btn" data-type="sliding" style="width: 100%; padding: 10px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer;">স্লাইডিং নোটিশ প্রকাশ করুন</button>
+                        <button type="button" class="submit-notice-btn primary-btn" data-type="sliding" style="width: 100%; padding: 9px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer;">স্লাইডিং নোটিশ প্রকাশ করুন</button>
+                    </div>
+
+                    <!-- আলাদা লিস্ট: Scrolling -->
+                    <div>
+                        <h4 style="margin-bottom: 8px; font-size: 14px; color: var(--text-main);">স্লাইডিং নোটিশের তালিকা</h4>
+                        <div id="sentSlidingList" class="notification-list">
+                            <p class="text-muted" style="text-align: center; padding: 10px; font-size: 13px;">কোনো স্লাইডিং নোটিশ নেই।</p>
+                        </div>
                     </div>
                 </div>
 
                 <!-- TAB 2: HOME NOTICE -->
                 <div id="tabHome" class="notice-tab-content hidden">
-                    <div class="card" style="padding: 15px; background: var(--bg-card, #f9f9f9); border-radius: 8px; border: 1px solid var(--border-color, #ddd); margin-bottom: 20px;">
-                        <h3 class="form-title-text" style="margin-bottom: 12px; font-size: 16px; color: var(--text-main);">হোম নোটিশ তৈরি করুন</h3>
-                        <div class="form-group" style="margin-bottom: 12px;">
-                            <label style="display:block; margin-bottom: 5px; font-weight: 500;">১. শিরোনাম:</label>
+                    <div class="card" style="padding: 15px; background: var(--bg-card, #f9f9f9); border-radius: 8px; border: 1px solid var(--border-color, #ddd); margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <h3 class="form-title-home" style="margin: 0; font-size: 16px; color: var(--text-main);">হোম নোটিশ তৈরি করুন</h3>
+                            <button type="button" id="toggleHomeGlobalBtn" style="padding: 4px 10px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer; background: #28a745; color: #fff;">স্ট্যাটাস: চালু আছে</button>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label style="display:block; margin-bottom: 4px; font-weight: 500;">১. শিরোনাম:</label>
                             <input type="text" id="homeTitle" placeholder="নোটিশের শিরোনাম..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
                         </div>
-                        <div class="form-group" style="margin-bottom: 12px;">
-                            <label style="display:block; margin-bottom: 5px; font-weight: 500;">২. বিস্তারিত:</label>
-                            <textarea id="homeMessage" rows="3" placeholder="বিস্তারিত বিবরণ..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);"></textarea>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label style="display:block; margin-bottom: 4px; font-weight: 500;">২. বিস্তারিত:</label>
+                            <textarea id="homeMessage" rows="2" placeholder="বিস্তারিত বিবরণ..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);"></textarea>
                         </div>
-                        <div class="form-group" style="margin-bottom: 12px;">
-                            <label style="display:block; margin-bottom: 5px; font-weight: 500;">৩. মিডিয়া বা সাইট লিংক (ইমেজ / ভিডিও / ওয়েবসাইট URL):</label>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label style="display:block; margin-bottom: 4px; font-weight: 500;">৩. মিডিয়া বা সাইট লিংক (ইমেজ / ভিডিও / ওয়েবসাইট URL):</label>
                             <input type="url" id="homeMediaLink" placeholder="https://example.com/image.jpg বা video/site link" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
                         </div>
-                        <button type="button" class="submit-notice-btn primary-btn" data-type="home" style="width: 100%; padding: 10px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer;">হোম নোটিশ প্রকাশ করুন</button>
+                        <button type="button" class="submit-notice-btn primary-btn" data-type="home" style="width: 100%; padding: 9px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer;">হোম নোটিশ প্রকাশ করুন</button>
+                    </div>
+
+                    <!-- আলাদা লিস্ট: Home -->
+                    <div>
+                        <h4 style="margin-bottom: 8px; font-size: 14px; color: var(--text-main);">হোম নোটিশের তালিকা</h4>
+                        <div id="sentHomeList" class="notification-list">
+                            <p class="text-muted" style="text-align: center; padding: 10px; font-size: 13px;">কোনো হোম নোটিশ নেই।</p>
+                        </div>
                     </div>
                 </div>
 
                 <!-- TAB 3: PUSH NOTICE -->
                 <div id="tabPush" class="notice-tab-content hidden">
-                    <div class="card" style="padding: 15px; background: var(--bg-card, #f9f9f9); border-radius: 8px; border: 1px solid var(--border-color, #ddd); margin-bottom: 20px;">
-                        <h3 class="form-title-text" style="margin-bottom: 12px; font-size: 16px; color: var(--text-main);">পুশ নোটিশ তৈরি করুন</h3>
-                        <div class="form-group" style="margin-bottom: 12px;">
-                            <label style="display:block; margin-bottom: 5px; font-weight: 500;">১. শিরোনাম:</label>
+                    <div class="card" style="padding: 15px; background: var(--bg-card, #f9f9f9); border-radius: 8px; border: 1px solid var(--border-color, #ddd); margin-bottom: 15px;">
+                        <h3 class="form-title-push" style="margin: 0; font-size: 16px; color: var(--text-main);">পুশ নোটিশ তৈরি করুন</h3>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label style="display:block; margin-bottom: 4px; font-weight: 500;">১. শিরোনাম:</label>
                             <input type="text" id="pushTitle" placeholder="পুশ নোটিফিকেশন শিরোনাম..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
                         </div>
-                        <div class="form-group" style="margin-bottom: 12px;">
-                            <label style="display:block; margin-bottom: 5px; font-weight: 500;">২. বিস্তারিত:</label>
-                            <textarea id="pushMessage" rows="3" placeholder="পুশ মেসেজ..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);"></textarea>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label style="display:block; margin-bottom: 4px; font-weight: 500;">২. বিস্তারিত:</label>
+                            <textarea id="pushMessage" rows="2" placeholder="পুশ মেসেজ..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);"></textarea>
                         </div>
-                        <div class="form-group" style="margin-bottom: 12px;">
-                            <label style="display:block; margin-bottom: 5px; font-weight: 500;">৩. ইমেজ লিংক (নোটিফিকেশন ব্যানার ইমেজ):</label>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label style="display:block; margin-bottom: 4px; font-weight: 500;">৩. ইমেজ লিংক (নোটিফিকেশন ব্যানার ইমেজ):</label>
                             <input type="url" id="pushImageLink" placeholder="https://example.com/banner.jpg" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
                         </div>
-                        <button type="button" class="submit-notice-btn primary-btn" data-type="push" style="width: 100%; padding: 10px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer;">পুশ নোটিশ পাঠান</button>
+                        <button type="button" class="submit-notice-btn primary-btn" data-type="push" style="width: 100%; padding: 9px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer;">পুশ নোটিশ পাঠান</button>
+                    </div>
+
+                    <!-- আলাদা লিস্ট: Push -->
+                    <div>
+                        <h4 style="margin-bottom: 8px; font-size: 14px; color: var(--text-main);">পুশ নোটিশের তালিকা</h4>
+                        <div id="sentPushList" class="notification-list">
+                            <p class="text-muted" style="text-align: center; padding: 10px; font-size: 13px;">কোনো পুশ নোটিশ নেই।</p>
+                        </div>
                     </div>
                 </div>
 
-                <button id="cancelEditBtn" class="secondary-btn hidden" type="button" style="width: 100%; padding: 8px; margin-bottom: 15px; background: #6c757d; color: #fff; border: none; border-radius: 4px; cursor: pointer;">এডিট বাতিল করুন</button>
-
-                <!-- পাঠানো নোটিশগুলোর তালিকা -->
-                <div>
-                    <h3 style="margin-bottom: 10px; font-size: 16px; color: var(--text-main);">সাম্প্রতিক পাঠানো নোটিশসমূহ</h3>
-                    <div id="sentNoticeList" class="notification-list">
-                        <p class="text-muted" style="text-align: center; padding: 15px;">কোনো নোটিশ পাঠানো হয়নি।</p>
-                    </div>
-                </div>
+                <button id="cancelEditBtn" class="secondary-btn hidden" type="button" style="width: 100%; padding: 8px; margin-top: 15px; background: #6c757d; color: #fff; border: none; border-radius: 4px; cursor: pointer;">এডিট বাতিল করুন</button>
 
             </div>
             <div class="modal-actions" style="padding: 10px 15px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px;">
@@ -111,11 +132,14 @@ function setupNotificationEvents() {
     const notifBtn = document.getElementById("notificationBtn");
     const modal = document.getElementById("notificationModal");
     const cancelEditBtn = document.getElementById("cancelEditBtn");
+    const toggleSlidingBtn = document.getElementById("toggleSlidingGlobalBtn");
+    const toggleHomeBtn = document.getElementById("toggleHomeGlobalBtn");
 
     if (notifBtn) {
         notifBtn.addEventListener("click", () => {
             modal.classList.remove("hidden");
-            loadSentNotices();
+            loadAllSeparateLists();
+            updateToggleButtonsUI();
         });
     }
 
@@ -126,7 +150,22 @@ function setupNotificationEvents() {
         });
     });
 
-    // Tab Switching Logic (View Pager)
+    // Global Toggle Listeners
+    toggleSlidingBtn?.addEventListener("click", () => {
+        let isOff = localStorage.getItem("sliding_notice_disabled") === "true";
+        localStorage.setItem("sliding_notice_disabled", !isOff);
+        updateToggleButtonsUI();
+        renderActiveNotices();
+    });
+
+    toggleHomeBtn?.addEventListener("click", () => {
+        let isOff = localStorage.getItem("home_notice_disabled") === "true";
+        localStorage.setItem("home_notice_disabled", !isOff);
+        updateToggleButtonsUI();
+        renderActiveNotices();
+    });
+
+    // Tab Switching Logic
     const tabBtns = modal.querySelectorAll(".tab-btn");
     tabBtns.forEach(btn => {
         btn.addEventListener("click", (e) => {
@@ -145,14 +184,9 @@ function setupNotificationEvents() {
 
             const targetTab = e.target.getAttribute("data-target");
             document.getElementById(targetTab).classList.remove("hidden");
-
-            if (targetTab === 'tabSliding') document.getElementById("activeNoticeType").value = "sliding";
-            if (targetTab === 'tabHome') document.getElementById("activeNoticeType").value = "home";
-            if (targetTab === 'tabPush') document.getElementById("activeNoticeType").value = "push";
         });
     });
 
-    // Submit / Save Buttons
     modal.querySelectorAll(".submit-notice-btn").forEach(btn => {
         btn.addEventListener("click", (e) => {
             const type = e.target.getAttribute("data-type");
@@ -164,6 +198,23 @@ function setupNotificationEvents() {
         cancelEditBtn.addEventListener("click", () => {
             resetForm();
         });
+    }
+}
+
+function updateToggleButtonsUI() {
+    const slidingBtn = document.getElementById("toggleSlidingGlobalBtn");
+    const homeBtn = document.getElementById("toggleHomeGlobalBtn");
+
+    if (slidingBtn) {
+        const isOff = localStorage.getItem("sliding_notice_disabled") === "true";
+        slidingBtn.innerText = isOff ? "স্ট্যাটাস: বন্ধ আছে" : "স্ট্যাটাস: চালু আছে";
+        slidingBtn.style.background = isOff ? "#dc3545" : "#28a745";
+    }
+
+    if (homeBtn) {
+        const isOff = localStorage.getItem("home_notice_disabled") === "true";
+        homeBtn.innerText = isOff ? "স্ট্যাটাস: বন্ধ আছে" : "স্ট্যাটাস: চালু আছে";
+        homeBtn.style.background = isOff ? "#dc3545" : "#28a745";
     }
 }
 
@@ -214,39 +265,75 @@ function handleSaveOrUpdateNotice(type) {
 
         if (type === 'sliding') {
             localStorage.setItem("active_sliding_notice", JSON.stringify(newNotice));
-            showSlidingBanner(newNotice);
-        } else {
-            executeNoticeAction(newNotice);
+        } else if (type === 'home') {
+            localStorage.setItem("active_home_notice", JSON.stringify(newNotice));
+        } else if (type === 'push') {
+            triggerPushBackgroundNotification(newNotice);
         }
         alert("নোটিশ সফলভাবে প্রকাশ করা হয়েছে!");
     }
 
     localStorage.setItem("app_custom_notices", JSON.stringify(notices));
 
-    if (type === 'sliding') {
-        const updatedActive = notices.find(n => n.id == (editId || notices[0].id));
-        if (updatedActive) {
-            localStorage.setItem("active_sliding_notice", JSON.stringify(updatedActive));
-            showSlidingBanner(updatedActive);
-        }
+    // নির্দিষ্ট টাইপের লেটেস্ট নোটিশটি একটিভ হিসেবে সেট করা
+    const latestOfType = notices.find(n => n.type === type);
+    if (latestOfType) {
+        if (type === 'sliding') localStorage.setItem("active_sliding_notice", JSON.stringify(latestOfType));
+        if (type === 'home') localStorage.setItem("active_home_notice", JSON.stringify(latestOfType));
     }
 
     resetForm();
-    loadSentNotices();
+    loadAllSeparateLists();
+    renderActiveNotices();
 }
 
-function executeNoticeAction(notice) {
-    if (notice.type === 'home') {
-        showHomeNoticeBanner(notice);
-    } else if (notice.type === 'push') {
-        triggerPushBackgroundNotification(notice);
+function triggerPushBackgroundNotification(notice) {
+    if ("Notification" in window && Notification.permission === "granted") {
+        new Notification(notice.title, { 
+            body: notice.message, 
+            icon: notice.mediaLink || "icons/icon-192.png",
+            image: notice.mediaLink || ""
+        });
+    } else if ("Notification" in window && Notification.permission !== "denied") {
+        Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+                new Notification(notice.title, { 
+                    body: notice.message, 
+                    icon: notice.mediaLink || "icons/icon-192.png",
+                    image: notice.mediaLink || ""
+                });
+            }
+        });
     }
 }
 
-export function renderActiveSlidingNotice() {
-    const activeNotice = JSON.parse(localStorage.getItem("active_sliding_notice"));
-    if (activeNotice) {
-        showSlidingBanner(activeNotice);
+export function renderActiveNotices() {
+    // 1. Render Sliding Notice
+    const slidingDisabled = localStorage.getItem("sliding_notice_disabled") === "true";
+    const ticker = document.getElementById("slidingNoticeTicker");
+    if (slidingDisabled) {
+        if (ticker) ticker.remove();
+    } else {
+        const activeSliding = JSON.parse(localStorage.getItem("active_sliding_notice"));
+        if (activeSliding) {
+            showSlidingBanner(activeSliding);
+        }
+    }
+
+    // 2. Render Home Notice
+    const homeDisabled = localStorage.getItem("home_notice_disabled") === "true";
+    const homeContainer = document.getElementById("allSearchContainer");
+    if (homeContainer) {
+        if (homeDisabled) {
+            // শুধুমাত্র নোটিশ ব্যানার অংশটি রিমুভ করা বা হাইড করা
+            const bannerEl = document.getElementById("activeHomeNoticeBanner");
+            if (bannerEl) bannerEl.remove();
+        } else {
+            const activeHome = JSON.parse(localStorage.getItem("active_home_notice"));
+            if (activeHome) {
+                showHomeNoticeBanner(activeHome);
+            }
+        }
     }
 }
 
@@ -283,120 +370,132 @@ function showHomeNoticeBanner(notice) {
     if (container) {
         container.classList.remove("hidden");
         
+        // পুরানো ব্যানার থাকলে রিমুভ করে নতুনটি দেওয়া যাতে ডুপ্লিকেট না হয়
+        let existingBanner = document.getElementById("activeHomeNoticeBanner");
+        if (existingBanner) existingBanner.remove();
+
         let mediaHtml = "";
         if (notice.mediaLink) {
             const link = notice.mediaLink.toLowerCase();
             if (link.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
-                mediaHtml = `<div style="margin-top: 10px;"><img src="${notice.mediaLink}" style="max-width: 100%; max-height: 200px; border-radius: 6px;" alt="Notice Media"></div>`;
+                mediaHtml = `<div style="margin-top: 10px;"><img src="${notice.mediaLink}" style="max-width: 100%; max-height: 220px; border-radius: 6px; object-fit: cover;" alt="Notice Media"></div>`;
             } else if (link.includes("youtube.com") || link.includes("youtu.be") || link.match(/\.(mp4|webm)$/i)) {
-                mediaHtml = `<div style="margin-top: 10px; font-size: 13px;"><a href="${notice.mediaLink}" target="_blank" style="color: #0d6efd; text-decoration: underline;">🎥 ভিডিও লিংক ওপেন করুন</a></div>`;
+                mediaHtml = `<div style="margin-top: 10px; font-size: 13px;"><a href="${notice.mediaLink}" target="_blank" style="color: #0d6efd; text-decoration: underline; font-weight: 600;">🎥 ভিডিও লিংক ওপেন করুন</a></div>`;
             } else {
-                mediaHtml = `<div style="margin-top: 10px;"><a href="${notice.mediaLink}" target="_blank" class="primary-btn" style="display: inline-block; padding: 6px 12px; background: #0d6efd; color: #fff; border-radius: 4px; text-decoration: none; font-size: 13px;">ওপেন লিংক</a></div>`;
+                mediaHtml = `<div style="margin-top: 10px;"><a href="${notice.mediaLink}" target="_blank" class="primary-btn" style="display: inline-block; padding: 6px 14px; background: #0d6efd; color: #fff; border-radius: 4px; text-decoration: none; font-size: 13px; font-weight: 500;">ওপেন লিংক</a></div>`;
             }
         }
 
-        container.innerHTML = `
-            <div style="background: var(--bg-card, #e3f2fd); border-left: 4px solid #0d6efd; padding: 12px; border-radius: 4px; margin-bottom: 15px;">
-                <h4 style="color: #0d6efd; margin-bottom: 5px;">📌 ${notice.title}</h4>
-                <p style="margin: 0; font-size: 14px;">${notice.message}</p>
-                ${mediaHtml}
-                <small style="color: gray; display: block; margin-top: 5px;">প্রকাশিত: ${notice.time}</small>
-            </div>
-        ` + container.innerHTML;
+        const bannerDiv = document.createElement("div");
+        bannerDiv.id = "activeHomeNoticeBanner";
+        bannerDiv.style.cssText = "background: var(--bg-card, #e3f2fd); border-left: 4px solid #0d6efd; padding: 12px; border-radius: 6px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);";
+        bannerDiv.innerHTML = `
+            <h4 style="color: #0d6efd; margin-bottom: 5px; font-size: 15px;">📌 ${notice.title}</h4>
+            <p style="margin: 0; font-size: 14px; color: var(--text-main); line-height: 1.4;">${notice.message}</p>
+            ${mediaHtml}
+            <small style="color: gray; display: block; margin-top: 6px; font-size: 11px;">প্রকাশিত: ${notice.time}</small>
+        `;
+
+        container.prepend(bannerDiv);
     }
 }
 
-function triggerPushBackgroundNotification(notice) {
-    if ("Notification" in window && Notification.permission === "granted") {
-        new Notification(notice.title, { 
-            body: notice.message, 
-            icon: notice.mediaLink || "icons/icon-192.png",
-            image: notice.mediaLink || ""
-        });
-    } else if ("Notification" in window && Notification.permission !== "denied") {
-        Notification.requestPermission().then(permission => {
-            if (permission === "granted") {
-                new Notification(notice.title, { 
-                    body: notice.message, 
-                    icon: notice.mediaLink || "icons/icon-192.png",
-                    image: notice.mediaLink || ""
-                });
-            }
-        });
-    }
-}
-
-function loadSentNotices() {
-    const listContainer = document.getElementById("sentNoticeList");
+function loadAllSeparateLists() {
     let notices = JSON.parse(localStorage.getItem("app_custom_notices") || "[]");
 
-    if (notices.length === 0) {
-        listContainer.innerHTML = `<p class="text-muted" style="text-align: center; padding: 15px;">কোনো নোটিশ পাঠানো হয়নি।</p>`;
-        return;
+    const slidingList = document.getElementById("sentSlidingList");
+    const homeList = document.getElementById("sentHomeList");
+    const pushList = document.getElementById("sentPushList");
+
+    const slidingNotices = notices.filter(n => n.type === 'sliding');
+    const homeNotices = notices.filter(n => n.type === 'home');
+    const pushNotices = notices.filter(n => n.type === 'push');
+
+    // 1. Render Sliding List
+    if (slidingNotices.length === 0) {
+        slidingList.innerHTML = `<p class="text-muted" style="text-align: center; padding: 10px; font-size: 13px;">কোনো স্লাইডিং নোটিশ নেই।</p>`;
+    } else {
+        slidingList.innerHTML = slidingNotices.map(n => renderNoticeCard(n)).join('');
     }
 
-    const typeNames = {
-        'sliding': 'স্লাইডিং নোটিশ',
-        'push': 'পুশ নোটিশ',
-        'home': 'হোম নোটিশ'
-    };
+    // 2. Render Home List
+    if (homeNotices.length === 0) {
+        homeList.innerHTML = `<p class="text-muted" style="text-align: center; padding: 10px; font-size: 13px;">কোনো হোম নোটিশ নেই।</p>`;
+    } else {
+        homeList.innerHTML = homeNotices.map(n => renderNoticeCard(n)).join('');
+    }
 
-    listContainer.innerHTML = notices.map(notif => `
-        <div style="padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 8px; background: var(--bg-main); display: flex; justify-content: space-between; align-items: center;">
-            <div style="flex: 1; padding-right: 10px;">
-                <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px;">
-                    <strong style="font-size: 14px; color: var(--text-main);">${notif.title}</strong>
-                    <span style="font-size: 10px; background: #0d6efd; color: #fff; padding: 2px 6px; border-radius: 4px;">${typeNames[notif.type] || notif.type}</span>
-                </div>
-                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 2px;">${notif.message}</p>
-                ${notif.mediaLink ? `<small style="color: #0d6efd; display:block;">লিংক/ইমেজ সংযুক্ত আছে</small>` : ''}
-                <small style="font-size: 11px; color: gray;">সময়: ${notif.time}</small>
+    // 3. Render Push List
+    if (pushNotices.length === 0) {
+        pushList.innerHTML = `<p class="text-muted" style="text-align: center; padding: 10px; font-size: 13px;">কোনো পুশ নোটিশ নেই।</p>`;
+    } else {
+        pushList.innerHTML = pushNotices.map(n => renderNoticeCard(n)).join('');
+    }
+
+    attachListActionEvents();
+}
+
+function renderNoticeCard(notif) {
+    return `
+        <div style="padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 8px; background: var(--bg-main); display: flex; justify-content: space-between; align-items: center;">
+            <div style="flex: 1; padding-right: 8px;">
+                <strong style="font-size: 13px; color: var(--text-main); display:block; margin-bottom: 2px;">${notif.title}</strong>
+                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;">${notif.message}</p>
+                ${notif.mediaLink ? `<small style="color: #0d6efd; font-size: 11px; display:block;">লিংক/মিডিয়া সংযুক্ত আছে</small>` : ''}
+                <small style="font-size: 10px; color: gray;">${notif.time}</small>
             </div>
-            <div style="display: flex; gap: 5px; flex-shrink: 0;">
-                <button class="edit-notice-btn" data-id="${notif.id}" style="padding: 5px 8px; font-size: 12px; cursor: pointer; background: #ffc107; color: #000; border: none; border-radius: 4px; font-weight: 500;">এডিট</button>
-                <button class="delete-notice-btn" data-id="${notif.id}" data-type="${notif.type}" style="padding: 5px 8px; font-size: 12px; cursor: pointer; background: #dc3545; color: #fff; border: none; border-radius: 4px;">ডিলিট</button>
+            <div style="display: flex; gap: 4px; flex-shrink: 0;">
+                <button class="edit-notice-btn" data-id="${notif.id}" style="padding: 4px 8px; font-size: 11px; cursor: pointer; background: #ffc107; color: #000; border: none; border-radius: 4px; font-weight: 500;">এডিট</button>
+                <button class="delete-notice-btn" data-id="${notif.id}" data-type="${notif.type}" style="padding: 4px 8px; font-size: 11px; cursor: pointer; background: #dc3545; color: #fff; border: none; border-radius: 4px;">ডিলিট</button>
             </div>
         </div>
-    `).join('');
+    `;
+}
 
-    listContainer.querySelectorAll(".edit-notice-btn").forEach(btn => {
+function attachListActionEvents() {
+    const modal = document.getElementById("notificationModal");
+
+    modal.querySelectorAll(".edit-notice-btn").forEach(btn => {
         btn.addEventListener("click", (e) => {
             const id = Number(e.target.getAttribute("data-id"));
+            let notices = JSON.parse(localStorage.getItem("app_custom_notices") || "[]");
             const noticeToEdit = notices.find(n => n.id === id);
+            
             if (noticeToEdit) {
                 document.getElementById("editNoticeId").value = noticeToEdit.id;
                 
-                // Switch tab and fill data according to notice type
-                const targetTabBtn = document.querySelector(`.tab-btn[data-target="tab${noticeToEdit.type.charAt(0).toUpperCase() + noticeToEdit.type.slice(1)}"]`);
+                const targetTabBtn = modal.querySelector(`.tab-btn[data-target="tab${noticeToEdit.type.charAt(0).toUpperCase() + noticeToEdit.type.slice(1)}"]`);
                 if (targetTabBtn) targetTabBtn.click();
 
                 if (noticeToEdit.type === 'sliding') {
                     document.getElementById("slidingTitle").value = noticeToEdit.title;
                     document.getElementById("slidingMessage").value = noticeToEdit.message;
+                    document.querySelector(".form-title-sliding").innerText = "স্লাইডিং নোটিশ এডিট করুন";
                 } else if (noticeToEdit.type === 'home') {
                     document.getElementById("homeTitle").value = noticeToEdit.title;
                     document.getElementById("homeMessage").value = noticeToEdit.message;
                     document.getElementById("homeMediaLink").value = noticeToEdit.mediaLink || "";
+                    document.querySelector(".form-title-home").innerText = "হোম নোটিশ এডিট করুন";
                 } else if (noticeToEdit.type === 'push') {
                     document.getElementById("pushTitle").value = noticeToEdit.title;
                     document.getElementById("pushMessage").value = noticeToEdit.message;
                     document.getElementById("pushImageLink").value = noticeToEdit.mediaLink || "";
+                    document.querySelector(".form-title-push").innerText = "পুশ নোটিশ এডিট করুন";
                 }
                 
-                document.querySelectorAll(".form-title-text").forEach(el => el.innerText = "নোটিশ এডিট করুন");
-                document.querySelectorAll(".submit-notice-btn").forEach(el => el.innerText = "আপডেট করুন");
+                modal.querySelectorAll(".submit-notice-btn").forEach(el => el.innerText = "আপডেট করুন");
                 document.getElementById("cancelEditBtn").classList.remove("hidden");
-                
                 document.querySelector(".notification-body").scrollTo({ top: 0, behavior: 'smooth' });
             }
         });
     });
 
-    listContainer.querySelectorAll(".delete-notice-btn").forEach(btn => {
+    modal.querySelectorAll(".delete-notice-btn").forEach(btn => {
         btn.addEventListener("click", (e) => {
             const id = Number(e.target.getAttribute("data-id"));
             const type = e.target.getAttribute("data-type");
             
+            let notices = JSON.parse(localStorage.getItem("app_custom_notices") || "[]");
             notices = notices.filter(n => n.id !== id);
             localStorage.setItem("app_custom_notices", JSON.stringify(notices));
 
@@ -407,9 +506,17 @@ function loadSentNotices() {
                     const ticker = document.getElementById("slidingNoticeTicker");
                     if (ticker) ticker.remove();
                 }
+            } else if (type === 'home') {
+                const active = JSON.parse(localStorage.getItem("active_home_notice"));
+                if (active && active.id === id) {
+                    localStorage.removeItem("active_home_notice");
+                    const banner = document.getElementById("activeHomeNoticeBanner");
+                    if (banner) banner.remove();
+                }
             }
 
-            loadSentNotices();
+            loadAllSeparateLists();
+            renderActiveNotices();
             alert("নোটিশটি সফলভাবে ডিলিট করা হয়েছে!");
         });
     });
@@ -426,14 +533,13 @@ function resetForm() {
     document.getElementById("pushMessage").value = "";
     document.getElementById("pushImageLink").value = "";
 
-    document.querySelectorAll(".form-title-text").forEach((el, idx) => {
-        const titles = ["স্লাইডিং নোটিশ তৈরি করুন", "হোম নোটিশ তৈরি করুন", "পুশ নোটিশ তৈরি করুন"];
-        el.innerText = titles[idx];
-    });
+    document.querySelector(".form-title-sliding").innerText = "স্লাইডিং নোটিশ তৈরি করুন";
+    document.querySelector(".form-title-home").innerText = "হোম নোটিশ তৈরি করুন";
+    document.querySelector(".form-title-push").innerText = "পুশ নোটিশ তৈরি করুন";
     
-    const submitTexts = ["স্লাইডিং নোটিশ প্রকাশ করুন", "হোম নোটিশ প্রকাশ করুন", "পুশ নোটিশ পাঠান"];
     document.querySelectorAll(".submit-notice-btn").forEach((el, idx) => {
-        el.innerText = submitTexts[idx];
+        const texts = ["স্লাইডিং নোটিশ প্রকাশ করুন", "হোম নোটিশ প্রকাশ করুন", "পুশ নোটিশ পাঠান"];
+        el.innerText = texts[idx];
     });
 
     document.getElementById("cancelEditBtn").classList.add("hidden");
