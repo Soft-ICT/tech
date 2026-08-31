@@ -165,7 +165,8 @@ function setupNotificationEvents() {
             });
 
             const targetTab = e.target.getAttribute("data-target");
-            document.getElementById(targetTab).style.display = "block";
+            const targetElement = document.getElementById(targetTab);
+            if (targetElement) targetElement.style.display = "block";
         });
     });
 
@@ -304,6 +305,7 @@ function renderCard(n) {
 
 function attachCardActions() {
     const modal = document.getElementById("notificationModal");
+    if (!modal) return;
 
     modal.querySelectorAll(".edit-btn").forEach(btn => {
         btn.addEventListener("click", async (e) => {
@@ -329,7 +331,8 @@ function attachCardActions() {
                     document.getElementById("pushImageLink").value = notice.mediaLink || "";
                 }
 
-                document.getElementById("cancelEditBtn").style.display = "block";
+                const cancelBtn = document.getElementById("cancelEditBtn");
+                if (cancelBtn) cancelBtn.style.display = "block";
             }
         });
     });
@@ -346,14 +349,33 @@ function attachCardActions() {
 }
 
 function resetForm() {
-    document.getElementById("editNoticeId").value = "";
-    document.getElementById("slidingTitle").value = "";
-    document.getElementById("slidingMessage").value = "";
-    document.getElementById("homeTitle").value = "";
-    document.getElementById("homeMessage").value = "";
-    document.getElementById("homeMediaLink").value = "";
-    document.getElementById("pushTitle").value = "";
-    document.getElementById("pushMessage").value = "";
-    document.getElementById("pushImageLink").value = "";
-    document.getElementById("cancelEditBtn").style.display = "none";
+    const editIdInput = document.getElementById("editNoticeId");
+    if (editIdInput) editIdInput.value = "";
+    
+    const slidingTitle = document.getElementById("slidingTitle");
+    if (slidingTitle) slidingTitle.value = "";
+    
+    const slidingMsg = document.getElementById("slidingMessage");
+    if (slidingMsg) slidingMsg.value = "";
+    
+    const homeTitle = document.getElementById("homeTitle");
+    if (homeTitle) homeTitle.value = "";
+    
+    const homeMsg = document.getElementById("homeMessage");
+    if (homeMsg) homeMsg.value = "";
+    
+    const homeMedia = document.getElementById("homeMediaLink");
+    if (homeMedia) homeMedia.value = "";
+    
+    const pushTitle = document.getElementById("pushTitle");
+    if (pushTitle) pushTitle.value = "";
+    
+    const pushMsg = document.getElementById("pushMessage");
+    if (pushMsg) pushMsg.value = "";
+    
+    const pushImg = document.getElementById("pushImageLink");
+    if (pushImg) pushImg.value = "";
+    
+    const cancelBtn = document.getElementById("cancelEditBtn");
+    if (cancelBtn) cancelBtn.style.display = "none";
 }
