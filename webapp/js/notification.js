@@ -123,6 +123,24 @@ function createNotificationUI() {
 }
 
 function setupNotificationEvents() {
+    // সরাসরি আইডি দিয়ে বাটন চেক করা এবং ইভেন্ট বাইন্ড করা
+    const checkButtonInterval = setInterval(() => {
+        const notifBtn = document.getElementById("notificationBtn");
+        if (notifBtn) {
+            clearInterval(checkButtonInterval);
+            notifBtn.addEventListener("click", () => {
+                const modal = document.getElementById("notificationModal");
+                if (modal) {
+                    modal.classList.remove("hidden");
+                    modal.style.display = "flex";
+                    loadAllSeparateLists();
+                    updateToggleButtonsUI();
+                }
+            });
+        }
+    }, 500);
+
+    // গ্লোবাল ক্লিক লিসেনার দিয়ে ব্যাকআপ রাখা যাতে বাটন পরে লোড হলেও কাজ করে
     document.addEventListener("click", (e) => {
         const notifBtn = e.target.closest("#notificationBtn");
         if (notifBtn) {
@@ -268,7 +286,6 @@ function listenToFirebaseNotices() {
             const noticesArray = Object.values(data);
             localStorage.setItem("app_custom_notices_firebase", JSON.stringify(noticesArray));
             
-            // সর্বশেষ স্লাইডিং নোটিশটি সিলেক্ট করা
             const activeSliding = noticesArray.filter(n => n.type === 'sliding').pop();
             if (activeSliding) {
                 localStorage.setItem("active_sliding_notice", JSON.stringify(activeSliding));
@@ -308,7 +325,6 @@ function showSlidingBanner(notice) {
         ticker.id = "slidingNoticeTicker";
         ticker.style.cssText = "background: #fff; border-bottom: 1px solid #ddd; display: flex; align-items: center; overflow: hidden; width: 100%; z-index: 998; position: relative;";
         
-        // টুলবার এবং সাব-টুলবারের মাঝখানে বা পেজের নির্দিষ্ট এলিমেন্টের উপরে বসানোর লজিক
         const subToolbar = document.querySelector(".sub-toolbar") || document.querySelector("header") || document.body.firstChild;
         if (subToolbar && subToolbar.parentNode) {
             subToolbar.parentNode.insertBefore(ticker, subToolbar.nextSibling);
@@ -380,7 +396,7 @@ function attachListActionEvents() {
                     document.getElementById("homeMediaLink").value = noticeToEdit.mediaLink || "";
                 } else if (noticeToEdit.type === 'push') {
                     document.getElementById("pushTitle").value = noticeToEdit.title;
-                    document.getElementById("pushMessage").value = notice_to_edit_check(noticeToEdit.message);
+                    document.getElementById("pushMessage").value = noticeToEdit.message;
                     document.getElementById("pushImageLink").value = noticeToEdit.mediaLink || "";
                 }
                 
@@ -401,10 +417,6 @@ function attachListActionEvents() {
             }
         };
     });
-}
-
-function notice_to_edit_check(msg) {
-    return msg;
 }
 
 function resetForm() {
