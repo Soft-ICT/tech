@@ -46,7 +46,6 @@
     </div>
 </header>
 
-<!-- টুলবার এবং সাব-টুলবারের মাঝখানে স্লাইডিং নোটিশ দেখানোর কন্টেইনার -->
 <div id="slidingNoticeContainer" style="background: var(--card-bg, #fff); border-bottom: 1px solid var(--border-color, #ddd); overflow: hidden; display: none;"></div>
 
 <div class="sub-toolbar" id="allSearchBtn" style="cursor: pointer;" title="অল সার্চ অপশন">
@@ -56,8 +55,8 @@
 <main class="container">
     <div id="mainDashboardView">
         <section class="dashboard-header">
-            <!-- অ্যাডমিন প্যানেল চালু থাকলে দৃশ্যমান সেকশন যেখানে + Category এবং নোটিফিকেশন বাটন পাশাপাশি থাকবে -->
-            <div class="admin-only hidden" style="display: flex; gap: 8px; width: 100%; margin-top: 8px;">
+            <!-- আইডি যুক্ত করা হয়েছে যাতে অল সার্চ বা সাব-পেজে এটি হাইড করা যায় -->
+            <div id="adminActionContainer" class="admin-only hidden" style="display: flex; gap: 8px; width: 100%; margin-top: 8px;">
                 <button id="addCategoryBtn" class="primary-btn" type="button" style="flex: 1;">＋ Category</button>
                 <button id="notificationBtn" class="secondary-btn" type="button" style="flex: 1; position: relative;">
                     🔔 নোটিফিকেশন <span id="notifBadge" class="badge-dot hidden" style="position: absolute; top: 6px; right: 10px; width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%;"></span>
@@ -270,10 +269,8 @@
 
 <div id="toast" class="toast"></div>
 
-<!-- মূল অ্যাপ স্ক্রিপ্ট -->
 <script type="module" src="js/app.js"></script>
 
-<!-- নোটিফিকেশন সিস্টেম ইনিশিয়ালাইজেশন স্ক্রিপ্ট -->
 <script type="module">
     import { initNotificationSystem } from './js/notification.js';
     document.addEventListener("DOMContentLoaded", () => {
