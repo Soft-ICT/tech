@@ -4,6 +4,11 @@
 import { db } from "./firebase-config.js"; // আপনার ফায়ারবেজ কনফিগারেশন ফাইল পাথ অনুযায়ী ঠিক করে নিবেন
 import { ref, set, get, update, remove, child, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+// পেজ লোড হওয়ার সাথে সাথে সিস্টেম অটো-ইনিশিয়ালাইজ হবে যাতে বাটন কাজ করতে কোনো সমস্যা না হয়
+document.addEventListener("DOMContentLoaded", () => {
+    initNotificationSystem();
+});
+
 export function initNotificationSystem() {
     createNotificationUI();
     setupNotificationEvents();
@@ -15,7 +20,7 @@ function createNotificationUI() {
 
     const notificationHTML = `
     <!-- নোটিফিকেশন ম্যানেজমেন্ট প্যানেল মোডাল -->
-    <div id="notificationModal" class="modal hidden">
+    <div id="notificationModal" class="modal hidden" style="display: none;">
         <div class="modal-content notification-modal-content" style="max-width: 680px; width: 95%;">
             <div class="modal-header">
                 <h2>📢 নোটিফিকেশন ম্যানেজমেন্ট প্যানেল (ফায়ারবেজ নিয়ন্ত্রিত)</h2>
@@ -59,7 +64,7 @@ function createNotificationUI() {
                 </div>
 
                 <!-- TAB 2: HOME NOTICE -->
-                <div id="tabHome" class="notice-tab-content hidden">
+                <div id="tabHome" class="notice-tab-content hidden" style="display: none;">
                     <div class="card" style="padding: 15px; background: var(--bg-card, #f9f9f9); border-radius: 8px; border: 1px solid var(--border-color, #ddd); margin-bottom: 15px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                             <h3 class="form-title-home" style="margin: 0; font-size: 16px; color: var(--text-main);">হোম নোটিশ তৈরি করুন</h3>
@@ -89,7 +94,7 @@ function createNotificationUI() {
                 </div>
 
                 <!-- TAB 3: PUSH NOTICE -->
-                <div id="tabPush" class="notice-tab-content hidden">
+                <div id="tabPush" class="notice-tab-content hidden" style="display: none;">
                     <div class="card" style="padding: 15px; background: var(--bg-card, #f9f9f9); border-radius: 8px; border: 1px solid var(--border-color, #ddd); margin-bottom: 15px;">
                         <h3 class="form-title-push" style="margin: 0; font-size: 16px; color: var(--text-main);">পুশ নোটিশ তৈরি করুন</h3>
                         <div class="form-group" style="margin-bottom: 10px;">
@@ -115,7 +120,7 @@ function createNotificationUI() {
                     </div>
                 </div>
 
-                <button id="cancelEditBtn" class="secondary-btn hidden" type="button" style="width: 100%; padding: 8px; margin-top: 15px; background: #6c757d; color: #fff; border: none; border-radius: 4px; cursor: pointer;">এডিট বাতিল করুন</button>
+                <button id="cancelEditBtn" class="secondary-btn hidden" type="button" style="width: 100%; padding: 8px; margin-top: 15px; background: #6c757d; color: #fff; border: none; border-radius: 4px; cursor: pointer; display: none;">এডিট বাতিল করুন</button>
 
             </div>
             <div class="modal-actions" style="padding: 10px 15px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px;">
@@ -125,7 +130,7 @@ function createNotificationUI() {
     </div>
 
     <!-- সেন্ট্রালাইজড হোম নোটিশ পপ-আপ ডায়লগ (ব্লু কালারবিহীন, সেন্টার অ্যালাইন টেক্সট এবং ইন-অ্যাপ মিডিয়া প্রিভিউ) -->
-    <div id="homeNoticePopupModal" class="modal hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(2px); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 15px;">
+    <div id="homeNoticePopupModal" class="modal hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(2px); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 15px;">
         <div class="modal-content" style="background: var(--bg-card, #ffffff); max-width: 450px; width: 100%; border-radius: 14px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.25); border: 1px solid var(--border-color, #ddd);">
             
             <div style="background: var(--bg-card, #ffffff); color: var(--text-main, #333); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color, #eee);">
@@ -165,21 +170,28 @@ function setupNotificationEvents() {
 
     if (notifBtn) {
         notifBtn.addEventListener("click", () => {
-            modal.classList.remove("hidden");
-            loadFirebaseNoticesLists();
-            updateToggleButtonsUI();
+            if (modal) {
+                modal.classList.remove("hidden");
+                modal.style.display = "flex"; // ফ্লেক্স নিশ্চিত করা হলো যাতে ডিসপ্লে হয়
+                loadFirebaseNoticesLists();
+                updateToggleButtonsUI();
+            }
         });
     }
 
     modal?.querySelectorAll("[data-close]").forEach(btn => {
         btn.addEventListener("click", () => {
             modal.classList.add("hidden");
+            modal.style.display = "none";
             resetForm();
         });
     });
 
     const closePopupAction = () => {
-        if (popupModal) popupModal.classList.add("hidden");
+        if (popupModal) {
+            popupModal.classList.add("hidden");
+            popupModal.style.display = "none";
+        }
     };
     closePopupBtn?.addEventListener("click", closePopupAction);
     popupOkBtn?.addEventListener("click", closePopupAction);
@@ -202,8 +214,8 @@ function setupNotificationEvents() {
         triggerActiveNoticesRender();
     });
 
-    const tabBtns = modal.querySelectorAll(".tab-btn");
-    tabBtns.forEach(btn => {
+    const tabBtns = modal?.querySelectorAll(".tab-btn");
+    tabBtns?.forEach(btn => {
         btn.addEventListener("click", (e) => {
             tabBtns.forEach(b => {
                 b.classList.remove("active-tab");
@@ -216,14 +228,19 @@ function setupNotificationEvents() {
 
             modal.querySelectorAll(".notice-tab-content").forEach(content => {
                 content.classList.add("hidden");
+                content.style.display = "none";
             });
 
             const targetTab = e.target.getAttribute("data-target");
-            document.getElementById(targetTab).classList.remove("hidden");
+            const activeContent = document.getElementById(targetTab);
+            if (activeContent) {
+                activeContent.classList.remove("hidden");
+                activeContent.style.display = "block";
+            }
         });
     });
 
-    modal.querySelectorAll(".submit-notice-btn").forEach(btn => {
+    modal?.querySelectorAll(".submit-notice-btn").forEach(btn => {
         btn.addEventListener("click", (e) => {
             const type = e.target.getAttribute("data-type");
             handleFirebaseSaveOrUpdate(type);
@@ -437,6 +454,7 @@ function showHomeNoticePopup(notice) {
     }
 
     popupModal.classList.remove("hidden");
+    popupModal.style.display = "flex";
 }
 
 function loadFirebaseNoticesLists() {
@@ -450,9 +468,9 @@ function loadFirebaseNoticesLists() {
     const homeNotices = notices.filter(n => n.type === 'home');
     const pushNotices = notices.filter(n => n.type === 'push');
 
-    slidingList.innerHTML = slidingNotices.length === 0 ? `<p class="text-muted" style="text-align: center; padding: 10px; font-size: 13px;">কোনো স্লাইডিং নোটিশ নেই।</p>` : slidingNotices.map(n => renderNoticeCard(n)).join('');
-    homeList.innerHTML = homeNotices.length === 0 ? `<p class="text-muted" style="text-align: center; padding: 10px; font-size: 13px;">কোনো হোম নোটিশ নেই।</p>` : homeNotices.map(n => renderNoticeCard(n)).join('');
-    pushList.innerHTML = pushNotices.length === 0 ? `<p class="text-muted" style="text-align: center; padding: 10px; font-size: 13px;">কোনো পুশ নোটিশ নেই।</p>` : pushNotices.map(n => renderNoticeCard(n)).join('');
+    if (slidingList) slidingList.innerHTML = slidingNotices.length === 0 ? `<p class="text-muted" style="text-align: center; padding: 10px; font-size: 13px;">কোনো স্লাইডিং নোটিশ নেই।</p>` : slidingNotices.map(n => renderNoticeCard(n)).join('');
+    if (homeList) homeList.innerHTML = homeNotices.length === 0 ? `<p class="text-muted" style="text-align: center; padding: 10px; font-size: 13px;">কোনো হোম নোটিশ নেই।</p>` : homeNotices.map(n => renderNoticeCard(n)).join('');
+    if (pushList) pushList.innerHTML = pushNotices.length === 0 ? `<p class="text-muted" style="text-align: center; padding: 10px; font-size: 13px;">কোনো পুশ নোটিশ নেই।</p>` : pushNotices.map(n => renderNoticeCard(n)).join('');
 
     attachListActionEvents();
 }
@@ -476,6 +494,7 @@ function renderNoticeCard(notif) {
 
 function attachListActionEvents() {
     const modal = document.getElementById("notificationModal");
+    if (!modal) return;
 
     modal.querySelectorAll(".edit-notice-btn").forEach(btn => {
         btn.addEventListener("click", (e) => {
@@ -503,8 +522,12 @@ function attachListActionEvents() {
                 }
                 
                 modal.querySelectorAll(".submit-notice-btn").forEach(el => el.innerText = "ফায়ারবেজে আপডেট করুন");
-                document.getElementById("cancelEditBtn").classList.remove("hidden");
-                document.querySelector(".notification-body").scrollTo({ top: 0, behavior: 'smooth' });
+                const cancelBtn = document.getElementById("cancelEditBtn");
+                if(cancelBtn) {
+                    cancelBtn.classList.remove("hidden");
+                    cancelBtn.style.display = "block";
+                }
+                modal.querySelector(".notification-body")?.scrollTo({ top: 0, behavior: 'smooth' });
             }
         });
     });
@@ -528,20 +551,23 @@ function attachListActionEvents() {
 }
 
 function resetForm() {
-    document.getElementById("editNoticeId").value = "";
-    document.getElementById("slidingTitle").value = "";
-    document.getElementById("slidingMessage").value = "";
-    document.getElementById("homeTitle").value = "";
-    document.getElementById("homeMessage").value = "";
-    document.getElementById("homeMediaLink").value = "";
-    document.getElementById("pushTitle").value = "";
-    document.getElementById("pushMessage").value = "";
-    document.getElementById("pushImageLink").value = "";
+    const editIdInput = document.getElementById("editNoticeId");
+    if(editIdInput) editIdInput.value = "";
+    
+    const fields = ["slidingTitle", "slidingMessage", "homeTitle", "homeMessage", "homeMediaLink", "pushTitle", "pushMessage", "pushImageLink"];
+    fields.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.value = "";
+    });
     
     document.querySelectorAll(".submit-notice-btn").forEach((el, idx) => {
         const texts = ["ফায়ারবেজে প্রকাশ করুন", "ফায়ারবেজে প্রকাশ করুন", "ফায়ারবেজে পাঠান"];
         el.innerText = texts[idx];
     });
 
-    document.getElementById("cancelEditBtn").classList.add("hidden");
+    const cancelBtn = document.getElementById("cancelEditBtn");
+    if(cancelBtn) {
+        cancelBtn.classList.add("hidden");
+        cancelBtn.style.display = "none";
+    }
 }
