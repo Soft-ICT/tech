@@ -1,5 +1,5 @@
 /* =========================================
-   Notification System Module (Complete & Active)
+   Notification System Module (Complete & Active - Webapp Path)
 ========================================= */
 
 import { db } from "./firebase.js";
@@ -224,7 +224,7 @@ async function saveOrUpdateToFirebase(type) {
 
     try {
         if (editId) {
-            const noticeRef = ref(db, 'notices/' + editId);
+            const noticeRef = ref(db, 'webapp/notices/' + editId);
             await update(noticeRef, {
                 title,
                 message,
@@ -233,7 +233,7 @@ async function saveOrUpdateToFirebase(type) {
             });
             alert("ফায়ারবেজে নোটিশ সফলভাবে আপডেট করা হয়েছে!");
         } else {
-            const noticesRef = ref(db, 'notices');
+            const noticesRef = ref(db, 'webapp/notices');
             const newNoticeRef = push(noticesRef);
             await set(newNoticeRef, {
                 id: newNoticeRef.key,
@@ -255,7 +255,7 @@ async function saveOrUpdateToFirebase(type) {
 }
 
 function loadAllFirebaseListsAndListen() {
-    const noticesRef = ref(db, 'notices');
+    const noticesRef = ref(db, 'webapp/notices');
     onValue(noticesRef, (snapshot) => {
         const data = snapshot.val();
         let notices = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
@@ -308,7 +308,7 @@ function attachCardActions() {
     modal.querySelectorAll(".edit-btn").forEach(btn => {
         btn.addEventListener("click", async (e) => {
             const id = e.target.getAttribute("data-id");
-            const snapshot = await get(ref(db, 'notices/' + id));
+            const snapshot = await get(ref(db, 'webapp/notices/' + id));
             if (snapshot.exists()) {
                 const notice = snapshot.val();
                 document.getElementById("editNoticeId").value = id;
@@ -338,7 +338,7 @@ function attachCardActions() {
         btn.addEventListener("click", async (e) => {
             const id = e.target.getAttribute("data-id");
             if (confirm("আপনি কি এই নোটিশটি ডিলিট করতে চান?")) {
-                await remove(ref(db, 'notices/' + id));
+                await remove(ref(db, 'webapp/notices/' + id));
                 alert("নোটিশটি ডিলিট করা হয়েছে!");
             }
         });
