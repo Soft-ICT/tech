@@ -1,5 +1,5 @@
 /* =========================================
-   Notification System Module (Popup Dialog for Home Notice)
+   Notification System Module (Enhanced Popup Dialog for Home Notice)
 ========================================= */
 
 export function initNotificationSystem() {
@@ -73,7 +73,7 @@ function createNotificationUI() {
                             <textarea id="homeMessage" rows="2" placeholder="বিস্তারিত বিবরণ..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);"></textarea>
                         </div>
                         <div class="form-group" style="margin-bottom: 10px;">
-                            <label style="display:block; margin-bottom: 4px; font-weight: 500;">৩. মিডিয়া বা সাইট লিংক (ইমেজ / ভিডিও / ওয়েবসাইট URL):</label>
+                            <label style="display:block; margin-bottom: 4px; font-weight: 500;">৩. মিডিয়া বা সাইট লিংক (ছবি, ভিডিও বা ওয়েবসাইট URL):</label>
                             <input type="url" id="homeMediaLink" placeholder="https://example.com/image.jpg বা video/site link" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
                         </div>
                         <button type="button" class="submit-notice-btn primary-btn" data-type="home" style="width: 100%; padding: 9px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer;">হোম নোটিশ প্রকাশ করুন</button>
@@ -123,20 +123,31 @@ function createNotificationUI() {
         </div>
     </div>
 
-    <!-- হোম নোটিশ পপ-আপ ডায়লগ (User Popup Dialog) -->
-    <div id="homeNoticePopupModal" class="modal hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; display: flex; align-items: center; justify-content: center;">
-        <div class="modal-content" style="background: var(--bg-card, #ffffff); max-width: 450px; width: 90%; border-radius: 12px; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.3); animation: scaleUp 0.3s ease;">
-            <div style="background: #0d6efd; color: #fff; padding: 12px 18px; display: flex; justify-content: space-between; align-items: center;">
-                <h3 id="popupNoticeTitle" style="margin: 0; font-size: 16px;">📢 নোটিশ</h3>
-                <button type="button" id="closeHomePopupBtn" style="background: none; border: none; color: #fff; font-size: 18px; cursor: pointer;">✕</button>
+    <!-- উন্নত এবং আকর্ষণীয় হোম নোটিশ পপ-আপ ডায়লগ (Enhanced User Popup Dialog) -->
+    <div id="homeNoticePopupModal" class="modal hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(3px); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 15px;">
+        <div class="modal-content" style="background: var(--bg-card, #ffffff); max-width: 480px; width: 100%; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+            
+            <!-- হেডার অংশ -->
+            <div style="background: linear-gradient(135deg, #0d6efd, #0b5ed7); color: #fff; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;">
+                <h3 id="popupNoticeTitle" style="margin: 0; font-size: 17px; font-weight: 600; display: flex; align-items: center; gap: 8px;">📢 গুরুত্বপূর্ণ নোটিশ</h3>
+                <button type="button" id="closeHomePopupBtn" style="background: rgba(255,255,255,0.2); border: none; color: #fff; width: 30px; height: 30px; border-radius: 50%; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">✕</button>
             </div>
-            <div style="padding: 18px; max-height: 60vh; overflow-y: auto;">
-                <p id="popupNoticeMessage" style="margin: 0 0 15px 0; font-size: 14px; color: var(--text-main); line-height: 1.5;"></p>
-                <div id="popupNoticeMediaContainer"></div>
-                <small id="popupNoticeTime" style="color: gray; display: block; margin-top: 12px; font-size: 11px;"></small>
+
+            <!-- মূল বডি বা বিবরণ -->
+            <div style="padding: 20px; max-height: 65vh; overflow-y: auto;">
+                <p id="popupNoticeMessage" style="margin: 0 0 15px 0; font-size: 14px; color: var(--text-main, #333); line-height: 1.6; white-space: pre-line;"></p>
+                
+                <!-- ছবি বা ভিডিও প্রিভিউ / বাটন কনটেইনার -->
+                <div id="popupNoticeMediaContainer" style="margin-bottom: 15px;"></div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color, #eee); padding-top: 12px; margin-top: 10px;">
+                    <small id="popupNoticeTime" style="color: #888; font-size: 11px;"></small>
+                </div>
             </div>
-            <div style="padding: 10px 18px; background: var(--bg-main, #f1f1f1); display: flex; justify-content: flex-end;">
-                <button type="button" id="popupOkBtn" style="background: #0d6efd; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 500;">ঠিক আছে</button>
+
+            <!-- ফুটার বাটন -->
+            <div style="padding: 12px 20px; background: var(--bg-main, #f8f9fa); display: flex; justify-content: flex-end; border-top: 1px solid var(--border-color, #eee);">
+                <button type="button" id="popupOkBtn" style="background: #0d6efd; color: #fff; border: none; padding: 9px 22px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; box-shadow: 0 2px 5px rgba(13, 110, 253, 0.3); transition: background 0.2s;">ঠিক আছে</button>
             </div>
         </div>
     </div>`;
@@ -175,6 +186,11 @@ function setupNotificationEvents() {
     };
     closePopupBtn?.addEventListener("click", closePopupAction);
     popupOkBtn?.addEventListener("click", closePopupAction);
+    
+    // বাইরে ক্লিক করলে পপ-আপ বন্ধ হওয়ার সুবিধা
+    popupModal?.addEventListener("click", (e) => {
+        if (e.target === popupModal) closePopupAction();
+    });
 
     // Global Toggle Listeners
     toggleSlidingBtn?.addEventListener("click", () => {
@@ -293,7 +309,7 @@ function handleSaveOrUpdateNotice(type) {
             localStorage.setItem("active_sliding_notice", JSON.stringify(newNotice));
         } else if (type === 'home') {
             localStorage.setItem("active_home_notice", JSON.stringify(newNotice));
-            showHomeNoticePopup(newNotice); // প্রকাশ করার সাথে সাথেই পপ-আপ দেখাবে
+            showHomeNoticePopup(newNotice);
         } else if (type === 'push') {
             triggerPushBackgroundNotification(newNotice);
         }
@@ -334,7 +350,6 @@ function triggerPushBackgroundNotification(notice) {
 }
 
 export function renderActiveNotices() {
-    // 1. Render Sliding Notice
     const slidingDisabled = localStorage.getItem("sliding_notice_disabled") === "true";
     const ticker = document.getElementById("slidingNoticeTicker");
     if (slidingDisabled) {
@@ -346,12 +361,10 @@ export function renderActiveNotices() {
         }
     }
 
-    // 2. Render Home Notice Popup on App Load (যদি হোম নোটিশ বন্ধ না থাকে)
     const homeDisabled = localStorage.getItem("home_notice_disabled") === "true";
     if (!homeDisabled) {
         const activeHome = JSON.parse(localStorage.getItem("active_home_notice"));
         if (activeHome) {
-            // পেজ লোড হওয়ার পর পপ-আপ দেখানোর জন্য সামান্য ডিলে
             setTimeout(() => {
                 showHomeNoticePopup(activeHome);
             }, 500);
@@ -391,7 +404,7 @@ function showHomeNoticePopup(notice) {
     const popupModal = document.getElementById("homeNoticePopupModal");
     if (!popupModal) return;
 
-    document.getElementById("popupNoticeTitle").innerText = "📌 " + notice.title;
+    document.getElementById("popupNoticeTitle").innerHTML = "📢 " + notice.title;
     document.getElementById("popupNoticeMessage").innerText = notice.message;
     document.getElementById("popupNoticeTime").innerText = "প্রকাশিত: " + notice.time;
 
@@ -399,13 +412,33 @@ function showHomeNoticePopup(notice) {
     mediaContainer.innerHTML = "";
 
     if (notice.mediaLink) {
-        const link = notice.mediaLink.toLowerCase();
-        if (link.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
-            mediaContainer.innerHTML = `<div style="margin-top: 10px; text-align: center;"><img src="${notice.mediaLink}" style="max-width: 100%; max-height: 250px; border-radius: 6px; object-fit: contain;" alt="Notice Image"></div>`;
-        } else if (link.includes("youtube.com") || link.includes("youtu.be") || link.match(/\.(mp4|webm)$/i)) {
-            mediaContainer.innerHTML = `<div style="margin-top: 10px; text-align: center;"><a href="${notice.mediaLink}" target="_blank" class="primary-btn" style="display: inline-block; padding: 8px 16px; background: #dc3545; color: #fff; border-radius: 4px; text-decoration: none; font-size: 14px; font-weight: 500;">🎥 ভিডিও লিংক ওপেন করুন</a></div>`;
-        } else {
-            mediaContainer.innerHTML = `<div style="margin-top: 10px; text-align: center;"><a href="${notice.mediaLink}" target="_blank" class="primary-btn" style="display: inline-block; padding: 8px 18px; background: #0d6efd; color: #fff; border-radius: 4px; text-decoration: none; font-size: 14px; font-weight: 500;">ওপেন লিংক</a></div>`;
+        const link = notice.mediaLink.trim();
+        const lowerLink = link.toLowerCase();
+        
+        // যদি ছবি হয়, তবে পপ-আপের ভেতরে প্রিভিউ দেখাবে
+        if (lowerLink.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i)) {
+            mediaContainer.innerHTML = `
+                <div style="text-align: center; background: rgba(0,0,0,0.03); border-radius: 8px; padding: 5px; border: 1px solid var(--border-color, #eee);">
+                    <img src="${link}" style="max-width: 100%; max-height: 220px; border-radius: 6px; object-fit: contain;" alt="Notice Image">
+                </div>`;
+        } 
+        // যদি ভিডিও লিংক (যেমন YouTube বা সরাসরি mp4) হয়
+        else if (lowerLink.includes("youtube.com") || lowerLink.includes("youtu.be") || lowerLink.match(/\.(mp4|webm|ogg)$/i)) {
+            mediaContainer.innerHTML = `
+                <div style="text-align: center; background: rgba(220, 53, 69, 0.05); border: 1px dashed #dc3545; border-radius: 8px; padding: 12px;">
+                    <a href="${link}" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #dc3545; color: #fff; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 600; box-shadow: 0 2px 5px rgba(220, 53, 69, 0.3);">
+                        🎥 ভিডিওটি দেখতে এখানে ক্লিক করুন
+                    </a>
+                </div>`;
+        } 
+        // অন্য কোনো ওয়েবসাইটের লিংক হলে ভিজিট করার জন্য সুন্দর বাটন দেখাবে
+        else {
+            mediaContainer.innerHTML = `
+                <div style="text-align: center; background: rgba(13, 110, 253, 0.05); border: 1px dashed #0d6efd; border-radius: 8px; padding: 12px;">
+                    <a href="${link}" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #0d6efd; color: #fff; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 600; box-shadow: 0 2px 5px rgba(13, 110, 253, 0.3);">
+                        🌐 লিংক ভিজিট করুন
+                    </a>
+                </div>`;
         }
     }
 
