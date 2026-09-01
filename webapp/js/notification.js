@@ -187,9 +187,8 @@ function setupNotificationEvents() {
     // হোম নোটিশ পপআপ বন্ধ করার লজিক
     const popupModal = document.getElementById("homeNoticePopupModal");
     const closePopupBtn = document.getElementById("closeHomePopupBtn");
-    const popupOkBtn = document.getElementById("popupOkBtn");
 
-    [closePopupBtn, popupOkBtn].forEach(b => {
+    [closePopupBtn].forEach(b => {
         b?.addEventListener("click", () => {
             if (popupModal) popupModal.style.display = "none";
         });
@@ -315,24 +314,48 @@ function loadAllFirebaseListsAndListen() {
             }
         }
 
-        // ২. হোম নোটিশ (পপআপ) রেন্ডার এবং ট্রিগার করা
+        // ২. হোম নোটিশ (পপআপ) রেন্ডার এবং লজিক
         const isHomeDisabled = localStorage.getItem("home_notice_disabled") === "true";
         const popupModal = document.getElementById("homeNoticePopupModal");
         
         if (popupModal && !isHomeDisabled && homeNotices.length > 0) {
             const latestHomeNotice = homeNotices[0];
             
-            // সেশন স্টোরেজে চেক করা যাক এই পপআপটি ব্রাউজার সেশনে ইতিমধ্যে দেখানো হয়েছে কিনা
             const shownKey = `popup_shown_${latestHomeNotice.id}`;
             if (!sessionStorage.getItem(shownKey)) {
-                document.getElementById("popupTitle").innerText = latestHomeNotice.title;
-                document.getElementById("popupMessage").innerText = latestHomeNotice.message;
+                document.getElementById("popupTitle").innerText = latestHomeNotice.title || "";
+                document.getElementById("popupMessage").innerText = latestHomeNotice.message || "";
                 
                 const mediaContainer = document.getElementById("popupMediaContainer");
-                if (latestHomeNotice.mediaLink && mediaContainer) {
-                    mediaContainer.innerHTML = `<a href="${latestHomeNotice.mediaLink}" target="_blank" style="color: #0d6efd; word-break: break-all; font-size: 13px;">🔗 বিস্তারিত লিংক / মিডিয়া দেখতে এখানে ক্লিক করুন</a>`;
-                } else if (mediaContainer) {
+                const websiteBtn = document.getElementById("popupWebsiteBtn");
+                const mediaLink = latestHomeNotice.mediaLink ? latestHomeNotice.mediaLink.trim() : "";
+
+                // মিডিয়া চেক করার লজিক
+                if (mediaLink) {
+                    mediaContainer.style.display = "block";
+                    
+                    if (mediaLink.match(/\.(mp4|webm|ogg)$/i)) {
+                        mediaContainer.innerHTML = `<video src="${mediaLink}" controls autoplay style="width: 100%; max-height: 220px; object-fit: contain; background: #000; border-radius: 6px;"></video>`;
+                    } else if (mediaLink.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
+                        mediaContainer.innerHTML = `<img src="${mediaLink}" style="width: 100%; max-height: 220px; object-fit: contain; background: #000; border-radius: 6px;" alt="Notice Image">`;
+                    } else {
+                        // যদি এটি ভিডিও বা ছবি না হয়ে অন্য কোনো লিংক হয়, তবে মিডিয়া সেকশন হাইড থাকবে
+                        mediaContainer.style.display = "none";
+                        mediaContainer.innerHTML = "";
+                    }
+
+                    // যদি এটি ওয়েবসাইট বা অন্য কোনো লিংক হয়, তবে নিচের বাটন দেখাবে
+                    if (mediaLink.startsWith("http")) {
+                        websiteBtn.href = mediaLink;
+                        websiteBtn.style.display = "block";
+                    } else {
+                        websiteBtn.style.display = "none";
+                    }
+                } else {
+                    // যদি কোনো লিংক বা মিডিয়া না থাকে, উভয়ই হাইড থাকবে
+                    mediaContainer.style.display = "none";
                     mediaContainer.innerHTML = "";
+                    websiteBtn.style.display = "none";
                 }
 
                 popupModal.style.display = "flex";
