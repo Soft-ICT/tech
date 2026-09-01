@@ -148,6 +148,7 @@ function setupNotificationEvents() {
         let isOff = localStorage.getItem("home_notice_disabled") === "true";
         localStorage.setItem("home_notice_disabled", !isOff);
         updateToggleButtonsUI();
+        loadAllFirebaseListsAndListen();
     });
 
     const tabBtns = modal.querySelectorAll(".tab-btn");
@@ -182,6 +183,17 @@ function setupNotificationEvents() {
     if (cancelEditBtn) {
         cancelEditBtn.addEventListener("click", () => resetForm());
     }
+
+    // হোম নোটিশ পপআপ বন্ধ করার লজিক
+    const popupModal = document.getElementById("homeNoticePopupModal");
+    const closePopupBtn = document.getElementById("closeHomePopupBtn");
+    const popupOkBtn = document.getElementById("popupOkBtn");
+
+    [closePopupBtn, popupOkBtn].forEach(b => {
+        b?.addEventListener("click", () => {
+            if (popupModal) popupModal.style.display = "none";
+        });
+    });
 }
 
 function updateToggleButtonsUI() {
@@ -279,21 +291,19 @@ function loadAllFirebaseListsAndListen() {
         const homeNotices = notices.filter(n => n.type === 'home');
         const pushNotices = notices.filter(n => n.type === 'push');
 
-        // UI-এর সাথে ম্যাচিং ডিজাইন এবং Marquee সহ স্লাইডিং নোটিশ রেন্ডার করা
+        // ১. স্লাইডিং নোটিশ রেন্ডার করা
         const slidingContainer = document.getElementById("slidingNoticeContainer");
         const isSlidingDisabled = localStorage.getItem("sliding_notice_disabled") === "true";
 
-                if (slidingContainer) {
+        if (slidingContainer) {
             if (!isSlidingDisabled && slidingNotices.length > 0) {
                 const latestNotice = slidingNotices[0];
                 slidingContainer.style.display = "block";
                 slidingContainer.innerHTML = `
                     <div style="background: var(--card-bg, #fff); border-bottom: 1px solid var(--border-color, #e2e8f0); display: flex; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.02); overflow: hidden; height: 36px;">
-                        <!-- লাল ব্যাকগ্রাউন্ড এবং স্থির শিরোনাম -->
                         <div style="background: #dc3545; color: #fff; padding: 0 12px; height: 100%; display: flex; align-items: center; font-size: 13px; font-weight: 600; white-space: nowrap; z-index: 2;">
                             📢 ${latestNotice.title}:
                         </div>
-                        <!-- স্লাইডিং বা স্ক্রোলিং বিস্তারিত বার্তা -->
                         <marquee behavior="scroll" direction="left" scrollamount="5" onmouseover="this.stop();" onmouseout="this.start();" style="width: 100%; font-size: 13px; font-weight: 500; color: var(--text-main, #1e293b); padding-left: 10px;">
                             ${latestNotice.message}
                         </marquee>
@@ -305,6 +315,30 @@ function loadAllFirebaseListsAndListen() {
             }
         }
 
+        // ২. হোম নোটিশ (পপআপ) রেন্ডার এবং ট্রিগার করা
+        const isHomeDisabled = localStorage.getItem("home_notice_disabled") === "true";
+        const popupModal = document.getElementById("homeNoticePopupModal");
+        
+        if (popupModal && !isHomeDisabled && homeNotices.length > 0) {
+            const latestHomeNotice = homeNotices[0];
+            
+            // সেশন স্টোরেজে চেক করা যাক এই পপআপটি ব্রাউজার সেশনে ইতিমধ্যে দেখানো হয়েছে কিনা
+            const shownKey = `popup_shown_${latestHomeNotice.id}`;
+            if (!sessionStorage.getItem(shownKey)) {
+                document.getElementById("popupTitle").innerText = latestHomeNotice.title;
+                document.getElementById("popupMessage").innerText = latestHomeNotice.message;
+                
+                const mediaContainer = document.getElementById("popupMediaContainer");
+                if (latestHomeNotice.mediaLink && mediaContainer) {
+                    mediaContainer.innerHTML = `<a href="${latestHomeNotice.mediaLink}" target="_blank" style="color: #0d6efd; word-break: break-all; font-size: 13px;">🔗 বিস্তারিত লিংক / মিডিয়া দেখতে এখানে ক্লিক করুন</a>`;
+                } else if (mediaContainer) {
+                    mediaContainer.innerHTML = "";
+                }
+
+                popupModal.style.display = "flex";
+                sessionStorage.setItem(shownKey, "true");
+            }
+        }
 
         if (slidingList) {
             slidingList.innerHTML = slidingNotices.length === 0 ? '<p style="text-align: center; color: gray; font-size: 13px;">কোনো স্লাইডিং নোটিশ নেই</p>' : 
@@ -401,7 +435,7 @@ function resetForm() {
     if (homeMsg) homeMsg.value = "";
     
     const homeMedia = document.getElementById("homeMediaLink");
-    if (homeMedia) homeMedia.value, homeMedia.value = "";
+    if (homeMedia) homeMedia.value = "";
     
     const pushTitle = document.getElementById("pushTitle");
     if (pushTitle) pushTitle.value = "";
