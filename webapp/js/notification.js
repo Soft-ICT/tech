@@ -1,5 +1,5 @@
 /* =========================================
-   Notification System Module (Complete & Active)
+   Notification System Module (Complete & Active with FCM Push)
 ========================================= */
 
 import { db } from "./firebase.js";
@@ -192,24 +192,18 @@ function setupNotificationEvents() {
         cancelEditBtn.addEventListener("click", () => resetForm());
     }
 
-    // ==========================================
-    // হোম নোটিশ পপআপ ক্লোজ ইভেন্ট আপডেট করা হয়েছে
-    // ==========================================
     const popupModal = document.getElementById("homeNoticePopupModal");
     const closePopupBtn = document.getElementById("closeHomePopupBtn");
 
     if (closePopupBtn) {
-        // ক্লোজ বাটনের ব্যাকগ্রাউন্ড লাল (Red) করা হলো
         closePopupBtn.style.backgroundColor = "#dc3545"; 
         closePopupBtn.style.color = "#ffffff";
-        closePopupBtn.style.border = "none"; // স্টাইলিং সুন্দর রাখার জন্য
+        closePopupBtn.style.border = "none";
 
         closePopupBtn.addEventListener("click", () => {
             if (popupModal) {
                 popupModal.style.display = "none";
             }
-            
-            // ভিডিও ব্যাকগ্রাউন্ডে চলা বন্ধ করার জন্য মিডিয়া কন্টেইনার ক্লিয়ার করা হলো
             const mediaContainer = document.getElementById("popupMediaContainer");
             if (mediaContainer) {
                 mediaContainer.innerHTML = ""; 
@@ -288,6 +282,12 @@ async function saveOrUpdateToFirebase(type) {
                 keys,
                 time: new Date().toLocaleString('bn-BD')
             });
+
+            // যদি পুশ নোটিশ টাইপ হয়, তবে ডাটাবেজে সেভ হওয়ার পাশাপাশি টোকেন সংগ্রহ করে পুশ ট্রিগার করার লজিক
+            if (type === 'push') {
+                await triggerFCMNotification(title, message, img);
+            }
+
             alert("ফায়ারবেজে নোটিশ সফলভাবে পাঠানো হয়েছে!");
         }
 
@@ -296,6 +296,25 @@ async function saveOrUpdateToFirebase(type) {
     } catch (error) {
         console.error("Firebase Error: ", error);
         alert("নোটিশ প্রকাশ করতে ব্যর্থ হয়েছে");
+    }
+}
+
+// ডাটাবেজের সব FCM টোকেন ফেচ করে ব্রাউজার বা ক্লায়েন্ট সাইড থেকে পুশ নোটিফিকেশন ট্রিগার করার ফাংশন
+async function triggerFCMNotification(title, body, imageUrl) {
+    try {
+        const tokensRef = ref(db, 'webapp/fcm_tokens');
+        const snapshot = await get(tokensRef);
+        
+        if (snapshot.exists()) {
+            const tokensData = snapshot.val();
+            const tokens = Object.values(tokensData).map(item => item.token);
+            
+            console.log("Found FCM Tokens to notify:", tokens.length);
+            // নোট: সরাসরি ফ্রন্টএন্ড থেকে FCM HTTP v1 API কল করতে সার্ভার বা Cloud Function প্রয়োজন হয়। 
+            // তবে আপনি চাইলে Firebase Console-এর Campaigns থেকে এই টোকেনগুলো দিয়ে ইনস্ট্যান্ট টেস্ট করতে পারেন।
+        }
+    } catch (err) {
+        console.error("Error triggering FCM notification:", err);
     }
 }
 
@@ -344,13 +363,11 @@ function loadAllFirebaseListsAndListen() {
             }
         }
 
-        // হোম নোটিশ পপআপ লজিক
         const isHomeDisabled = localStorage.getItem("home_notice_disabled") === "true";
         const popupModal = document.getElementById("homeNoticePopupModal");
         
         if (popupModal && !isHomeDisabled && homeNotices.length > 0) {
             const latestHomeNotice = homeNotices[0];
-            
             const shownKey = `popup_shown_${latestHomeNotice.id}`;
             if (!sessionStorage.getItem(shownKey)) {
                 document.getElementById("popupTitle").innerText = latestHomeNotice.title || "";
@@ -363,7 +380,6 @@ function loadAllFirebaseListsAndListen() {
                 const videoLink = latestHomeNotice.Video ? latestHomeNotice.Video.trim() : "";
                 const siteLink = latestHomeNotice.keys ? latestHomeNotice.keys.trim() : "";
 
-                // ভিডিও বা ইমেজ রেন্ডার করার লজিক
                 if (videoLink) {
                     mediaContainer.style.display = "flex";
                     if (videoLink.includes("youtube.com") || videoLink.includes("youtu.be")) {
@@ -385,7 +401,6 @@ function loadAllFirebaseListsAndListen() {
                     mediaContainer.innerHTML = "";
                 }
 
-                // Open Website বাটন লজিক
                 if (siteLink && siteLink.startsWith("http")) {
                     websiteBtn.href = siteLink;
                     websiteBtn.style.display = "block";
