@@ -328,7 +328,7 @@ function loadAllFirebaseListsAndListen() {
             }
         }
 
-        // হোম নোটিশ পপআপ লজিক (ইমেজ, ভিডিও এবং সাইট লিংক আলাদা করে প্রসেস করা)
+        // হোম নোটিশ পপআপ লজিক (ইউটিউব এবং ডাইরেক্ট ভিডিও সাপোর্টসহ)
         const isHomeDisabled = localStorage.getItem("home_notice_disabled") === "true";
         const popupModal = document.getElementById("homeNoticePopupModal");
         
@@ -347,10 +347,20 @@ function loadAllFirebaseListsAndListen() {
                 const videoLink = latestHomeNotice.Video ? latestHomeNotice.Video.trim() : "";
                 const siteLink = latestHomeNotice.keys ? latestHomeNotice.keys.trim() : "";
 
-                // মিডিয়া (ছবি বা ভিডিও) দেখানোর লজিক
+                // ভিডিও বা ইমেজ রেন্ডার করার লজিক
                 if (videoLink) {
                     mediaContainer.style.display = "flex";
-                    mediaContainer.innerHTML = `<video src="${videoLink}" controls autoplay style="width: 100%; max-height: 230px; object-fit: contain; background: #000; border-radius: 6px;"></video>`;
+                    if (videoLink.includes("youtube.com") || videoLink.includes("youtu.be")) {
+                        let embedUrl = videoLink;
+                        if (videoLink.includes("watch?v=")) {
+                            embedUrl = videoLink.replace("watch?v=", "embed/");
+                        } else if (videoLink.includes("youtu.be/")) {
+                            embedUrl = videoLink.replace("youtu.be/", "www.youtube.com/embed/");
+                        }
+                        mediaContainer.innerHTML = `<iframe src="${embedUrl}" style="width: 100%; height: 200px; border: none; border-radius: 6px;" allowfullscreen></iframe>`;
+                    } else {
+                        mediaContainer.innerHTML = `<video src="${videoLink}" controls autoplay style="width: 100%; max-height: 230px; object-fit: contain; background: #000; border-radius: 6px;"></video>`;
+                    }
                 } else if (imgLink) {
                     mediaContainer.style.display = "flex";
                     mediaContainer.innerHTML = `<img src="${imgLink}" style="width: 100%; max-height: 230px; object-fit: contain; background: #000; border-radius: 6px;" alt="Notice Image">`;
@@ -359,7 +369,7 @@ function loadAllFirebaseListsAndListen() {
                     mediaContainer.innerHTML = "";
                 }
 
-                // সাইট বা ওয়েব লিংক (Open Website বাটন) লজিক
+                // Open Website বাটন লজিক
                 if (siteLink && siteLink.startsWith("http")) {
                     websiteBtn.href = siteLink;
                     websiteBtn.style.display = "block";
