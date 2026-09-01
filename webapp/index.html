@@ -298,6 +298,16 @@
     });
 </script>
 
+    <script type="module">
+    import { requestNotificationPermission, listenForForegroundMessages } from "./js/permission.js";
+
+    document.addEventListener("DOMContentLoaded", () => {
+        requestNotificationPermission();
+        listenForForegroundMessages();
+    });
+    </script>
+    
+
 <script>
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const savedTheme = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light');
