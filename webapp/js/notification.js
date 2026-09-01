@@ -56,7 +56,7 @@ function createNotificationUI() {
                     </div>
                 </div>
 
-                <!-- TAB 2: HOME -->
+                <!-- TAB 2: HOME (App Aligned) -->
                 <div id="tabHome" class="notice-tab-content" style="display: none;">
                     <div style="padding: 15px; background: var(--bg-color, #f9f9f9); border-radius: 8px; border: 1px solid var(--border-color, #ddd); margin-bottom: 15px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -64,16 +64,24 @@ function createNotificationUI() {
                             <button type="button" id="toggleHomeGlobalBtn" style="padding: 4px 10px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer; background: #28a745; color: #fff;">স্ট্যাটাস: চালু আছে</button>
                         </div>
                         <div style="margin-bottom: 10px;">
-                            <label style="display:block; margin-bottom: 4px; font-size: 13px;">শিরোনাম:</label>
+                            <label style="display:block; margin-bottom: 4px; font-size: 13px;">Enter Title:</label>
                             <input type="text" id="homeTitle" placeholder="শিরোনাম..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color, #ccc); background: var(--card-bg, #fff); color: var(--text-main, #000);">
                         </div>
                         <div style="margin-bottom: 10px;">
-                            <label style="display:block; margin-bottom: 4px; font-size: 13px;">বিস্তারিত বিবরণ:</label>
-                            <textarea id="homeMessage" rows="2" placeholder="বিবরণ..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color, #ccc); background: var(--card-bg, #fff); color: var(--text-main, #000);"></textarea>
+                            <label style="display:block; margin-bottom: 4px; font-size: 13px;">Enter Message:</label>
+                            <textarea id="homeMessage" rows="2" placeholder="মেসেজ..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color, #ccc); background: var(--card-bg, #fff); color: var(--text-main, #000);"></textarea>
                         </div>
                         <div style="margin-bottom: 10px;">
-                            <label style="display:block; margin-bottom: 4px; font-size: 13px;">ইমেজ, ভিডিও অথবা সাইট লিংক (ঐচ্ছিক):</label>
-                            <input type="url" id="homeMediaLink" placeholder="https://... (ছবি, ভিডিও বা ওয়েবসাইটের লিংক)" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color, #ccc); background: var(--card-bg, #fff); color: var(--text-main, #000);">
+                            <label style="display:block; margin-bottom: 4px; font-size: 13px;">Enter Image Link (img):</label>
+                            <input type="url" id="homeImage" placeholder="https://..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color, #ccc); background: var(--card-bg, #fff); color: var(--text-main, #000);">
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <label style="display:block; margin-bottom: 4px; font-size: 13px;">Enter Video Link (Video):</label>
+                            <input type="url" id="homeVideo" placeholder="https://..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color, #ccc); background: var(--card-bg, #fff); color: var(--text-main, #000);">
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <label style="display:block; margin-bottom: 4px; font-size: 13px;">Enter Web/Site Link (keys):</label>
+                            <input type="url" id="homeKeys" placeholder="https://..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color, #ccc); background: var(--card-bg, #fff); color: var(--text-main, #000);">
                         </div>
                         <button type="button" class="submit-notice-btn" data-type="home" style="width: 100%; padding: 9px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer;">হোম নোটিশ প্রকাশ করুন</button>
                     </div>
@@ -215,7 +223,9 @@ async function saveOrUpdateToFirebase(type) {
     const editId = document.getElementById("editNoticeId").value;
     let title = "";
     let message = "";
-    let mediaLink = "";
+    let img = "";
+    let video = "";
+    let keys = "";
 
     if (type === 'sliding') {
         title = document.getElementById("slidingTitle").value.trim();
@@ -223,11 +233,13 @@ async function saveOrUpdateToFirebase(type) {
     } else if (type === 'home') {
         title = document.getElementById("homeTitle").value.trim();
         message = document.getElementById("homeMessage").value.trim();
-        mediaLink = document.getElementById("homeMediaLink").value.trim();
+        img = document.getElementById("homeImage").value.trim();
+        video = document.getElementById("homeVideo").value.trim();
+        keys = document.getElementById("homeKeys").value.trim();
     } else if (type === 'push') {
         title = document.getElementById("pushTitle").value.trim();
         message = document.getElementById("pushMessage").value.trim();
-        mediaLink = document.getElementById("pushImageLink").value.trim();
+        img = document.getElementById("pushImageLink").value.trim();
     }
 
     if (!title || !message) {
@@ -241,7 +253,9 @@ async function saveOrUpdateToFirebase(type) {
             await update(noticeRef, {
                 title,
                 message,
-                mediaLink,
+                img,
+                Video: video,
+                keys,
                 time: new Date().toLocaleString('bn-BD') + " (এডিটেড)"
             });
             alert("ফায়ারবেজে নোটিশ সফলভাবে আপডেট করা হয়েছে!");
@@ -253,7 +267,9 @@ async function saveOrUpdateToFirebase(type) {
                 type,
                 title,
                 message,
-                mediaLink,
+                img,
+                Video: video,
+                keys,
                 time: new Date().toLocaleString('bn-BD')
             });
             alert("ফায়ারবেজে নোটিশ সফলভাবে পাঠানো হয়েছে!");
@@ -312,7 +328,7 @@ function loadAllFirebaseListsAndListen() {
             }
         }
 
-        // হোম নোটিশ পপআপ লজিক (ইমেজ, ভিডিও ও সাইট লিংক আলাদা করার ব্যবস্থা)
+        // হোম নোটিশ পপআপ লজিক (ইমেজ, ভিডিও এবং সাইট লিংক আলাদা করে প্রসেস করা)
         const isHomeDisabled = localStorage.getItem("home_notice_disabled") === "true";
         const popupModal = document.getElementById("homeNoticePopupModal");
         
@@ -326,37 +342,28 @@ function loadAllFirebaseListsAndListen() {
                 
                 const mediaContainer = document.getElementById("popupMediaContainer");
                 const websiteBtn = document.getElementById("popupWebsiteBtn");
-                const mediaLink = latestHomeNotice.mediaLink ? latestHomeNotice.mediaLink.trim() : "";
+                
+                const imgLink = latestHomeNotice.img ? latestHomeNotice.img.trim() : "";
+                const videoLink = latestHomeNotice.Video ? latestHomeNotice.Video.trim() : "";
+                const siteLink = latestHomeNotice.keys ? latestHomeNotice.keys.trim() : "";
 
-                if (mediaLink) {
-                    // ভিডিও ফরম্যাট চেক করা
-                    if (mediaLink.match(/\.(mp4|webm|ogg|mov)$/i)) {
-                        mediaContainer.style.display = "flex";
-                        mediaContainer.innerHTML = `<video src="${mediaLink}" controls autoplay style="width: 100%; max-height: 230px; object-fit: contain; background: #000; border-radius: 6px;"></video>`;
-                        websiteBtn.style.display = "none"; // ভিডিও হলে ওয়েবসাইট বাটন হাইড থাকবে
-                    } 
-                    // ইমেজ ফরম্যাট চেক করা
-                    else if (mediaLink.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i)) {
-                        mediaContainer.style.display = "flex";
-                        mediaContainer.innerHTML = `<img src="${mediaLink}" style="width: 100%; max-height: 230px; object-fit: contain; background: #000; border-radius: 6px;" alt="Notice Image">`;
-                        websiteBtn.style.display = "none"; // ছবি হলে ওয়েবসাইট বাটন হাইড থাকবে
-                    } 
-                    // ওয়েবসাইট বা অন্য কোনো সাধারণ লিংক হলে
-                    else if (mediaLink.startsWith("http")) {
-                        mediaContainer.style.display = "none";
-                        mediaContainer.innerHTML = "";
-                        websiteBtn.href = mediaLink;
-                        websiteBtn.style.display = "block"; // ওয়েবসাইট বাটন শো করবে
-                    } 
-                    else {
-                        mediaContainer.style.display = "none";
-                        mediaContainer.innerHTML = "";
-                        websiteBtn.style.display = "none";
-                    }
+                // মিডিয়া (ছবি বা ভিডিও) দেখানোর লজিক
+                if (videoLink) {
+                    mediaContainer.style.display = "flex";
+                    mediaContainer.innerHTML = `<video src="${videoLink}" controls autoplay style="width: 100%; max-height: 230px; object-fit: contain; background: #000; border-radius: 6px;"></video>`;
+                } else if (imgLink) {
+                    mediaContainer.style.display = "flex";
+                    mediaContainer.innerHTML = `<img src="${imgLink}" style="width: 100%; max-height: 230px; object-fit: contain; background: #000; border-radius: 6px;" alt="Notice Image">`;
                 } else {
-                    // কোনো লিংক না থাকলে উভয়ই হাইড থাকবে
                     mediaContainer.style.display = "none";
                     mediaContainer.innerHTML = "";
+                }
+
+                // সাইট বা ওয়েব লিংক (Open Website বাটন) লজিক
+                if (siteLink && siteLink.startsWith("http")) {
+                    websiteBtn.href = siteLink;
+                    websiteBtn.style.display = "block";
+                } else {
                     websiteBtn.style.display = "none";
                 }
 
@@ -419,11 +426,13 @@ function attachCardActions() {
                 } else if (notice.type === 'home') {
                     document.getElementById("homeTitle").value = notice.title;
                     document.getElementById("homeMessage").value = notice.message;
-                    document.getElementById("homeMediaLink").value = notice.mediaLink || "";
+                    document.getElementById("homeImage").value = notice.img || "";
+                    document.getElementById("homeVideo").value = notice.Video || "";
+                    document.getElementById("homeKeys").value = notice.keys || "";
                 } else if (notice.type === 'push') {
                     document.getElementById("pushTitle").value = notice.title;
                     document.getElementById("pushMessage").value = notice.message;
-                    document.getElementById("pushImageLink").value = notice.mediaLink || "";
+                    document.getElementById("pushImageLink").value = notice.img || "";
                 }
 
                 const cancelBtn = document.getElementById("cancelEditBtn");
@@ -459,8 +468,14 @@ function resetForm() {
     const homeMsg = document.getElementById("homeMessage");
     if (homeMsg) homeMsg.value = "";
     
-    const homeMedia = document.getElementById("homeMediaLink");
-    if (homeMedia) homeMedia.value = "";
+    const homeImage = document.getElementById("homeImage");
+    if (homeImage) homeImage.value = "";
+    
+    const homeVideo = document.getElementById("homeVideo");
+    if (homeVideo) homeVideo.value = "";
+    
+    const homeKeys = document.getElementById("homeKeys");
+    if (homeKeys) homeKeys.value = "";
     
     const pushTitle = document.getElementById("pushTitle");
     if (pushTitle) pushTitle.value = "";
