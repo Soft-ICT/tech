@@ -192,14 +192,30 @@ function setupNotificationEvents() {
         cancelEditBtn.addEventListener("click", () => resetForm());
     }
 
+    // ==========================================
+    // হোম নোটিশ পপআপ ক্লোজ ইভেন্ট আপডেট করা হয়েছে
+    // ==========================================
     const popupModal = document.getElementById("homeNoticePopupModal");
     const closePopupBtn = document.getElementById("closeHomePopupBtn");
 
-    [closePopupBtn].forEach(b => {
-        b?.addEventListener("click", () => {
-            if (popupModal) popupModal.style.display = "none";
+    if (closePopupBtn) {
+        // ক্লোজ বাটনের ব্যাকগ্রাউন্ড লাল (Red) করা হলো
+        closePopupBtn.style.backgroundColor = "#dc3545"; 
+        closePopupBtn.style.color = "#ffffff";
+        closePopupBtn.style.border = "none"; // স্টাইলিং সুন্দর রাখার জন্য
+
+        closePopupBtn.addEventListener("click", () => {
+            if (popupModal) {
+                popupModal.style.display = "none";
+            }
+            
+            // ভিডিও ব্যাকগ্রাউন্ডে চলা বন্ধ করার জন্য মিডিয়া কন্টেইনার ক্লিয়ার করা হলো
+            const mediaContainer = document.getElementById("popupMediaContainer");
+            if (mediaContainer) {
+                mediaContainer.innerHTML = ""; 
+            }
         });
-    });
+    }
 }
 
 function updateToggleButtonsUI() {
@@ -328,7 +344,7 @@ function loadAllFirebaseListsAndListen() {
             }
         }
 
-        // হোম নোটিশ পপআপ লজিক (ইউটিউব এবং ডাইরেক্ট ভিডিও সাপোর্টসহ)
+        // হোম নোটিশ পপআপ লজিক
         const isHomeDisabled = localStorage.getItem("home_notice_disabled") === "true";
         const popupModal = document.getElementById("homeNoticePopupModal");
         
