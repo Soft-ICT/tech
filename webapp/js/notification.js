@@ -72,8 +72,8 @@ function createNotificationUI() {
                             <textarea id="homeMessage" rows="2" placeholder="বিবরণ..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color, #ccc); background: var(--card-bg, #fff); color: var(--text-main, #000);"></textarea>
                         </div>
                         <div style="margin-bottom: 10px;">
-                            <label style="display:block; margin-bottom: 4px; font-size: 13px;">মিডিয়া বা সাইট লিংক (ঐচ্ছিক):</label>
-                            <input type="url" id="homeMediaLink" placeholder="https://..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color, #ccc); background: var(--card-bg, #fff); color: var(--text-main, #000);">
+                            <label style="display:block; margin-bottom: 4px; font-size: 13px;">ইমেজ, ভিডিও অথবা সাইট লিংক (ঐচ্ছিক):</label>
+                            <input type="url" id="homeMediaLink" placeholder="https://... (ছবি, ভিডিও বা ওয়েবসাইটের লিংক)" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color, #ccc); background: var(--card-bg, #fff); color: var(--text-main, #000);">
                         </div>
                         <button type="button" class="submit-notice-btn" data-type="home" style="width: 100%; padding: 9px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer;">হোম নোটিশ প্রকাশ করুন</button>
                     </div>
@@ -184,7 +184,6 @@ function setupNotificationEvents() {
         cancelEditBtn.addEventListener("click", () => resetForm());
     }
 
-    // হোম নোটিশ পপআপ বন্ধ করার লজিক
     const popupModal = document.getElementById("homeNoticePopupModal");
     const closePopupBtn = document.getElementById("closeHomePopupBtn");
 
@@ -290,7 +289,6 @@ function loadAllFirebaseListsAndListen() {
         const homeNotices = notices.filter(n => n.type === 'home');
         const pushNotices = notices.filter(n => n.type === 'push');
 
-        // ১. স্লাইডিং নোটিশ রেন্ডার করা
         const slidingContainer = document.getElementById("slidingNoticeContainer");
         const isSlidingDisabled = localStorage.getItem("sliding_notice_disabled") === "true";
 
@@ -314,7 +312,7 @@ function loadAllFirebaseListsAndListen() {
             }
         }
 
-        // ২. হোম নোটিশ (পপআপ) রেন্ডার এবং লজিক
+        // হোম নোটিশ পপআপ লজিক (ইমেজ, ভিডিও ও সাইট লিংক আলাদা করার ব্যবস্থা)
         const isHomeDisabled = localStorage.getItem("home_notice_disabled") === "true";
         const popupModal = document.getElementById("homeNoticePopupModal");
         
@@ -330,29 +328,33 @@ function loadAllFirebaseListsAndListen() {
                 const websiteBtn = document.getElementById("popupWebsiteBtn");
                 const mediaLink = latestHomeNotice.mediaLink ? latestHomeNotice.mediaLink.trim() : "";
 
-                // মিডিয়া চেক করার লজিক
                 if (mediaLink) {
-                    mediaContainer.style.display = "block";
-                    
-                    if (mediaLink.match(/\.(mp4|webm|ogg)$/i)) {
-                        mediaContainer.innerHTML = `<video src="${mediaLink}" controls autoplay style="width: 100%; max-height: 220px; object-fit: contain; background: #000; border-radius: 6px;"></video>`;
-                    } else if (mediaLink.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
-                        mediaContainer.innerHTML = `<img src="${mediaLink}" style="width: 100%; max-height: 220px; object-fit: contain; background: #000; border-radius: 6px;" alt="Notice Image">`;
-                    } else {
-                        // যদি এটি ভিডিও বা ছবি না হয়ে অন্য কোনো লিংক হয়, তবে মিডিয়া সেকশন হাইড থাকবে
+                    // ভিডিও ফরম্যাট চেক করা
+                    if (mediaLink.match(/\.(mp4|webm|ogg|mov)$/i)) {
+                        mediaContainer.style.display = "flex";
+                        mediaContainer.innerHTML = `<video src="${mediaLink}" controls autoplay style="width: 100%; max-height: 230px; object-fit: contain; background: #000; border-radius: 6px;"></video>`;
+                        websiteBtn.style.display = "none"; // ভিডিও হলে ওয়েবসাইট বাটন হাইড থাকবে
+                    } 
+                    // ইমেজ ফরম্যাট চেক করা
+                    else if (mediaLink.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i)) {
+                        mediaContainer.style.display = "flex";
+                        mediaContainer.innerHTML = `<img src="${mediaLink}" style="width: 100%; max-height: 230px; object-fit: contain; background: #000; border-radius: 6px;" alt="Notice Image">`;
+                        websiteBtn.style.display = "none"; // ছবি হলে ওয়েবসাইট বাটন হাইড থাকবে
+                    } 
+                    // ওয়েবসাইট বা অন্য কোনো সাধারণ লিংক হলে
+                    else if (mediaLink.startsWith("http")) {
                         mediaContainer.style.display = "none";
                         mediaContainer.innerHTML = "";
-                    }
-
-                    // যদি এটি ওয়েবসাইট বা অন্য কোনো লিংক হয়, তবে নিচের বাটন দেখাবে
-                    if (mediaLink.startsWith("http")) {
                         websiteBtn.href = mediaLink;
-                        websiteBtn.style.display = "block";
-                    } else {
+                        websiteBtn.style.display = "block"; // ওয়েবসাইট বাটন শো করবে
+                    } 
+                    else {
+                        mediaContainer.style.display = "none";
+                        mediaContainer.innerHTML = "";
                         websiteBtn.style.display = "none";
                     }
                 } else {
-                    // যদি কোনো লিংক বা মিডিয়া না থাকে, উভয়ই হাইড থাকবে
+                    // কোনো লিংক না থাকলে উভয়ই হাইড থাকবে
                     mediaContainer.style.display = "none";
                     mediaContainer.innerHTML = "";
                     websiteBtn.style.display = "none";
