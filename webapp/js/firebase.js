@@ -1,9 +1,10 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { getDatabase } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+import { getMessaging } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-messaging.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyCSirbiyWf7WQn9UqoZghAfph2U5jwJbPI",
+    apiKey: "AIzaSyCSirbiyWf7Qn9UqoZghAfph2U5jwJbPI",
     authDomain: "qrt-team.firebaseapp.com",
     databaseURL: "https://qrt-team-default-rtdb.firebaseio.com",
     projectId: "qrt-team",
@@ -14,7 +15,9 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+
 const auth = getAuth(app);
 const db = getDatabase(app);
+const messaging = getMessaging(app);
 
-export { app, auth, db };
+export { app, auth, db, messaging };
