@@ -378,36 +378,26 @@ function generateId(prefix) {
     return prefix + "_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8);
 }
 
-// আপডেট করা সর্টিং লজিক (পিন করা ডাটা এবং নির্দিষ্ট সিরিয়াল সবার উপরে থাকবে)
+// আপডেট করা সর্টিং লজিক: পিন করা আইটেমগুলো সবার উপরে থাকবে এবং ফায়ারবেজের নাম অনুযায়ী 123ABC (সংখ্যা ও বর্ণক্রম) স্টাইলে সাজবে
 function sortItemsByPin(items) {
-    const customOrder = ["0001", "0064", "0091", "Abba", "Jewel", "Kamal", "Ma", "Tomal"];
-    
     return items.sort((a, b) => {
-        const nameA = String(a.name || a.title || "");
-        const nameB = String(b.name || b.title || "");
+        // ১. পিন করা আইটেমগুলোর অগ্রাধিকার চেক করা (পিন করা আইটেমগুলো সবার উপরে থাকবে)
+        const pinA = a.isPinned || a.pinned ? 1 : 0;
+        const pinB = b.isPinned || b.pinned ? 1 : 0;
         
-        const pinA = a.pinned ? 1 : 0;
-        const pinB = b.pinned ? 1 : 0;
-        
-        const indexA = customOrder.indexOf(nameA);
-        const indexB = customOrder.indexOf(nameB);
-        
-        // ১. পিন করা ডাটাগুলো অগ্রাধিকার পাবে এবং একাধিক পিন হলে ক্রমানুসারে (প্রথম পিন, দ্বিতীয় পিন...) সাজবে
-        if (pinA !== pinB) {
-            return pinB - pinA;
-        }
-        if (pinA && pinB) {
-            return (a.pinnedAt || 0) - (b.pinnedAt || 0);
-        }
-        
-        // ২. নির্দিষ্ট কাস্টম সিরিয়াল মেইনটেইন করার লজিক
-        if (indexA !== -1 && indexB !== -1) {
-            return indexA - indexB;
-        }
-        if (indexA !== -1) return -1;
-        if (indexB !== -1) return 1;
+        if (pinA && !pinB) return -1;
+        if (!pinA && pinB) return 1;
 
-        return (a.createdAt || 0) - (b.createdAt || 0);
+        // যদি দুটি আইটেমই পিন করা থাকে, তবে তাদের পিন করার ক্রম বজায় রাখবে
+        if (pinA && pinB) {
+            return (a.pinnedAt || a.pinnedOrder || 0) - (b.pinnedAt || b.pinnedOrder || 0);
+        }
+
+        // ২. পিন করা না থাকলে ফায়ারবেজের 'name' বা 'title' ফিল্ড অনুযায়ী সংখ্যা ও বর্ণক্রম (123ABC) স্টাইলে সাজাবে
+        const nameA = String(a.name || a.title || '');
+        const nameB = String(b.name || b.title || '');
+        
+        return nameA.localeCompare(nameB, 'bn', { numeric: true });
     });
 }
 
