@@ -1515,7 +1515,6 @@ function renderDataDetailsContent(item) {
 function setupSmartCallAndWhatsApp(element, rawNumber, typeName) {
     if (!element) return;
 
-    // নাম্বার না থাকলে বা "নেই" জাতীয় লেখা থাকলে ক্লিক/লং-ক্লিক নিষ্ক্রিয় ও টোস্ট মেসেজ সেট করা
     if (!rawNumber || rawNumber === "মোবাইল নেই" || rawNumber === "টেলিফোন নেই" || rawNumber.toLowerCase().includes("নেই")) {
         element.addEventListener('click', (e) => {
             e.preventDefault();
@@ -1578,7 +1577,6 @@ function setupSmartCallAndWhatsApp(element, rawNumber, typeName) {
 function setupEmailAction(element, rawEmail) {
     if (!element) return;
 
-    // ইমেইল না থাকলে বা "নেই" থাকলে ক্লিক করলে টোস্ট মেসেজ দেখাবে
     if (!rawEmail || rawEmail === "ইমেইল নেই" || rawEmail.toLowerCase().includes("নেই")) {
         element.addEventListener('click', (e) => {
             e.preventDefault();
