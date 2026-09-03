@@ -300,14 +300,12 @@ async function loadDatabase() {
     }
 }
 
-// ফাস্ট কাজ করার জন্য ব্যাকগ্রাউন্ডে ফায়ারবেসে সিঙ্ক করার ব্যবস্থা
 async function saveDatabase() {
     if (window.currentUserRole !== "admin") {
         showToast("শুধুমাত্র Admin পরিবর্তন সেভ করতে পারবেন");
         return;
     }
 
-    // লোকাল স্টোরেজে ইনস্ট্যান্ট সেভ এবং স্ক্রিন আপডেট (যাতে লেট না হয়)
     localStorage.setItem("police_phonebook_data", JSON.stringify(database));
     refreshCurrentView();
 
@@ -316,7 +314,6 @@ async function saveDatabase() {
         return;
     }
 
-    // ব্যাকগ্রাউন্ডে ফায়ারবেসে ডাটা পাঠানো
     set(ref(db, "webapp/public_data"), database).catch((error) => {
         console.error("Database background save error:", error);
         showToast("ক্লাউডে সিঙ্ক করতে সমস্যা হয়েছে");
@@ -1066,12 +1063,10 @@ async function saveData() {
 
     if (!name) return showToast("নাম প্রদান করুন");
 
-    // শুধুমাত্র মোবাইল নাম্বারে ১১ ডিজিট বাধ্যতামূলক করার শর্ত (নামের শর্ত বাদ দেওয়া হয়েছে)
     if (mobile.length !== 11) {
         return showToast("মোবাইল নাম্বার অবশ্যই ১১ ডিজিটের হতে হবে!");
     }
 
-    // হোয়াটসঅ্যাপ অথবা ইমেইল অ্যাড্রেস না থাকলে টোস্ট মেসেজ শো করার শর্ত
     if (!whatsapp && !email) {
         return showToast("দয়া করে হোয়াটসঅ্যাপ নাম্বার অথবা ইমেইল অ্যাড্রেস প্রদান করুন!");
     }
@@ -1483,7 +1478,7 @@ function renderDataDetailsContent(item) {
         <div class="quick-action-grid">
             <button id="btnMobileCall" class="action-btn-round btn-call-round">📱 মোবাইল</button>
             <button id="btnPhoneCall" class="action-btn-round btn-phone-round">☎️ টেলিফোন</button>
-            <a href="${item.email ? "mailto:" + item.email : "#"}" class="action-btn-round btn-email-round">✉️ ইমেইল</a>
+            <button id="btnEmailSend" class="action-btn-round btn-email-round">✉️ ইমেইল</button>
             <button id="btnShareContact" class="action-btn-round btn-share-round">🔗 শেয়ার কন্টাক্ট</button>
         </div>
 
@@ -1499,8 +1494,9 @@ function renderDataDetailsContent(item) {
         </div>
     `;
 
-    setupSmartCallAndWhatsApp(document.getElementById("btnMobileCall"), item.mobile);
-    setupSmartCallAndWhatsApp(document.getElementById("btnPhoneCall"), item.phone);
+    setupSmartCallAndWhatsApp(document.getElementById("btnMobileCall"), item.mobile, "মোবাইল");
+    setupSmartCallAndWhatsApp(document.getElementById("btnPhoneCall"), item.phone, "টেলিফোন");
+    setupEmailAction(document.getElementById("btnEmailSend"), item.email);
 
     const detailsVerifyBtn = document.getElementById("detailsVerifyBtn");
     if (detailsVerifyBtn) setupHoldToVerify(detailsVerifyBtn);
@@ -1516,12 +1512,15 @@ function renderDataDetailsContent(item) {
     });
 }
 
-function setupSmartCallAndWhatsApp(element, rawNumber) {
-    if (!element || !rawNumber || rawNumber === "মোবাইল নেই" || rawNumber === "টেলিফোন নেই") {
-        if (element) {
-            element.style.opacity = "0.5";
-            element.style.cursor = "not-allowed";
-        }
+function setupSmartCallAndWhatsApp(element, rawNumber, typeName) {
+    if (!element) return;
+
+    // নাম্বার না থাকলে বা "নেই" জাতীয় লেখা থাকলে ক্লিক/লং-ক্লিক নিষ্ক্রিয় ও টোস্ট মেসেজ সেট করা
+    if (!rawNumber || rawNumber === "মোবাইল নেই" || rawNumber === "টেলিফোন নেই" || rawNumber.toLowerCase().includes("নেই")) {
+        element.addEventListener('click', (e) => {
+            e.preventDefault();
+            showToast(`⚠️ কোনো ${typeName} নাম্বার নেই!`);
+        });
         return;
     }
 
@@ -1535,7 +1534,11 @@ function setupSmartCallAndWhatsApp(element, rawNumber) {
             if (navigator.vibrate) navigator.vibrate(60);
             let cleanNumber = rawNumber.replace(/\D/g, '');
             if (cleanNumber.length === 11 && cleanNumber.startsWith('0')) cleanNumber = '88' + cleanNumber;
-            if (cleanNumber) window.open(`https://wa.me/${cleanNumber}`, '_blank');
+            if (cleanNumber) {
+                window.open(`https://wa.me/${cleanNumber}`, '_blank');
+            } else {
+                showToast(`⚠️ কোনো বৈধ ${typeName} নাম্বার নেই!`);
+            }
         }, 600);
     };
 
@@ -1564,9 +1567,29 @@ function setupSmartCallAndWhatsApp(element, rawNumber) {
                 document.body.appendChild(callLink);
                 callLink.click();
                 setTimeout(() => callLink.remove(), 1000);
+            } else {
+                showToast(`⚠️ কোনো বৈধ ${typeName} নাম্বার নেই!`);
             }
         }
         isLongPress = false;
+    });
+}
+
+function setupEmailAction(element, rawEmail) {
+    if (!element) return;
+
+    // ইমেইল না থাকলে বা "নেই" থাকলে ক্লিক করলে টোস্ট মেসেজ দেখাবে
+    if (!rawEmail || rawEmail === "ইমেইল নেই" || rawEmail.toLowerCase().includes("নেই")) {
+        element.addEventListener('click', (e) => {
+            e.preventDefault();
+            showToast("⚠️ কোনো ইমেইল অ্যাড্রেস নেই!");
+        });
+        return;
+    }
+
+    element.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.location.href = `mailto:${rawEmail}`;
     });
 }
 
