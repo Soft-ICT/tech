@@ -199,7 +199,7 @@
             <h1 class="splash-title">Police Phonebook</h1>
             <p class="splash-subtitle">Bangladesh Police</p>
 
-            <!-- পাসওয়ার্ড ইনপুট ফর্ম (শুরুতেই ডিসপ্লে ব্লক করা হয়েছে যাতে মিসিং না হয়) -->
+            <!-- পাসওয়ার্ড ইনপুট ফর্ম (শুরুতেই ডিসপ্লে ব্লক করা আছে যাতে পাসওয়ার্ড বক্স দেখা যায়) -->
             <div class="login-form" id="loginFormContainer" style="display: flex;">
                 <input type="password" id="passcode" class="password-input" placeholder="গোপন পাসওয়ার্ড দিন" autocomplete="current-password">
                 <button type="button" class="submit-btn" onclick="verifyPassword()">প্রবেশ করুন</button>
@@ -223,7 +223,7 @@
                     if (splash) splash.classList.add('fade-out');
 
                     setTimeout(function() {
-                        window.location.replace("index.html"); 
+                        window.location.replace("home.html"); 
                     }, 400);
                 }, 500);
             }
@@ -245,13 +245,13 @@
             submitBtn.disabled = true;
 
             try {
-                // আপনার ফায়ারবেস ডাটাবেসের webapp/admin পাথ থেকে পাসওয়ার্ড চেক করা
+                // ফায়ারবেস রিয়েলটাইম ডাটাবেসের webapp/admin পাথ থেকে পাসওয়ার্ড চেক করা
                 const dbRef = ref(db, 'webapp/admin');
                 const snapshot = await get(dbRef);
 
                 if (snapshot.exists()) {
                     const data = snapshot.val();
-                    const serverPassword = data.password; // ফায়ারবেসে থাকা পাসওয়ার্ড[span_1](start_span)[span_1](end_span)
+                    const serverPassword = data.password;[span_1](start_span)[span_1](end_span)
 
                     if (inputVal === serverPassword) {
                         errorMsg.style.display = 'none';
