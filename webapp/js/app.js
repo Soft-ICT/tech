@@ -378,26 +378,25 @@ function generateId(prefix) {
     return prefix + "_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8);
 }
 
-// আপডেট করা সর্টিং লজিক: পিন করা আইটেমগুলো সবার উপরে থাকবে এবং ফায়ারবেজের নাম অনুযায়ী 123ABC (সংখ্যা ও বর্ণক্রম) স্টাইলে সাজবে
+// আপডেট করা সর্টিং লজিক: পিন করা আইটেমগুলো সবার উপরে থাকবে, বাকিগুলো সেভ করার ক্রম (createdAt) অনুযায়ী সাজবে
 function sortItemsByPin(items) {
     return items.sort((a, b) => {
-        // ১. পিন করা আইটেমগুলোর অগ্রাধিকার চেক করা (পিন করা আইটেমগুলো সবার উপরে থাকবে)
+        // ১. পিন করা আইটেমগুলোর অগ্রাধিকার চেক করা
         const pinA = a.isPinned || a.pinned ? 1 : 0;
         const pinB = b.isPinned || b.pinned ? 1 : 0;
         
         if (pinA && !pinB) return -1;
         if (!pinA && pinB) return 1;
 
-        // যদি দুটি আইটেমই পিন করা থাকে, তবে তাদের পিন করার ক্রম বজায় রাখবে
         if (pinA && pinB) {
             return (a.pinnedAt || a.pinnedOrder || 0) - (b.pinnedAt || b.pinnedOrder || 0);
         }
 
-        // ২. পিন করা না থাকলে ফায়ারবেজের 'name' বা 'title' ফিল্ড অনুযায়ী সংখ্যা ও বর্ণক্রম (123ABC) স্টাইলে সাজাবে
-        const nameA = String(a.name || a.title || '');
-        const nameB = String(b.name || b.title || '');
+        // ২. পিন করা না থাকলে প্রথমে যাকে সেভ করা হয়েছে সে উপরে থাকবে (createdAt ক্রমানুসারে)
+        const timeA = a.createdAt || 0;
+        const timeB = b.createdAt || 0;
         
-        return nameA.localeCompare(nameB, 'bn', { numeric: true });
+        return timeA - timeB;
     });
 }
 
