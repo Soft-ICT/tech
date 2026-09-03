@@ -1,7 +1,7 @@
 {
   "name": "Police Phonebook",
   "short_name": "Police Phonebook",
-  "start_url": "./home.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#030712",
   "theme_color": "#030712",
