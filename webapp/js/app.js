@@ -378,15 +378,24 @@ function generateId(prefix) {
     return prefix + "_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8);
 }
 
-// নতুন পিন সিস্টেমের জন্য সর্টিং লজিক (আপডেটেড পিন সিস্টেম)
+// আপডেট করা পিন ও ক্রিয়েটেড টাইম সর্টিং লজিক
 function sortItemsByPin(items) {
     return items.sort((a, b) => {
         const pinA = a.pinned ? 1 : 0;
         const pinB = b.pinned ? 1 : 0;
-        if (pinA !== pinB) {
-            return pinB - pinA; // পিন করা আইটেমগুলো আগে আসবে
+        
+        // যদি উভয়ই পিন করা থাকে, তবে যেটি আগে পিন করা হয়েছে (ছোট pinnedAt) সেটি উপরে থাকবে
+        if (pinA && pinB) {
+            return (a.pinnedAt || 0) - (b.pinnedAt || 0);
         }
-        return (b.pinnedAt || b.createdAt || 0) - (a.pinnedAt || a.createdAt || 0);
+        
+        // পিন করা আইটেমগুলো আনপিন করা আইটেমের উপরে থাকবে
+        if (pinA !== pinB) {
+            return pinB - pinA;
+        }
+        
+        // উভয়ই আনপিন হলে, যেটি আগে তৈরি/সেভ করা হয়েছে (ছোট createdAt) সেটি উপরে থাকবে
+        return (a.createdAt || 0) - (b.createdAt || 0);
     });
 }
 
