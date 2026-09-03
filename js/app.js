@@ -181,7 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
     checkOnlineStatus();
     initNotificationSystem();
 
-    history.replaceState({ page: "home" }, "");
+    history.replaceState({ page: "index" }, "");
     window.addEventListener("popstate", handlePopState);
 });
 
@@ -236,7 +236,7 @@ function handlePopState(event) {
     closeHeaderSearch();
     const state = event.state;
 
-    if (!state || state.page === "home") {
+    if (!state || state.page === "index") {
         closeAllSearchUI();
         showMainDashboardView(false);
     } else if (state.page === "allSearch") {
