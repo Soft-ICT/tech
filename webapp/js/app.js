@@ -378,7 +378,6 @@ function generateId(prefix) {
     return prefix + "_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8);
 }
 
-// সাধারণ আইটেম সর্টিং (ক্যাটাগরি ও হেডারের জন্য আগের মতো সময় বা পিন অনুযায়ী)
 function sortItemsByPin(items) {
     return items.sort((a, b) => {
         const pinA = a.isPinned || a.pinned ? 1 : 0;
@@ -398,7 +397,6 @@ function sortItemsByPin(items) {
     });
 }
 
-// শুধুমাত্র কন্টাক্ট ডাটার সিরিয়াল নাম বা আইডি অনুযায়ী সাজানোর ফাংশন
 function sortContactData(items) {
     return items.sort((a, b) => {
         const pinA = a.isPinned || a.pinned ? 1 : 0;
@@ -1076,15 +1074,30 @@ async function saveData() {
     if (!currentCategoryId && !editingItem) return showToast("ক্যাটাগরি সিলেক্ট করা নেই");
 
     const name = document.getElementById("dataName")?.value.trim() || "";
+    const mobile = document.getElementById("dataMobile")?.value.trim() || "";
+    const whatsapp = document.getElementById("dataWhatsapp")?.value.trim() || "";
+    const email = document.getElementById("dataEmail")?.value.trim() || "";
+
     if (!name) return showToast("নাম প্রদান করুন");
+
+    // নাম এবং মোবাইল নাম্বারে সর্বনিম্ন ১১ ডিজিট যাচাইকরণ শর্ত
+    if (name.length < 11 || mobile.length < 11) {
+        return showToast("নাম এবং মোবাইল নাম্বারে সর্বনিম্ন ১১ ডিজিট প্রদান করতে হবে!");
+    }
+
+    // হোয়াটসঅ্যাপ অথবা ইমেইল অ্যাড্রেস না থাকলে টোস্ট মেসেজ শো করার শর্ত
+    if (!whatsapp && !email) {
+        return showToast("দয়া করে হোয়াটসঅ্যাপ নাম্বার অথবা ইমেইল অ্যাড্রেস প্রদান করুন!");
+    }
 
     const payload = {
         photo: document.getElementById("dataPhoto")?.value.trim() || "",
         name: name,
-        mobile: document.getElementById("dataMobile")?.value.trim() || "",
+        mobile: mobile,
+        whatsapp: whatsapp,
         phone: document.getElementById("dataPhone")?.value.trim() || "",
         designation: document.getElementById("dataDesignation")?.value.trim() || "",
-        email: document.getElementById("dataEmail")?.value.trim() || "",
+        email: email,
         currentOffice: document.getElementById("dataCurrentOffice")?.value.trim() || "",
         permanentAddress: document.getElementById("dataPermanentAddress")?.value.trim() || "",
         adminInfo: document.getElementById("dataAdminInfo")?.value.trim() || "",
@@ -1332,7 +1345,7 @@ function renderCategoryDetails(searchVal = "") {
     }
 
     let categoryData = database.data.filter(d => d.categoryId === currentCategoryId);
-    categoryData = sortContactData(categoryData); // কন্টাক্ট ডাটাগুলো নাম/আইডি ক্রমানুসারে সাজানো হলো
+    categoryData = sortContactData(categoryData);
 
     let noHeaderData = categoryData.filter(d => !d.headerId);
     if (filterText) {
