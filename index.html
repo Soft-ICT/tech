@@ -200,11 +200,11 @@
             <h1 class="splash-title">Police Phonebook</h1>
             <p class="splash-subtitle">Bangladesh Police</p>
 
-            <!-- পাসওয়ার্ড ফর্ম -->
+            <!-- পাসওয়ার্ড ফর্ম (প্রথমে হাইলটেড থাকবে যদি লগইন করা না থাকে) -->
             <div class="login-form" id="loginFormContainer" style="display: none;">
                 <input type="password" id="passcode" class="password-input" placeholder="পাসওয়ার্ড দিন" autocomplete="current-password">
-                <button type="button" class="submit-btn" onclick="checkPassword()">প্রবেশ করুন</button>
-                <span id="errorMsg" class="error-msg">ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।</span>
+                <button type="button" class="submit-btn" onclick="verifyFirebasePassword()">প্রবেশ করুন</button>
+                <span id="errorMsg" class="error-msg"></span>
             </div>
         </div>
     </div>
@@ -215,12 +215,12 @@
         const savedTheme = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light');
         document.documentElement.setAttribute('data-theme', savedTheme);
 
-        // ২. চেক করা ব্যবহারকারী আগে থেকেই লগইন করা আছে কি না
+        // ২. পেজ লোড হওয়ার সময় চেক করা আগে থেকেই লগইন করা আছে কি না
         window.addEventListener('load', function() {
             const isLoggedIn = localStorage.getItem('isLoggedIn');
 
             if (isLoggedIn === 'true') {
-                // যদি আগে থেকেই লগইন করা থাকে, তবে পাসওয়ার্ড বক্স না দেখিয়ে সরাসরি মূল পেজে চলে যাবে
+                // আগে থেকেই লগইন করা থাকলে সরাসরি মূল পেজে রিডাইরেক্ট হবে
                 setTimeout(function() {
                     const splash = document.getElementById('splash-screen');
                     if (splash) splash.classList.add('fade-out');
@@ -228,43 +228,79 @@
                     setTimeout(function() {
                         window.location.replace("index.html"); 
                     }, 400);
-                }, 1000); // ১ সেকেন্ডের ছোট স্প্ল্যাশ এনিমেশন দেখিয়ে প্রবেশ করবে
+                }, 800);
             } else {
-                // লগইন করা না থাকলে পাসওয়ার্ড ফর্মটি স্ক্রিনে দেখিয়ে দিবে
+                // লগইন করা না থাকলে পাসওয়ার্ড ফর্ম দেখাবে
                 document.getElementById('loginFormContainer').style.display = 'flex';
             }
         });
 
-        // ৩. পাসওয়ার্ড যাচাই ফাংশন
-        function checkPassword() {
-            const inputval = document.getElementById('passcode').value;
+        // ৩. ফায়ারবেস থেকে 'settings' কালেকশন এবং 'admin' ডকুমেন্ট চেক করার ফাংশন
+        async function verifyFirebasePassword() {
+            const inputVal = document.getElementById('passcode').value;
             const errorMsg = document.getElementById('errorMsg');
+            const submitBtn = document.querySelector('.submit-btn');
 
-            // এখানে আপনার পাসওয়ার্ড সেট করুন (অথবা ফায়ারবেস থেকে ভ্যালু এনে এখানে মেলাতে পারেন)
-            const correctPassword = "police123"; 
-
-            if (inputval === correctPassword) {
-                errorMsg.style.display = 'none';
-                
-                // ব্রাউজারে লগইন স্ট্যাটাস সেভ করে রাখা হলো
-                localStorage.setItem('isLoggedIn', 'true');
-
-                const splash = document.getElementById('splash-screen');
-                if (splash) splash.classList.add('fade-out');
-
-                setTimeout(function() {
-                    window.location.replace("home.html"); 
-                }, 400);
-            } else {
+            if (!inputVal) {
+                errorMsg.innerText = "দয়া করে পাসওয়ার্ড দিন!";
                 errorMsg.style.display = 'block';
-                document.getElementById('passcode').value = '';
+                return;
             }
+
+            submitBtn.innerText = "যাচাই করা হচ্ছে...";
+            submitBtn.disabled = true;
+
+            try {
+                // আপনার প্রজেক্টের মেইন কোড থেকে আসা 'db', 'doc', 'getDoc' ফাংশন ব্যবহার করে ডাটা ফেচ করা
+                const docRef = doc(db, "settings", "admin");
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const serverPassword = docSnap.data().password; // ফায়ারবেসের পাসওয়ার্ড ফিল্ড
+
+                    if (inputVal === serverPassword) {
+                        errorMsg.style.display = 'none';
+                        
+                        // গুগল লগইনের মতো ব্রাউজারে স্ট্যাটাস পার্মানেন্টলি সেভ হয়ে থাকবে
+                        localStorage.setItem('isLoggedIn', 'true');
+
+                        const splash = document.getElementById('splash-screen');
+                        if (splash) splash.classList.add('fade-out');
+
+                        setTimeout(function() {
+                            window.location.replace("home.html"); 
+                        }, 400);
+                    } else {
+                        showError("ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।");
+                    }
+                } else {
+                    showError("ফায়ারবেসে পাসওয়ার্ড পাওয়া যায়নি!");
+                }
+            } catch (error) {
+                console.error("Firebase Error:", error);
+                showError("ইন্টারনেট কানেকশন বা ফায়ারবেস কনফিগারেশন চেক করুন!");
+            }
+
+            submitBtn.innerText = "প্রবেশ করুন";
+            submitBtn.disabled = false;
         }
 
-        // Enter চাপলে যেন সাবমিট হয়
-        document.getElementById('passcode').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                checkPassword();
+        function showError(msg) {
+            const errorMsg = document.getElementById('errorMsg');
+            errorMsg.innerText = msg;
+            errorMsg.style.display = 'block';
+            document.getElementById('passcode').value = '';
+        }
+
+        // কীবোর্ডের Enter চাপলে যেন সাবমিট হয়
+        document.addEventListener('DOMContentLoaded', function() {
+            const passInput = document.getElementById('passcode');
+            if (passInput) {
+                passInput.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        verifyFirebasePassword();
+                    }
+                });
             }
         });
     </script>
