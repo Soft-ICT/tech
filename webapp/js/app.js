@@ -300,25 +300,27 @@ async function loadDatabase() {
     }
 }
 
+// ফাস্ট কাজ করার জন্য ব্যাকগ্রাউন্ডে ফায়ারবেসে সিঙ্ক করার ব্যবস্থা
 async function saveDatabase() {
     if (window.currentUserRole !== "admin") {
         showToast("শুধুমাত্র Admin পরিবর্তন সেভ করতে পারবেন");
         return;
     }
 
+    // লোকাল স্টোরেজে ইনস্ট্যান্ট সেভ এবং স্ক্রিন আপডেট (যাতে লেট না হয়)
     localStorage.setItem("police_phonebook_data", JSON.stringify(database));
+    refreshCurrentView();
 
     if (!navigator.onLine) {
         showToast("অফলাইনে সেভ হয়েছে! ইন্টারনেট এলে ডাটাবেজে যুক্ত হবে।");
         return;
     }
 
-    try {
-        await set(ref(db, "webapp/public_data"), database);
-    } catch (error) {
-        console.error("Database save error:", error);
-        showToast("ডাটা সেভ করতে সমস্যা হয়েছে");
-    }
+    // ব্যাকগ্রাউন্ডে ফায়ারবেসে ডাটা পাঠানো
+    set(ref(db, "webapp/public_data"), database).catch((error) => {
+        console.error("Database background save error:", error);
+        showToast("ক্লাউডে সিঙ্ক করতে সমস্যা হয়েছে");
+    });
 }
 
 function initNotificationSystem() {
@@ -362,16 +364,6 @@ function initNotificationSystem() {
             }
         });
     }
-
-    const noticesRef = ref(db, "webapp/notices");
-    onValue(noticesRef, (snapshot) => {
-        if (snapshot.exists()) {
-            const data = snapshot.val();
-            console.log("Notices loaded:", data);
-        } else {
-            console.log("No notices found.");
-        }
-    });
 }
 
 function generateId(prefix) {
@@ -868,9 +860,8 @@ async function saveCategory() {
         });
     }
 
-    await saveDatabase();
     closeModal("categoryModal");
-    refreshCurrentView();
+    await saveDatabase();
     showToast("সেভ করা হয়েছে");
 }
 
@@ -880,7 +871,6 @@ async function togglePinCategory(id) {
         cat.pinned = !cat.pinned;
         cat.pinnedAt = cat.pinned ? Date.now() : 0;
         await saveDatabase();
-        refreshCurrentView();
         showToast(cat.pinned ? "পিন করা হয়েছে" : "আনপিন করা হয়েছে");
     }
 }
@@ -899,7 +889,6 @@ async function deleteCategory(id) {
     database.data = database.data.filter(d => d.categoryId !== id);
 
     await saveDatabase();
-    refreshCurrentView();
     showToast("ডিলিট করা হয়েছে");
 }
 
@@ -931,9 +920,8 @@ async function saveHeader() {
         });
     }
 
-    await saveDatabase();
     closeModal("headerModal");
-    refreshCurrentView();
+    await saveDatabase();
     showToast("Header সেভ করা হয়েছে");
 }
 
@@ -943,7 +931,6 @@ async function togglePinHeader(id) {
         header.pinned = !header.pinned;
         header.pinnedAt = header.pinned ? Date.now() : 0;
         await saveDatabase();
-        refreshCurrentView();
         showToast(header.pinned ? "হেডার পিন করা হয়েছে" : "হেডার আনপিন করা হয়েছে");
     }
 }
@@ -963,7 +950,6 @@ async function deleteHeader(id) {
     });
 
     await saveDatabase();
-    refreshCurrentView();
     showToast("Header ডিলিট করা হয়েছে");
 }
 
@@ -1080,9 +1066,9 @@ async function saveData() {
 
     if (!name) return showToast("নাম প্রদান করুন");
 
-    // নাম এবং মোবাইল নাম্বারে সর্বনিম্ন ১১ ডিজিট যাচাইকরণ শর্ত
-    if (name.length < 11 || mobile.length < 11) {
-        return showToast("নাম এবং মোবাইল নাম্বারে সর্বনিম্ন ১১ ডিজিট প্রদান করতে হবে!");
+    // শুধুমাত্র মোবাইল নাম্বারে ১১ ডিজিট বাধ্যতামূলক করার শর্ত (নামের শর্ত বাদ দেওয়া হয়েছে)
+    if (mobile.length !== 11) {
+        return showToast("মোবাইল নাম্বার অবশ্যই ১১ ডিজিটের হতে হবে!");
     }
 
     // হোয়াটসঅ্যাপ অথবা ইমেইল অ্যাড্রেস না থাকলে টোস্ট মেসেজ শো করার শর্ত
@@ -1118,9 +1104,8 @@ async function saveData() {
         });
     }
 
-    await saveDatabase();
     closeModal("dataModal");
-    refreshCurrentView();
+    await saveDatabase();
     showToast("ডাটা সেভ হয়েছে");
 }
 
@@ -1135,7 +1120,6 @@ async function deleteData(id) {
 
     database.data = database.data.filter(d => d.id !== id);
     await saveDatabase();
-    refreshCurrentView();
     showToast("ডাটা ডিলিট করা হয়েছে");
 }
 
@@ -1145,7 +1129,6 @@ async function togglePinData(id) {
         item.pinned = !item.pinned;
         item.pinnedAt = item.pinned ? Date.now() : 0;
         await saveDatabase();
-        refreshCurrentView();
         showToast(item.pinned ? "ডাটা পিন করা হয়েছে" : "ডাটা আনপিন করা হয়েছে");
     }
 }
@@ -1189,9 +1172,8 @@ async function confirmMoveData() {
     if (item && catId) {
         item.categoryId = catId;
         item.headerId = headId;
-        await saveDatabase();
         closeModal("moveDataModal");
-        refreshCurrentView();
+        await saveDatabase();
         showToast("ডাটা সফলভাবে মুভ করা হয়েছে!");
     }
 }
