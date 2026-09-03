@@ -378,23 +378,32 @@ function generateId(prefix) {
     return prefix + "_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8);
 }
 
-// আপডেট করা পিন ও ক্রিয়েটেড টাইম সর্টিং লজিক
+// আপডেট করা কাস্টম ও নির্দিষ্ট সিরিয়াল মেইনটেইন করার সর্টিং লজিক
 function sortItemsByPin(items) {
+    const customOrder = ["0001", "0064", "0091", "Abba", "Jewel", "Kamal", "Ma", "Tomal"];
+    
     return items.sort((a, b) => {
+        const nameA = String(a.name || a.title || "");
+        const nameB = String(b.name || b.title || "");
+        
+        const indexA = customOrder.indexOf(nameA);
+        const indexB = customOrder.indexOf(nameB);
+        
+        if (indexA !== -1 && indexB !== -1) {
+            return indexA - indexB;
+        }
+        if (indexA !== -1) return -1;
+        if (indexB !== -1) return 1;
+
         const pinA = a.pinned ? 1 : 0;
         const pinB = b.pinned ? 1 : 0;
         
-        // যদি উভয়ই পিন করা থাকে, তবে যেটি আগে পিন করা হয়েছে (ছোট pinnedAt) সেটি উপরে থাকবে
         if (pinA && pinB) {
             return (a.pinnedAt || 0) - (b.pinnedAt || 0);
         }
-        
-        // পিন করা আইটেমগুলো আনপিন করা আইটেমের উপরে থাকবে
         if (pinA !== pinB) {
             return pinB - pinA;
         }
-        
-        // উভয়ই আনপিন হলে, যেটি আগে তৈরি/সেভ করা হয়েছে (ছোট createdAt) সেটি উপরে থাকবে
         return (a.createdAt || 0) - (b.createdAt || 0);
     });
 }
