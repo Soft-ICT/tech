@@ -38,3 +38,4 @@ export function watchAuth(callback) {
         }
     });
 }
+
