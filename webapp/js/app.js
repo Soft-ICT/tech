@@ -1058,7 +1058,7 @@ async function saveData() {
 
     const name = document.getElementById("dataName")?.value.trim() || "";
     const mobile = document.getElementById("dataMobile")?.value.trim() || "";
-    const whatsapp = document.getElementById("dataWhatsapp")?.value.trim() || "";
+    const phone = document.getElementById("dataPhone")?.value.trim() || "";
     const email = document.getElementById("dataEmail")?.value.trim() || "";
 
     if (!name) return showToast("নাম প্রদান করুন");
@@ -1067,16 +1067,15 @@ async function saveData() {
         return showToast("মোবাইল নাম্বার অবশ্যই ১১ ডিজিটের হতে হবে!");
     }
 
-    if (!whatsapp && !email) {
-        return showToast("দয়া করে হোয়াটসঅ্যাপ নাম্বার অথবা ইমেইল অ্যাড্রেস প্রদান করুন!");
+    if (!mobile && !phone && !email) {
+        return showToast("মোবাইল, টেলিফোন অথবা ইমেইল এড্রেস ফাঁকা রাখা যাবে না!");
     }
 
     const payload = {
         photo: document.getElementById("dataPhoto")?.value.trim() || "",
         name: name,
         mobile: mobile,
-        whatsapp: whatsapp,
-        phone: document.getElementById("dataPhone")?.value.trim() || "",
+        phone: phone,
         designation: document.getElementById("dataDesignation")?.value.trim() || "",
         email: email,
         currentOffice: document.getElementById("dataCurrentOffice")?.value.trim() || "",
