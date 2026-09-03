@@ -199,7 +199,7 @@
             <h1 class="splash-title">Police Phonebook</h1>
             <p class="splash-subtitle">Bangladesh Police</p>
 
-            <!-- পাসওয়ার্ড ইনপুট ফর্ম (শুরুতেই ডিসপ্লে ব্লক করা আছে যাতে পাসওয়ার্ড বক্স দেখা যায়) -->
+            <!-- পাসওয়ার্ড ইনপুট ফর্ম -->
             <div class="login-form" id="loginFormContainer" style="display: flex;">
                 <input type="password" id="passcode" class="password-input" placeholder="গোপন পাসওয়ার্ড দিন" autocomplete="current-password">
                 <button type="button" class="submit-btn" onclick="verifyPassword()">প্রবেশ করুন</button>
@@ -208,28 +208,24 @@
         </div>
     </div>
 
-    <!-- ফায়ারবেস এবং রিয়েলটাইম ডাটাবেস চেক করার স্ক্রিপ্ট -->
+    <!-- ফায়ারবেস চেক করার স্ক্রিপ্ট (ডিবাগ সহ) -->
     <script type="module">
-        import { db } from "./firebase.js";[span_0](start_span)[span_0](end_span)
+        import { db } from "./firebase.js";
         import { ref, get } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
-        // পেজ লোড হওয়ার সাথে সাথে চেক করা আগে থেকেই লগইন করা আছে কি না
         window.addEventListener('load', function() {
             const isLoggedIn = localStorage.getItem('isLoggedIn');
-
             if (isLoggedIn === 'true') {
                 setTimeout(function() {
                     const splash = document.getElementById('splash-screen');
                     if (splash) splash.classList.add('fade-out');
-
                     setTimeout(function() {
-                        window.location.replace("home.html"); 
+                        window.location.replace("index.html"); 
                     }, 400);
                 }, 500);
             }
         });
 
-        // পাসওয়ার্ড যাচাই করার ফাংশন
         window.verifyPassword = async function() {
             const inputVal = document.getElementById('passcode').value;
             const errorMsg = document.getElementById('errorMsg');
@@ -245,34 +241,34 @@
             submitBtn.disabled = true;
 
             try {
-                // ফায়ারবেস রিয়েলটাইম ডাটাবেসের webapp/admin পাথ থেকে পাসওয়ার্ড চেক করা
                 const dbRef = ref(db, 'webapp/admin');
                 const snapshot = await get(dbRef);
 
                 if (snapshot.exists()) {
                     const data = snapshot.val();
-                    const serverPassword = data.password;[span_1](start_span)[span_1](end_span)
+                    const serverPassword = data.password;
 
+                    // ডাটাবেস থেকে পাসওয়ার্ড সফলভাবে পড়ার পর তুলনা করা
                     if (inputVal === serverPassword) {
                         errorMsg.style.display = 'none';
-                        
                         localStorage.setItem('isLoggedIn', 'true');
 
                         const splash = document.getElementById('splash-screen');
                         if (splash) splash.classList.add('fade-out');
 
                         setTimeout(function() {
-                            window.location.replace("index.html"); 
+                            window.location.replace("home.html"); 
                         }, 400);
                     } else {
-                        showError("ভুল পাসওয়ার্ড! প্রবেশাধিকার সংরক্ষিত।");
+                        showError("ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।");
                     }
                 } else {
-                    showError("ডাটাবেসে পাসওয়ার্ড পাওয়া যায়নি!");
+                    showError("ডাটাবেসে কোনো পাসওয়ার্ড নোড নেই!");
                 }
             } catch (error) {
                 console.error("Firebase Error:", error);
-                showError("ইন্টারনেট কানেকশন বা ফায়ারবেস রুলস চেক করুন!");
+                // ফায়ারবেস থেকে ডাটা আনতে সমস্যা হলে স্ক্রিনে এরর দেখাবে
+                showError("ত্রুটি: " + error.message);
             }
 
             submitBtn.innerText = "প্রবেশ করুন";
@@ -286,7 +282,6 @@
             document.getElementById('passcode').value = '';
         }
 
-        // Enter চাপলে সাবমিট হওয়ার লজিক
         const passInput = document.getElementById('passcode');
         if (passInput) {
             passInput.addEventListener('keypress', function (e) {
@@ -298,7 +293,6 @@
     </script>
 
     <script>
-        // অটোমেটিক থিম সেটআপ
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         const savedTheme = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light');
         document.documentElement.setAttribute('data-theme', savedTheme);
