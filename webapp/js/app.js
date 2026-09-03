@@ -300,14 +300,12 @@ async function loadDatabase() {
     }
 }
 
-// ফাস্ট কাজ করার জন্য ব্যাকগ্রাউন্ডে ফায়ারবেসে সিঙ্ক করার ব্যবস্থা
 async function saveDatabase() {
     if (window.currentUserRole !== "admin") {
         showToast("শুধুমাত্র Admin পরিবর্তন সেভ করতে পারবেন");
         return;
     }
 
-    // লোকাল স্টোরেজে ইনস্ট্যান্ট সেভ এবং স্ক্রিন আপডেট (যাতে লেট না হয়)
     localStorage.setItem("police_phonebook_data", JSON.stringify(database));
     refreshCurrentView();
 
@@ -316,7 +314,6 @@ async function saveDatabase() {
         return;
     }
 
-    // ব্যাকগ্রাউন্ডে ফায়ারবেসে ডাটা পাঠানো
     set(ref(db, "webapp/public_data"), database).catch((error) => {
         console.error("Database background save error:", error);
         showToast("ক্লাউডে সিঙ্ক করতে সমস্যা হয়েছে");
@@ -1031,6 +1028,7 @@ function openDataModal(editObj = null) {
     document.getElementById("dataPhoto").value = editObj?.photo || "";
     document.getElementById("dataName").value = editObj?.name || "";
     document.getElementById("dataMobile").value = editObj?.mobile || "";
+    document.getElementById("dataWhatsapp").value = editObj?.whatsapp || "";
     document.getElementById("dataPhone").value = editObj?.phone || "";
     document.getElementById("dataDesignation").value = editObj?.designation || "";
     document.getElementById("dataEmail").value = editObj?.email || "";
@@ -1061,19 +1059,20 @@ async function saveData() {
 
     const name = document.getElementById("dataName")?.value.trim() || "";
     const mobile = document.getElementById("dataMobile")?.value.trim() || "";
+    const phone = document.getElementById("dataPhone")?.value.trim() || "";
     const whatsapp = document.getElementById("dataWhatsapp")?.value.trim() || "";
     const email = document.getElementById("dataEmail")?.value.trim() || "";
 
     if (!name) return showToast("নাম প্রদান করুন");
 
-    // শুধুমাত্র মোবাইল নাম্বারে ১১ ডিজিট বাধ্যতামূলক করার শর্ত (নামের শর্ত বাদ দেওয়া হয়েছে)
-    if (mobile.length !== 11) {
+    // মোবাইল নাম্বার ১১ ডিজিটের হতে হবে (যদি দেওয়া হয়ে থাকে)
+    if (mobile && mobile.length !== 11) {
         return showToast("মোবাইল নাম্বার অবশ্যই ১১ ডিজিটের হতে হবে!");
     }
 
-    // হোয়াটসঅ্যাপ অথবা ইমেইল অ্যাড্রেস না থাকলে টোস্ট মেসেজ শো করার শর্ত
-    if (!whatsapp && !email) {
-        return showToast("দয়া করে হোয়াটসঅ্যাপ নাম্বার অথবা ইমেইল অ্যাড্রেস প্রদান করুন!");
+    // ডায়াল (মোবাইল বা টেলিফোন), হোয়াটসঅ্যাপ কিংবা ইমেইল অ্যাড্রেস—এর অন্তত একটি থাকা বাধ্যতামূলক
+    if (!mobile && !phone && !whatsapp && !email) {
+        return showToast("দয়া করে ডায়াল নাম্বার, হোয়াটসঅ্যাপ নাম্বার অথবা ইমেইল অ্যাড্রেস প্রদান করুন!");
     }
 
     const payload = {
@@ -1081,7 +1080,7 @@ async function saveData() {
         name: name,
         mobile: mobile,
         whatsapp: whatsapp,
-        phone: document.getElementById("dataPhone")?.value.trim() || "",
+        phone: phone,
         designation: document.getElementById("dataDesignation")?.value.trim() || "",
         email: email,
         currentOffice: document.getElementById("dataCurrentOffice")?.value.trim() || "",
