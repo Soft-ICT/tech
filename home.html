@@ -1,1021 +1,188 @@
-<!DOCTYPE html>
-<html lang="bn">
+<style>
+    #passwordGate {
+        position: fixed;
+        inset: 0;
+        z-index: 999999;
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0d6efd">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Police Phonebook">
+        display: flex;
+        align-items: center;
+        justify-content: center;
 
-    <title>Police Phonebook</title>
+        padding: 20px;
 
-    <link rel="manifest" href="manifest.json?v=1.1">
-    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
-    <link rel="apple-touch-icon" href="icons/icon-192.png">
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(8px);
+    }
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    #passwordGate.hidden {
+        display: none;
+    }
 
-    <link
-        href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
+    .password-box {
+        width: 100%;
+        max-width: 380px;
 
-    <link rel="stylesheet" href="css/style.css?v=6">
+        background: #fff;
+        border-radius: 18px;
 
-    <!--
-        Auth check করার আগে Home Page লুকানো থাকবে।
-        Firebase Auth নিশ্চিত হলে display স্বাভাবিক হবে।
-    -->
-    <style>
-        html.auth-checking body {
-            visibility: hidden;
+        padding: 28px 22px;
+
+        box-shadow:
+            0 20px 60px rgba(0, 0, 0, 0.25);
+
+        text-align: center;
+    }
+
+    .password-icon {
+        width: 64px;
+        height: 64px;
+
+        margin: 0 auto 16px;
+
+        border-radius: 50%;
+
+        background: #e7f1ff;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        font-size: 30px;
+    }
+
+    .password-box h2 {
+        margin-bottom: 8px;
+
+        font-size: 21px;
+        color: #212529;
+    }
+
+    .password-box p {
+        margin-bottom: 20px;
+
+        font-size: 14px;
+        line-height: 1.5;
+
+        color: #6c757d;
+    }
+
+    .password-input {
+        width: 100%;
+
+        height: 48px;
+
+        padding: 0 14px;
+
+        border: 1px solid #ced4da;
+        border-radius: 10px;
+
+        outline: none;
+
+        font-size: 16px;
+
+        text-align: center;
+    }
+
+    .password-input:focus {
+        border-color: #0d6efd;
+
+        box-shadow:
+            0 0 0 3px rgba(13, 110, 253, 0.12);
+    }
+
+    .password-button {
+        width: 100%;
+
+        height: 48px;
+
+        margin-top: 14px;
+
+        border: 0;
+        border-radius: 10px;
+
+        background: #0d6efd;
+        color: white;
+
+        font-size: 16px;
+        font-weight: 600;
+
+        cursor: pointer;
+    }
+
+    .password-button:active {
+        transform: scale(0.98);
+    }
+
+    .password-error {
+        min-height: 21px;
+
+        margin-top: 10px;
+
+        font-size: 13px;
+
+        color: #dc3545;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .password-box {
+            background: #1e1e1e;
         }
 
-        html.auth-allowed body {
-            visibility: visible;
+        .password-box h2 {
+            color: #fff;
         }
-    </style>
 
-    <script>
-        document.documentElement.classList.add('auth-checking');
-    </script>
+        .password-box p {
+            color: #adb5bd;
+        }
 
-</head>
+        .password-input {
+            background: #2b2b2b;
+            color: #fff;
+            border-color: #444;
+        }
 
-<body>
-
-<header class="topbar">
-
-    <button
-        id="navToggleBtn"
-        class="icon-btn"
-        type="button"
-        title="মেনু">
-
-        <span id="menuIcon">☰</span>
-        <span id="backIcon" class="hidden">←</span>
-
-    </button>
+        .password-icon {
+            background: #263d5c;
+        }
+    }
+</style>
 
 
-    <div class="app-title" id="appTitle">
+<div id="passwordGate">
 
-        <span class="app-title-text">
-            Police Phonebook
-        </span>
+    <div class="password-box">
 
-        <span
-            id="verifiedBadge"
-            class="verified-badge hidden"
-            title="Verified Device">
-
-            ✔
-
-        </span>
-
-    </div>
-
-
-    <div
-        id="searchBox"
-        class="header-search-box hidden">
-
-        <input
-            type="search"
-            id="searchInput"
-            placeholder="Category, Header অথবা Data খুঁজুন..."
-            autocomplete="off">
-
-    </div>
-
-
-    <div
-        class="top-actions"
-        id="topActions">
-
-        <button
-            id="adminLoginBtn"
-            class="primary-btn active-btn btn-admin-small hidden"
-            type="button"
-            title="লং প্রেস করে ভেরিফিকেশন রিকোয়েস্ট দেখুন">
-
-            🔑 Admin
-
-        </button>
-
-
-        <button
-            id="searchBtn"
-            class="icon-btn"
-            title="সার্চ করুন"
-            type="button">
-
-            🔍
-
-        </button>
-
-
-        <button
-            id="themeBtn"
-            class="icon-btn"
-            title="নাইট/ডে মোড"
-            type="button">
-
-            🌙
-
-        </button>
-
-    </div>
-
-</header>
-
-
-<div
-    id="slidingNoticeContainer"
-    style="background: var(--card-bg, #fff); border-bottom: 1px solid var(--border-color, #ddd); overflow: hidden; display: none;">
-</div>
-
-
-<div
-    class="sub-toolbar"
-    id="allSearchBtn"
-    style="cursor: pointer;"
-    title="অল সার্চ অপশন">
-
-    <div class="sub-toolbar-title">
-        🌐 Search All Units & Numbers
-    </div>
-
-</div>
-
-
-<main class="container">
-
-    <div id="mainDashboardView">
-
-        <section class="dashboard-header">
-
-            <div
-                id="adminActionContainer"
-                class="admin-only hidden"
-                style="display: flex; gap: 8px; width: 100%; margin-top: 8px;">
-
-                <button
-                    id="addCategoryBtn"
-                    class="primary-btn"
-                    type="button"
-                    style="flex: 1;">
-
-                    ＋ Category
-
-                </button>
-
-
-                <button
-                    id="notificationBtn"
-                    class="secondary-btn"
-                    type="button"
-                    style="flex: 1; position: relative;">
-
-                    🔔 নোটিফিকেশন
-
-                    <span
-                        id="notifBadge"
-                        class="badge-dot hidden"
-                        style="position: absolute; top: 6px; right: 10px; width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%;">
-                    </span>
-
-                </button>
-
-            </div>
-
-        </section>
-
-
-        <section
-            id="categoryList"
-            class="category-list">
-        </section>
-
-
-        <div
-            id="allSearchContainer"
-            class="hidden"
-            style="margin-top: 15px;">
+        <div class="password-icon">
+            🔐
         </div>
 
-
-        <section
-            id="emptyState"
-            class="empty-state hidden">
-
-            <div class="empty-icon">
-                📂
-            </div>
-
-            <h2>
-                এখনো কোনো Category নেই
-            </h2>
-
-            <p>
-                ডাটা দেখতে অপেক্ষা করুন, প্রয়োজনে রিফ্রেস করুন।
-            </p>
-
-            <button
-                id="emptyAddBtn"
-                class="primary-btn admin-only hidden"
-                type="button">
-
-                ＋ প্রথম Category তৈরি করুন
-
-            </button>
-
-        </section>
-
-    </div>
-
-
-    <div
-        id="categoryDetailsView"
-        class="hidden">
-
-        <section class="dashboard-header">
-
-            <div class="header-left">
-
-                <div>
-
-                    <h1 id="detailsTitle">
-                        Category
-                    </h1>
-
-                    <p id="detailsSubtitle"></p>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <div
-            class="section-toolbar admin-only hidden">
-
-            <button
-                id="addSubCategoryBtn"
-                class="primary-btn"
-                type="button">
-
-                ＋ Sub-Category
-
-            </button>
-
-
-            <button
-                id="addHeaderBtn"
-                class="primary-btn"
-                type="button">
-
-                ＋ Header
-
-            </button>
-
-
-            <button
-                id="addDataBtn"
-                class="secondary-btn"
-                type="button">
-
-                ＋ Data
-
-            </button>
-
-        </div>
-
-
-        <div id="detailsContent"></div>
-
-    </div>
-
-
-    <div
-        id="dataDetailsView"
-        class="hidden">
-
-        <div class="details-container-card">
-
-            <div id="dataPageContent"></div>
-
-        </div>
-
-    </div>
-
-</main>
-
-
-<div
-    id="loginModal"
-    class="modal hidden">
-
-    <div class="modal-content">
-
-        <div class="modal-header">
-
-            <h2>
-                Admin Login
-            </h2>
-
-            <button
-                class="close-btn"
-                data-close="loginModal"
-                type="button">
-
-                ✕
-
-            </button>
-
-        </div>
-
-
-        <div id="loginFormContainer">
-
-            <div class="form-group">
-
-                <label>
-                    ইমেইল
-                </label>
-
-                <input
-                    id="loginEmail"
-                    type="email"
-                    placeholder="admin@example.com">
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label>
-                    পাসওয়ার্ড
-                </label>
-
-                <input
-                    id="loginPassword"
-                    type="password"
-                    placeholder="******">
-
-            </div>
-
-
-            <div class="modal-actions">
-
-                <button
-                    class="secondary-btn"
-                    data-close="loginModal"
-                    type="button">
-
-                    বাতিল
-
-                </button>
-
-
-                <button
-                    id="submitLoginBtn"
-                    class="primary-btn"
-                    type="button">
-
-                    লগইন
-
-                </button>
-
-            </div>
-
-        </div>
-
-
-        <div
-            id="logoutContainer"
-            class="hidden logout-box">
-
-            <p class="status-ok">
-                ✅ আপনি অ্যাডমিন হিসেবে লগইন আছেন
-            </p>
-
-            <div class="modal-actions">
-
-                <button
-                    class="secondary-btn"
-                    data-close="loginModal"
-                    type="button">
-
-                    বন্ধ করুন
-
-                </button>
-
-
-                <button
-                    id="logoutBtn"
-                    class="danger-btn"
-                    type="button">
-
-                    লগআউট
-
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<div
-    id="verifyModal"
-    class="modal hidden">
-
-    <div class="modal-content">
-
-        <div class="modal-header">
-
-            <h2>
-                প্রশাসনিক তথ্যের জন্য ভেরিফিকেশন রিকোয়েস্ট
-            </h2>
-
-            <button
-                class="close-btn"
-                data-close="verifyModal"
-                type="button">
-
-                ✕
-
-            </button>
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>
-                আপনার নাম *
-            </label>
-
-            <input
-                id="applicantName"
-                type="text"
-                placeholder="যেমন: মো: আব্দুর রহিম">
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>
-                পদবী / পরিচয় *
-            </label>
-
-            <input
-                id="applicantDesignation"
-                type="text"
-                placeholder="যেমন: সাব-ইন্সপেক্টর / পরিচয় সংক্রান্ত তথ্য">
-
-        </div>
-
-
-        <div class="modal-actions">
-
-            <button
-                class="secondary-btn"
-                data-close="verifyModal"
-                type="button">
-
-                বাতিল
-
-            </button>
-
-
-            <button
-                id="submitVerifyBtn"
-                class="primary-btn"
-                type="button">
-
-                রিকোয়েস্ট পাঠান
-
-            </button>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<div
-    id="adminVerifyRequestsModal"
-    class="modal hidden">
-
-    <div
-        class="modal-content"
-        style="max-width: 500px; width: 90%;">
-
-        <div class="modal-header">
-
-            <h2>
-                🛡️ ডিভাইস ভেরিফিকেশন রিকোয়েস্ট
-            </h2>
-
-            <button
-                class="close-btn"
-                data-close="adminVerifyRequestsModal"
-                type="button">
-
-                ✕
-
-            </button>
-
-        </div>
-
-
-        <div
-            id="verifyRequestsList"
-            style="max-height: 350px; overflow-y: auto;">
-
-            <p
-                style="text-align: center; color: var(--text-muted);">
-
-                কোনো রিকোয়েস্ট নেই
-
-            </p>
-
-        </div>
-
-
-        <div
-            class="modal-actions"
-            style="margin-top: 15px;">
-
-            <button
-                class="secondary-btn"
-                data-close="adminVerifyRequestsModal"
-                type="button">
-
-                বন্ধ করুন
-
-            </button>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<div
-    id="categoryModal"
-    class="modal hidden">
-
-    <div class="modal-content">
-
-        <div class="modal-header">
-
-            <h2 id="categoryModalTitle">
-                ক্যাটাগরি
-            </h2>
-
-            <button
-                class="close-btn"
-                data-close="categoryModal"
-                type="button">
-
-                ✕
-
-            </button>
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>
-                ছবি লিঙ্ক (URL)
-            </label>
-
-            <input
-                id="categoryImageInput"
-                type="url"
-                placeholder="https://example.com/image.png">
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>
-                ক্যাটাগরির নাম
-            </label>
-
-            <input
-                id="categoryNameInput"
-                type="text"
-                placeholder="নাম লিখুন">
-
-        </div>
-
-
-        <div class="modal-actions">
-
-            <button
-                class="secondary-btn"
-                data-close="categoryModal"
-                type="button">
-
-                বাতিল
-
-            </button>
-
-
-            <button
-                id="saveCategoryBtn"
-                class="primary-btn"
-                type="button">
-
-                সেভ করুন
-
-            </button>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<div
-    id="headerModal"
-    class="modal hidden">
-
-    <div class="modal-content">
-
-        <div class="modal-header">
-
-            <h2>
-                Header যুক্ত/এডিট করুন
-            </h2>
-
-            <button
-                class="close-btn"
-                data-close="headerModal"
-                type="button">
-
-                ✕
-
-            </button>
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>
-                হেডার টাইটেল
-            </label>
-
-            <input
-                id="headerNameInput"
-                type="text"
-                placeholder="যেমন: কর্মকর্তা/কর্মচারী">
-
-        </div>
-
-
-        <div class="modal-actions">
-
-            <button
-                class="secondary-btn"
-                data-close="headerModal"
-                type="button">
-
-                বাতিল
-
-            </button>
-
-
-            <button
-                id="saveHeaderBtn"
-                class="primary-btn"
-                type="button">
-
-                সেভ করুন
-
-            </button>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<div
-    id="dataModal"
-    class="modal hidden">
-
-    <div class="modal-content">
-
-        <div class="modal-header">
-
-            <h2 id="dataModalTitle">
-                Data যুক্ত করুন
-            </h2>
-
-            <button
-                class="close-btn"
-                data-close="dataModal"
-                type="button">
-
-                ✕
-
-            </button>
-
-        </div>
-
-
-        <div class="form-group">
-            <label>ছবি লিঙ্ক (URL)</label>
-            <input id="dataPhoto" type="url">
-        </div>
-
-
-        <div class="form-group">
-            <label>নাম *</label>
-            <input id="dataName" type="text">
-        </div>
-
-
-        <div class="form-group">
-            <label>মোবাইল</label>
-            <input id="dataMobile" type="tel">
-        </div>
-
-
-        <div class="form-group">
-            <label>টেলিফোন</label>
-            <input id="dataPhone" type="tel">
-        </div>
-
-
-        <div class="form-group">
-            <label>পদবী</label>
-            <input id="dataDesignation" type="text">
-        </div>
-
-
-        <div class="form-group">
-            <label>ইমেইল</label>
-            <input id="dataEmail" type="email">
-        </div>
-
-
-        <div class="form-group">
-            <label>বর্তমান অফিস/ঠিকানা</label>
-            <input id="dataCurrentOffice" type="text">
-        </div>
-
-
-        <div class="form-group">
-            <label>স্থায়ী ঠিকানা</label>
-            <input id="dataPermanentAddress" type="text">
-        </div>
-
-
-        <div class="form-group">
-            <label>প্রশাসনিক তথ্য</label>
-            <input id="dataAdminInfo" type="text">
-        </div>
-
-
-        <div class="form-group">
-
-            <label>
-                Header নির্বাচন করুন
-            </label>
-
-            <select id="dataHeaderSelect"></select>
-
-        </div>
-
-
-        <div class="modal-actions">
-
-            <button
-                class="secondary-btn"
-                data-close="dataModal"
-                type="button">
-
-                বাতিল
-
-            </button>
-
-
-            <button
-                id="saveDataBtn"
-                class="primary-btn"
-                type="button">
-
-                সেভ করুন
-
-            </button>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<div
-    id="moveDataModal"
-    class="modal hidden">
-
-    <div class="modal-content">
-
-        <div class="modal-header">
-
-            <h2>
-                ডাটা মুভ করুন
-            </h2>
-
-            <button
-                class="close-btn"
-                data-close="moveDataModal"
-                type="button">
-
-                ✕
-
-            </button>
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>
-                নতুন Category
-            </label>
-
-            <select id="moveCategorySelect"></select>
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>
-                নতুন Header
-            </label>
-
-            <select id="moveHeaderSelect"></select>
-
-        </div>
-
-
-        <div class="modal-actions">
-
-            <button
-                class="secondary-btn"
-                data-close="moveDataModal"
-                type="button">
-
-                বাতিল
-
-            </button>
-
-
-            <button
-                id="confirmMoveBtn"
-                class="primary-btn"
-                type="button">
-
-                মুভ নিশ্চিত করুন
-
-            </button>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<div
-    id="customConfirmModal"
-    class="modal hidden">
-
-    <div class="modal-content">
-
-        <div class="modal-header">
-
-            <h2 id="confirmModalTitle">
-                নিশ্চিতকরণ
-            </h2>
-
-            <button
-                class="close-btn"
-                data-close="customConfirmModal"
-                type="button">
-
-                ✕
-
-            </button>
-
-        </div>
-
-
-        <p id="confirmModalMessage">
-            আপনি কি নিশ্চিত?
+        <h2 id="passwordTitle">
+            নিরাপত্তা যাচাই
+        </h2>
+
+        <p id="passwordMessage">
+            অ্যাপে প্রবেশ করতে আপনার পাসওয়ার্ড দিন।
         </p>
 
-
-        <div class="modal-actions">
-
-            <button
-                id="cancelConfirmBtn"
-                class="secondary-btn"
-                type="button">
-
-                বাতিল
-
-            </button>
-
-
-            <button
-                id="okConfirmBtn"
-                class="danger-btn"
-                type="button">
-
-                হ্যাঁ, মুছুন
-
-            </button>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<div
-    id="homeNoticePopupModal"
-    style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 99999; padding: 15px;">
-
-    <div
-        style="background: var(--card-bg, #fff); color: var(--text-main, #333); max-width: 450px; width: 100%; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.3); position: relative; display: flex; flex-direction: column;">
+        <input
+            type="password"
+            id="appPassword"
+            class="password-input"
+            autocomplete="off"
+            placeholder="পাসওয়ার্ড"
+        >
 
         <button
             type="button"
-            id="closeHomePopupBtn"
-            style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: #fff; border: none; width: 30px; height: 30px; border-radius: 50%; font-size: 16px; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center;">
-
-            ✕
-
+            id="passwordButton"
+            class="password-button">
+            প্রবেশ করুন
         </button>
 
-
         <div
-            id="popupMediaContainer"
-            style="width: 100%; max-height: 250px; background: #000; display: none; overflow: hidden; align-items: center; justify-content: center;">
-        </div>
-
-
-        <div
-            style="padding: 20px; text-align: center;">
-
-            <h3
-                id="popupTitle"
-                style="margin-top: 0; margin-bottom: 10px; font-size: 18px; color: var(--text-main, #000);">
-            </h3>
-
-
-            <p
-                id="popupMessage"
-                style="font-size: 14px; line-height: 1.5; margin: 0 0 15px 0; color: var(--text-muted, #555); text-align: left; max-height: 150px; overflow-y: auto;">
-            </p>
-
-
-            <a
-                id="popupWebsiteBtn"
-                href="#"
-                target="_blank"
-                style="display: none; width: 100%; padding: 10px; background: #0d6efd; color: #fff; text-decoration: none; border-radius: 6px; font-weight: 600; text-align: center; box-sizing: border-box;">
-
-                Open Website
-
-            </a>
-
+            id="passwordError"
+            class="password-error">
         </div>
 
     </div>
@@ -1023,108 +190,166 @@
 </div>
 
 
-<div
-    id="toast"
-    class="toast">
-</div>
+<script>
+(function () {
+
+    const STORAGE_KEY = "police_phonebook_password_hash";
+
+    const gate = document.getElementById("passwordGate");
+    const input = document.getElementById("appPassword");
+    const button = document.getElementById("passwordButton");
+    const error = document.getElementById("passwordError");
+
+    const title = document.getElementById("passwordTitle");
+    const message = document.getElementById("passwordMessage");
 
 
-<!--
-    ==========================================================
-    Firebase Authentication Protection
-    ==========================================================
--->
+    // SHA-256 hash তৈরি
+    async function sha256(text) {
 
-<script type="module">
+        const encoder = new TextEncoder();
 
-    import { watchAuth } from "./js/auth.js";
+        const data = encoder.encode(text);
+
+        const hashBuffer =
+            await crypto.subtle.digest("SHA-256", data);
+
+        const hashArray =
+            Array.from(new Uint8Array(hashBuffer));
+
+        return hashArray
+            .map(byte => byte.toString(16).padStart(2, "0"))
+            .join("");
+    }
 
 
-    watchAuth((user) => {
+    // Password আগে সেট করা আছে কি না
+    const savedHash =
+        localStorage.getItem(STORAGE_KEY);
 
-        /*
-         * Firebase Auth-এ Login নেই
-         */
-        if (!user) {
 
-            window.location.replace(
-                "./index.html"
-            );
+    if (!savedHash) {
+
+        title.textContent =
+            "প্রথমবারের সেটআপ";
+
+        message.textContent =
+            "অ্যাপটি সুরক্ষিত করতে একটি নতুন পাসওয়ার্ড সেট করুন।";
+
+        input.placeholder =
+            "নতুন পাসওয়ার্ড";
+
+        button.textContent =
+            "পাসওয়ার্ড সেট করুন";
+    }
+
+
+    async function checkPassword() {
+
+        const password =
+            input.value.trim();
+
+        error.textContent = "";
+
+
+        if (!password) {
+
+            error.textContent =
+                "পাসওয়ার্ড দিন।";
+
+            input.focus();
 
             return;
         }
 
 
-        /*
-         * Login আছে
-         *
-         * এখন Home Page দেখানো হবে।
-         */
-        document.documentElement.classList.remove(
-            "auth-checking"
-        );
+        // প্রথমবারের Setup
+        if (!savedHash) {
 
-        document.documentElement.classList.add(
-            "auth-allowed"
-        );
+            if (password.length < 4) {
+
+                error.textContent =
+                    "পাসওয়ার্ড কমপক্ষে ৪ অক্ষরের হতে হবে।";
+
+                return;
+            }
 
 
-    });
-
-</script>
-
-
-<!-- Main App -->
-<script
-    type="module"
-    src="js/app.js">
-</script>
+            const hash =
+                await sha256(password);
 
 
-<!-- Notification System -->
-<script type="module">
-
-    import {
-        initNotificationSystem
-    } from './js/notification.js';
+            localStorage.setItem(
+                STORAGE_KEY,
+                hash
+            );
 
 
-    document.addEventListener(
-        "DOMContentLoaded",
-        () => {
+            // Setup শেষ হলে অ্যাপে প্রবেশ
+            gate.classList.add("hidden");
 
-            initNotificationSystem();
+            return;
+        }
+
+
+        // পরবর্তীতে Password যাচাই
+        const enteredHash =
+            await sha256(password);
+
+
+        if (enteredHash === savedHash) {
+
+            gate.classList.add("hidden");
+
+        } else {
+
+            error.textContent =
+                "ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।";
+
+            input.value = "";
+
+            input.focus();
+        }
+    }
+
+
+    button.addEventListener(
+        "click",
+        checkPassword
+    );
+
+
+    input.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (event.key === "Enter") {
+                checkPassword();
+            }
 
         }
     );
 
+
+    // Dialog খোলা থাকা অবস্থায় background app ব্যবহার আটকানো
+    document.body.style.overflow = "hidden";
+
+
+    const observer =
+        new MutationObserver(() => {
+
+            if (gate.classList.contains("hidden")) {
+                document.body.style.overflow = "";
+            }
+
+        });
+
+
+    observer.observe(gate, {
+        attributes: true,
+        attributeFilter: ["class"]
+    });
+
+
+})();
 </script>
-
-
-<!-- Theme -->
-<script>
-
-    const prefersDark =
-        window.matchMedia(
-            '(prefers-color-scheme: dark)'
-        ).matches;
-
-
-    const savedTheme =
-        localStorage.getItem('theme') ||
-        (prefersDark ? 'dark' : 'light');
-
-
-    if (savedTheme === 'dark') {
-
-        document.body.classList.add(
-            'dark-mode'
-        );
-
-    }
-
-</script>
-
-</body>
-
-</html>
