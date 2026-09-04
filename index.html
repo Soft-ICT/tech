@@ -755,7 +755,7 @@
             id="passwordHint"
             class="password-hint">
 
-            আপনার ডিভাইসে নিরাপদভাবে সংরক্ষিত থাকবে।
+            নিরাপত্তার জন্য পাসওয়ার্ড দিন।
 
         </p>
 
@@ -1919,173 +1919,139 @@
 
 
 <!-- ============================================================
-     SPLASH + PASSWORD SYSTEM (PERMANENT UNTIL DATA CLEAR)
+     FIREBASE PASSWORD VERIFICATION SYSTEM
      ============================================================ -->
 
-<script>
+<script type="module">
 
-(function () {
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    "use strict";
+    // আপনার ফায়ারবেস কনফিগারেশন এখানে যুক্ত করুন
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_AUTH_DOMAIN",
+        databaseURL: "YOUR_DATABASE_URL",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_STORAGE_BUCKET",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
 
-    const PASSWORD_KEY = "police_phonebook_app_password_hash";
-    const UNLOCK_FLAG = "police_phonebook_is_unlocked";
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-    const splash = document.getElementById("splash-screen");
-    const passwordGate = document.getElementById("passwordGate");
-    const passwordInput = document.getElementById("appPassword");
-    const passwordButton = document.getElementById("passwordSubmit");
-    const passwordError = document.getElementById("passwordError");
-    const passwordTitle = document.getElementById("passwordGateTitle");
-    const passwordMessage = document.getElementById("passwordGateMessage");
-    const passwordHint = document.getElementById("passwordHint");
-    const appContainer = document.getElementById("appContainer");
+    (function () {
 
-    async function createHash(value) {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(value);
-        const buffer = await crypto.subtle.digest("SHA-256", data);
-        const bytes = new Uint8Array(buffer);
-        let hash = "";
-        for (const byte of bytes) {
-            hash += byte.toString(16).padStart(2, "0");
-        }
-        return hash;
-    }
+        "use strict";
 
-    function getSavedPasswordHash() {
-        return localStorage.getItem(PASSWORD_KEY);
-    }
+        const UNLOCK_FLAG = "police_phonebook_is_unlocked";
 
-    function unlockApp() {
-        // ফ্লাগ সেট করে দিচ্ছি যাতে ব্রাউজার বা অ্যাপের ক্যাশ ক্লিন হলেও পাসওয়ার্ড না চায়, শুধুমাত্র localStorage ক্লিয়ার হলেই চাইবে।
-        localStorage.setItem(UNLOCK_FLAG, "true");
+        const splash = document.getElementById("splash-screen");
+        const passwordGate = document.getElementById("passwordGate");
+        const passwordInput = document.getElementById("appPassword");
+        const passwordButton = document.getElementById("passwordSubmit");
+        const passwordError = document.getElementById("passwordError");
+        const passwordTitle = document.getElementById("passwordGateTitle");
+        const passwordMessage = document.getElementById("passwordGateMessage");
+        const passwordHint = document.getElementById("passwordHint");
+        const appContainer = document.getElementById("appContainer");
 
-        passwordGate.classList.remove("show");
-        document.body.classList.remove("app-locked");
-        appContainer.classList.add("app-unlocked");
-        passwordInput.value = "";
-        passwordError.textContent = "";
-    }
-
-    function showSetupMode() {
-        passwordTitle.textContent = "প্রথমবারের সেটআপ";
-        passwordMessage.textContent = "Police Phonebook সুরক্ষিত করতে একটি নতুন পাসওয়ার্ড সেট করুন।";
-        passwordInput.placeholder = "নতুন পাসওয়ার্ড";
-        passwordInput.autocomplete = "new-password";
-        passwordButton.textContent = "পাসওয়ার্ড সেট করুন";
-        passwordHint.textContent = "পাসওয়ার্ডটি আপনার এই ডিভাইসে নিরাপদভাবে সংরক্ষিত থাকবে।";
-    }
-
-    function showLoginMode() {
-        passwordTitle.textContent = "নিরাপত্তা যাচাই";
-        passwordMessage.textContent = "Police Phonebook ব্যবহার করতে আপনার পাসওয়ার্ড দিন।";
-        passwordInput.placeholder = "পাসওয়ার্ড";
-        passwordInput.autocomplete = "current-password";
-        passwordButton.textContent = "প্রবেশ করুন";
-        passwordHint.textContent = "পাসওয়ার্ড ভুল হলে অ্যাপের ভিতরে প্রবেশ করা যাবে না।";
-    }
-
-    function showPasswordGate() {
-        const savedHash = getSavedPasswordHash();
-        const isUnlocked = localStorage.getItem(UNLOCK_FLAG);
-
-        // যদি পাসওয়ার্ড সেট করা থাকে এবং ইতিপূর্বে আনলক করা হয়ে থাকে, তবে পাসওয়ার্ড গেট দেখাবে না।
-        if (savedHash && isUnlocked === "true") {
-            unlockApp();
-            return;
+        function unlockApp() {
+            localStorage.setItem(UNLOCK_FLAG, "true");
+            passwordGate.classList.remove("show");
+            document.body.classList.remove("app-locked");
+            appContainer.classList.add("app-unlocked");
+            passwordInput.value = "";
+            passwordError.textContent = "";
         }
 
-        if (savedHash) {
+        function showLoginMode() {
+            passwordTitle.textContent = "নিরাপত্তা যাচাই";
+            passwordMessage.textContent = "Police Phonebook ব্যবহার করতে অ্যাডমিন নির্ধারিত পাসওয়ার্ড দিন।";
+            passwordInput.placeholder = "পাসওয়ার্ড";
+            passwordButton.textContent = "প্রবেশ করুন";
+            passwordHint.textContent = "সঠিক পাসওয়ার্ড দিলে তবেই অ্যাপে প্রবেশ করা যাবে।";
+        }
+
+        function showPasswordGate() {
+            const isUnlocked = localStorage.getItem(UNLOCK_FLAG);
+
+            if (isUnlocked === "true") {
+                unlockApp();
+                return;
+            }
+
             showLoginMode();
-        } else {
-            showSetupMode();
+            passwordGate.classList.add("show");
+            setTimeout(function () {
+                passwordInput.focus();
+            }, 100);
         }
 
-        passwordGate.classList.add("show");
-        setTimeout(function () {
-            passwordInput.focus();
-        }, 100);
-    }
+        async function processPassword() {
+            const password = passwordInput.value;
+            passwordError.textContent = "";
 
-    async function processPassword() {
-        const password = passwordInput.value;
-        passwordError.textContent = "";
-
-        if (!password) {
-            passwordError.textContent = "পাসওয়ার্ড দিন।";
-            passwordInput.focus();
-            return;
-        }
-
-        const savedHash = getSavedPasswordHash();
-
-        if (!savedHash) {
-            if (password.length < 4) {
-                passwordError.textContent = "পাসওয়ার্ড কমপক্ষে ৪ অক্ষরের হতে হবে।";
+            if (!password) {
+                passwordError.textContent = "দয়া করে পাসওয়ার্ড দিন।";
                 passwordInput.focus();
                 return;
             }
 
             passwordButton.disabled = true;
-            passwordButton.textContent = "সেটআপ হচ্ছে...";
+            passwordButton.textContent = "যাচাই হচ্ছে...";
 
             try {
-                const newHash = await createHash(password);
-                localStorage.setItem(PASSWORD_KEY, newHash);
-                unlockApp();
+                // ফায়ারবেস ডেটাবেজ থেকে অ্যাডমিনের পাসওয়ার্ড ফেচ করা
+                const passwordRef = ref(db, 'webapp/admin/password');
+                const snapshot = await get(passwordRef);
+
+                if (snapshot.exists()) {
+                    const correctPassword = snapshot.val();
+
+                    if (password === correctPassword) {
+                        unlockApp();
+                    } else {
+                        passwordError.textContent = "ভুল পাসওয়ার্ড! সঠিক পাসওয়ার্ড দিন।";
+                        passwordInput.value = "";
+                        passwordInput.focus();
+                        passwordButton.disabled = false;
+                        passwordButton.textContent = "প্রবেশ করুন";
+                    }
+                } else {
+                    passwordError.textContent = "ডেটাবেজে কোনো পাসওয়ার্ড সেট করা নেই।";
+                    passwordButton.disabled = false;
+                    passwordButton.textContent = "প্রবেশ করুন";
+                }
             } catch (error) {
-                console.error("Password setup error:", error);
-                passwordError.textContent = "পাসওয়ার্ড সেট করা যায়নি। আবার চেষ্টা করুন।";
-                passwordButton.disabled = false;
-                passwordButton.textContent = "পাসওয়ার্ড সেট করুন";
-            }
-            return;
-        }
-
-        passwordButton.disabled = true;
-        passwordButton.textContent = "যাচাই হচ্ছে...";
-
-        try {
-            const enteredHash = await createHash(password);
-
-            if (enteredHash === savedHash) {
-                unlockApp();
-            } else {
-                passwordError.textContent = "ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।";
-                passwordInput.value = "";
-                passwordInput.focus();
+                console.error("Password verification error:", error);
+                passwordError.textContent = "পাসওয়ার্ড যাচাই করা যায়নি। ইন্টারনেট সংযোগ চেক করুন।";
                 passwordButton.disabled = false;
                 passwordButton.textContent = "প্রবেশ করুন";
             }
-        } catch (error) {
-            console.error("Password verification error:", error);
-            passwordError.textContent = "পাসওয়ার্ড যাচাই করা যায়নি।";
-            passwordButton.disabled = false;
-            passwordButton.textContent = "প্রবেশ করুন";
         }
-    }
 
-    passwordButton.addEventListener("click", processPassword);
+        passwordButton.addEventListener("click", processPassword);
 
-    passwordInput.addEventListener("keydown", function (event) {
-        if (event.key === "Enter") {
-            event.preventDefault();
-            processPassword();
-        }
-    });
+        passwordInput.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                processPassword();
+            }
+        });
 
-    window.addEventListener("load", function () {
-        setTimeout(function () {
-            splash.classList.add("fade-out");
+        window.addEventListener("load", function () {
             setTimeout(function () {
-                splash.style.display = "none";
-                showPasswordGate();
-            }, 500);
-        }, 1600);
-    });
+                splash.classList.add("fade-out");
+                setTimeout(function () {
+                    splash.style.display = "none";
+                    showPasswordGate();
+                }, 500);
+            }, 1600);
+        });
 
-})();
+    })();
 
 </script>
 
