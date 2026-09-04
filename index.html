@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#030712">
     <title>Police Phonebook - Security Check</title><link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin">
 
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap');
@@ -193,69 +193,62 @@
     }
 </style>
 
-</head><body><div id="splash-screen">
+</head><body><div id="splash-screen"><div class="siren-glow-red"></div>
+<div class="siren-glow-blue"></div>
 
-    <div class="siren-glow-red"></div>
-    <div class="siren-glow-blue"></div>
+<div class="splash-content">
 
-    <div class="splash-content">
+    <div class="shield-container">
+        <svg class="shield-icon"
+             viewBox="0 0 24 24"
+             fill="none"
+             xmlns="http://www.w3.org/2000/svg">
 
-        <div class="shield-container">
-            <svg class="shield-icon"
-                 viewBox="0 0 24 24"
-                 fill="none"
-                 xmlns="http://www.w3.org/2000/svg">
+            <path
+                d="M12 2L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 2Z"
+                fill="#1e3a8a"
+                stroke="#93c5fd"
+                stroke-width="1.2"/>
 
-                <path
-                    d="M12 2L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 2Z"
-                    fill="#1e3a8a"
-                    stroke="#93c5fd"
-                    stroke-width="1.2"/>
+            <path
+                d="M12 6L13.5 9.5H17L14 11.8L15.2 15.3L12 13L8.8 15.3L10 11.8L7 9.5H10.5L12 6Z"
+                fill="#f59e0b"/>
+        </svg>
+    </div>
 
-                <path
-                    d="M12 6L13.5 9.5H17L14 11.8L15.2 15.3L12 13L8.8 15.3L10 11.8L7 9.5H10.5L12 6Z"
-                    fill="#f59e0b"/>
-            </svg>
-        </div>
+    <h1 class="splash-title">Police Phonebook</h1>
 
-        <h1 class="splash-title">Police Phonebook</h1>
+    <p class="splash-subtitle">
+        Bangladesh Police
+    </p>
 
-        <p class="splash-subtitle">
-            Bangladesh Police
-        </p>
+    <div class="login-form">
 
-        <div class="login-form" id="loginFormContainer">
+        <input
+            type="password"
+            id="passcode"
+            class="password-input"
+            placeholder="গোপন পাসওয়ার্ড দিন"
+            autocomplete="current-password">
 
-            <input
-                type="password"
-                id="passcode"
-                class="password-input"
-                placeholder="গোপন পাসওয়ার্ড দিন"
-                autocomplete="current-password">
+        <button
+            type="button"
+            class="submit-btn"
+            id="submitBtn"
+            onclick="verifyPassword()">
+            প্রবেশ করুন
+        </button>
 
-            <button
-                type="button"
-                class="submit-btn"
-                id="submitBtn"
-                onclick="verifyPassword()">
-                প্রবেশ করুন
-            </button>
-
-            <span
-                id="errorMsg"
-                class="error-msg">
-            </span>
-
-        </div>
+        <span
+            id="errorMsg"
+            class="error-msg">
+        </span>
 
     </div>
+
 </div>
 
-
-<script>
-    /*
-     * Theme
-     */
+</div><script>
     const prefersDark =
         window.matchMedia &&
         window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -268,20 +261,7 @@
         'data-theme',
         savedTheme
     );
-</script>
-
-
-<script type="module">
-
-    /*
-     * IMPORTANT:
-     *
-     * Security Check HTML যদি tech/ folder-এর মধ্যে থাকে
-     * এবং firebase.js যদি tech/js/ folder-এর মধ্যে থাকে,
-     * তাহলে path হবে:
-     *
-     * ./js/firebase.js
-     */
+</script><script type="module">
 
     import { db } from "./js/firebase.js";
 
@@ -290,10 +270,6 @@
         get
     } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
-
-    /*
-     * DOM Elements
-     */
 
     const splash =
         document.getElementById('splash-screen');
@@ -308,10 +284,6 @@
         document.getElementById('errorMsg');
 
 
-    /*
-     * Error message
-     */
-
     function showError(message) {
 
         errorMsg.innerText = message;
@@ -325,12 +297,11 @@
     }
 
 
-    /*
-     * Successful login
-     */
-
     function openHomePage() {
 
+        /*
+         * Login status সংরক্ষণ
+         */
         localStorage.setItem(
             'isLoggedIn',
             'true'
@@ -348,38 +319,11 @@
     }
 
 
-    /*
-     * Check existing login
-     */
-
-    window.addEventListener('load', function () {
-
-        const isLoggedIn =
-            localStorage.getItem('isLoggedIn');
-
-        if (isLoggedIn === 'true') {
-
-            setTimeout(function () {
-
-                openHomePage();
-
-            }, 500);
-        }
-    });
-
-
-    /*
-     * Firebase Password Verification
-     */
-
     window.verifyPassword = async function () {
 
         const inputVal =
             passInput.value.trim();
 
-        /*
-         * Empty password
-         */
 
         if (!inputVal) {
 
@@ -391,10 +335,6 @@
         }
 
 
-        /*
-         * Button loading
-         */
-
         submitBtn.disabled = true;
 
         submitBtn.innerText =
@@ -404,14 +344,6 @@
 
 
         try {
-
-            /*
-             * Firebase structure:
-             *
-             * webapp
-             *   └── admin
-             *       └── password
-             */
 
             const dbRef =
                 ref(
@@ -424,10 +356,6 @@
                 await get(dbRef);
 
 
-            /*
-             * Node not found
-             */
-
             if (!snapshot.exists()) {
 
                 showError(
@@ -438,27 +366,16 @@
             }
 
 
-            /*
-             * Firebase data
-             */
-
             const data =
                 snapshot.val();
 
 
-            /*
-             * Password
-             */
-
             const serverPassword =
-                data && data.password != null
+                data &&
+                data.password != null
                     ? String(data.password).trim()
                     : '';
 
-
-            /*
-             * Password node missing
-             */
 
             if (!serverPassword) {
 
@@ -469,10 +386,6 @@
                 return;
             }
 
-
-            /*
-             * Compare
-             */
 
             if (inputVal === serverPassword) {
 
@@ -502,10 +415,6 @@
     };
 
 
-    /*
-     * Enter key
-     */
-
     passInput.addEventListener(
         'keydown',
         function (event) {
@@ -519,7 +428,5 @@
         }
     );
 
-</script>
-
-</body>
+</script></body>
 </html>
