@@ -1,301 +1,525 @@
-<!DOCTYPE html>
-<html lang="bn">
+<!DOCTYPE html><html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Police Phonebook - Security Check</title>
+    <meta name="theme-color" content="#030712">
+    <title>Police Phonebook - Security Check</title><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap');
 
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap');
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Hind Siliguri', -apple-system, BlinkMacSystemFont, sans-serif;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Hind Siliguri', -apple-system, BlinkMacSystemFont, sans-serif;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
+    :root {
+        --bg-color: #f8fafc;
+        --text-primary: #0f172a;
+        --text-secondary: #0284c7;
+        --siren-red: rgba(239, 68, 68, 0.12);
+        --siren-blue: rgba(37, 99, 235, 0.15);
+        --input-bg: #ffffff;
+        --input-border: #cbd5e1;
+    }
 
-        :root {
-            --bg-color: #f8fafc;
-            --text-primary: #0f172a;
-            --text-secondary: #0284c7;
-            --siren-red: rgba(239, 68, 68, 0.12);
-            --siren-blue: rgba(37, 99, 235, 0.15);
-            --input-bg: #ffffff;
-            --input-border: #cbd5e1;
-        }
+    [data-theme="dark"] {
+        --bg-color: #030712;
+        --text-primary: #ffffff;
+        --text-secondary: #38bdf8;
+        --siren-red: rgba(239, 68, 68, 0.25);
+        --siren-blue: rgba(37, 99, 235, 0.3);
+        --input-bg: #1e293b;
+        --input-border: #334155;
+    }
 
-        [data-theme="dark"] {
-            --bg-color: #030712;
-            --text-primary: #ffffff;
-            --text-secondary: #38bdf8;
-            --siren-red: rgba(239, 68, 68, 0.25);
-            --siren-blue: rgba(37, 99, 235, 0.3);
-            --input-bg: #1e293b;
-            --input-border: #334155;
-        }
+    html,
+    body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background-color: var(--bg-color);
+    }
 
-        html, body {
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
-            background-color: var(--bg-color);
-        }
+    #splash-screen {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--bg-color);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 99999;
+        opacity: 1;
+        visibility: visible;
+        transition: opacity 0.5s ease-out, visibility 0.5s;
+    }
 
-        #splash-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: var(--bg-color);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 99999;
-            transition: opacity 0.5s ease-out, visibility 0.5s;
-        }
+    .siren-glow-red {
+        position: absolute;
+        width: 60vw;
+        height: 60vw;
+        max-width: 500px;
+        max-height: 500px;
+        background: var(--siren-red);
+        border-radius: 50%;
+        filter: blur(120px);
+        top: 15%;
+        left: 10%;
+        pointer-events: none;
+    }
 
-        .siren-glow-red {
-            position: absolute;
-            width: 60vw;
-            height: 60vw;
-            max-width: 500px;
-            max-height: 500px;
-            background: var(--siren-red);
-            border-radius: 50%;
-            filter: blur(120px);
-            top: 15%;
-            left: 10%;
-        }
+    .siren-glow-blue {
+        position: absolute;
+        width: 60vw;
+        height: 60vw;
+        max-width: 500px;
+        max-height: 500px;
+        background: var(--siren-blue);
+        border-radius: 50%;
+        filter: blur(120px);
+        bottom: 15%;
+        right: 10%;
+        pointer-events: none;
+    }
 
-        .siren-glow-blue {
-            position: absolute;
-            width: 60vw;
-            height: 60vw;
-            max-width: 500px;
-            max-height: 500px;
-            background: var(--siren-blue);
-            border-radius: 50%;
-            filter: blur(120px);
-            bottom: 15%;
-            right: 10%;
-        }
+    .splash-content {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        width: 85%;
+        max-width: 320px;
+    }
 
-        .splash-content {
-            position: relative;
-            z-index: 2;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            width: 85%;
-            max-width: 320px;
-        }
+    .shield-container {
+        position: relative;
+        width: 90px;
+        height: 90px;
+        margin-bottom: 16px;
+    }
 
-        .shield-container {
-            position: relative;
-            width: 90px;
-            height: 90px;
-            margin-bottom: 16px;
-        }
+    .shield-icon {
+        width: 100%;
+        height: 100%;
+        filter: drop-shadow(0 12px 24px rgba(37, 99, 235, 0.35));
+    }
 
-        .shield-icon {
-            width: 100%;
-            height: 100%;
-            filter: drop-shadow(0 12px 24px rgba(37, 99, 235, 0.35));
-        }
+    .splash-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 2px;
+    }
 
-        .splash-title {
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 2px;
-        }
+    .splash-subtitle {
+        font-size: 12px;
+        color: var(--text-secondary);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 20px;
+    }
 
-        .splash-subtitle {
-            font-size: 12px;
-            color: var(--text-secondary);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 20px;
-        }
+    .login-form {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
 
-        .login-form {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
+    .password-input {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 14px;
+        background-color: var(--input-bg);
+        border: 1px solid var(--input-border);
+        color: var(--text-primary);
+        border-radius: 8px;
+        outline: none;
+        text-align: center;
+    }
 
-        .password-input {
-            width: 100%;
-            padding: 12px 16px;
-            font-size: 14px;
-            background-color: var(--input-bg);
-            border: 1px solid var(--input-border);
-            color: var(--text-primary);
-            border-radius: 8px;
-            outline: none;
-            text-align: center;
-        }
+    .password-input::placeholder {
+        color: #94a3b8;
+    }
 
-        .password-input:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-        }
+    .password-input:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
 
-        .submit-btn {
-            width: 100%;
-            padding: 12px;
-            font-size: 14px;
-            font-weight: 600;
-            color: #ffffff;
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-            transition: opacity 0.2s;
-        }
+    .submit-btn {
+        width: 100%;
+        padding: 12px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #ffffff;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
 
-        .submit-btn:active {
-            transform: scale(0.98);
-        }
+    .submit-btn:active {
+        transform: scale(0.98);
+    }
 
-        .error-msg {
-            font-size: 12px;
-            color: #ef4444;
-            margin-top: 4px;
-            display: none;
-        }
+    .submit-btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
 
-        #splash-screen.fade-out {
-            opacity: 0;
-            visibility: hidden;
-        }
-    </style>
-</head>
-<body>
+    .error-msg {
+        font-size: 12px;
+        color: #ef4444;
+        margin-top: 4px;
+        display: none;
+        line-height: 1.5;
+    }
 
-    <div id="splash-screen">
-        <div class="siren-glow-red"></div>
-        <div class="siren-glow-blue"></div>
+    #splash-screen.fade-out {
+        opacity: 0;
+        visibility: hidden;
+    }
+</style>
 
-        <div class="splash-content">
-            <div class="shield-container">
-                <svg class="shield-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 2Z" fill="#1e3a8a" stroke="#93c5fd" stroke-width="1.2"/>
-                    <path d="M12 6L13.5 9.5H17L14 11.8L15.2 15.3L12 13L8.8 15.3L10 11.8L7 9.5H10.5L12 6Z" fill="#f59e0b"/>
-                </svg>
-            </div>
+</head><body><div id="splash-screen">
 
-            <h1 class="splash-title">Police Phonebook</h1>
-            <p class="splash-subtitle">Bangladesh Police</p>
+    <div class="siren-glow-red"></div>
+    <div class="siren-glow-blue"></div>
 
-            <!-- পাসওয়ার্ড ইনপুট ফর্ম -->
-            <div class="login-form" id="loginFormContainer" style="display: flex;">
-                <input type="password" id="passcode" class="password-input" placeholder="গোপন পাসওয়ার্ড দিন" autocomplete="current-password">
-                <button type="button" class="submit-btn" onclick="verifyPassword()">প্রবেশ করুন</button>
-                <span id="errorMsg" class="error-msg"></span>
-            </div>
+    <div class="splash-content">
+
+        <div class="shield-container">
+            <svg class="shield-icon"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 xmlns="http://www.w3.org/2000/svg">
+
+                <path
+                    d="M12 2L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 2Z"
+                    fill="#1e3a8a"
+                    stroke="#93c5fd"
+                    stroke-width="1.2"/>
+
+                <path
+                    d="M12 6L13.5 9.5H17L14 11.8L15.2 15.3L12 13L8.8 15.3L10 11.8L7 9.5H10.5L12 6Z"
+                    fill="#f59e0b"/>
+            </svg>
         </div>
+
+        <h1 class="splash-title">Police Phonebook</h1>
+
+        <p class="splash-subtitle">
+            Bangladesh Police
+        </p>
+
+        <div class="login-form" id="loginFormContainer">
+
+            <input
+                type="password"
+                id="passcode"
+                class="password-input"
+                placeholder="গোপন পাসওয়ার্ড দিন"
+                autocomplete="current-password">
+
+            <button
+                type="button"
+                class="submit-btn"
+                id="submitBtn"
+                onclick="verifyPassword()">
+                প্রবেশ করুন
+            </button>
+
+            <span
+                id="errorMsg"
+                class="error-msg">
+            </span>
+
+        </div>
+
     </div>
+</div>
 
-    <!-- ফায়ারবেস চেক করার স্ক্রিপ্ট (ডিবাগ সহ) -->
-    <script type="module">
-        import { db } from "./firebase.js";
-        import { ref, get } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
-        window.addEventListener('load', function() {
-            const isLoggedIn = localStorage.getItem('isLoggedIn');
-            if (isLoggedIn === 'true') {
-                setTimeout(function() {
-                    const splash = document.getElementById('splash-screen');
-                    if (splash) splash.classList.add('fade-out');
-                    setTimeout(function() {
-                        window.location.replace("index.html"); 
-                    }, 400);
-                }, 500);
-            }
-        });
+<script>
+    /*
+     * Theme
+     */
+    const prefersDark =
+        window.matchMedia &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-        window.verifyPassword = async function() {
-            const inputVal = document.getElementById('passcode').value;
-            const errorMsg = document.getElementById('errorMsg');
-            const submitBtn = document.querySelector('.submit-btn');
+    const savedTheme =
+        localStorage.getItem('theme') ||
+        (prefersDark ? 'dark' : 'light');
 
-            if (!inputVal) {
-                errorMsg.innerText = "দয়া করে পাসওয়ার্ড দিন!";
-                errorMsg.style.display = 'block';
+    document.documentElement.setAttribute(
+        'data-theme',
+        savedTheme
+    );
+</script>
+
+
+<script type="module">
+
+    /*
+     * IMPORTANT:
+     *
+     * Security Check HTML যদি tech/ folder-এর মধ্যে থাকে
+     * এবং firebase.js যদি tech/js/ folder-এর মধ্যে থাকে,
+     * তাহলে path হবে:
+     *
+     * ./js/firebase.js
+     */
+
+    import { db } from "./js/firebase.js";
+
+    import {
+        ref,
+        get
+    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+
+    /*
+     * DOM Elements
+     */
+
+    const splash =
+        document.getElementById('splash-screen');
+
+    const passInput =
+        document.getElementById('passcode');
+
+    const submitBtn =
+        document.getElementById('submitBtn');
+
+    const errorMsg =
+        document.getElementById('errorMsg');
+
+
+    /*
+     * Error message
+     */
+
+    function showError(message) {
+
+        errorMsg.innerText = message;
+        errorMsg.style.display = 'block';
+
+        passInput.value = '';
+        passInput.focus();
+
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'প্রবেশ করুন';
+    }
+
+
+    /*
+     * Successful login
+     */
+
+    function openHomePage() {
+
+        localStorage.setItem(
+            'isLoggedIn',
+            'true'
+        );
+
+        splash.classList.add('fade-out');
+
+        setTimeout(function () {
+
+            window.location.replace(
+                './home.html'
+            );
+
+        }, 400);
+    }
+
+
+    /*
+     * Check existing login
+     */
+
+    window.addEventListener('load', function () {
+
+        const isLoggedIn =
+            localStorage.getItem('isLoggedIn');
+
+        if (isLoggedIn === 'true') {
+
+            setTimeout(function () {
+
+                openHomePage();
+
+            }, 500);
+        }
+    });
+
+
+    /*
+     * Firebase Password Verification
+     */
+
+    window.verifyPassword = async function () {
+
+        const inputVal =
+            passInput.value.trim();
+
+        /*
+         * Empty password
+         */
+
+        if (!inputVal) {
+
+            showError(
+                'দয়া করে পাসওয়ার্ড দিন!'
+            );
+
+            return;
+        }
+
+
+        /*
+         * Button loading
+         */
+
+        submitBtn.disabled = true;
+
+        submitBtn.innerText =
+            'যাচাই করা হচ্ছে...';
+
+        errorMsg.style.display = 'none';
+
+
+        try {
+
+            /*
+             * Firebase structure:
+             *
+             * webapp
+             *   └── admin
+             *       └── password
+             */
+
+            const dbRef =
+                ref(
+                    db,
+                    'webapp/admin'
+                );
+
+
+            const snapshot =
+                await get(dbRef);
+
+
+            /*
+             * Node not found
+             */
+
+            if (!snapshot.exists()) {
+
+                showError(
+                    'ডাটাবেসে admin নোড পাওয়া যায়নি!'
+                );
+
                 return;
             }
 
-            submitBtn.innerText = "যাচাই করা হচ্ছে...";
-            submitBtn.disabled = true;
 
-            try {
-                const dbRef = ref(db, 'webapp/admin');
-                const snapshot = await get(dbRef);
+            /*
+             * Firebase data
+             */
 
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    const serverPassword = data.password;
+            const data =
+                snapshot.val();
 
-                    // ডাটাবেস থেকে পাসওয়ার্ড সফলভাবে পড়ার পর তুলনা করা
-                    if (inputVal === serverPassword) {
-                        errorMsg.style.display = 'none';
-                        localStorage.setItem('isLoggedIn', 'true');
 
-                        const splash = document.getElementById('splash-screen');
-                        if (splash) splash.classList.add('fade-out');
+            /*
+             * Password
+             */
 
-                        setTimeout(function() {
-                            window.location.replace("home.html"); 
-                        }, 400);
-                    } else {
-                        showError("ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।");
-                    }
-                } else {
-                    showError("ডাটাবেসে কোনো পাসওয়ার্ড নোড নেই!");
-                }
-            } catch (error) {
-                console.error("Firebase Error:", error);
-                // ফায়ারবেস থেকে ডাটা আনতে সমস্যা হলে স্ক্রিনে এরর দেখাবে
-                showError("ত্রুটি: " + error.message);
+            const serverPassword =
+                data && data.password != null
+                    ? String(data.password).trim()
+                    : '';
+
+
+            /*
+             * Password node missing
+             */
+
+            if (!serverPassword) {
+
+                showError(
+                    'ডাটাবেসে password নোড পাওয়া যায়নি!'
+                );
+
+                return;
             }
 
-            submitBtn.innerText = "প্রবেশ করুন";
-            submitBtn.disabled = false;
-        };
 
-        function showError(msg) {
-            const errorMsg = document.getElementById('errorMsg');
-            errorMsg.innerText = msg;
-            errorMsg.style.display = 'block';
-            document.getElementById('passcode').value = '';
+            /*
+             * Compare
+             */
+
+            if (inputVal === serverPassword) {
+
+                errorMsg.style.display = 'none';
+
+                openHomePage();
+
+            } else {
+
+                showError(
+                    'ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।'
+                );
+            }
+
+
+        } catch (error) {
+
+            console.error(
+                'Firebase Error:',
+                error
+            );
+
+            showError(
+                'Firebase সংযোগে সমস্যা হয়েছে।'
+            );
         }
+    };
 
-        const passInput = document.getElementById('passcode');
-        if (passInput) {
-            passInput.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') {
-                    window.verifyPassword();
-                }
-            });
+
+    /*
+     * Enter key
+     */
+
+    passInput.addEventListener(
+        'keydown',
+        function (event) {
+
+            if (event.key === 'Enter') {
+
+                event.preventDefault();
+
+                window.verifyPassword();
+            }
         }
-    </script>
+    );
 
-    <script>
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const savedTheme = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light');
-        document.documentElement.setAttribute('data-theme', savedTheme);
-    </script>
+</script>
+
 </body>
 </html>
