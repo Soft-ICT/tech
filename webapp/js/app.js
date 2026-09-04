@@ -2,7 +2,7 @@ import {
     watchAuth,
     loginAdmin,
     logoutAdmin
-} from "./auth.js";[span_1](start_span)[span_1](end_span)
+} from "./auth.js";
 
 import {
     ref,
@@ -11,15 +11,15 @@ import {
     onValue,
     remove,
     push
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";[span_2](start_span)[span_2](end_span)
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
 import {
     db
-} from "./firebase.js";[span_3](start_span)[span_3](end_span)
+} from "./firebase.js";
 
-"use strict";[span_4](start_span)[span_4](end_span)
+"use strict";
 
-const DEFAULT_CATEGORY_IMAGE = "https://cdn-icons-png.flaticon.com/512/3541/3541850.png";[span_5](start_span)[span_5](end_span)
+const DEFAULT_CATEGORY_IMAGE = "https://cdn-icons-png.flaticon.com/512/3541/3541850.png";
 
 function escapeHTML(str) {
     return String(str || "").replace(
@@ -31,14 +31,14 @@ function escapeHTML(str) {
             '"': "&quot;",
             "'": "&#039;"
         }[match])
-    );[span_6](start_span)[span_6](end_span)
+    );
 }
 
 let database = {
     categories: [],
     headers: [],
     data: []
-};[span_7](start_span)[span_7](end_span)
+};
 
 let currentCategoryId = null;
 let currentDataId = null;
@@ -56,7 +56,7 @@ function getDeviceId() {
         devId = "DEV_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8);
         localStorage.setItem("police_pb_device_id", devId);
     }
-    return devId;[span_8](start_span)[span_8](end_span)
+    return devId;
 }
 
 function checkDeviceVerificationStatus() {
@@ -74,7 +74,7 @@ function checkDeviceVerificationStatus() {
             document.getElementById("verifiedBadge")?.classList.add("hidden");
         }
         refreshCurrentView();
-    });[span_9](start_span)[span_9](end_span)
+    });
 }
 
 function checkOnlineStatus() {
@@ -87,9 +87,9 @@ function checkOnlineStatus() {
 window.addEventListener('online', () => {
     showToast("🟢 অনলাইন মোডে আছেন ");
     loadDatabase();
-});[span_10](start_span)[span_10](end_span)
+});
 
-window.addEventListener('offline', checkOnlineStatus);[span_11](start_span)[span_11](end_span)
+window.addEventListener('offline', checkOnlineStatus);
 
 watchAuth((user, role) => {
     const adminBtn = document.getElementById("adminLoginBtn");
@@ -112,7 +112,7 @@ watchAuth((user, role) => {
 
     updateAdminUI();
     loadDatabase();
-});[span_12](start_span)[span_12](end_span)
+});
 
 function isAllSupportOrSearchActive() {
     return isAllSearchActive || currentCategoryId !== null || currentDataId !== null;
@@ -183,7 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     history.replaceState({ page: "home" }, "");
     window.addEventListener("popstate", handlePopState);
-});[span_13](start_span)[span_13](end_span)
+});
 
 function setNavState(searchOrSubPageActive) {
     isSearchMode = searchOrSubPageActive;
@@ -1511,43 +1511,41 @@ function renderDataDetailsContent(item) {
     });
 }
 
-function setupHoldToVerify(element) {
-    if (!element) return;
+function setupHoldToVerify(button) {
+    let holdTimer = null;
 
-    let pressTimer = null;
-    let isLongPress = false;
-
-    const startPress = (e) => {
-        if (e.type === 'click') return;
-        isLongPress = false;
-        if (pressTimer) clearTimeout(pressTimer);
-
-        pressTimer = setTimeout(() => {
-            isLongPress = true;
-            if (navigator.vibrate) navigator.vibrate(60);
-            openModal("verifyModal"); // এটি ১০ সেকেন্ড পরে নাম ও পদবীর ডায়লগ/মডাল ওপেন করবে
-        }, 10000); // ১০ সেকেন্ড (১০,০০০ মিলিপ্রসেস)
-    };
-
-    const cancelPress = () => {
-        if (pressTimer) {
-            clearTimeout(pressTimer);
-            pressTimer = null;
-        }
-    };
-
-    element.addEventListener('mousedown', startPress);
-    element.addEventListener('touchstart', startPress, { passive: true });
-    element.addEventListener('mouseup', cancelPress);
-    element.addEventListener('mouseleave', cancelPress);
-    element.addEventListener('touchend', cancelPress);
-    element.addEventListener('touchcancel', cancelPress);
-
-    element.addEventListener('click', (e) => {
+    const startHold = (e) => {
         e.preventDefault();
-        e.stopPropagation();
-        // টোস্ট মেসেজটি বাদ দেওয়া হয়েছে
-        isLongPress = false;
+        button.style.transform = "scale(0.95)";
+        button.style.opacity = "0.8";
+
+        holdTimer = setTimeout(() => {
+            clearHold();
+            if (navigator.vibrate) navigator.vibrate(60);
+            openModal("verifyModal");
+        }, 10000); // ১০ সেকেন্ড (১০,০০০ মিলিগ্রাম/মিলি সেকেন্ড)
+    };
+
+    const clearHold = () => {
+        if (holdTimer) {
+            clearTimeout(holdTimer);
+            holdTimer = null;
+        }
+        button.style.transform = "scale(1)";
+        button.style.opacity = "1";
+    };
+
+    button.addEventListener("mousedown", startHold);
+    button.addEventListener("touchstart", startHold, { passive: false });
+    button.addEventListener("mouseup", clearHold);
+    button.addEventListener("mouseleave", clearHold);
+    button.addEventListener("touchend", clearHold);
+    button.addEventListener("touchcancel", clearHold);
+
+    // সাধারণ ক্লিক ইভেন্ট নিষ্ক্রিয় রাখা যাতে শুধু হোল্ড করলেই কাজ করে
+    button.addEventListener("click", (e) => {
+        e.preventDefault();
+        showToast("⚠️ 'Get VIP' বাটনটি কমপক্ষে ১০ সেকেন্ড চেপে ধরে রাখুন!");
     });
 }
 
