@@ -1430,15 +1430,30 @@ function showDataPage(dataId) {
 
     updateAdminUI();
 
+    // অফলাইনে থাকলে Firebase request করা হবে না।
+    // Local cache-এর ডাটা দিয়েই সরাসরি details page দেখানো হবে।
+    if (!navigator.onLine) {
+        renderDataDetailsContent(item);
+        return;
+    }
+
+    // অনলাইন অবস্থাতেও Firebase response-এর জন্য অপেক্ষা না করে
+    // প্রথমে ডাটার details দেখানো হবে।
+    renderDataDetailsContent(item);
+
     const devId = getDeviceId();
     const approvedRef = ref(db, `webapp/approved_devices/${devId}`);
-    
+
     get(approvedRef).then((snapshot) => {
         if (snapshot.exists() && snapshot.val().status === "approved") {
             isDeviceVerified = true;
         }
+
+        // Verification status পাওয়ার পর UI প্রয়োজন হলে আপডেট হবে।
         renderDataDetailsContent(item);
+
     }).catch(() => {
+        // Firebase request ব্যর্থ হলেও local data দিয়ে details দেখাবে।
         renderDataDetailsContent(item);
     });
 }
