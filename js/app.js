@@ -172,17 +172,6 @@ function updateAdminUI() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    // পার্মানেন্ট স্টোরেজ রিকোয়েস্ট যুক্ত করা হলো যাতে ব্রাউজার ডাটা অটো-ক্লিন না করে
-    if (navigator.storage && navigator.storage.persist) {
-        navigator.storage.persist().then(function(persistent) {
-            if (persistent) {
-                console.log("Storage will not be cleared by the browser automatically.");
-            } else {
-                console.log("Storage is not persistent.");
-            }
-        });
-    }
-
     setupEvents();
     initTheme();
     updateAdminUI();
@@ -1519,6 +1508,48 @@ function renderDataDetailsContent(item) {
             navigator.clipboard.writeText(shareText);
             showToast("কন্টাক্ট কপি করা হয়েছে!");
         }
+    });
+}
+
+function setupHoldToVerify(element) {
+    if (!element) return;
+
+    let pressTimer = null;
+    let isLongPress = false;
+
+    const startPress = (e) => {
+        if (e.type === 'click') return; // সাধারণ ক্লিক ব্লক করা হলো
+        isLongPress = false;
+        if (pressTimer) clearTimeout(pressTimer);
+
+        pressTimer = setTimeout(() => {
+            isLongPress = true;
+            if (navigator.vibrate) navigator.vibrate(60);
+            openModal("verifyModal");
+        }, 600); // ০.৬ সেকেন্ড বা প্রয়োজনীয় সময় চেপে ধরে রাখতে হবে
+    };
+
+    const cancelPress = () => {
+        if (pressTimer) {
+            clearTimeout(pressTimer);
+            pressTimer = null;
+        }
+    };
+
+    element.addEventListener('mousedown', startPress);
+    element.addEventListener('touchstart', startPress, { passive: true });
+    element.addEventListener('mouseup', cancelPress);
+    element.addEventListener('mouseleave', cancelPress);
+    element.addEventListener('touchend', cancelPress);
+    element.addEventListener('touchcancel', cancelPress);
+
+    element.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!isLongPress) {
+            showToast("ℹ️ ভেরিফিকেশনের জন্য 'Get VIP' বাটনটি চেপে ধরে রাখুন");
+        }
+        isLongPress = false;
     });
 }
 
