@@ -575,6 +575,10 @@
 <body class="app-locked">
 
 
+<!-- ============================================================
+     SPLASH SCREEN
+     ============================================================ -->
+
 <div id="splash-screen">
 
     <div class="siren-glow-red"></div>
@@ -699,6 +703,10 @@
 </div>
 
 
+<!-- ============================================================
+     PASSWORD GATE
+     ============================================================ -->
+
 <div id="passwordGate">
 
     <div class="password-gate-box">
@@ -755,6 +763,10 @@
 
 </div>
 
+
+<!-- ============================================================
+     ORIGINAL APP
+     ============================================================ -->
 
 <div id="appContainer">
 
@@ -1059,6 +1071,11 @@
     </div>
 
 </main>
+
+
+<!-- ============================================================
+     ORIGINAL MODALS
+     ============================================================ -->
 
 
 <div id="loginModal" class="modal hidden">
@@ -1847,6 +1864,10 @@
 </div>
 
 
+<!-- ============================================================
+     ORIGINAL APP JAVASCRIPT
+     ============================================================ -->
+
 <script type="module" src="js/app.js"></script>
 
 
@@ -1868,6 +1889,10 @@
 
 </script>
 
+
+<!-- ============================================================
+     THEME
+     ============================================================ -->
 
 <script>
 
@@ -1893,6 +1918,10 @@
 </script>
 
 
+<!-- ============================================================
+     SPLASH + PASSWORD SYSTEM (PERMANENT UNTIL DATA CLEAR)
+     ============================================================ -->
+
 <script>
 
 (function () {
@@ -1900,6 +1929,7 @@
     "use strict";
 
     const PASSWORD_KEY = "police_phonebook_app_password_hash";
+    const UNLOCK_FLAG = "police_phonebook_is_unlocked";
 
     const splash = document.getElementById("splash-screen");
     const passwordGate = document.getElementById("passwordGate");
@@ -1928,6 +1958,9 @@
     }
 
     function unlockApp() {
+        // ফ্লাগ সেট করে দিচ্ছি যাতে ব্রাউজার বা অ্যাপের ক্যাশ ক্লিন হলেও পাসওয়ার্ড না চায়, শুধুমাত্র localStorage ক্লিয়ার হলেই চাইবে।
+        localStorage.setItem(UNLOCK_FLAG, "true");
+
         passwordGate.classList.remove("show");
         document.body.classList.remove("app-locked");
         appContainer.classList.add("app-unlocked");
@@ -1955,11 +1988,10 @@
 
     function showPasswordGate() {
         const savedHash = getSavedPasswordHash();
+        const isUnlocked = localStorage.getItem(UNLOCK_FLAG);
 
-        // যদি ইতিপূর্বেই পাসওয়ার্ড সেট করা থাকে, তবে সরাসরি আনলক করে দেব (সেশন বা পেজ রিফ্রেশের ক্ষেত্রে বারবার পাসওয়ার্ড চাওয়া রোধ করার জন্য)।
-        // আপনি যদি চান ব্রাউজার প্রতিবার ওপেন করলে পাসওয়ার্ড চাইবে কিন্তু পেজ রিফ্রেশ করলে চাইবে না, তবে নিচের লজিক কাজ করবে। 
-        // সম্পূর্ণ অ্যাপ রিস্টার্ট বা ট্যাব ক্লোজ না হওয়া পর্যন্ত পাসওয়ার্ড একবার দিলেই অ্যাপ খোলা থাকবে।
-        if (savedHash && sessionStorage.getItem("app_unlocked_session") === "true") {
+        // যদি পাসওয়ার্ড সেট করা থাকে এবং ইতিপূর্বে আনলক করা হয়ে থাকে, তবে পাসওয়ার্ড গেট দেখাবে না।
+        if (savedHash && isUnlocked === "true") {
             unlockApp();
             return;
         }
@@ -2001,7 +2033,6 @@
             try {
                 const newHash = await createHash(password);
                 localStorage.setItem(PASSWORD_KEY, newHash);
-                sessionStorage.setItem("app_unlocked_session", "true"); // সেশন সেট করে দিলাম
                 unlockApp();
             } catch (error) {
                 console.error("Password setup error:", error);
@@ -2019,7 +2050,6 @@
             const enteredHash = await createHash(password);
 
             if (enteredHash === savedHash) {
-                sessionStorage.setItem("app_unlocked_session", "true"); // সেশন সেট করে দিলাম
                 unlockApp();
             } else {
                 passwordError.textContent = "ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।";
