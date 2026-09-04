@@ -1,74 +1,105 @@
 <!DOCTYPE html>
 <html lang="bn">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Police Phonebook - Loading</title>
 
-    <link rel="preload" href="home.html" as="document">
+    <meta name="theme-color" content="#0d6efd">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Police Phonebook">
+
+    <title>Police Phonebook</title>
+
+    <link rel="manifest" href="manifest.json?v=1.1">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet" href="css/style.css?v=6">
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap');
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Hind Siliguri', -apple-system, BlinkMacSystemFont, sans-serif;
-            transition: background-color 0.3s ease, color 0.3s ease;
+        /* =========================================================
+           ORIGINAL APP HIDDEN UNTIL PASSWORD IS VERIFIED
+           ========================================================= */
+
+        body.app-locked {
+            overflow: hidden !important;
         }
 
-        /* --- Dynamic Theme Variables --- */
-        :root {
-            --bg-color: #f8fafc;
-            --text-primary: #0f172a;
-            --text-secondary: #0284c7;
-            --siren-red: rgba(239, 68, 68, 0.12);
-            --siren-blue: rgba(37, 99, 235, 0.15);
-            --loader-bg: rgba(15, 23, 42, 0.08);
+        #appContainer {
+            visibility: hidden;
         }
 
-        [data-theme="dark"] {
-            --bg-color: #030712;
-            --text-primary: #ffffff;
-            --text-secondary: #38bdf8;
-            --siren-red: rgba(239, 68, 68, 0.25);
-            --siren-blue: rgba(37, 99, 235, 0.3);
-            --loader-bg: rgba(255, 255, 255, 0.1);
+        #appContainer.app-unlocked {
+            visibility: visible;
         }
 
-        /* --- Fullscreen Setup --- */
-        html,
-        body {
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
-            background-color: var(--bg-color);
-        }
+
+        /* =========================================================
+           SPLASH SCREEN
+           ========================================================= */
 
         #splash-screen {
             position: fixed;
             top: 0;
             left: 0;
+
             width: 100vw;
             height: 100vh;
-            background-color: var(--bg-color);
+
+            background-color: var(--splash-bg, #f8fafc);
 
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
 
-            z-index: 99999;
+            z-index: 1000000;
+
+            opacity: 1;
+            visibility: visible;
 
             transition:
                 opacity 0.5s ease-out,
                 visibility 0.5s;
         }
 
-        /* --- Background Glows --- */
+        #splash-screen.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+
+        /* Splash theme */
+
+        :root {
+            --splash-bg: #f8fafc;
+            --splash-text: #0f172a;
+            --splash-secondary: #0284c7;
+            --splash-red: rgba(239, 68, 68, 0.12);
+            --splash-blue: rgba(37, 99, 235, 0.15);
+            --splash-loader: rgba(15, 23, 42, 0.08);
+        }
+
+        body.dark-mode {
+            --splash-bg: #030712;
+            --splash-text: #ffffff;
+            --splash-secondary: #38bdf8;
+            --splash-red: rgba(239, 68, 68, 0.25);
+            --splash-blue: rgba(37, 99, 235, 0.3);
+            --splash-loader: rgba(255, 255, 255, 0.1);
+        }
+
+
         .siren-glow-red {
             position: absolute;
 
@@ -78,7 +109,7 @@
             max-width: 500px;
             max-height: 500px;
 
-            background: var(--siren-red);
+            background: var(--splash-red);
 
             border-radius: 50%;
 
@@ -91,6 +122,7 @@
                 pulseRed 2.5s infinite alternate ease-in-out;
         }
 
+
         .siren-glow-blue {
             position: absolute;
 
@@ -100,7 +132,7 @@
             max-width: 500px;
             max-height: 500px;
 
-            background: var(--siren-blue);
+            background: var(--splash-blue);
 
             border-radius: 50%;
 
@@ -113,7 +145,7 @@
                 pulseBlue 2.5s infinite alternate ease-in-out 1.2s;
         }
 
-        /* --- Content Layout --- */
+
         .splash-content {
             position: relative;
             z-index: 2;
@@ -128,6 +160,7 @@
             max-width: 320px;
         }
 
+
         .shield-container {
             position: relative;
 
@@ -136,6 +169,7 @@
 
             margin-bottom: 24px;
         }
+
 
         .shield-icon {
             width: 100%;
@@ -148,8 +182,9 @@
                 );
 
             animation:
-                float 3s ease-in-out infinite;
+                floatShield 3s ease-in-out infinite;
         }
+
 
         .gold-ring {
             position: absolute;
@@ -170,21 +205,23 @@
                 rotateRing 3.5s linear infinite;
         }
 
+
         .splash-title {
             font-size: 26px;
             font-weight: 700;
 
-            color: var(--text-primary);
+            color: var(--splash-text);
 
             letter-spacing: 0.5px;
 
             margin-bottom: 4px;
         }
 
+
         .splash-subtitle {
             font-size: 13px;
 
-            color: var(--text-secondary);
+            color: var(--splash-secondary);
 
             font-weight: 600;
 
@@ -195,11 +232,12 @@
             margin-bottom: 30px;
         }
 
+
         .loader-bar-bg {
             width: 100%;
             height: 4px;
 
-            background: var(--loader-bg);
+            background: var(--splash-loader);
 
             border-radius: 10px;
 
@@ -207,6 +245,7 @@
 
             position: relative;
         }
+
 
         .loader-bar-fill {
             position: absolute;
@@ -238,10 +277,9 @@
                 forwards;
         }
 
-        /* --- Animations --- */
-        @keyframes float {
-            0%,
-            100% {
+
+        @keyframes floatShield {
+            0%, 100% {
                 transform: translateY(0);
             }
 
@@ -249,6 +287,7 @@
                 transform: translateY(-8px);
             }
         }
+
 
         @keyframes rotateRing {
             0% {
@@ -259,6 +298,7 @@
                 transform: rotate(360deg);
             }
         }
+
 
         @keyframes pulseRed {
             0% {
@@ -272,6 +312,7 @@
             }
         }
 
+
         @keyframes pulseBlue {
             0% {
                 opacity: 0.3;
@@ -284,6 +325,7 @@
             }
         }
 
+
         @keyframes fillProgress {
             0% {
                 width: 0%;
@@ -294,126 +336,855 @@
             }
         }
 
-        #splash-screen.fade-out {
-            opacity: 0;
-            visibility: hidden;
+
+        /* =========================================================
+           PASSWORD GATE
+           ========================================================= */
+
+        #passwordGate {
+            position: fixed;
+
+            inset: 0;
+
+            z-index: 999999;
+
+            display: none;
+
+            align-items: center;
+            justify-content: center;
+
+            padding: 20px;
+
+            background:
+                rgba(0, 0, 0, 0.58);
+
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
+
+
+        #passwordGate.show {
+            display: flex;
+        }
+
+
+        .password-gate-box {
+            width: 100%;
+            max-width: 380px;
+
+            background: var(--card-bg, #ffffff);
+
+            color: var(--text-main, #212529);
+
+            border-radius: 20px;
+
+            padding: 28px 22px 24px;
+
+            box-shadow:
+                0 20px 70px
+                rgba(0, 0, 0, 0.35);
+
+            text-align: center;
+
+            animation:
+                passwordBoxIn
+                0.35s
+                ease-out;
+        }
+
+
+        @keyframes passwordBoxIn {
+
+            from {
+                opacity: 0;
+                transform: translateY(15px) scale(0.96);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+
+        }
+
+
+        .password-shield {
+            width: 70px;
+            height: 70px;
+
+            margin: 0 auto 16px;
+
+            border-radius: 50%;
+
+            background:
+                rgba(13, 110, 253, 0.10);
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 34px;
+        }
+
+
+        .password-gate-box h2 {
+            margin: 0 0 7px;
+
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+
+        .password-gate-box p {
+            margin: 0 0 20px;
+
+            color: var(--text-muted, #6c757d);
+
+            font-size: 14px;
+
+            line-height: 1.55;
+        }
+
+
+        .password-field {
+            width: 100%;
+
+            height: 50px;
+
+            padding: 0 15px;
+
+            border: 1px solid
+                var(--border-color, #ced4da);
+
+            border-radius: 11px;
+
+            background:
+                var(--input-bg, #ffffff);
+
+            color:
+                var(--text-main, #212529);
+
+            outline: none;
+
+            font-family: inherit;
+
+            font-size: 16px;
+
+            text-align: center;
+        }
+
+
+        .password-field:focus {
+
+            border-color: #0d6efd;
+
+            box-shadow:
+                0 0 0 3px
+                rgba(13, 110, 253, 0.13);
+        }
+
+
+        .password-error {
+
+            min-height: 22px;
+
+            margin-top: 9px;
+
+            font-size: 13px;
+
+            color: #dc3545;
+        }
+
+
+        .password-submit {
+
+            width: 100%;
+
+            height: 50px;
+
+            margin-top: 4px;
+
+            border: 0;
+
+            border-radius: 11px;
+
+            background: #0d6efd;
+
+            color: #fff;
+
+            font-family: inherit;
+
+            font-size: 16px;
+
+            font-weight: 600;
+
+            cursor: pointer;
+
+            transition:
+                transform 0.15s,
+                opacity 0.15s;
+        }
+
+
+        .password-submit:active {
+
+            transform: scale(0.98);
+        }
+
+
+        .password-submit:disabled {
+
+            opacity: 0.65;
+
+            cursor: not-allowed;
+        }
+
+
+        .password-hint {
+
+            margin-top: 14px !important;
+
+            margin-bottom: 0 !important;
+
+            font-size: 12px !important;
+
+            color:
+                var(--text-muted, #6c757d);
+        }
+
+
+        @media (prefers-color-scheme: dark) {
+
+            body:not(.light-mode) {
+
+                --splash-bg: #030712;
+                --splash-text: #ffffff;
+                --splash-secondary: #38bdf8;
+                --splash-red: rgba(239, 68, 68, 0.25);
+                --splash-blue: rgba(37, 99, 235, 0.3);
+                --splash-loader: rgba(255, 255, 255, 0.1);
+
+            }
+
+        }
+
     </style>
 </head>
 
-<body>
 
-    <div id="splash-screen">
+<body class="app-locked">
 
-        <div class="siren-glow-red"></div>
 
-        <div class="siren-glow-blue"></div>
+<!-- ============================================================
+     SPLASH SCREEN
+     ============================================================ -->
 
-        <div class="splash-content">
+<div id="splash-screen">
 
-            <div class="shield-container">
+    <div class="siren-glow-red"></div>
 
-                <div class="gold-ring"></div>
+    <div class="siren-glow-blue"></div>
 
-                <svg
-                    class="shield-icon"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg">
+    <div class="splash-content">
 
-                    <path
-                        d="M12 2L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 2Z"
-                        fill="url(#shield-grad)"
-                        stroke="url(#border-grad)"
-                        stroke-width="1.2"
-                    />
+        <div class="shield-container">
 
-                    <path
-                        d="M12 6L13.5 9.5H17L14 11.8L15.2 15.3L12 13L8.8 15.3L10 11.8L7 9.5H10.5L12 6Z"
-                        fill="url(#star-grad)"
-                    />
+            <div class="gold-ring"></div>
 
-                    <defs>
+            <svg
+                class="shield-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg">
 
-                        <linearGradient
-                            id="shield-grad"
-                            x1="3"
-                            y1="2"
-                            x2="21"
-                            y2="23"
-                            gradientUnits="userSpaceOnUse">
+                <path
+                    d="M12 2L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 2Z"
+                    fill="url(#shield-grad)"
+                    stroke="url(#border-grad)"
+                    stroke-width="1.2"
+                />
 
-                            <stop
-                                stop-color="#1e3a8a"
-                            />
+                <path
+                    d="M12 6L13.5 9.5H17L14 11.8L15.2 15.3L12 13L8.8 15.3L10 11.8L7 9.5H10.5L12 6Z"
+                    fill="url(#star-grad)"
+                />
 
-                            <stop
-                                offset="0.5"
-                                stop-color="#0f172a"
-                            />
+                <defs>
 
-                            <stop
-                                offset="1"
-                                stop-color="#020617"
-                            />
+                    <linearGradient
+                        id="shield-grad"
+                        x1="3"
+                        y1="2"
+                        x2="21"
+                        y2="23"
+                        gradientUnits="userSpaceOnUse">
 
-                        </linearGradient>
+                        <stop
+                            stop-color="#1e3a8a"
+                        />
 
-                        <linearGradient
-                            id="border-grad"
-                            x1="3"
-                            y1="2"
-                            x2="21"
-                            y2="23"
-                            gradientUnits="userSpaceOnUse">
+                        <stop
+                            offset="0.5"
+                            stop-color="#0f172a"
+                        />
 
-                            <stop
-                                stop-color="#93c5fd"
-                            />
+                        <stop
+                            offset="1"
+                            stop-color="#020617"
+                        />
 
-                            <stop
-                                offset="1"
-                                stop-color="#1d4ed8"
-                            />
+                    </linearGradient>
 
-                        </linearGradient>
 
-                        <linearGradient
-                            id="star-grad"
-                            x1="7"
-                            y1="6"
-                            x2="17"
-                            y2="15.3"
-                            gradientUnits="userSpaceOnUse">
+                    <linearGradient
+                        id="border-grad"
+                        x1="3"
+                        y1="2"
+                        x2="21"
+                        y2="23"
+                        gradientUnits="userSpaceOnUse">
 
-                            <stop
-                                stop-color="#fef08a"
-                            />
+                        <stop
+                            stop-color="#93c5fd"
+                        />
 
-                            <stop
-                                offset="1"
-                                stop-color="#f59e0b"
-                            />
+                        <stop
+                            offset="1"
+                            stop-color="#1d4ed8"
+                        />
 
-                        </linearGradient>
+                    </linearGradient>
 
-                    </defs>
 
-                </svg>
+                    <linearGradient
+                        id="star-grad"
+                        x1="7"
+                        y1="6"
+                        x2="17"
+                        y2="15.3"
+                        gradientUnits="userSpaceOnUse">
+
+                        <stop
+                            stop-color="#fef08a"
+                        />
+
+                        <stop
+                            offset="1"
+                            stop-color="#f59e0b"
+                        />
+
+                    </linearGradient>
+
+                </defs>
+
+            </svg>
+
+        </div>
+
+
+        <h1 class="splash-title">
+            Police Phonebook
+        </h1>
+
+
+        <p class="splash-subtitle">
+            Bangladesh Police
+        </p>
+
+
+        <div class="loader-bar-bg">
+
+            <div class="loader-bar-fill"></div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ============================================================
+     PASSWORD GATE
+     ============================================================ -->
+
+<div id="passwordGate">
+
+    <div class="password-gate-box">
+
+        <div class="password-shield">
+            🔐
+        </div>
+
+
+        <h2 id="passwordGateTitle">
+            নিরাপত্তা যাচাই
+        </h2>
+
+
+        <p id="passwordGateMessage">
+            অ্যাপে প্রবেশ করতে আপনার পাসওয়ার্ড দিন।
+        </p>
+
+
+        <input
+            id="appPassword"
+            class="password-field"
+            type="password"
+            autocomplete="new-password"
+            placeholder="পাসওয়ার্ড"
+        >
+
+
+        <div
+            id="passwordError"
+            class="password-error">
+        </div>
+
+
+        <button
+            id="passwordSubmit"
+            class="password-submit"
+            type="button">
+
+            প্রবেশ করুন
+
+        </button>
+
+
+        <p
+            id="passwordHint"
+            class="password-hint">
+
+            আপনার ডিভাইসে নিরাপদভাবে সংরক্ষিত থাকবে।
+
+        </p>
+
+    </div>
+
+</div>
+
+
+<!-- ============================================================
+     ORIGINAL APP
+     ============================================================ -->
+
+<div id="appContainer">
+
+
+<header class="topbar">
+
+    <button
+        id="navToggleBtn"
+        class="icon-btn"
+        type="button"
+        title="মেনু">
+
+        <span id="menuIcon">☰</span>
+
+        <span
+            id="backIcon"
+            class="hidden">
+
+            ←
+
+        </span>
+
+    </button>
+
+
+    <div
+        class="app-title"
+        id="appTitle">
+
+        <span class="app-title-text">
+            Police Phonebook
+        </span>
+
+        <span
+            id="verifiedBadge"
+            class="verified-badge hidden"
+            title="Verified Device">
+
+            ✔
+
+        </span>
+
+    </div>
+
+
+    <div
+        id="searchBox"
+        class="header-search-box hidden">
+
+        <input
+            type="search"
+            id="searchInput"
+            placeholder="Category, Header অথবা Data খুঁজুন..."
+            autocomplete="off">
+
+    </div>
+
+
+    <div
+        class="top-actions"
+        id="topActions">
+
+        <button
+            id="adminLoginBtn"
+            class="primary-btn active-btn btn-admin-small hidden"
+            type="button"
+            title="লং প্রেস করে ভেরিফিকেশন রিকোয়েস্ট দেখুন">
+
+            🔑 Admin
+
+        </button>
+
+
+        <button
+            id="searchBtn"
+            class="icon-btn"
+            title="সার্চ করুন"
+            type="button">
+
+            🔍
+
+        </button>
+
+
+        <button
+            id="themeBtn"
+            class="icon-btn"
+            title="নাইট/ডে মোড"
+            type="button">
+
+            🌙
+
+        </button>
+
+    </div>
+
+</header>
+
+
+<div
+    id="slidingNoticeContainer"
+    style="
+        background: var(--card-bg, #fff);
+        border-bottom: 1px solid var(--border-color, #ddd);
+        overflow: hidden;
+        display: none;
+    ">
+
+</div>
+
+
+<div
+    class="sub-toolbar"
+    id="allSearchBtn"
+    style="cursor: pointer;"
+    title="অল সার্চ অপশন">
+
+    <div class="sub-toolbar-title">
+        🌐 Search All Units & Numbers
+    </div>
+
+</div>
+
+
+<main class="container">
+
+
+    <div id="mainDashboardView">
+
+        <section class="dashboard-header">
+
+            <div
+                id="adminActionContainer"
+                class="admin-only hidden"
+                style="
+                    display: flex;
+                    gap: 8px;
+                    width: 100%;
+                    margin-top: 8px;
+                ">
+
+                <button
+                    id="addCategoryBtn"
+                    class="primary-btn"
+                    type="button"
+                    style="flex: 1;">
+
+                    ＋ Category
+
+                </button>
+
+
+                <button
+                    id="notificationBtn"
+                    class="secondary-btn"
+                    type="button"
+                    style="
+                        flex: 1;
+                        position: relative;
+                    ">
+
+                    🔔 নোটিফিকেশন
+
+                    <span
+                        id="notifBadge"
+                        class="badge-dot hidden"
+                        style="
+                            position: absolute;
+                            top: 6px;
+                            right: 10px;
+                            width: 8px;
+                            height: 8px;
+                            background-color: #ef4444;
+                            border-radius: 50%;
+                        ">
+
+                    </span>
+
+                </button>
 
             </div>
 
-            <h1 class="splash-title">
-                Police Phonebook
-            </h1>
+        </section>
 
-            <p class="splash-subtitle">
-                Bangladesh Police
+
+        <section
+            id="categoryList"
+            class="category-list">
+        </section>
+
+
+        <div
+            id="allSearchContainer"
+            class="hidden"
+            style="margin-top: 15px;">
+        </div>
+
+
+        <section
+            id="emptyState"
+            class="empty-state hidden">
+
+            <div class="empty-icon">
+                📂
+            </div>
+
+            <h2>
+                এখনো কোনো Category নেই
+            </h2>
+
+            <p>
+                ডাটা দেখতে অপেক্ষা করুন, প্রয়োজনে রিফ্রেস করুন।
             </p>
 
-            <div class="loader-bar-bg">
+            <button
+                id="emptyAddBtn"
+                class="primary-btn admin-only hidden"
+                type="button">
 
-                <div class="loader-bar-fill"></div>
+                ＋ প্রথম Category তৈরি করুন
+
+            </button>
+
+        </section>
+
+    </div>
+
+
+    <div
+        id="categoryDetailsView"
+        class="hidden">
+
+        <section class="dashboard-header">
+
+            <div class="header-left">
+
+                <div>
+
+                    <h1 id="detailsTitle">
+                        Category
+                    </h1>
+
+                    <p id="detailsSubtitle"></p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <div
+            class="section-toolbar admin-only hidden">
+
+            <button
+                id="addSubCategoryBtn"
+                class="primary-btn"
+                type="button">
+
+                ＋ Sub-Category
+
+            </button>
+
+
+            <button
+                id="addHeaderBtn"
+                class="primary-btn"
+                type="button">
+
+                ＋ Header
+
+            </button>
+
+
+            <button
+                id="addDataBtn"
+                class="secondary-btn"
+                type="button">
+
+                ＋ Data
+
+            </button>
+
+        </div>
+
+
+        <div id="detailsContent"></div>
+
+    </div>
+
+
+    <div
+        id="dataDetailsView"
+        class="hidden">
+
+        <div class="details-container-card">
+
+            <div id="dataPageContent"></div>
+
+        </div>
+
+    </div>
+
+</main>
+
+
+<!-- ============================================================
+     ORIGINAL MODALS
+     ============================================================ -->
+
+
+<div id="loginModal" class="modal hidden">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2>
+                Admin Login
+            </h2>
+
+            <button
+                class="close-btn"
+                data-close="loginModal"
+                type="button">
+
+                ✕
+
+            </button>
+
+        </div>
+
+
+        <div id="loginFormContainer">
+
+            <div class="form-group">
+
+                <label>
+                    ইমেইল
+                </label>
+
+                <input
+                    id="loginEmail"
+                    type="email"
+                    placeholder="admin@example.com">
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    পাসওয়ার্ড
+                </label>
+
+                <input
+                    id="loginPassword"
+                    type="password"
+                    placeholder="******">
+
+            </div>
+
+
+            <div class="modal-actions">
+
+                <button
+                    class="secondary-btn"
+                    data-close="loginModal"
+                    type="button">
+
+                    বাতিল
+
+                </button>
+
+
+                <button
+                    id="submitLoginBtn"
+                    class="primary-btn"
+                    type="button">
+
+                    লগইন
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="logoutContainer"
+            class="hidden logout-box">
+
+            <p class="status-ok">
+                ✅ আপনি অ্যাডমিন হিসেবে লগইন আছেন
+            </p>
+
+
+            <div class="modal-actions">
+
+                <button
+                    class="secondary-btn"
+                    data-close="loginModal"
+                    type="button">
+
+                    বন্ধ করুন
+
+                </button>
+
+
+                <button
+                    id="logoutBtn"
+                    class="danger-btn"
+                    type="button">
+
+                    লগআউট
+
+                </button>
 
             </div>
 
@@ -421,75 +1192,1246 @@
 
     </div>
 
+</div>
 
-    <script>
 
-        // ==========================================
-        // ১. থিম সেটআপ
-        // ==========================================
+<div id="verifyModal" class="modal hidden">
 
-        const prefersDark =
-            window.matchMedia(
-                '(prefers-color-scheme: dark)'
-            ).matches;
+    <div class="modal-content">
 
-        const savedTheme =
-            localStorage.getItem('theme') ||
-            (prefersDark ? 'dark' : 'light');
+        <div class="modal-header">
 
-        document.documentElement.setAttribute(
-            'data-theme',
-            savedTheme
+            <h2>
+                প্রশাসনিক তথ্যের জন্য ভেরিফিকেশন রিকোয়েস্ট
+            </h2>
+
+            <button
+                class="close-btn"
+                data-close="verifyModal"
+                type="button">
+
+                ✕
+
+            </button>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                আপনার নাম *
+            </label>
+
+            <input
+                id="applicantName"
+                type="text"
+                placeholder="যেমন: মো: আব্দুর রহিম">
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                পদবী / পরিচয় *
+            </label>
+
+            <input
+                id="applicantDesignation"
+                type="text"
+                placeholder="যেমন: সাব-ইন্সপেক্টর / পরিচয় সংক্রান্ত তথ্য">
+
+        </div>
+
+
+        <div class="modal-actions">
+
+            <button
+                class="secondary-btn"
+                data-close="verifyModal"
+                type="button">
+
+                বাতিল
+
+            </button>
+
+
+            <button
+                id="submitVerifyBtn"
+                class="primary-btn"
+                type="button">
+
+                রিকোয়েস্ট পাঠান
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div
+    id="adminVerifyRequestsModal"
+    class="modal hidden">
+
+    <div
+        class="modal-content"
+        style="
+            max-width: 500px;
+            width: 90%;
+        ">
+
+        <div class="modal-header">
+
+            <h2>
+                🛡️ ডিভাইস ভেরিফিকেশন রিকোয়েস্ট
+            </h2>
+
+            <button
+                class="close-btn"
+                data-close="adminVerifyRequestsModal"
+                type="button">
+
+                ✕
+
+            </button>
+
+        </div>
+
+
+        <div
+            id="verifyRequestsList"
+            style="
+                max-height: 350px;
+                overflow-y: auto;
+            ">
+
+            <p
+                style="
+                    text-align: center;
+                    color: var(--text-muted);
+                ">
+
+                কোনো রিকোয়েস্ট নেই
+
+            </p>
+
+        </div>
+
+
+        <div
+            class="modal-actions"
+            style="margin-top: 15px;">
+
+            <button
+                class="secondary-btn"
+                data-close="adminVerifyRequestsModal"
+                type="button">
+
+                বন্ধ করুন
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div id="categoryModal" class="modal hidden">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2 id="categoryModalTitle">
+                ক্যাটাগরি
+            </h2>
+
+            <button
+                class="close-btn"
+                data-close="categoryModal"
+                type="button">
+
+                ✕
+
+            </button>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                ছবি লিঙ্ক (URL)
+            </label>
+
+            <input
+                id="categoryImageInput"
+                type="url"
+                placeholder="https://example.com/image.png">
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                ক্যাটাগরির নাম
+            </label>
+
+            <input
+                id="categoryNameInput"
+                type="text"
+                placeholder="নাম লিখুন">
+
+        </div>
+
+
+        <div class="modal-actions">
+
+            <button
+                class="secondary-btn"
+                data-close="categoryModal"
+                type="button">
+
+                বাতিল
+
+            </button>
+
+
+            <button
+                id="saveCategoryBtn"
+                class="primary-btn"
+                type="button">
+
+                সেভ করুন
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div id="headerModal" class="modal hidden">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2>
+                Header যুক্ত/এডিট করুন
+            </h2>
+
+            <button
+                class="close-btn"
+                data-close="headerModal"
+                type="button">
+
+                ✕
+
+            </button>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                হেডার টাইটেল
+            </label>
+
+            <input
+                id="headerNameInput"
+                type="text"
+                placeholder="যেমন: কর্মকর্তা/কর্মচারী">
+
+        </div>
+
+
+        <div class="modal-actions">
+
+            <button
+                class="secondary-btn"
+                data-close="headerModal"
+                type="button">
+
+                বাতিল
+
+            </button>
+
+
+            <button
+                id="saveHeaderBtn"
+                class="primary-btn"
+                type="button">
+
+                সেভ করুন
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div id="dataModal" class="modal hidden">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2 id="dataModalTitle">
+                Data যুক্ত করুন
+            </h2>
+
+            <button
+                class="close-btn"
+                data-close="dataModal"
+                type="button">
+
+                ✕
+
+            </button>
+
+        </div>
+
+
+        <div class="form-group">
+            <label>ছবি লিঙ্ক (URL)</label>
+            <input id="dataPhoto" type="url">
+        </div>
+
+
+        <div class="form-group">
+            <label>নাম *</label>
+            <input id="dataName" type="text">
+        </div>
+
+
+        <div class="form-group">
+            <label>মোবাইল</label>
+            <input id="dataMobile" type="tel">
+        </div>
+
+
+        <div class="form-group">
+            <label>টেলিফোন</label>
+            <input id="dataPhone" type="tel">
+        </div>
+
+
+        <div class="form-group">
+            <label>পদবী</label>
+            <input id="dataDesignation" type="text">
+        </div>
+
+
+        <div class="form-group">
+            <label>ইমেইল</label>
+            <input id="dataEmail" type="email">
+        </div>
+
+
+        <div class="form-group">
+            <label>বর্তমান অফিস/ঠিকানা</label>
+            <input id="dataCurrentOffice" type="text">
+        </div>
+
+
+        <div class="form-group">
+            <label>স্থায়ী ঠিকানা</label>
+            <input id="dataPermanentAddress" type="text">
+        </div>
+
+
+        <div class="form-group">
+            <label>প্রশাসনিক তথ্য</label>
+            <input id="dataAdminInfo" type="text">
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                Header নির্বাচন করুন
+            </label>
+
+            <select id="dataHeaderSelect"></select>
+
+        </div>
+
+
+        <div class="modal-actions">
+
+            <button
+                class="secondary-btn"
+                data-close="dataModal"
+                type="button">
+
+                বাতিল
+
+            </button>
+
+
+            <button
+                id="saveDataBtn"
+                class="primary-btn"
+                type="button">
+
+                সেভ করুন
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div id="moveDataModal" class="modal hidden">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2>
+                ডাটা মুভ করুন
+            </h2>
+
+            <button
+                class="close-btn"
+                data-close="moveDataModal"
+                type="button">
+
+                ✕
+
+            </button>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                নতুন Category
+            </label>
+
+            <select id="moveCategorySelect"></select>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                নতুন Header
+            </label>
+
+            <select id="moveHeaderSelect"></select>
+
+        </div>
+
+
+        <div class="modal-actions">
+
+            <button
+                class="secondary-btn"
+                data-close="moveDataModal"
+                type="button">
+
+                বাতিল
+
+            </button>
+
+
+            <button
+                id="confirmMoveBtn"
+                class="primary-btn"
+                type="button">
+
+                মুভ নিশ্চিত করুন
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div
+    id="customConfirmModal"
+    class="modal hidden">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2 id="confirmModalTitle">
+                নিশ্চিতকরণ
+            </h2>
+
+            <button
+                class="close-btn"
+                data-close="customConfirmModal"
+                type="button">
+
+                ✕
+
+            </button>
+
+        </div>
+
+
+        <p id="confirmModalMessage">
+            আপনি কি নিশ্চিত?
+        </p>
+
+
+        <div class="modal-actions">
+
+            <button
+                id="cancelConfirmBtn"
+                class="secondary-btn"
+                type="button">
+
+                বাতিল
+
+            </button>
+
+
+            <button
+                id="okConfirmBtn"
+                class="danger-btn"
+                type="button">
+
+                হ্যাঁ, মুছুন
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div
+    id="homeNoticePopupModal"
+    style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.6);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 99999;
+        padding: 15px;
+    ">
+
+    <div
+        style="
+            background: var(--card-bg, #fff);
+            color: var(--text-main, #333);
+            max-width: 450px;
+            width: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        ">
+
+
+        <button
+            type="button"
+            id="closeHomePopupBtn"
+            style="
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                background: rgba(0,0,0,0.5);
+                color: #fff;
+                border: none;
+                width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                font-size: 16px;
+                cursor: pointer;
+                z-index: 10;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            ">
+
+            ✕
+
+        </button>
+
+
+        <div
+            id="popupMediaContainer"
+            style="
+                width: 100%;
+                max-height: 250px;
+                background: #000;
+                display: none;
+                overflow: hidden;
+                align-items: center;
+                justify-content: center;
+            ">
+        </div>
+
+
+        <div
+            style="
+                padding: 20px;
+                text-align: center;
+            ">
+
+            <h3
+                id="popupTitle"
+                style="
+                    margin-top: 0;
+                    margin-bottom: 10px;
+                    font-size: 18px;
+                    color: var(--text-main, #000);
+                ">
+            </h3>
+
+
+            <p
+                id="popupMessage"
+                style="
+                    font-size: 14px;
+                    line-height: 1.5;
+                    margin: 0 0 15px 0;
+                    color: var(--text-muted, #555);
+                    text-align: left;
+                    max-height: 150px;
+                    overflow-y: auto;
+                ">
+            </p>
+
+
+            <a
+                id="popupWebsiteBtn"
+                href="#"
+                target="_blank"
+                style="
+                    display: none;
+                    width: 100%;
+                    padding: 10px;
+                    background: #0d6efd;
+                    color: #fff;
+                    text-decoration: none;
+                    border-radius: 6px;
+                    font-weight: 600;
+                    text-align: center;
+                    box-sizing: border-box;
+                ">
+
+                Open Website
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div id="toast" class="toast"></div>
+
+
+</div>
+
+
+<!-- ============================================================
+     ORIGINAL APP JAVASCRIPT
+     ============================================================ -->
+
+<script type="module" src="js/app.js"></script>
+
+
+<script type="module">
+
+    import {
+        initNotificationSystem
+    } from './js/notification.js';
+
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        () => {
+
+            initNotificationSystem();
+
+        }
+    );
+
+</script>
+
+
+<!-- ============================================================
+     THEME
+     ============================================================ -->
+
+<script>
+
+    const prefersDark =
+        window.matchMedia(
+            '(prefers-color-scheme: dark)'
+        ).matches;
+
+
+    const savedTheme =
+        localStorage.getItem('theme') ||
+        (prefersDark ? 'dark' : 'light');
+
+
+    if (savedTheme === 'dark') {
+
+        document.body.classList.add(
+            'dark-mode'
+        );
+
+    }
+
+</script>
+
+
+<!-- ============================================================
+     SPLASH + PASSWORD SYSTEM
+     ============================================================ -->
+
+<script>
+
+(function () {
+
+    "use strict";
+
+
+    /* =========================================================
+       PASSWORD STORAGE KEY
+
+       এই key-এর data clear হলে password setup আবার আসবে।
+       ========================================================= */
+
+    const PASSWORD_KEY =
+        "police_phonebook_app_password_hash";
+
+
+    /* =========================================================
+       ELEMENTS
+       ========================================================= */
+
+    const splash =
+        document.getElementById(
+            "splash-screen"
         );
 
 
-        // ==========================================
-        // ২. Splash শেষ হওয়ার পর home.html
-        // ==========================================
+    const passwordGate =
+        document.getElementById(
+            "passwordGate"
+        );
 
-        window.addEventListener(
-            'load',
+
+    const passwordInput =
+        document.getElementById(
+            "appPassword"
+        );
+
+
+    const passwordButton =
+        document.getElementById(
+            "passwordSubmit"
+        );
+
+
+    const passwordError =
+        document.getElementById(
+            "passwordError"
+        );
+
+
+    const passwordTitle =
+        document.getElementById(
+            "passwordGateTitle"
+        );
+
+
+    const passwordMessage =
+        document.getElementById(
+            "passwordGateMessage"
+        );
+
+
+    const passwordHint =
+        document.getElementById(
+            "passwordHint"
+        );
+
+
+    const appContainer =
+        document.getElementById(
+            "appContainer"
+        );
+
+
+    /* =========================================================
+       SHA-256 HASH
+       ========================================================= */
+
+    async function createHash(value) {
+
+        const encoder =
+            new TextEncoder();
+
+
+        const data =
+            encoder.encode(value);
+
+
+        const buffer =
+            await crypto.subtle.digest(
+                "SHA-256",
+                data
+            );
+
+
+        const bytes =
+            new Uint8Array(buffer);
+
+
+        let hash = "";
+
+
+        for (const byte of bytes) {
+
+            hash +=
+                byte
+                    .toString(16)
+                    .padStart(2, "0");
+
+        }
+
+
+        return hash;
+
+    }
+
+
+    /* =========================================================
+       PASSWORD ALREADY SET?
+       ========================================================= */
+
+    function getSavedPasswordHash() {
+
+        return localStorage.getItem(
+            PASSWORD_KEY
+        );
+
+    }
+
+
+    /* =========================================================
+       UNLOCK APP
+       ========================================================= */
+
+    function unlockApp() {
+
+        passwordGate.classList.remove(
+            "show"
+        );
+
+
+        document.body.classList.remove(
+            "app-locked"
+        );
+
+
+        appContainer.classList.add(
+            "app-unlocked"
+        );
+
+
+        passwordInput.value = "";
+
+
+        passwordError.textContent = "";
+
+    }
+
+
+    /* =========================================================
+       FIRST TIME SETUP UI
+       ========================================================= */
+
+    function showSetupMode() {
+
+        passwordTitle.textContent =
+            "প্রথমবারের সেটআপ";
+
+
+        passwordMessage.textContent =
+            "Police Phonebook সুরক্ষিত করতে একটি নতুন পাসওয়ার্ড সেট করুন।";
+
+
+        passwordInput.placeholder =
+            "নতুন পাসওয়ার্ড";
+
+
+        passwordInput.autocomplete =
+            "new-password";
+
+
+        passwordButton.textContent =
+            "পাসওয়ার্ড সেট করুন";
+
+
+        passwordHint.textContent =
+            "পাসওয়ার্ডটি আপনার এই ডিভাইসের ডাটা হিসেবে সংরক্ষিত থাকবে।";
+
+    }
+
+
+    /* =========================================================
+       NORMAL LOGIN UI
+       ========================================================= */
+
+    function showLoginMode() {
+
+        passwordTitle.textContent =
+            "নিরাপত্তা যাচাই";
+
+
+        passwordMessage.textContent =
+            "Police Phonebook ব্যবহার করতে আপনার পাসওয়ার্ড দিন।";
+
+
+        passwordInput.placeholder =
+            "পাসওয়ার্ড";
+
+
+        passwordInput.autocomplete =
+            "current-password";
+
+
+        passwordButton.textContent =
+            "প্রবেশ করুন";
+
+
+        passwordHint.textContent =
+            "পাসওয়ার্ড ভুল হলে অ্যাপের ভিতরে প্রবেশ করা যাবে না।";
+
+    }
+
+
+    /* =========================================================
+       SHOW PASSWORD GATE
+       ========================================================= */
+
+    function showPasswordGate() {
+
+        const savedHash =
+            getSavedPasswordHash();
+
+
+        if (savedHash) {
+
+            showLoginMode();
+
+        } else {
+
+            showSetupMode();
+
+        }
+
+
+        passwordGate.classList.add(
+            "show"
+        );
+
+
+        setTimeout(
             function () {
 
-                setTimeout(
-                    function () {
+                passwordInput.focus();
 
-                        const splash =
-                            document.getElementById(
-                                'splash-screen'
-                            );
-
-                        if (splash) {
-
-                            splash.classList.add(
-                                'fade-out'
-                            );
-
-                        }
-
-
-                        // Fade-out শেষ হওয়ার পর
-                        // সরাসরি home.html
-
-                        setTimeout(
-                            function () {
-
-                                window.location.replace(
-                                    "home.html"
-                                );
-
-                            },
-                            400
-                        );
-
-                    },
-                    1600
-                );
-
-            }
+            },
+            100
         );
 
-    </script>
+    }
+
+
+    /* =========================================================
+       PASSWORD PROCESS
+       ========================================================= */
+
+    async function processPassword() {
+
+        const password =
+            passwordInput.value;
+
+
+        passwordError.textContent =
+            "";
+
+
+        if (!password) {
+
+            passwordError.textContent =
+                "পাসওয়ার্ড দিন।";
+
+
+            passwordInput.focus();
+
+            return;
+
+        }
+
+
+        const savedHash =
+            getSavedPasswordHash();
+
+
+        /* =====================================================
+           FIRST TIME SETUP
+           ===================================================== */
+
+        if (!savedHash) {
+
+            if (password.length < 4) {
+
+                passwordError.textContent =
+                    "পাসওয়ার্ড কমপক্ষে ৪ অক্ষরের হতে হবে।";
+
+                passwordInput.focus();
+
+                return;
+
+            }
+
+
+            passwordButton.disabled =
+                true;
+
+
+            passwordButton.textContent =
+                "সেটআপ হচ্ছে...";
+
+
+            try {
+
+                const newHash =
+                    await createHash(
+                        password
+                    );
+
+
+                localStorage.setItem(
+                    PASSWORD_KEY,
+                    newHash
+                );
+
+
+                unlockApp();
+
+
+            } catch (error) {
+
+                console.error(
+                    "Password setup error:",
+                    error
+                );
+
+
+                passwordError.textContent =
+                    "পাসওয়ার্ড সেট করা যায়নি। আবার চেষ্টা করুন।";
+
+
+                passwordButton.disabled =
+                    false;
+
+
+                passwordButton.textContent =
+                    "পাসওয়ার্ড সেট করুন";
+
+            }
+
+
+            return;
+
+        }
+
+
+        /* =====================================================
+           EXISTING PASSWORD CHECK
+           ===================================================== */
+
+        passwordButton.disabled =
+            true;
+
+
+        passwordButton.textContent =
+            "যাচাই হচ্ছে...";
+
+
+        try {
+
+            const enteredHash =
+                await createHash(
+                    password
+                );
+
+
+            if (enteredHash === savedHash) {
+
+                unlockApp();
+
+
+            } else {
+
+                passwordError.textContent =
+                    "ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।";
+
+
+                passwordInput.value =
+                    "";
+
+
+                passwordInput.focus();
+
+
+                passwordButton.disabled =
+                    false;
+
+
+                passwordButton.textContent =
+                    "প্রবেশ করুন";
+
+            }
+
+
+        } catch (error) {
+
+            console.error(
+                "Password verification error:",
+                error
+            );
+
+
+            passwordError.textContent =
+                "পাসওয়ার্ড যাচাই করা যায়নি।";
+
+
+            passwordButton.disabled =
+                false;
+
+
+            passwordButton.textContent =
+                "প্রবেশ করুন";
+
+        }
+
+    }
+
+
+    /* =========================================================
+       BUTTON
+       ========================================================= */
+
+    passwordButton.addEventListener(
+        "click",
+        processPassword
+    );
+
+
+    /* =========================================================
+       ENTER KEY
+       ========================================================= */
+
+    passwordInput.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (event.key === "Enter") {
+
+                event.preventDefault();
+
+                processPassword();
+
+            }
+
+        }
+    );
+
+
+    /* =========================================================
+       SPLASH START
+       ========================================================= */
+
+    window.addEventListener(
+        "load",
+        function () {
+
+            setTimeout(
+                function () {
+
+                    splash.classList.add(
+                        "fade-out"
+                    );
+
+
+                    setTimeout(
+                        function () {
+
+                            splash.style.display =
+                                "none";
+
+
+                            /*
+                             * Splash শেষ হওয়ার পর
+                             * Password Gate দেখানো হবে।
+                             */
+
+                            showPasswordGate();
+
+                        },
+                        500
+                    );
+
+                },
+                1600
+            );
+
+        }
+    );
+
+
+})();
+
+</script>
 
 </body>
 </html>
