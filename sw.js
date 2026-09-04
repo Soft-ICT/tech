@@ -8,8 +8,8 @@ const APP_SHELL = [
     "./js/app.js",
     "./js/firebase.js",
     "./js/auth.js",
-    "./icons/icon-192.png",
-    "./icons/icon-512.png"
+    "./icon/icon-192.png",
+    "./icon/icon-512.png"
 ];
 
 /* =========================
