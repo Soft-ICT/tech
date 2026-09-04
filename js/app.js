@@ -417,7 +417,7 @@ function setupEvents() {
         } else if (currentCategoryId || currentDataId || isAllSearchActive) {
             history.back();
         } else {
-            showToast("মেনু ওপেন করা হয়েছে");
+            showToast("মেনু! সেবাটি দ্রুত কার্যকর করা হবে");
         }
     });
 
