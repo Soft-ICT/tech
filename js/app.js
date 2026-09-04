@@ -172,6 +172,17 @@ function updateAdminUI() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+    // পার্মানেন্ট স্টোরেজ রিকোয়েস্ট যুক্ত করা হলো যাতে ব্রাউজার ডাটা অটো-ক্লিন না করে
+    if (navigator.storage && navigator.storage.persist) {
+        navigator.storage.persist().then(function(persistent) {
+            if (persistent) {
+                console.log("Storage will not be cleared by the browser automatically.");
+            } else {
+                console.log("Storage is not persistent.");
+            }
+        });
+    }
+
     setupEvents();
     initTheme();
     updateAdminUI();
@@ -181,7 +192,7 @@ document.addEventListener("DOMContentLoaded", () => {
     checkOnlineStatus();
     initNotificationSystem();
 
-    history.replaceState({ page: "index" }, "");
+    history.replaceState({ page: "home" }, "");
     window.addEventListener("popstate", handlePopState);
 });
 
@@ -236,7 +247,7 @@ function handlePopState(event) {
     closeHeaderSearch();
     const state = event.state;
 
-    if (!state || state.page === "index") {
+    if (!state || state.page === "home") {
         closeAllSearchUI();
         showMainDashboardView(false);
     } else if (state.page === "allSearch") {
