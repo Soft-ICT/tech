@@ -1919,27 +1919,13 @@
 
 
 <!-- ============================================================
-     FIREBASE PASSWORD VERIFICATION SYSTEM
+     FIREBASE PASSWORD VERIFICATION SYSTEM (FIXED)
      ============================================================ -->
 
 <script type="module">
 
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-    // আপনার ফায়ারবেস কনফিগারেশন এখানে যুক্ত করুন
-    const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_AUTH_DOMAIN",
-        databaseURL: "YOUR_DATABASE_URL",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_STORAGE_BUCKET",
-        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-        appId: "YOUR_APP_ID"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    import { db } from './js/firebase.js';
+    import { ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     (function () {
 
@@ -2003,7 +1989,7 @@
             passwordButton.textContent = "যাচাই হচ্ছে...";
 
             try {
-                // ফায়ারবেস ডেটাবেজ থেকে অ্যাডমিনের পাসওয়ার্ড ফেচ করা
+                // সরাসরি আপনার প্রজেক্টের firebase.js এর db থেকে ডাটা আনছে
                 const passwordRef = ref(db, 'webapp/admin/password');
                 const snapshot = await get(passwordRef);
 
