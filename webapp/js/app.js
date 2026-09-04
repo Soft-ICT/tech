@@ -1517,13 +1517,16 @@ function setupHoldToVerify(element) {
     let pressTimer = null;
     let isLongPress = false;
 
-    const startPress = () => {
+    const startPress = (e) => {
+        if (e.type === 'click') return; // সাধারণ ক্লিক ব্লক করা হলো
         isLongPress = false;
+        if (pressTimer) clearTimeout(pressTimer);
+
         pressTimer = setTimeout(() => {
             isLongPress = true;
             if (navigator.vibrate) navigator.vibrate(60);
             openModal("verifyModal");
-        }, 600);
+        }, 600); // ০.৬ সেকেন্ড বা প্রয়োজনীয় সময় চেপে ধরে রাখতে হবে
     };
 
     const cancelPress = () => {
@@ -1542,6 +1545,7 @@ function setupHoldToVerify(element) {
 
     element.addEventListener('click', (e) => {
         e.preventDefault();
+        e.stopPropagation();
         if (!isLongPress) {
             showToast("ℹ️ ভেরিফিকেশনের জন্য 'Get VIP' বাটনটি চেপে ধরে রাখুন");
         }
