@@ -1,4 +1,4 @@
-const CACHE_NAME = "police-phonebook-v3.1";
+const CACHE_NAME = "police-phonebook-v3.2-secure";
 
 const APP_SHELL = [
     "./",
@@ -50,14 +50,13 @@ self.addEventListener("activate", function (event) {
 });
 
 /* =========================
-   FETCH EVENT
+   FETCH EVENT (Offline First & Self-Healing Support)
 ========================= */
 self.addEventListener("fetch", function (event) {
     const request = event.request;
 
     if (request.method !== "GET") return;
 
-    // Firebase realtime / auth অনুরোধগুলো Service worker ক্যাশ করবে না
     if (
         request.url.includes("firebaseio.com") ||
         request.url.includes("identitytoolkit") ||
@@ -94,4 +93,3 @@ self.addEventListener("fetch", function (event) {
         })
     );
 });
-
