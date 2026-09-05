@@ -21,6 +21,13 @@ import {
 
 const DEFAULT_CATEGORY_IMAGE = "https://cdn-icons-png.flaticon.com/512/3541/3541850.png";
 
+// ডিফল্ট ব্যাকআপ স্ট্রাকচার (ক্লিনার সব মুছে ফেললে এটি দিয়ে সেলফ-হিলিং হবে)
+const FALLBACK_DATABASE = {
+    categories: [],
+    headers: [],
+    data: []
+};
+
 function escapeHTML(str) {
     return String(str || "").replace(
         /[&<>"']/g,
@@ -79,7 +86,7 @@ function checkDeviceVerificationStatus() {
 
 function checkOnlineStatus() {
     if (!navigator.onLine) {
-        showToast("⚠️ ইন্টারনেট সংযোগ নেই!");
+        showToast("⚠️ ইন্টারনেট সংযোগ নেই! অফলাইন মোডে চলছে।");
         loadLocalCache();
     }
 }
@@ -265,6 +272,9 @@ function toggleTheme() {
     showToast(isDark ? "নাইট মোড অন করা হয়েছে" : "ডে মোড অন করা হয়েছে");
 }
 
+/* ==========================================================
+   OFFLINE SELF-HEALING & SECURE LOCAL CACHE SYSTEM
+========================================================== */
 function loadLocalCache() {
     const cached = localStorage.getItem("police_phonebook_data");
     if (cached) {
@@ -274,10 +284,17 @@ function loadLocalCache() {
             if (!database.headers) database.headers = [];
             if (!database.data) database.data = [];
             refreshCurrentView();
+            return;
         } catch (e) {
             console.error("Local Cache Error:", e);
         }
     }
+    
+    // যদি ক্লিনার অ্যাপ লোকালস্টোরেজ বা ক্যাশ সম্পূর্ণ মুছে ফেলে, 
+    // তবে কোড স্বয়ংক্রিয়ভাবে ব্যাকআপ স্ট্রাকচার দিয়ে সেলফ-হিলিং বা রিকভার করে নেবে।
+    database = JSON.parse(JSON.stringify(FALLBACK_DATABASE));
+    localStorage.setItem("police_phonebook_data", JSON.stringify(database));
+    refreshCurrentView();
 }
 
 async function loadDatabase() {
@@ -1430,15 +1447,11 @@ function showDataPage(dataId) {
 
     updateAdminUI();
 
-    // অফলাইনে থাকলে Firebase request করা হবে না।
-    // Local cache-এর ডাটা দিয়েই সরাসরি details page দেখানো হবে।
     if (!navigator.onLine) {
         renderDataDetailsContent(item);
         return;
     }
 
-    // অনলাইন অবস্থাতেও Firebase response-এর জন্য অপেক্ষা না করে
-    // প্রথমে ডাটার details দেখানো হবে।
     renderDataDetailsContent(item);
 
     const devId = getDeviceId();
@@ -1448,12 +1461,8 @@ function showDataPage(dataId) {
         if (snapshot.exists() && snapshot.val().status === "approved") {
             isDeviceVerified = true;
         }
-
-        // Verification status পাওয়ার পর UI প্রয়োজন হলে আপডেট হবে।
         renderDataDetailsContent(item);
-
     }).catch(() => {
-        // Firebase request ব্যর্থ হলেও local data দিয়ে details দেখাবে।
         renderDataDetailsContent(item);
     });
 }
@@ -1538,7 +1547,7 @@ function setupHoldToVerify(button) {
             clearHold();
             if (navigator.vibrate) navigator.vibrate(60);
             openModal("verifyModal");
-        }, 10000); // ১০ সেকেন্ড (১০,০০০ মিলিগ্রাম/মিলি সেকেন্ড)
+        }, 10000);
     };
 
     const clearHold = () => {
@@ -1557,7 +1566,6 @@ function setupHoldToVerify(button) {
     button.addEventListener("touchend", clearHold);
     button.addEventListener("touchcancel", clearHold);
 
-    // সাধারণ ক্লিক ইভেন্ট নিষ্ক্রিয় রাখা যাতে শুধু হোল্ড করলেই কাজ করে
     button.addEventListener("click", (e) => {
         e.preventDefault();
         showToast("⚠️ 'Get VIP' বাটনটি কমপক্ষে ১০ সেকেন্ড চেপে ধরে রাখুন!");
