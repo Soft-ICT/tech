@@ -8,7 +8,7 @@ export function initDrawer() {
             <div class="drawer-header">
                 <div class="drawer-logo-area">
                     <span class="drawer-icon">👮‍♂️</span>
-                    <h3>আমার পুলিশ @ ফোনবুক</h3>
+                    <h3>Police Phonebook</h3>
                 </div>
                 <button id="closeDrawerBtn" class="close-drawer-btn" type="button">✕</button>
             </div>
@@ -16,7 +16,7 @@ export function initDrawer() {
             <div class="drawer-body">
                 <ul class="drawer-menu-list">
                     <li data-action="home">
-                        <span class="menu-ico">📖</span> আমার পুলিশ @ ফোনবুক
+                        <span class="menu-ico">📖</span> Police Phonebook
                     </li>
                     <li data-action="search">
                         <span class="menu-ico">🔍</span> Search All Unit & Number
