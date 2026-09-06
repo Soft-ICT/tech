@@ -118,6 +118,122 @@ body {
     background-color: var(--border-color);
 }
 
+/* =========================================================
+   SIDE NAVIGATION DRAWER STYLES
+   ========================================================= */
+
+.app-drawer {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    width: 280px;
+    height: 100%;
+    background: var(--card-bg, #ffffff);
+    color: var(--text-main, #212529);
+    box-shadow: 5px 0 15px rgba(0, 0, 0, 0.2);
+    z-index: 100000;
+    display: flex;
+    flex-direction: column;
+    transition: left 0.3s ease-in-out;
+    overflow-y: auto;
+}
+
+.app-drawer.open {
+    left: 0;
+}
+
+.drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 99999;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out, visibility 0.3s;
+}
+
+.drawer-overlay.show {
+    visibility: visible;
+    opacity: 1;
+}
+
+.drawer-header {
+    background: #198754; /* আপনার অ্যাপের থিম কালার অনুযায়ী পরিবর্তন করতে পারেন */
+    color: #fff;
+    padding: 20px 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.drawer-logo-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.drawer-logo-area .drawer-icon {
+    font-size: 28px;
+}
+
+.drawer-logo-area h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.close-drawer-btn {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.drawer-body {
+    padding: 10px 0;
+}
+
+.drawer-section-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted, #6c757d);
+    padding: 10px 15px 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.drawer-menu-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 10px 0;
+}
+
+.drawer-menu-list li {
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.drawer-menu-list li:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+body.dark-mode .drawer-menu-list li:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.drawer-menu-list li .menu-ico {
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
+}
+
+
 /* ==========================================
    GET VERIFY BUTTON & ANIMATION
 ========================================== */
