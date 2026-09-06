@@ -483,6 +483,38 @@ function setupEvents() {
     document.querySelectorAll("[data-close]").forEach(btn => {
         btn.addEventListener("click", () => closeModal(btn.dataset.close));
     });
+
+    // ফেভারিট টগল করার গ্লোবাল ইভেন্ট লিসেনার
+    document.addEventListener('click', function(e) {
+        const favBtn = e.target.closest('.fav-btn');
+        if (favBtn) {
+            e.stopPropagation();
+            const itemId = favBtn.getAttribute('data-id');
+            const icon = favBtn.querySelector('i');
+            
+            let favourites = JSON.parse(localStorage.getItem('police_phonebook_favs')) || [];
+            
+            if (favourites.includes(itemId)) {
+                favourites = favourites.filter(id => id !== itemId);
+                if (icon) {
+                    icon.classList.remove('fas');
+                    icon.classList.add('far');
+                    icon.style.color = '';
+                }
+                showToast('ফেভারিট থেকে সরিয়ে ফেলা হয়েছে');
+            } else {
+                favourites.push(itemId);
+                if (icon) {
+                    icon.classList.remove('far');
+                    icon.classList.add('fas');
+                    icon.style.color = '#ef4444';
+                }
+                showToast('ফেভারিট লিস্টে যোগ করা হয়েছে');
+            }
+            
+            localStorage.setItem('police_phonebook_favs', JSON.stringify(favourites));
+        }
+    });
 }
 
 function setupAdminButtonLongPress() {
@@ -966,22 +998,34 @@ function createDataCardElement(item) {
         : `<div class="data-card-avatar">👤</div>`;
 
     const pinIcon = item.pinned ? "📌" : "📍";
+    
+    // ফেভারিট স্ট্যাটাস চেক করা
+    const favourites = JSON.parse(localStorage.getItem('police_phonebook_favs')) || [];
+    const isFav = favourites.includes(item.id);
+    const heartClass = isFav ? 'fas fa-heart' : 'far fa-heart';
+    const heartColor = isFav ? 'style="color: #ef4444;"' : '';
+
     const adminActions = isAdmin
         ? `
-            <div class="card-admin-actions" style="display:flex;gap:4px;">
+            <div class="card-admin-actions" style="display:flex;gap:4px; align-items:center;">
+                <button class="icon-btn fav-btn" data-id="${item.id}" title="Favourite"><i class="${heartClass}" ${heartColor}></i></button>
                 <button class="btn-pin-data custom-action-btn" title="পিন">${pinIcon}</button>
                 <button class="btn-move-data custom-action-btn" title="মুভ">📦</button>
                 <button class="btn-edit-data custom-action-btn" title="এডিট">✏️</button>
                 <button class="btn-del-data custom-action-btn" style="color:#ef4444" title="ডিলিট">🗑️</button>
             </div>
         `
-        : "";
+        : `
+            <div class="card-admin-actions" style="display:flex;gap:4px; align-items:center;">
+                <button class="icon-btn fav-btn" data-id="${item.id}" title="Favourite"><i class="${heartClass}" ${heartColor}></i></button>
+            </div>
+        `;
 
     const dataPinMark = (isAdmin && item.pinned) ? "📌" : "";
 
     dataEl.innerHTML = `
         ${avatarHtml}
-        <div class="data-card-info">
+        <div class="data-card-info" style="flex: 1; cursor: pointer;">
             <div class="data-card-name">${name} ${dataPinMark}</div>
             <div class="data-card-detail">📱 মোবাইল: ${mobile}</div>
             <div class="data-card-detail">☎️ টেলিফোন: ${phone}</div>
@@ -990,12 +1034,12 @@ function createDataCardElement(item) {
         ${adminActions}
     `;
 
-    dataEl.addEventListener("click", () => openDataPage(item.id));
+    dataEl.querySelector(".data-card-info").addEventListener("click", () => openDataPage(item.id));
+
+    const actionGroup = dataEl.querySelector(".card-admin-actions");
+    if (actionGroup) actionGroup.addEventListener("click", e => e.stopPropagation());
 
     if (isAdmin) {
-        const actionGroup = dataEl.querySelector(".card-admin-actions");
-        if (actionGroup) actionGroup.addEventListener("click", e => e.stopPropagation());
-
         dataEl.querySelector(".btn-pin-data")?.addEventListener("click", e => {
             e.stopPropagation();
             togglePinData(item.id);
@@ -1430,15 +1474,11 @@ function showDataPage(dataId) {
 
     updateAdminUI();
 
-    // অফলাইনে থাকলে Firebase request করা হবে না।
-    // Local cache-এর ডাটা দিয়েই সরাসরি details page দেখানো হবে।
     if (!navigator.onLine) {
         renderDataDetailsContent(item);
         return;
     }
 
-    // অনলাইন অবস্থাতেও Firebase response-এর জন্য অপেক্ষা না করে
-    // প্রথমে ডাটার details দেখানো হবে।
     renderDataDetailsContent(item);
 
     const devId = getDeviceId();
@@ -1448,12 +1488,8 @@ function showDataPage(dataId) {
         if (snapshot.exists() && snapshot.val().status === "approved") {
             isDeviceVerified = true;
         }
-
-        // Verification status পাওয়ার পর UI প্রয়োজন হলে আপডেট হবে।
         renderDataDetailsContent(item);
-
     }).catch(() => {
-        // Firebase request ব্যর্থ হলেও local data দিয়ে details দেখাবে।
         renderDataDetailsContent(item);
     });
 }
@@ -1538,7 +1574,7 @@ function setupHoldToVerify(button) {
             clearHold();
             if (navigator.vibrate) navigator.vibrate(60);
             openModal("verifyModal");
-        }, 10000); // ১০ সেকেন্ড (১০,০০০ মিলিগ্রাম/মিলি সেকেন্ড)
+        }, 10000);
     };
 
     const clearHold = () => {
@@ -1557,7 +1593,6 @@ function setupHoldToVerify(button) {
     button.addEventListener("touchend", clearHold);
     button.addEventListener("touchcancel", clearHold);
 
-    // সাধারণ ক্লিক ইভেন্ট নিষ্ক্রিয় রাখা যাতে শুধু হোল্ড করলেই কাজ করে
     button.addEventListener("click", (e) => {
         e.preventDefault();
         showToast("⚠️ 'Get VIP' বাটনটি কমপক্ষে ১০ সেকেন্ড চেপে ধরে রাখুন!");
