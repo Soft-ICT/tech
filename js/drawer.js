@@ -82,6 +82,28 @@ export function initDrawer() {
         </nav>
     `;
 
+// ড্রয়ার মেনু বা সিলেকশন হ্যান্ডলারের ভেতর এভাবে কেস হ্যান্ডেল করুন:
+function handleDrawerAction(actionType) {
+    switch (actionType) {
+        case 'home':
+            // হোম পেজ লোড করার কোড
+            break;
+            
+        case 'favorite': // অথবা আপনার ড্রয়ারে ফেভারিটের জন্য নির্ধারিত অ্যাকশন নেম
+            showFavoriteView();
+            break;
+            
+        case 'about':
+            // অ্যাবাউট পেজ
+            break;
+            
+        default:
+            break;
+    }
+}
+    
+
+    
     // যদি আগে কোনো ড্রয়ার থেকে থাকে তবে তা রিমूव করে নতুনটি যুক্ত করা
     const existingDrawer = document.getElementById('appDrawer');
     const existingOverlay = document.getElementById('appDrawerOverlay');
