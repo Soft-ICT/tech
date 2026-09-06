@@ -954,3 +954,25 @@ body:not(.dark-mode) .drawer-footer {
     .data-card-detail { font-size: 12px; }
 }
 
+/* ==========================================
+   ADDED: FAVOURITE BUTTON & CARD STYLES
+========================================== */
+
+.data-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.fav-btn {
+    transition: transform 0.2s ease;
+}
+
+.fav-btn:active {
+    transform: scale(1.3);
+}
