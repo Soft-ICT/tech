@@ -24,3 +24,4 @@ function isFavorite(dataId) {
     const favorites = getUserFavorites();
     return favorites.includes(dataId);
 }
+
