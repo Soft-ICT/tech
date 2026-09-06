@@ -1,67 +1,91 @@
 // js/drawer.js
 
 export function initDrawer() {
-    // ড্রয়ারের জন্য প্রয়োজনীয় এইচটিএমএল স্ট্রাকচার তৈরি করা
+    // ড্রয়ারের আধুনিক এইচটিএমএল স্ট্রাকচার
     const drawerHTML = `
         <div id="appDrawerOverlay" class="drawer-overlay"></div>
         <nav id="appDrawer" class="app-drawer">
             <div class="drawer-header">
-                <div class="drawer-logo-area">
-                    <span class="drawer-icon">👮‍♂️</span>
-                    <h3>Police Phonebook</h3>
+                <div class="drawer-header-bg-glow"></div>
+                <div class="drawer-profile-area">
+                    <div class="drawer-avatar">
+                        <span class="drawer-icon">👮‍♂️</span>
+                    </div>
+                    <div class="drawer-title-texts">
+                        <h3>আমার পুলিশ</h3>
+                        <p>@ ফোনবুক</p>
+                    </div>
                 </div>
-                <button id="closeDrawerBtn" class="close-drawer-btn" type="button">✕</button>
+                <button id="closeDrawerBtn" class="close-drawer-btn" type="button" title="বন্ধ করুন">
+                    <span>✕</span>
+                </button>
             </div>
             
             <div class="drawer-body">
                 <ul class="drawer-menu-list">
-                    <li data-action="home">
-                        <span class="menu-ico">📖</span> Police Phonebook
+                    <li data-action="home" class="active">
+                        <span class="menu-ico">📖</span> 
+                        <span class="menu-text">আমার পুলিশ @ ফোনবুক</span>
                     </li>
                     <li data-action="search">
-                        <span class="menu-ico">🔍</span> Search All Unit & Number
+                        <span class="menu-ico">🔍</span> 
+                        <span class="menu-text">Search All Unit & Number</span>
                     </li>
                     <li data-action="favorite">
-                        <span class="menu-ico">❤️</span> Favorite Number
+                        <span class="menu-ico">❤️</span> 
+                        <span class="menu-text">Favorite Number</span>
                     </li>
                     <li data-action="more-app">
-                        <span class="menu-ico">📱</span> More Application
+                        <span class="menu-ico">📱</span> 
+                        <span class="menu-text">More Application</span>
                     </li>
                 </ul>
 
+                <div class="drawer-divider"></div>
                 <div class="drawer-section-title">Tools</div>
                 <ul class="drawer-menu-list">
                     <li data-action="settings">
-                        <span class="menu-ico">⚙️</span> Setting Menu
+                        <span class="menu-ico">⚙️</span> 
+                        <span class="menu-text">Setting Menu</span>
                     </li>
                     <li data-action="update-db">
-                        <span class="menu-ico">🔄</span> Update App Database
+                        <span class="menu-ico">🔄</span> 
+                        <span class="menu-text">Update App Database</span>
                     </li>
-                    <li data-action="delete-db">
-                        <span class="menu-ico">🗑️</span> Delete Database
+                    <li data-action="delete-db" class="text-danger">
+                        <span class="menu-ico">🗑️</span> 
+                        <span class="menu-text">Delete Database</span>
                     </li>
                     <li data-action="privacy">
-                        <span class="menu-ico">🔒</span> Privacy Policy
+                        <span class="menu-ico">🔒</span> 
+                        <span class="menu-text">Privacy Policy</span>
                     </li>
                 </ul>
 
+                <div class="drawer-divider"></div>
                 <div class="drawer-section-title">Communicate</div>
                 <ul class="drawer-menu-list">
                     <li data-action="about">
-                        <span class="menu-ico">ℹ️</span> About App
+                        <span class="menu-ico">ℹ️</span> 
+                        <span class="menu-text">About App</span>
                     </li>
                     <li data-action="update-app">
-                        <span class="menu-ico">📲</span> Update App
+                        <span class="menu-ico">📲</span> 
+                        <span class="menu-text">Update App</span>
                     </li>
                     <li data-action="share">
-                        <span class="menu-ico">🔗</span> Share App
+                        <span class="menu-ico">🔗</span> 
+                        <span class="menu-text">Share App</span>
                     </li>
                 </ul>
+            </div>
+            
+            <div class="drawer-footer">
+                <span>Version 1.1.0 • Secure</span>
             </div>
         </nav>
     `;
 
-    // বডির শুরুতে ড্রয়ার যুক্ত করা
     document.body.insertAdjacentHTML('beforeend', drawerHTML);
 
     const drawer = document.getElementById('appDrawer');
@@ -72,14 +96,15 @@ export function initDrawer() {
     function openDrawer() {
         drawer.classList.add('open');
         overlay.classList.add('show');
+        document.body.style.overflow = 'hidden'; // ব্যাকগ্রাউন্ড স্ক্রোল লক করা
     }
 
     function closeDrawer() {
         drawer.classList.remove('open');
         overlay.classList.remove('show');
+        document.body.style.overflow = '';
     }
 
-    // টগল বাটনে ক্লিক করলে ড্রয়ার খুলবে
     if (navToggleBtn) {
         navToggleBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -91,11 +116,9 @@ export function initDrawer() {
         });
     }
 
-    // ওভারলে বা ক্লোজ বাটনে ক্লিক করলে বন্ধ হবে
     overlay.addEventListener('click', closeDrawer);
     closeDrawerBtn.addEventListener('click', closeDrawer);
 
-    // মেনু আইটেমগুলোতে ক্লিকের কার্যকারিতা (প্রয়োজন অনুযায়ী ফাংশন যুক্ত করতে পারেন)
     const menuItems = drawer.querySelectorAll('.drawer-menu-list li');
     menuItems.forEach(item => {
         item.addEventListener('click', () => {
