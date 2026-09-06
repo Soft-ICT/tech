@@ -118,7 +118,8 @@ body {
     background-color: var(--border-color);
 }
 
-/* =========================================================
+
+    border: none;/* =========================================================
    ULTRA MODERN SIDE NAVIGATION DRAWER STYLES
    ========================================================= */
 
@@ -221,7 +222,6 @@ body {
 
 .close-drawer-btn {
     background: rgba(255, 255, 255, 0.15);
-    border: none;
     color: #fff;
     width: 32px;
     height: 32px;
@@ -263,57 +263,194 @@ body {
 
 .drawer-menu-list {
     list-style: none;
+/* =========================================================
+   ULTRA MODERN APP THEME MATCHED DRAWER STYLES
+   ========================================================= */
+
+.app-drawer {
+    position: fixed;
+    top: 0;
+    left: -310px;
+    width: 300px;
+    height: 100%;
+    background: var(--card-bg, #1e293b);
+    color: var(--text-main, #f8fafc);
+    box-shadow: 15px 0 40px rgba(0, 0, 0, 0.4);
+    z-index: 100000;
+    display: flex;
+    flex-direction: column;
+    transition: left 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow-y: auto;
+    border-top-right-radius: 24px;
+    border-bottom-right-radius: 24px;
+}
+
+.app-drawer.open {
+    left: 0;
+}
+
+.drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 7, 18, 0.7);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 99999;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.35s ease, visibility 0.35s;
+}
+
+.drawer-overlay.show {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Header with App Matching Blue/Dark Gradient */
+.drawer-header {
+    position: relative;
+    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 50%, #084298 100%);
+    color: #ffffff;
+    padding: 26px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    overflow: hidden;
+    border-top-right-radius: 24px;
+}
+
+.drawer-header-bg-glow {
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 130px;
+    height: 130px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 50%;
+    filter: blur(18px);
+}
+
+.drawer-profile-area {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    z-index: 2;
+}
+
+.drawer-avatar {
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.drawer-title-texts h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+}
+
+.drawer-title-texts p {
+    margin: 3px 0 0 0;
+    font-size: 12px;
+    opacity: 0.85;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.close-drawer-btn {
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: #fff;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    font-size: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.close-drawer-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.08);
+}
+
+/* Body & Menu Items */
+.drawer-body {
+    padding: 14px 12px;
+    flex: 1;
+}
+
+.drawer-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    padding: 10px 12px 6px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+}
+
+.drawer-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+    margin: 10px 10px;
+}
+
+body:not(.dark-mode) .drawer-divider {
+    background: #e2e8f0;
+}
+
+body:not(.dark-mode) .app-drawer {
+    background: #ffffff;
+    color: #1e293b;
+}
+
+.drawer-menu-list {
+    list-style: none;
     padding: 0;
     margin: 0;
 }
 
 .drawer-menu-list li {
-    padding: 10px 14px;
-    margin-bottom: 4px;
+    padding: 11px 14px;
+    margin-bottom: 5px;
     display: flex;
     align-items: center;
     gap: 14px;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    border-radius: 10px;
-    transition: all 0.2s ease;
+    border-radius: 12px;
+    transition: all 0.25s ease;
 }
 
 .drawer-menu-list li:hover {
-    background: rgba(5, 150, 105, 0.08);
-    color: #059669;
+    background: rgba(13, 110, 253, 0.12);
+    color: #0d6efd;
     transform: translateX(4px);
 }
 
 .drawer-menu-list li.active {
-    background: rgba(5, 150, 105, 0.12);
-    color: #059669;
+    background: rgba(13, 110, 253, 0.18);
+    color: #0d6efd;
     font-weight: 600;
 }
 
 .drawer-menu-list li.text-danger:hover {
-    background: rgba(239, 68, 68, 0.08);
+    background: rgba(239, 68, 68, 0.12);
     color: #ef4444;
-}
-
-body.dark-mode .app-drawer {
-    background: #0f172a;
-    color: #f8fafc;
-}
-
-body.dark-mode .drawer-divider {
-    background: #1e293b;
-}
-
-body.dark-mode .drawer-menu-list li:hover {
-    background: rgba(52, 211, 153, 0.12);
-    color: #34d399;
-}
-
-body.dark-mode .drawer-menu-list li.active {
-    background: rgba(52, 211, 153, 0.18);
-    color: #34d399;
 }
 
 .drawer-menu-list li .menu-ico {
@@ -325,20 +462,19 @@ body.dark-mode .drawer-menu-list li.active {
     justify-content: center;
 }
 
-/* Footer info */
+/* Footer */
 .drawer-footer {
-    padding: 12px;
+    padding: 14px;
     text-align: center;
     font-size: 11px;
-    color: var(--text-muted, #94a3b8);
-    border-top: 1px solid var(--border-color, #f1f5f9);
-    background: var(--card-bg, #ffffff);
+    color: #94a3b8;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-body.dark-mode .drawer-footer {
-    background: #0f172a;
-    border-top-color: #1e293b;
+body:not(.dark-mode) .drawer-footer {
+    border-top-color: #e2e8f0;
 }
+
 
 
 
