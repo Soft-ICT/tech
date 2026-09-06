@@ -119,23 +119,25 @@ body {
 }
 
 /* =========================================================
-   SIDE NAVIGATION DRAWER STYLES
+   ULTRA MODERN SIDE NAVIGATION DRAWER STYLES
    ========================================================= */
 
 .app-drawer {
     position: fixed;
     top: 0;
-    left: -280px;
-    width: 280px;
+    left: -310px;
+    width: 300px;
     height: 100%;
     background: var(--card-bg, #ffffff);
-    color: var(--text-main, #212529);
-    box-shadow: 5px 0 15px rgba(0, 0, 0, 0.2);
+    color: var(--text-main, #1e293b);
+    box-shadow: 10px 0 35px rgba(0, 0, 0, 0.15);
     z-index: 100000;
     display: flex;
     flex-direction: column;
-    transition: left 0.3s ease-in-out;
+    transition: left 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     overflow-y: auto;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
 }
 
 .app-drawer.open {
@@ -145,11 +147,13 @@ body {
 .drawer-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
     z-index: 99999;
     visibility: hidden;
     opacity: 0;
-    transition: opacity 0.3s ease-in-out, visibility 0.3s;
+    transition: opacity 0.35s ease, visibility 0.35s;
 }
 
 .drawer-overlay.show {
@@ -157,81 +161,185 @@ body {
     opacity: 1;
 }
 
+/* Header with Gradient and Glow Effect */
 .drawer-header {
-    background: #198754; /* আপনার অ্যাপের থিম কালার অনুযায়ী পরিবর্তন করতে পারেন */
-    color: #fff;
-    padding: 20px 15px;
+    position: relative;
+    background: linear-gradient(135deg, #059669 0%, #047857 50%, #065f46 100%);
+    color: #ffffff;
+    padding: 24px 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    overflow: hidden;
+    border-top-right-radius: 20px;
 }
 
-.drawer-logo-area {
+.drawer-header-bg-glow {
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 120px;
+    height: 120px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    filter: blur(15px);
+}
+
+.drawer-profile-area {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 14px;
+    z-index: 2;
 }
 
-.drawer-logo-area .drawer-icon {
-    font-size: 28px;
+.drawer-avatar {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.drawer-logo-area h3 {
+.drawer-title-texts h3 {
     margin: 0;
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+.drawer-title-texts p {
+    margin: 2px 0 0 0;
+    font-size: 12px;
+    opacity: 0.85;
+    font-weight: 500;
 }
 
 .close-drawer-btn {
-    background: transparent;
+    background: rgba(255, 255, 255, 0.15);
     border: none;
     color: #fff;
-    font-size: 20px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 15px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    transition: background 0.2s, transform 0.2s;
 }
 
+.close-drawer-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+/* Body & Menu Items */
 .drawer-body {
-    padding: 10px 0;
+    padding: 12px 12px;
+    flex: 1;
 }
 
 .drawer-section-title {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
-    color: var(--text-muted, #6c757d);
-    padding: 10px 15px 5px;
+    color: var(--text-muted, #94a3b8);
+    padding: 8px 12px 6px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
+}
+
+.drawer-divider {
+    height: 1px;
+    background: var(--border-color, #f1f5f9);
+    margin: 8px 10px;
 }
 
 .drawer-menu-list {
     list-style: none;
     padding: 0;
-    margin: 0 0 10px 0;
+    margin: 0;
 }
 
 .drawer-menu-list li {
-    padding: 12px 20px;
+    padding: 10px 14px;
+    margin-bottom: 4px;
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 14px;
     font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
-    transition: background 0.2s;
+    border-radius: 10px;
+    transition: all 0.2s ease;
 }
 
 .drawer-menu-list li:hover {
-    background: rgba(0, 0, 0, 0.05);
+    background: rgba(5, 150, 105, 0.08);
+    color: #059669;
+    transform: translateX(4px);
+}
+
+.drawer-menu-list li.active {
+    background: rgba(5, 150, 105, 0.12);
+    color: #059669;
+    font-weight: 600;
+}
+
+.drawer-menu-list li.text-danger:hover {
+    background: rgba(239, 68, 68, 0.08);
+    color: #ef4444;
+}
+
+body.dark-mode .app-drawer {
+    background: #0f172a;
+    color: #f8fafc;
+}
+
+body.dark-mode .drawer-divider {
+    background: #1e293b;
 }
 
 body.dark-mode .drawer-menu-list li:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(52, 211, 153, 0.12);
+    color: #34d399;
+}
+
+body.dark-mode .drawer-menu-list li.active {
+    background: rgba(52, 211, 153, 0.18);
+    color: #34d399;
 }
 
 .drawer-menu-list li .menu-ico {
     font-size: 18px;
     width: 24px;
     text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
+
+/* Footer info */
+.drawer-footer {
+    padding: 12px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-muted, #94a3b8);
+    border-top: 1px solid var(--border-color, #f1f5f9);
+    background: var(--card-bg, #ffffff);
+}
+
+body.dark-mode .drawer-footer {
+    background: #0f172a;
+    border-top-color: #1e293b;
+}
+
 
 
 /* ==========================================
