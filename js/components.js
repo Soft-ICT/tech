@@ -27,3 +27,4 @@ function createDataCardElement(item) {
     
     return card;
 }
+
