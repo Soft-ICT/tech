@@ -1,7 +1,7 @@
 // js/drawer.js
 
 export function initDrawer() {
-    // ড্রয়ারের আধুনিক এইচটিএমএল স্ট্রাকচার
+    // ড্রয়ারের আল্ট্রা-মডার্ন এইচটিএমএল স্ট্রাকচার
     const drawerHTML = `
         <div id="appDrawerOverlay" class="drawer-overlay"></div>
         <nav id="appDrawer" class="app-drawer">
@@ -9,11 +9,11 @@ export function initDrawer() {
                 <div class="drawer-header-bg-glow"></div>
                 <div class="drawer-profile-area">
                     <div class="drawer-avatar">
-                        <span class="drawer-icon">👮‍♂️</span>
+                        <span class="drawer-icon">🛡️</span>
                     </div>
                     <div class="drawer-title-texts">
-                        <h3>আমার পুলিশ</h3>
-                        <p>@ ফোনবুক</p>
+                        <h3>Police Phonebook</h3>
+                        <p>Bangladesh Police</p>
                     </div>
                 </div>
                 <button id="closeDrawerBtn" class="close-drawer-btn" type="button" title="বন্ধ করুন">
@@ -25,7 +25,7 @@ export function initDrawer() {
                 <ul class="drawer-menu-list">
                     <li data-action="home" class="active">
                         <span class="menu-ico">📖</span> 
-                        <span class="menu-text">আমার পুলিশ @ ফোনবুক</span>
+                        <span class="menu-text">Police Phonebook</span>
                     </li>
                     <li data-action="search">
                         <span class="menu-ico">🔍</span> 
@@ -35,9 +35,9 @@ export function initDrawer() {
                         <span class="menu-ico">❤️</span> 
                         <span class="menu-text">Favorite Number</span>
                     </li>
-                    <li data-action="more-app">
-                        <span class="menu-ico">📱</span> 
-                        <span class="menu-text">More Application</span>
+                    <li data-action="notice-box">
+                        <span class="menu-ico">📢</span> 
+                        <span class="menu-text">Notice Box</span>
                     </li>
                 </ul>
 
@@ -47,10 +47,6 @@ export function initDrawer() {
                     <li data-action="settings">
                         <span class="menu-ico">⚙️</span> 
                         <span class="menu-text">Setting Menu</span>
-                    </li>
-                    <li data-action="update-db">
-                        <span class="menu-ico">🔄</span> 
-                        <span class="menu-text">Update App Database</span>
                     </li>
                     <li data-action="delete-db" class="text-danger">
                         <span class="menu-ico">🗑️</span> 
@@ -81,10 +77,16 @@ export function initDrawer() {
             </div>
             
             <div class="drawer-footer">
-                <span>Version 1.1.0 • Secure</span>
+                <span>Secure • Version 1.1.0</span>
             </div>
         </nav>
     `;
+
+    // যদি আগে কোনো ড্রয়ার থেকে থাকে তবে তা রিমूव করে নতুনটি যুক্ত করা
+    const existingDrawer = document.getElementById('appDrawer');
+    const existingOverlay = document.getElementById('appDrawerOverlay');
+    if (existingDrawer) existingDrawer.remove();
+    if (existingOverlay) existingOverlay.remove();
 
     document.body.insertAdjacentHTML('beforeend', drawerHTML);
 
@@ -96,7 +98,7 @@ export function initDrawer() {
     function openDrawer() {
         drawer.classList.add('open');
         overlay.classList.add('show');
-        document.body.style.overflow = 'hidden'; // ব্যাকগ্রাউন্ড স্ক্রোল লক করা
+        document.body.style.overflow = 'hidden';
     }
 
     function closeDrawer() {
@@ -135,13 +137,12 @@ function handleDrawerAction(action) {
             console.log('Home clicked');
             break;
         case 'search':
-            console.log('Search clicked');
+            // যদি আপনার অ্যাপে অল সার্চ বাটন থাকে সেটি ট্রিগার করতে পারেন
+            const allSearchBtn = document.getElementById('allSearchBtn');
+            if (allSearchBtn) allSearchBtn.click();
             break;
-        case 'favorite':
-            console.log('Favorite clicked');
-            break;
-        case 'settings':
-            console.log('Settings clicked');
+        case 'notice-box':
+            console.log('Notice Box clicked');
             break;
         case 'share':
             if (navigator.share) {
