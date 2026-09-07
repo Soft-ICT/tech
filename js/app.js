@@ -1692,6 +1692,108 @@ function customConfirm(message, title = "নিশ্চিতকরণ", confir
     });
 }
 
+// Main App State & Core Logic
+document.addEventListener('DOMContentLoaded', () => {
+    setupEvents();
+    loadInitialData();
+});
+
+function setupEvents() {
+    // Theme Toggle
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const bodyRoot = document.getElementById('bodyRoot');
+    
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', () => {
+            bodyRoot.classList.toggle('dark');
+            const isDark = bodyRoot.classList.contains('dark');
+            themeToggleBtn.innerHTML = isDark ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+        });
+    }
+
+    // Navigation / Back Buttons
+    const backToDashboard = document.getElementById('backToDashboard');
+    if (backToDashboard) {
+        backToDashboard.addEventListener('click', () => {
+            switchView('mainDashboardView');
+        });
+    }
+
+    // Admin Modal Close
+    const closeAdminModal = document.getElementById('closeAdminModal');
+    const adminModal = document.getElementById('adminModal');
+    if (closeAdminModal && adminModal) {
+        closeAdminModal.addEventListener('click', () => {
+            adminModal.classList.add('hidden');
+        });
+    }
+
+    // Live Search Functionality
+    const liveSearchInput = document.getElementById('liveSearchInput');
+    if (liveSearchInput) {
+        liveSearchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            filterContacts(query);
+        });
+    }
+}
+
+// Single Page Application (SPA) View Switching
+function switchView(viewId) {
+    const views = document.querySelectorAll('.view-section');
+    views.forEach(v => v.classList.add('hidden'));
+    
+    const targetView = document.getElementById(viewId);
+    if (targetView) {
+        targetView.classList.remove('hidden');
+    }
+}
+
+function loadInitialData() {
+    // ডামি ক্যাটাগরি ডাটা রেন্ডার করার উদাহরণ
+    const categoryGrid = document.getElementById('categoryGrid');
+    if (!categoryGrid) return;
+
+    const dummyCategories = [
+        { id: 1, name: 'ডিআইজি অফিস', icon: 'fa-building', count: 12 },
+        { id: 2, name: 'পুলিশ সুপার অফিস', icon: 'fa-shield-halved', count: 25 },
+        { id: 3, name: 'থানাসমূহ', icon: 'fa-landmark', count: 10 },
+        { id: 4, name: 'ট্রাফিক বিভাগ', icon: 'fa-traffic-light', count: 8 }
+    ];
+
+    categoryGrid.innerHTML = '';
+    dummyCategories.forEach(cat => {
+        const card = document.createElement('div');
+        card.className = 'bg-white p-4 rounded-lg shadow hover:shadow-md cursor-pointer transition border border-gray-200 flex flex-col items-center text-center';
+        card.innerHTML = `
+            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xl mb-3">
+                <i class="fa-solid ${cat.icon}"></i>
+            </div>
+            <h3 class="font-bold text-gray-700 mb-1">${cat.name}</h3>
+            <span class="text-xs text-gray-500">${cat.count}টি নম্বর</span>
+        `;
+        card.addEventListener('click', () => {
+            openCategoryDetails(cat.name);
+        });
+        categoryGrid.appendChild(card);
+    });
+}
+
+function openCategoryDetails(categoryName) {
+    const categoryTitle = document.getElementById('categoryTitle');
+    if (categoryTitle) categoryTitle.innerText = categoryName;
+    
+    // কনটেন্ট লোড করার লজিক এখানে যুক্ত করা যাবে
+    switchView('categoryDetailsView');
+}
+
+function filterContacts(query) {
+    console.log("Searching for:", query);
+    // সার্চ ফিল্টারিং লজিক এখানে ইমপ্লিমেন্ট করতে পারেন
+}
+
+
+
 function showToast(msg) {
     const toast = document.getElementById("toast");
     if (!toast) return;
