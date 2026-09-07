@@ -1989,7 +1989,6 @@
             passwordButton.textContent = "যাচাই হচ্ছে...";
 
             try {
-                // সরাসরি আপনার প্রজেক্টের firebase.js এর db থেকে ডাটা আনছে
                 const passwordRef = ref(db, 'webapp/admin/password');
                 const snapshot = await get(passwordRef);
 
@@ -2038,7 +2037,7 @@
         });
 
     })();
-    </script>
+</script>
 
 <script type="module">
     import { initDrawer } from './js/drawer.js';
@@ -2047,7 +2046,6 @@
         initDrawer();
     });
 </script>
-    
 
 </body>
 </html>
