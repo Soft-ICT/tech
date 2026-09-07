@@ -8,12 +8,9 @@ export function initDrawer() {
             <div class="drawer-header">
                 <div class="drawer-header-bg-glow"></div>
                 <div class="drawer-profile-area">
-                    <div class="drawer-avatar">
-                        <span class="drawer-icon">
-                  <div class="drawer-avatar">
-                    <img src="icon/icon-192.png" alt="" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
-                      </div>
-
+                    <div class="drawer-avatar" style="overflow: hidden; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #fff;">
+                        <img src="icon/icon-192.png" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
                     <div class="drawer-title-texts">
                         <h3>Police Phonebook</h3>
                         <p>Bangladesh Police</p>
@@ -140,7 +137,6 @@ function handleDrawerAction(action) {
             console.log('Home clicked');
             break;
         case 'search':
-            // যদি আপনার অ্যাপে অল সার্চ বাটন থাকে সেটি ট্রিগার করতে পারেন
             const allSearchBtn = document.getElementById('allSearchBtn');
             if (allSearchBtn) allSearchBtn.click();
             break;
