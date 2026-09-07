@@ -131,6 +131,66 @@ export function initDrawer() {
     });
 }
 
+// Drawer Component Logic
+document.addEventListener('DOMContentLoaded', () => {
+    initDrawer();
+});
+
+function initDrawer() {
+    const navToggleBtn = document.getElementById('navToggleBtn');
+    const sideDrawer = document.getElementById('sideDrawer');
+    const drawerOverlay = document.getElementById('drawerOverlay');
+    const drawerCloseBtn = document.getElementById('drawerCloseBtn');
+    const drawerLinks = document.querySelectorAll('#sideDrawer ul li a');
+
+    function openDrawer() {
+        sideDrawer.classList.remove('-translate-x-full');
+        drawerOverlay.classList.remove('hidden');
+    }
+
+    function closeDrawer() {
+        sideDrawer.classList.add('-translate-x-full');
+        drawerOverlay.classList.add('hidden');
+    }
+
+    if (navToggleBtn) navToggleBtn.addEventListener('click', openDrawer);
+    if (drawerCloseBtn) drawerCloseBtn.addEventListener('click', closeDrawer);
+    if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawer);
+
+    drawerLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const action = link.getAttribute('data-action');
+            handleDrawerAction(action);
+            closeDrawer();
+        });
+    });
+}
+
+function handleDrawerAction(action) {
+    switch (action) {
+        case 'home':
+            if (typeof showDashboardView === 'function') showDashboardView();
+            break;
+        case 'favorites':
+            // ফেভারিট কন্টাক্ট ফিল্টার করার লজিক এখানে যুক্ত করা যাবে
+            alert('ফেভারিট লিস্ট ফিচারটি শীঘ্রই আসছে!');
+            break;
+        case 'search':
+            const searchBtn = document.getElementById('allSearchBtn');
+            if (searchBtn) searchBtn.click();
+            break;
+        case 'admin':
+            const adminModal = document.getElementById('adminModal');
+            if (adminModal) adminModal.classList.remove('hidden');
+            break;
+        default:
+            console.log('Unknown action:', action);
+    }
+}
+
+
+
 function handleDrawerAction(action) {
     switch (action) {
         case 'home':
