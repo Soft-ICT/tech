@@ -10,9 +10,10 @@ export function initDrawer() {
                 <div class="drawer-profile-area">
                     <div class="drawer-avatar">
                         <span class="drawer-icon">
-                  <img src="icon/icon-192.png" alt="Icon" style="width: 24px; height: 24px; vertical-align: middle; object-fit: contain;">
-                    </span>
+                  <div class="drawer-avatar">
+                    <img src="icon/icon-192.png" alt="" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
                       </div>
+
                     <div class="drawer-title-texts">
                         <h3>Police Phonebook</h3>
                         <p>Bangladesh Police</p>
