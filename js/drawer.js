@@ -9,8 +9,10 @@ export function initDrawer() {
                 <div class="drawer-header-bg-glow"></div>
                 <div class="drawer-profile-area">
                     <div class="drawer-avatar">
-                        <span class="drawer-icon">🛡️</span>
-                    </div>
+                        <span class="drawer-icon">
+                  <img src="icons/icon-192.png" alt="Icon" style="width: 24px; height: 24px; vertical-align: middle; object-fit: contain;">
+                    </span>
+                      </div>
                     <div class="drawer-title-texts">
                         <h3>Police Phonebook</h3>
                         <p>Bangladesh Police</p>
