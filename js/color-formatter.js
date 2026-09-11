@@ -1,13 +1,14 @@
 /**
- * Color & Design Formatter for Firebase Data
+ * Advanced Color & Design Formatter for Firebase Data
  * Path: Js/color-formatter.js
  *
  * Features:
- * 1. Category / Sub-category / Data text-এর Color Code কাজ করবে
- * 2. #red, #blue ইত্যাদি মূল text থেকে hide হবে
- * 3. Toolbar-এর নিজের color/style পরিবর্তন হবে না
- * 4. Toolbar-এ Color Code থাকলে শুধু Code hide হবে
- * 5. Firebase dynamic content-এর সাথেও কাজ করবে
+ * - Category / Sub-category / Data / Profile formatting
+ * - Multiple codes in one text
+ * - Toolbar color/style কখনো পরিবর্তন করবে না
+ * - Toolbar থেকে সব formatting code hide করবে
+ * - Firebase dynamic content support
+ * - 30+ Color / Text / Highlight / Gradient / Glow effects
  */
 
 (function () {
@@ -16,50 +17,239 @@
 
 
     // =========================================================
-    // COLOR KEYWORDS
+    // COLOR + DESIGN KEYWORDS
     // =========================================================
 
     const COLOR_KEYWORDS = {
 
+        // =====================================================
+        // BASIC COLORS
+        // =====================================================
+
         '#red': {
-            color: '#ef4444',
-            type: 'text'
+            type: 'text',
+            color: '#ef4444'
         },
 
         '#blue': {
-            color: '#2563eb',
-            type: 'text'
+            type: 'text',
+            color: '#2563eb'
         },
 
         '#green': {
-            color: '#10b981',
-            type: 'text'
+            type: 'text',
+            color: '#10b981'
         },
 
         '#yellow': {
-            color: '#f59e0b',
-            type: 'text'
+            type: 'text',
+            color: '#f59e0b'
         },
 
         '#purple': {
-            color: '#8b5cf6',
-            type: 'text'
+            type: 'text',
+            color: '#8b5cf6'
         },
 
         '#pink': {
-            color: '#ec4899',
-            type: 'text'
+            type: 'text',
+            color: '#ec4899'
+        },
+
+        '#orange': {
+            type: 'text',
+            color: '#f97316'
+        },
+
+        '#cyan': {
+            type: 'text',
+            color: '#06b6d4'
+        },
+
+        '#teal': {
+            type: 'text',
+            color: '#14b8a6'
+        },
+
+        '#indigo': {
+            type: 'text',
+            color: '#6366f1'
+        },
+
+        '#black': {
+            type: 'text',
+            color: '#111827'
+        },
+
+        '#white': {
+            type: 'text',
+            color: '#ffffff'
+        },
+
+
+        // =====================================================
+        // TEXT STYLE
+        // =====================================================
+
+        '#bold': {
+            type: 'bold'
+        },
+
+        '#italic': {
+            type: 'italic'
+        },
+
+        '#underline': {
+            type: 'underline',
+            borderBottom: '2px solid currentColor'
         },
 
         '#underline_gold': {
-            borderBottom: '2px solid #f59e0b',
-            type: 'underline'
+            type: 'underline',
+            borderBottom: '2px solid #f59e0b'
         },
 
+        '#underline_red': {
+            type: 'underline',
+            borderBottom: '2px solid #ef4444'
+        },
+
+        '#underline_blue': {
+            type: 'underline',
+            borderBottom: '2px solid #2563eb'
+        },
+
+        '#strike': {
+            type: 'strike'
+        },
+
+
+        // =====================================================
+        // HIGHLIGHT / MARKING
+        // =====================================================
+
+        '#highlight': {
+            type: 'highlight',
+            background: '#fff3a3',
+            color: '#111827'
+        },
+
+        '#highlight_blue': {
+            type: 'highlight',
+            background: '#bfdbfe',
+            color: '#1e3a8a'
+        },
+
+        '#highlight_green': {
+            type: 'highlight',
+            background: '#bbf7d0',
+            color: '#14532d'
+        },
+
+        '#highlight_red': {
+            type: 'highlight',
+            background: '#fecaca',
+            color: '#7f1d1d'
+        },
+
+        '#highlight_purple': {
+            type: 'highlight',
+            background: '#ddd6fe',
+            color: '#4c1d95'
+        },
+
+        '#highlight_pink': {
+            type: 'highlight',
+            background: '#fbcfe8',
+            color: '#831843'
+        },
+
+
+        // =====================================================
+        // GRADIENT TEXT
+        // =====================================================
+
         '#grad_ocean': {
-            background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-            color: '#fff',
-            type: 'gradient'
+            type: 'gradient',
+            background:
+                'linear-gradient(135deg, #3b82f6, #06b6d4)'
+        },
+
+        '#grad_fire': {
+            type: 'gradient',
+            background:
+                'linear-gradient(135deg, #ef4444, #f97316, #f59e0b)'
+        },
+
+        '#grad_purple': {
+            type: 'gradient',
+            background:
+                'linear-gradient(135deg, #8b5cf6, #ec4899)'
+        },
+
+        '#grad_green': {
+            type: 'gradient',
+            background:
+                'linear-gradient(135deg, #10b981, #22c55e)'
+        },
+
+        '#grad_sunset': {
+            type: 'gradient',
+            background:
+                'linear-gradient(135deg, #f97316, #ec4899, #8b5cf6)'
+        },
+
+        '#grad_blue': {
+            type: 'gradient',
+            background:
+                'linear-gradient(135deg, #1d4ed8, #60a5fa)'
+        },
+
+
+        // =====================================================
+        // SHADOW
+        // =====================================================
+
+        '#shadow': {
+            type: 'shadow',
+            shadow:
+                '2px 2px 4px rgba(0,0,0,0.35)'
+        },
+
+        '#shadow_dark': {
+            type: 'shadow',
+            shadow:
+                '2px 3px 6px rgba(0,0,0,0.55)'
+        },
+
+
+        // =====================================================
+        // GLOW
+        // =====================================================
+
+        '#glow_blue': {
+            type: 'glow',
+            color: '#2563eb'
+        },
+
+        '#glow_red': {
+            type: 'glow',
+            color: '#ef4444'
+        },
+
+        '#glow_green': {
+            type: 'glow',
+            color: '#10b981'
+        },
+
+        '#glow_purple': {
+            type: 'glow',
+            color: '#8b5cf6'
+        },
+
+        '#glow_cyan': {
+            type: 'glow',
+            color: '#06b6d4'
         }
 
     };
@@ -67,8 +257,6 @@
 
     // =========================================================
     // TOOLBAR / HEADER EXCLUDE LIST
-    //
-    // এগুলোর কোনো Color / Background / Design পরিবর্তন করা হবে না
     // =========================================================
 
     const EXCLUDED_SELECTORS = [
@@ -101,7 +289,7 @@
 
 
     // =========================================================
-    // কোনো Element Toolbar/Header-এর ভিতরে আছে কি না
+    // CHECK EXCLUDED ELEMENT
     // =========================================================
 
     function isExcludedElement(el) {
@@ -111,7 +299,6 @@
         }
 
 
-        // নিজে excluded কি না
         for (const selector of EXCLUDED_SELECTORS) {
 
             try {
@@ -125,7 +312,6 @@
         }
 
 
-        // Parent / Ancestor excluded কি না
         for (const selector of EXCLUDED_SELECTORS) {
 
             try {
@@ -144,7 +330,7 @@
 
 
     // =========================================================
-    // Color Code escape করার জন্য
+    // ESCAPE REGEX
     // =========================================================
 
     function escapeRegExp(string) {
@@ -158,7 +344,7 @@
 
 
     // =========================================================
-    // TEXT থেকে Color Code সরানো
+    // REMOVE ALL CODES FROM TEXT
     // =========================================================
 
     function removeColorCodes(text) {
@@ -168,27 +354,205 @@
         }
 
 
-        Object.keys(COLOR_KEYWORDS).forEach(function (key) {
+        Object.keys(COLOR_KEYWORDS).forEach(
+            function (key) {
 
-            const escapedKey = escapeRegExp(key);
+                const regex =
+                    new RegExp(
+                        escapeRegExp(key),
+                        'gi'
+                    );
 
-            const regex = new RegExp(
-                escapedKey,
-                'gi'
-            );
+                text =
+                    text.replace(
+                        regex,
+                        ''
+                    );
 
-            text = text.replace(regex, '');
-
-        });
+            }
+        );
 
 
         return text;
+    }
+
+
+    // =========================================================
+    // APPLY SINGLE STYLE
+    // =========================================================
+
+    function applySingleStyle(
+        el,
+        config
+    ) {
+
+
+        // -----------------------------------------------------
+        // BASIC COLOR
+        // -----------------------------------------------------
+
+        if (config.type === 'text') {
+
+            el.style.color =
+                config.color;
+
+            el.style.fontWeight =
+                'bold';
+
+        }
+
+
+        // -----------------------------------------------------
+        // BOLD
+        // -----------------------------------------------------
+
+        else if (
+            config.type === 'bold'
+        ) {
+
+            el.style.fontWeight =
+                '700';
+
+        }
+
+
+        // -----------------------------------------------------
+        // ITALIC
+        // -----------------------------------------------------
+
+        else if (
+            config.type === 'italic'
+        ) {
+
+            el.style.fontStyle =
+                'italic';
+
+        }
+
+
+        // -----------------------------------------------------
+        // UNDERLINE
+        // -----------------------------------------------------
+
+        else if (
+            config.type === 'underline'
+        ) {
+
+            el.style.borderBottom =
+                config.borderBottom;
+
+            el.style.paddingBottom =
+                '2px';
+
+        }
+
+
+        // -----------------------------------------------------
+        // STRIKE
+        // -----------------------------------------------------
+
+        else if (
+            config.type === 'strike'
+        ) {
+
+            el.style.textDecoration =
+                'line-through';
+
+        }
+
+
+        // -----------------------------------------------------
+        // HIGHLIGHT
+        // -----------------------------------------------------
+
+        else if (
+            config.type === 'highlight'
+        ) {
+
+            el.style.background =
+                config.background;
+
+            el.style.color =
+                config.color;
+
+            el.style.padding =
+                '2px 6px';
+
+            el.style.borderRadius =
+                '4px';
+
+        }
+
+
+        // -----------------------------------------------------
+        // GRADIENT
+        // -----------------------------------------------------
+
+        else if (
+            config.type === 'gradient'
+        ) {
+
+            el.style.background =
+                config.background;
+
+            el.style.webkitBackgroundClip =
+                'text';
+
+            el.style.backgroundClip =
+                'text';
+
+            el.style.webkitTextFillColor =
+                'transparent';
+
+            el.style.color =
+                'transparent';
+
+            el.style.fontWeight =
+                '700';
+
+        }
+
+
+        // -----------------------------------------------------
+        // SHADOW
+        // -----------------------------------------------------
+
+        else if (
+            config.type === 'shadow'
+        ) {
+
+            el.style.textShadow =
+                config.shadow;
+
+        }
+
+
+        // -----------------------------------------------------
+        // GLOW
+        // -----------------------------------------------------
+
+        else if (
+            config.type === 'glow'
+        ) {
+
+            el.style.color =
+                config.color;
+
+            el.style.textShadow =
+                '0 0 5px ' +
+                config.color +
+                ', 0 0 10px ' +
+                config.color +
+                ', 0 0 18px ' +
+                config.color;
+
+        }
 
     }
 
 
     // =========================================================
-    // CATEGORY / SUB-CATEGORY / DATA-এর Color Apply
+    // APPLY MULTIPLE CODES
     // =========================================================
 
     function applyColorToElement(el) {
@@ -198,44 +562,50 @@
         }
 
 
-        // Toolbar / Navbar হলে কোনোভাবেই Color Apply করবে না
-        if (isExcludedElement(el)) {
-            return;
-        }
-
-
-        // আগে process করা হলে আবার process করবে না
+        // Toolbar / Header-এ formatting নিষিদ্ধ
         if (
-            el.dataset &&
-            el.dataset.colorFormatterProcessed === 'true'
+            isExcludedElement(el)
         ) {
 
             return;
-
         }
 
 
-        // Child element থাকলে parent-এর text পরিবর্তন করা যাবে না
-        if (el.childNodes.length !== 1) {
+        // আগেই process হলে আবার করবে না
+        if (
+            el.dataset &&
+            el.dataset.colorFormatterProcessed ===
+            'true'
+        ) {
+
             return;
         }
 
 
-        const node = el.childNodes[0];
+        // সরাসরি একটি Text Node হতে হবে
+        if (
+            el.childNodes.length !== 1
+        ) {
+
+            return;
+        }
 
 
-        // শুধু Text Node-এর ক্ষেত্রে কাজ করবে
+        const node =
+            el.childNodes[0];
+
+
         if (
             !node ||
             node.nodeType !== Node.TEXT_NODE
         ) {
 
             return;
-
         }
 
 
-        let text = node.textContent || '';
+        let text =
+            node.textContent || '';
 
 
         if (!text.trim()) {
@@ -243,98 +613,105 @@
         }
 
 
-        let foundKeyword = null;
-        let config = null;
-
-
         // =====================================================
-        // Color Code খুঁজে বের করা
+        // FIND ALL CODES
         // =====================================================
 
-        for (const key in COLOR_KEYWORDS) {
+        const foundCodes = [];
 
-            if (text.toLowerCase().includes(
-                key.toLowerCase()
-            )) {
 
-                foundKeyword = key;
-                config = COLOR_KEYWORDS[key];
+        Object.keys(
+            COLOR_KEYWORDS
+        ).forEach(
+            function (key) {
 
-                break;
+                const regex =
+                    new RegExp(
+                        escapeRegExp(key),
+                        'i'
+                    );
+
+
+                if (
+                    regex.test(text)
+                ) {
+
+                    foundCodes.push(
+                        key
+                    );
+
+                }
 
             }
+        );
 
-        }
 
+        // কোনো Code নেই
+        if (
+            foundCodes.length === 0
+        ) {
 
-        // Color Code নেই
-        if (!foundKeyword) {
             return;
         }
 
 
         // =====================================================
-        // Color Code HIDE
+        // REMOVE ALL CODES
         // =====================================================
 
-        const cleanText = text
-            .replace(
-                new RegExp(
-                    escapeRegExp(foundKeyword),
-                    'gi'
-                ),
-                ''
-            )
-            .trim();
+        let cleanText =
+            text;
 
 
-        node.textContent = cleanText;
+        foundCodes.forEach(
+            function (key) {
+
+                cleanText =
+                    cleanText.replace(
+                        new RegExp(
+                            escapeRegExp(key),
+                            'gi'
+                        ),
+                        ''
+                    );
+
+            }
+        );
 
 
-        // =====================================================
-        // TEXT COLOR
-        // =====================================================
-
-        if (config.type === 'text') {
-
-            el.style.color = config.color;
-
-            el.style.fontWeight = 'bold';
-
-        }
+        cleanText =
+            cleanText.trim();
 
 
-        // =====================================================
-        // UNDERLINE
-        // =====================================================
-
-        else if (config.type === 'underline') {
-
-            el.style.borderBottom =
-                config.borderBottom;
-
-            el.style.paddingBottom = '2px';
-
-        }
+        node.textContent =
+            cleanText;
 
 
         // =====================================================
-        // GRADIENT
+        // APPLY EVERY STYLE
         // =====================================================
 
-        else if (config.type === 'gradient') {
+        foundCodes.forEach(
+            function (key) {
 
-            el.style.background =
-                config.background;
+                const config =
+                    COLOR_KEYWORDS[key];
 
-            el.style.color =
-                config.color;
+                if (config) {
 
-        }
+                    applySingleStyle(
+                        el,
+                        config
+                    );
+
+                }
+
+            }
+        );
 
 
         // =====================================================
-        // Processed Mark
+        // MARK PROCESSED
         // =====================================================
 
         if (el.dataset) {
@@ -348,14 +725,14 @@
 
 
     // =========================================================
-    // TOOLBAR থেকে শুধু Color Code HIDE
+    // TOOLBAR CODE HIDER
     //
-    // গুরুত্বপূর্ণ:
-    // এখানে কোনো CSS Color / Background পরিবর্তন করা হয় না।
-    // শুধু #red/#blue ইত্যাদি text থেকে সরানো হয়।
+    // কোনো CSS পরিবর্তন করবে না।
+    // শুধু #red/#bold/#gradient ইত্যাদি সরাবে।
     // =========================================================
 
     function hideColorCodesFromToolbar() {
+
 
         const toolbarSelectors = [
 
@@ -376,87 +753,102 @@
         ];
 
 
-        toolbarSelectors.forEach(function (selector) {
-
-            document
-                .querySelectorAll(selector)
-                .forEach(function (toolbar) {
+        toolbarSelectors.forEach(
+            function (selector) {
 
 
-                    // Toolbar-এর ভিতরের Text Node খুঁজবে
-
-                    const walker =
-                        document.createTreeWalker(
-
-                            toolbar,
-
-                            NodeFilter.SHOW_TEXT,
-
-                            null,
-
-                            false
-
-                        );
+                document
+                    .querySelectorAll(
+                        selector
+                    )
+                    .forEach(
+                        function (toolbar) {
 
 
-                    const textNodes = [];
+                            const walker =
+                                document.createTreeWalker(
 
-                    let node;
+                                    toolbar,
 
+                                    NodeFilter.SHOW_TEXT,
 
-                    while (
-                        node = walker.nextNode()
-                    ) {
+                                    null,
 
-                        textNodes.push(node);
+                                    false
 
-                    }
-
-
-                    // প্রতিটি Text Node থেকে
-                    // শুধু Color Code remove করবে
-
-                    textNodes.forEach(function (textNode) {
-
-                        let text =
-                            textNode.nodeValue;
+                                );
 
 
-                        if (!text) {
-                            return;
+                            const textNodes =
+                                [];
+
+
+                            let node;
+
+
+                            while (
+                                node =
+                                walker.nextNode()
+                            ) {
+
+                                textNodes.push(
+                                    node
+                                );
+
+                            }
+
+
+                            textNodes.forEach(
+                                function (textNode) {
+
+
+                                    let text =
+                                        textNode.nodeValue;
+
+
+                                    if (!text) {
+                                        return;
+                                    }
+
+
+                                    const newText =
+                                        removeColorCodes(
+                                            text
+                                        );
+
+
+                                    if (
+                                        newText !==
+                                        text
+                                    ) {
+
+                                        textNode.nodeValue =
+                                            newText;
+
+                                    }
+
+                                }
+                            );
+
                         }
+                    );
 
-
-                        const newText =
-                            removeColorCodes(text);
-
-
-                        if (newText !== text) {
-
-                            textNode.nodeValue =
-                                newText;
-
-                        }
-
-                    });
-
-                });
-
-        });
+            }
+        );
 
     }
 
 
     // =========================================================
-    // MAIN COLOR FORMATTER
+    // MAIN FUNCTION
     // =========================================================
 
     function applyDynamicStyles() {
 
 
-        // =====================================================
-        // Category / Sub-category / Data-এর জন্য Elements
-        // =====================================================
+        // -----------------------------------------------------
+        // Content Elements
+        // -----------------------------------------------------
 
         const elements =
             document.querySelectorAll(
@@ -478,16 +870,20 @@
             );
 
 
-        elements.forEach(function (el) {
+        elements.forEach(
+            function (el) {
 
-            applyColorToElement(el);
+                applyColorToElement(
+                    el
+                );
 
-        });
+            }
+        );
 
 
-        // =====================================================
-        // Toolbar-এ Color Code থাকলে শুধু Hide করবে
-        // =====================================================
+        // -----------------------------------------------------
+        // Toolbar থেকে সব Code Hide
+        // -----------------------------------------------------
 
         hideColorCodesFromToolbar();
 
@@ -496,58 +892,74 @@
 
     // =========================================================
     // MUTATION OBSERVER
-    //
-    // Firebase থেকে নতুন Data / Category আসলে
-    // formatter আবার কাজ করবে।
     // =========================================================
 
-    let observerStarted = false;
+    let observerStarted =
+        false;
 
 
     function startObserver() {
 
 
-        if (observerStarted) {
+        if (
+            observerStarted
+        ) {
+
             return;
         }
 
 
-        if (!document.body) {
+        if (
+            !document.body
+        ) {
+
             return;
         }
 
 
-        observerStarted = true;
+        observerStarted =
+            true;
 
 
         const observer =
-            new MutationObserver(function (mutations) {
+            new MutationObserver(
+                function (mutations) {
 
 
-                let shouldProcess = false;
+                    let shouldProcess =
+                        false;
 
 
-                mutations.forEach(function (mutation) {
+                    mutations.forEach(
+                        function (mutation) {
+
+                            if (
+                                mutation.type ===
+                                'childList' &&
+
+                                mutation.addedNodes.length >
+                                0
+                            ) {
+
+                                shouldProcess =
+                                    true;
+
+                            }
+
+                        }
+                    );
+
 
                     if (
-                        mutation.type === 'childList' &&
-                        mutation.addedNodes.length > 0
+                        shouldProcess
                     ) {
 
-                        shouldProcess = true;
+                        applyDynamicStyles();
 
                     }
 
-                });
-
-
-                if (shouldProcess) {
-
-                    applyDynamicStyles();
-
                 }
-
-            });
+            );
 
 
         observer.observe(
@@ -571,15 +983,13 @@
     function initializeColorFormatter() {
 
 
-        // প্রথমবার
         applyDynamicStyles();
 
 
-        // Observer চালু
         startObserver();
 
 
-        // Firebase / Dynamic UI render হওয়ার পর
+        // Firebase / Dynamic Content
         setTimeout(
             applyDynamicStyles,
             300
@@ -616,11 +1026,8 @@
     ) {
 
         document.addEventListener(
-
             'DOMContentLoaded',
-
             initializeColorFormatter
-
         );
 
     } else {
@@ -635,23 +1042,17 @@
     // =========================================================
 
     window.addEventListener(
-
         'load',
-
         function () {
 
             applyDynamicStyles();
 
         }
-
     );
 
 
     // =========================================================
     // GLOBAL FUNCTION
-    //
-    // অন্য JavaScript থেকে প্রয়োজন হলে:
-    // window.applyFirebaseTextColors();
     // =========================================================
 
     window.applyFirebaseTextColors =
