@@ -1,3 +1,110 @@
+<!DOCTYPE html>
+<html lang="bn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="theme-color" content="#0d6efd">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Police Phonebook">
+
+    <title>Police Phonebook</title>
+
+    <link rel="manifest" href="manifest.json?v=1.1">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet" href="css/style.css?v=6">
+
+    <style>
+
+        /* =========================================================
+           ORIGINAL APP HIDDEN UNTIL PASSWORD IS VERIFIED
+           ========================================================= */
+
+        body.app-locked {
+            overflow: hidden !important;
+        }
+
+        #appContainer {
+            visibility: hidden;
+        }
+
+        #appContainer.app-unlocked {
+            visibility: visible;
+        }
+
+
+        /* =========================================================
+           SPLASH SCREEN
+           ========================================================= */
+
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+
+            width: 100vw;
+            height: 100vh;
+
+            background-color: var(--splash-bg, #f8fafc);
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+
+            z-index: 1000000;
+
+            opacity: 1;
+            visibility: visible;
+
+            transition:
+                opacity 0.5s ease-out,
+                visibility 0.5s;
+        }
+
+        #splash-screen.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+
+        /* Splash theme */
+
+        :root {
+            --splash-bg: #f8fafc;
+            --splash-text: #0f172a;
+            --splash-secondary: #0284c7;
+            --splash-red: rgba(239, 68, 68, 0.12);
+            --splash-blue: rgba(37, 99, 235, 0.15);
+            --splash-loader: rgba(15, 23, 42, 0.08);
+        }
+
+        body.dark-mode {
+            --splash-bg: #030712;
+            --splash-text: #ffffff;
+            --splash-secondary: #38bdf8;
+            --splash-red: rgba(239, 68, 68, 0.25);
+            --splash-blue: rgba(37, 99, 235, 0.3);
+            --splash-loader: rgba(255, 255, 255, 0.1);
+        }
+
+
+        .siren-glow-red {
+            position: absolute;
+
+            width: 60vw;
+            height: 60vw;
 
             max-width: 500px;
             max-height: 500px;
