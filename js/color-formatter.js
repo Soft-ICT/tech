@@ -1,12 +1,11 @@
 /**
- * Color & Design Formatter for Firebase Data (100% Working)
+ * Color & Design Formatter for Firebase Data (Final Fix)
  * Path: Js/color-formatter.js
  */
 
 (function () {
     'use strict';
 
-    // কালার এবং ডিজাইন প্যাটার্ন
     const COLOR_KEYWORDS = {
         '#red': { color: '#ef4444', type: 'text' },
         '#blue': { color: '#2563eb', type: 'text' },
@@ -19,12 +18,18 @@
     };
 
     function applyDynamicStyles() {
-        // পেজের হেডার, ন্যাভবার বা টুলবারের মূল ব্যাকগ্রাউন্ড বা স্টাইল যেন নষ্ট না হয়,
-        // কিন্তু সেগুলোর ভেতরের টেক্সট বা টাইটেল যদি কালার কোড থাকে তা যেন কাজ করে।
-        const allElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, span, p, div, b, strong, td, th, a');
+        // শুধুমাত্র প্রজেক্টের লিস্ট বা কার্ড এরিয়া টার্গেট করা (যাতে টুলবার বা হেডার পুরোপুরি নিরাপদ থাকে)
+        const contentElements = document.querySelectorAll('.data-card-item, .card, .list-item, .content-area span, .content-area p, .data-card-name');
 
-        allElements.forEach(el => {
-            // যদি এলিমেন্টের ভেতরে চাইল্ড ট্যাগ না থাকে এবং টেক্সট থাকে
+        // যদি সুনির্দিষ্ট ক্লাস না পাওয়া যায়, তবে সাধারণ টেক্সট এলিমেন্টগুলো স্ক্যান করবে তবে হেডার/টুলবার কঠোরভাবে বাদ রাখবে
+        const targetNodes = contentElements.length > 0 ? contentElements : document.querySelectorAll('span, p, div, b, strong');
+
+        targetNodes.forEach(el => {
+            // অতি জরুরি ফিল্টার: টুলবার, হেডার, ন্যাভবার বা ব্যাক বাটন সংলগ্ন এলাকা হলে স্কিপ করবে
+            if (el.closest('header, nav, .toolbar, .navbar, .header, [class*="toolbar"], [class*="header"], [class*="nav"], button')) {
+                return;
+            }
+
             if (el.childNodes.length === 1 && el.childNodes[0].nodeType === Node.TEXT_NODE) {
                 let text = el.textContent;
 
@@ -32,12 +37,12 @@
                     if (text.includes(key)) {
                         let config = COLOR_KEYWORDS[key];
 
-                        // ১. টেক্সট থেকে কালার কোডটি সম্পূর্ণ রিমোভ বা হাইড করে ফেলা
+                        // কোড হাইড করা এবং টেক্সট পরিষ্কার করা
                         let cleanText = text.replace(key, '').trim();
                         el.textContent = cleanText;
                         el.dataset.styledProcessed = "true";
 
-                        // ২. কাঙ্ক্ষিত কালার বা স্টাইল অ্যাপ্লাই করা
+                        // স্টাইল অ্যাপ্লাই করা
                         if (config.type === 'text') {
                             el.style.color = config.color;
                             el.style.fontWeight = 'bold';
@@ -55,7 +60,6 @@
         });
     }
 
-    // ফায়ারবেজ থেকে ডাটা লোড বা পেজ পরিবর্তন হলে রিয়েল-টাইমে কাজ করার জন্য
     const observer = new MutationObserver(() => {
         applyDynamicStyles();
     });
@@ -65,9 +69,6 @@
         observer.observe(document.body, { childList: true, subtree: true });
     });
 
-    // পেজ রেন্ডারিংয়ের বিভিন্ন মুহূর্তে যেন কোডটি মিস না হয়
-    window.addEventListener('load', applyDynamicStyles);
-    setTimeout(applyDynamicStyles, 300);
-    setTimeout(applyDynamicStyles, 800);
-    setTimeout(applyDynamicStyles, 1500);
+    setTimeout(applyDynamicStyles, 400);
+    setTimeout(applyDynamicStyles, 1000);
 })();
