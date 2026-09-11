@@ -1,6 +1,6 @@
 /**
  * Color & Design Formatter for Firebase Data
- * Path: js/color-formatter.js
+ * Path: Js/color-formatter.js
  */
 
 (function () {
@@ -18,49 +18,44 @@
     };
 
     function applyDynamicStyles() {
-        // পেজের সব টেক্সট নোড স্ক্যান করবে, তবে টুলবার বা হেডার বাদে
-        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
-        let node;
+        // পেজের সমস্ত এলিমেন্ট চেক করা (যেগুলোতে টেক্সট আছে)
+        const allElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, span, p, div, a, b, strong, td, th');
 
-        while (node = walker.nextNode()) {
-            let text = node.nodeValue;
-            if (!text) continue;
+        allElements.forEach(el => {
+            // যদি ভেতরের কোনো চাইল্ড এলিমেন্ট না থাকে (শুধু সরাসরি টেক্সট থাকে)
+            if (el.children.length === 0 && el.textContent) {
+                let text = el.textContent;
 
-            // চেক করা হচ্ছে টেক্সটে কোনো কালার কোড আছে কি না
-            for (const key in COLOR_KEYWORDS) {
-                if (text.includes(key)) {
-                    let parentElement = node.parentElement;
-                    if (!parentElement) continue;
+                for (const key in COLOR_KEYWORDS) {
+                    if (text.includes(key)) {
+                        // টুলবার বা হেডার এরিয়া যদি বাঁচাতে চান, তবে নিচের কন্ডিশনটি রাখতে পারেন। 
+                        // তবে টাইটেল বা হেডার লাল করতে চাইলে এই প্রটেকশন হটিয়ে দেওয়া ভালো। 
+                        // যেহেতু আপনি কমান্ড্যান্ট লেখাটি কালার করতে চাচ্ছেন, তাই এটি হেডার হলেও কাজ করবে।
 
-                    // টুলবার, ন্যাভবার বা হেডার এরিয়া হলে সেটিকে স্কিপ করবে (সুরক্ষিত রাখবে)
-                    if (parentElement.closest('header, nav, .toolbar, .navbar, [class*="toolbar"], [class*="header"]')) {
-                        continue;
-                    }
+                        let config = COLOR_KEYWORDS[key];
+                        
+                        // টেক্সট থেকে কি-ওয়ার্ড রিমোভ করে পরিচ্ছন্ন করা
+                        el.textContent = text.replace(key, '').trim();
+                        el.dataset.styledProcessed = "true";
 
-                    if (parentElement.dataset.styledProcessed) continue;
-                    parentElement.dataset.styledProcessed = "true";
-
-                    // হ্যাশট্যাগ রিমোভ করে টেক্সট পরিচ্ছন্ন করা
-                    let cleanHtml = parentElement.innerHTML.replace(key, '').trim();
-                    parentElement.innerHTML = cleanHtml;
-
-                    // কালার বা ডিজাইন অ্যাপ্লাই করা
-                    let config = COLOR_KEYWORDS[key];
-                    if (config.type === 'text') {
-                        parentElement.style.color = config.color;
-                        parentElement.style.fontWeight = 'bold';
-                    } else if (config.type === 'underline') {
-                        parentElement.style.borderBottom = config.borderBottom;
-                    } else if (config.type === 'gradient') {
-                        parentElement.style.background = config.background;
-                        parentElement.style.color = config.color;
+                        // স্টাইল অ্যাপ্লাই করা
+                        if (config.type === 'text') {
+                            el.style.color = config.color;
+                            el.style.fontWeight = 'bold';
+                        } else if (config.type === 'underline') {
+                            el.style.borderBottom = config.borderBottom;
+                        } else if (config.type === 'gradient') {
+                            el.style.background = config.background;
+                            el.style.color = config.color;
+                        }
+                        break;
                     }
                 }
             }
-        }
+        });
     }
 
-    // DOM লোড বা পরিবর্তন হলে স্বয়ংক্রিয়ভাবে রান করবে
+    // DOM পরিবর্তন বা পেজ লোড হওয়ার সাথে সাথে রান করার জন্য
     const observer = new MutationObserver(() => {
         applyDynamicStyles();
     });
@@ -70,5 +65,7 @@
         observer.observe(document.body, { childList: true, subtree: true });
     });
 
-    setTimeout(applyDynamicStyles, 600);
+    // ডাইনামিক রেন্ডারিংয়ের জন্য অতিরিক্ত টাইমার
+    setTimeout(applyDynamicStyles, 300);
+    setTimeout(applyDynamicStyles, 800);
 })();
