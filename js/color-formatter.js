@@ -1,26 +1,37 @@
 /* ============================================================
    Firebase Text Color & Design Formatter
    File: Js/color-formatter.js
-   Version: Advanced + Animated Gradient
 
-   Supports:
-   - Firebase text formatting codes
-   - Multiple codes on same text
-   - Data Card
-   - Data Profile
-   - Category
-   - Sub Category
-   - Header
-   - Home Notice
-   - Scrolling Notice
-   - Dynamic Firebase content
-   - Toolbar code cleanup
-   - Animated Gradients
-   - No formatting code is visible
+   Features:
+   ✔ Basic colors
+   ✔ Bold / Italic / Underline
+   ✔ Highlight
+   ✔ Static Gradient
+   ✔ Animated Gradient
+   ✔ Aurora
+   ✔ Fire
+   ✔ Ocean
+   ✔ Purple
+   ✔ Sunset
+   ✔ Green
+   ✔ Rainbow
+   ✔ Shadow
+   ✔ Glow
+   ✔ Multiple codes
+   ✔ Data Card safe
+   ✔ Data Profile safe
+   ✔ Category / Sub-category safe
+   ✔ Home Notice safe
+   ✔ Scrolling Notice safe
+   ✔ Firebase dynamic content
+   ✔ Formatting codes never visible
+   ✔ Toolbar design is not changed
 ============================================================ */
 
 (function () {
+
     "use strict";
+
 
     /* ============================================================
        FORMAT CODES
@@ -28,7 +39,7 @@
 
     const FORMAT_CODES = {
 
-        /* ---------- BASIC COLORS ---------- */
+        /* ================= BASIC COLORS ================= */
 
         "#red": {
             color: "#ff0000"
@@ -79,7 +90,7 @@
         },
 
 
-        /* ---------- TEXT STYLE ---------- */
+        /* ================= TEXT STYLE ================= */
 
         "#bold": {
             fontWeight: "700"
@@ -116,7 +127,7 @@
         },
 
 
-        /* ---------- HIGHLIGHT ---------- */
+        /* ================= HIGHLIGHT ================= */
 
         "#highlight": {
             backgroundColor: "#fff176",
@@ -155,10 +166,11 @@
         },
 
 
-        /* ---------- STATIC GRADIENT ---------- */
+        /* ================= STATIC GRADIENT ================= */
 
         "#grad_ocean": {
-            backgroundImage: "linear-gradient(90deg,#00c6ff,#0072ff)",
+            backgroundImage:
+                "linear-gradient(90deg,#00c6ff,#0072ff)",
             backgroundClip: "text",
             webkitBackgroundClip: "text",
             color: "transparent",
@@ -166,7 +178,8 @@
         },
 
         "#grad_fire": {
-            backgroundImage: "linear-gradient(90deg,#ff512f,#f09819)",
+            backgroundImage:
+                "linear-gradient(90deg,#ff512f,#f09819)",
             backgroundClip: "text",
             webkitBackgroundClip: "text",
             color: "transparent",
@@ -174,7 +187,8 @@
         },
 
         "#grad_purple": {
-            backgroundImage: "linear-gradient(90deg,#8e2de2,#4a00e0)",
+            backgroundImage:
+                "linear-gradient(90deg,#8e2de2,#4a00e0)",
             backgroundClip: "text",
             webkitBackgroundClip: "text",
             color: "transparent",
@@ -182,7 +196,8 @@
         },
 
         "#grad_green": {
-            backgroundImage: "linear-gradient(90deg,#00b09b,#96c93d)",
+            backgroundImage:
+                "linear-gradient(90deg,#00b09b,#96c93d)",
             backgroundClip: "text",
             webkitBackgroundClip: "text",
             color: "transparent",
@@ -190,7 +205,8 @@
         },
 
         "#grad_sunset": {
-            backgroundImage: "linear-gradient(90deg,#ff512f,#dd2476)",
+            backgroundImage:
+                "linear-gradient(90deg,#ff512f,#dd2476)",
             backgroundClip: "text",
             webkitBackgroundClip: "text",
             color: "transparent",
@@ -198,7 +214,8 @@
         },
 
         "#grad_blue": {
-            backgroundImage: "linear-gradient(90deg,#36d1dc,#5b86e5)",
+            backgroundImage:
+                "linear-gradient(90deg,#36d1dc,#5b86e5)",
             backgroundClip: "text",
             webkitBackgroundClip: "text",
             color: "transparent",
@@ -218,8 +235,10 @@
             webkitBackgroundClip: "text",
             color: "transparent",
             webkitTextFillColor: "transparent",
-            animation: "firebaseGradientAnimation 6s ease infinite"
+            animation:
+                "firebaseGradientAnimation 6s ease infinite"
         },
+
 
         "#grad_aurora": {
             backgroundImage:
@@ -229,8 +248,10 @@
             webkitBackgroundClip: "text",
             color: "transparent",
             webkitTextFillColor: "transparent",
-            animation: "firebaseAuroraAnimation 8s ease infinite"
+            animation:
+                "firebaseAuroraAnimation 8s ease infinite"
         },
+
 
         "#grad_fire_animated": {
             backgroundImage:
@@ -240,8 +261,10 @@
             webkitBackgroundClip: "text",
             color: "transparent",
             webkitTextFillColor: "transparent",
-            animation: "firebaseFireAnimation 4s ease infinite"
+            animation:
+                "firebaseFireAnimation 4s ease infinite"
         },
+
 
         "#grad_ocean_animated": {
             backgroundImage:
@@ -251,8 +274,10 @@
             webkitBackgroundClip: "text",
             color: "transparent",
             webkitTextFillColor: "transparent",
-            animation: "firebaseOceanAnimation 7s ease infinite"
+            animation:
+                "firebaseOceanAnimation 7s ease infinite"
         },
+
 
         "#grad_purple_animated": {
             backgroundImage:
@@ -262,8 +287,10 @@
             webkitBackgroundClip: "text",
             color: "transparent",
             webkitTextFillColor: "transparent",
-            animation: "firebasePurpleAnimation 6s ease infinite"
+            animation:
+                "firebasePurpleAnimation 6s ease infinite"
         },
+
 
         "#grad_sunset_animated": {
             backgroundImage:
@@ -273,8 +300,10 @@
             webkitBackgroundClip: "text",
             color: "transparent",
             webkitTextFillColor: "transparent",
-            animation: "firebaseSunsetAnimation 6s ease infinite"
+            animation:
+                "firebaseSunsetAnimation 6s ease infinite"
         },
+
 
         "#grad_green_animated": {
             backgroundImage:
@@ -284,8 +313,10 @@
             webkitBackgroundClip: "text",
             color: "transparent",
             webkitTextFillColor: "transparent",
-            animation: "firebaseGreenAnimation 7s ease infinite"
+            animation:
+                "firebaseGreenAnimation 7s ease infinite"
         },
+
 
         "#grad_rainbow": {
             backgroundImage:
@@ -295,67 +326,77 @@
             webkitBackgroundClip: "text",
             color: "transparent",
             webkitTextFillColor: "transparent",
-            animation: "firebaseRainbowAnimation 8s linear infinite"
+            animation:
+                "firebaseRainbowAnimation 8s linear infinite"
         },
 
 
-        /* ---------- SHADOW ---------- */
+        /* ================= SHADOW ================= */
 
         "#shadow": {
-            textShadow: "2px 2px 5px rgba(0,0,0,0.35)"
+            textShadow:
+                "2px 2px 5px rgba(0,0,0,0.35)"
         },
 
         "#shadow_dark": {
-            textShadow: "2px 3px 6px rgba(0,0,0,0.75)"
+            textShadow:
+                "2px 3px 6px rgba(0,0,0,0.75)"
         },
 
 
-        /* ---------- GLOW ---------- */
+        /* ================= GLOW ================= */
 
         "#glow_blue": {
             textShadow:
-                "0 0 5px #00aaff, 0 0 10px #00aaff, 0 0 20px #0088ff"
+                "0 0 5px #00aaff,0 0 10px #00aaff,0 0 20px #0088ff"
         },
 
         "#glow_red": {
             textShadow:
-                "0 0 5px #ff0000, 0 0 10px #ff0000, 0 0 20px #ff0000"
+                "0 0 5px #ff0000,0 0 10px #ff0000,0 0 20px #ff0000"
         },
 
         "#glow_green": {
             textShadow:
-                "0 0 5px #00ff55, 0 0 10px #00ff55, 0 0 20px #00cc44"
+                "0 0 5px #00ff55,0 0 10px #00ff55,0 0 20px #00cc44"
         },
 
         "#glow_purple": {
             textShadow:
-                "0 0 5px #b000ff, 0 0 10px #b000ff, 0 0 20px #8000ff"
+                "0 0 5px #b000ff,0 0 10px #b000ff,0 0 20px #8000ff"
         },
 
         "#glow_cyan": {
             textShadow:
-                "0 0 5px #00ffff, 0 0 10px #00ffff, 0 0 20px #00bfff"
+                "0 0 5px #00ffff,0 0 10px #00ffff,0 0 20px #00bfff"
         }
+
     };
 
 
     /* ============================================================
-       ADD ANIMATION CSS
+       ANIMATION CSS
     ============================================================ */
 
     function addAnimationStyles() {
 
-        if (document.getElementById("firebaseFormatterAnimationCSS")) {
+        if (
+            document.getElementById(
+                "firebaseFormatterAnimationCSS"
+            )
+        ) {
             return;
         }
 
         const style = document.createElement("style");
 
-        style.id = "firebaseFormatterAnimationCSS";
+        style.id =
+            "firebaseFormatterAnimationCSS";
 
         style.textContent = `
 
             @keyframes firebaseGradientAnimation {
+
                 0% {
                     background-position: 0% 50%;
                 }
@@ -367,9 +408,12 @@
                 100% {
                     background-position: 0% 50%;
                 }
+
             }
 
+
             @keyframes firebaseAuroraAnimation {
+
                 0% {
                     background-position: 0% 50%;
                 }
@@ -389,9 +433,12 @@
                 100% {
                     background-position: 0% 50%;
                 }
+
             }
+
 
             @keyframes firebaseFireAnimation {
+
                 0% {
                     background-position: 0% 50%;
                 }
@@ -403,9 +450,12 @@
                 100% {
                     background-position: 0% 50%;
                 }
+
             }
+
 
             @keyframes firebaseOceanAnimation {
+
                 0% {
                     background-position: 0% 50%;
                 }
@@ -417,9 +467,12 @@
                 100% {
                     background-position: 0% 50%;
                 }
+
             }
+
 
             @keyframes firebasePurpleAnimation {
+
                 0% {
                     background-position: 0% 50%;
                 }
@@ -431,9 +484,12 @@
                 100% {
                     background-position: 0% 50%;
                 }
+
             }
+
 
             @keyframes firebaseSunsetAnimation {
+
                 0% {
                     background-position: 0% 50%;
                 }
@@ -445,9 +501,12 @@
                 100% {
                     background-position: 0% 50%;
                 }
+
             }
+
 
             @keyframes firebaseGreenAnimation {
+
                 0% {
                     background-position: 0% 50%;
                 }
@@ -459,9 +518,12 @@
                 100% {
                     background-position: 0% 50%;
                 }
+
             }
 
+
             @keyframes firebaseRainbowAnimation {
+
                 0% {
                     background-position: 0% 50%;
                 }
@@ -473,6 +535,17 @@
                 100% {
                     background-position: 0% 50%;
                 }
+
+            }
+
+
+            /*
+             * Only the formatter-created text span
+             * receives these styles.
+             */
+
+            .firebase-formatted-text {
+                display: inline;
             }
 
         `;
@@ -482,8 +555,7 @@
 
 
     /* ============================================================
-       EXCLUDED ELEMENTS
-       Toolbar / Navigation যেন পরিবর্তন না হয়
+       EXCLUDED TOOLBAR / NAVIGATION
     ============================================================ */
 
     function isExcluded(element) {
@@ -493,6 +565,7 @@
         }
 
         return !!element.closest(`
+
             #navToggleBtn,
             #menuIcon,
             #backIcon,
@@ -505,12 +578,13 @@
             .header,
             .navigation,
             [role="navigation"]
+
         `);
     }
 
 
     /* ============================================================
-       GET FORMAT CODES
+       FIND CODES
     ============================================================ */
 
     function getCodes(text) {
@@ -521,20 +595,22 @@
 
         const found = [];
 
-        Object.keys(FORMAT_CODES).forEach(function (code) {
+        Object.keys(FORMAT_CODES).forEach(
+            function (code) {
 
-            if (text.indexOf(code) !== -1) {
-                found.push(code);
+                if (text.indexOf(code) !== -1) {
+                    found.push(code);
+                }
+
             }
-
-        });
+        );
 
         return found;
     }
 
 
     /* ============================================================
-       REMOVE FORMAT CODES
+       REMOVE CODES
     ============================================================ */
 
     function cleanText(text) {
@@ -545,96 +621,75 @@
 
         let result = text;
 
-        Object.keys(FORMAT_CODES).forEach(function (code) {
+        Object.keys(FORMAT_CODES).forEach(
+            function (code) {
 
-            result = result.split(code).join("");
+                result =
+                    result.split(code).join("");
 
-        });
+            }
+        );
 
         return result;
     }
 
 
     /* ============================================================
-       APPLY STYLE
+       APPLY STYLES ONLY TO THE NEW SPAN
     ============================================================ */
 
     function applyStyles(element, codes) {
 
-        if (!element || !codes || codes.length === 0) {
+        if (
+            !element ||
+            !codes ||
+            codes.length === 0
+        ) {
             return;
         }
 
         let hasGradient = false;
-        let hasColor = false;
 
         codes.forEach(function (code) {
 
-            const styles = FORMAT_CODES[code];
+            const styles =
+                FORMAT_CODES[code];
 
             if (!styles) {
                 return;
             }
 
-            Object.keys(styles).forEach(function (property) {
+            Object.keys(styles).forEach(
+                function (property) {
 
-                let value = styles[property];
+                    const value =
+                        styles[property];
 
-                const importantProperties = [
-                    "color",
-                    "backgroundImage",
-                    "backgroundClip",
-                    "webkitBackgroundClip",
-                    "webkitTextFillColor",
-                    "backgroundSize",
-                    "animation",
-                    "fontWeight",
-                    "fontStyle",
-                    "textDecoration",
-                    "textDecorationColor",
-                    "textDecorationThickness",
-                    "backgroundColor",
-                    "padding",
-                    "borderRadius",
-                    "textShadow"
-                ];
+                    if (
+                        property ===
+                        "backgroundImage" &&
+                        String(value)
+                            .indexOf("gradient") !== -1
+                    ) {
+                        hasGradient = true;
+                    }
 
-                if (property === "color") {
-                    hasColor = true;
-                }
-
-                if (
-                    property === "backgroundImage" &&
-                    String(value).indexOf("gradient") !== -1
-                ) {
-                    hasGradient = true;
-                }
-
-                if (property === "animation") {
                     element.style.setProperty(
                         property,
                         value,
                         "important"
                     );
-                } else if (importantProperties.indexOf(property) !== -1) {
-                    element.style.setProperty(
-                        property,
-                        value,
-                        "important"
-                    );
-                } else {
-                    element.style[property] = value;
-                }
 
-            });
+                }
+            );
 
         });
 
 
-        /* --------------------------------------------------------
-           Gradient should remain visible even when color is also
-           present. Gradient has priority over normal color.
-        -------------------------------------------------------- */
+        /*
+         * Gradient is allowed to make ONLY this span
+         * transparent so the gradient can show through.
+         */
 
         if (hasGradient) {
 
@@ -652,6 +707,9 @@
 
         }
 
+        element.classList.add(
+            "firebase-formatted-text"
+        );
 
         element.setAttribute(
             "data-firebase-formatted",
@@ -662,48 +720,87 @@
 
 
     /* ============================================================
-       FORMAT A TEXT NODE
+       FORMAT ONE TEXT NODE
     ============================================================ */
 
     function formatTextNode(textNode) {
 
-        if (!textNode || !textNode.nodeValue) {
+        if (
+            !textNode ||
+            !textNode.nodeValue
+        ) {
             return;
         }
 
-        const original = textNode.nodeValue;
+        const original =
+            textNode.nodeValue;
 
-        const codes = getCodes(original);
+        const codes =
+            getCodes(original);
 
         if (codes.length === 0) {
             return;
         }
 
-        const parent = textNode.parentElement;
+        const parent =
+            textNode.parentElement;
 
-        if (!parent || isExcluded(parent)) {
+        if (
+            !parent ||
+            isExcluded(parent)
+        ) {
             return;
         }
 
-        const cleaned = cleanText(original);
 
-        if (cleaned === "") {
+        /*
+         * Remove all codes from visible text.
+         */
+
+        const cleaned =
+            cleanText(original);
+
+        if (!cleaned) {
             textNode.nodeValue = "";
             return;
         }
 
+
         /*
-         * সাধারণ Firebase field-এ suffix code ব্যবহার করা হয়।
-         * যেমন:
-         * কমান্ড্যান্ট#red#bold
+         * IMPORTANT:
          *
-         * তাই পুরো text node-এর কোড সরিয়ে
-         * একই parent-এ style apply করা হচ্ছে।
+         * We create a separate SPAN.
+         *
+         * Therefore:
+         *
+         * Name#red
+         *
+         * changes only Name.
+         *
+         * The whole Data Card does NOT become red,
+         * white or transparent.
          */
 
-        textNode.nodeValue = cleaned;
+        const span =
+            document.createElement("span");
 
-        applyStyles(parent, codes);
+        span.textContent =
+            cleaned;
+
+        applyStyles(
+            span,
+            codes
+        );
+
+
+        /*
+         * Replace only the original text node.
+         */
+
+        parent.replaceChild(
+            span,
+            textNode
+        );
 
     }
 
@@ -714,7 +811,10 @@
 
     function formatElement(element) {
 
-        if (!element || element.nodeType !== 1) {
+        if (
+            !element ||
+            element.nodeType !== 1
+        ) {
             return;
         }
 
@@ -722,56 +822,105 @@
             return;
         }
 
-        const walker = document.createTreeWalker(
-            element,
-            NodeFilter.SHOW_TEXT,
-            {
-                acceptNode: function (node) {
 
-                    if (!node.nodeValue || !node.nodeValue.trim()) {
-                        return NodeFilter.FILTER_REJECT;
-                    }
+        /*
+         * Do not process formatter-created spans again.
+         */
 
-                    if (
-                        node.parentElement &&
-                        isExcluded(node.parentElement)
-                    ) {
-                        return NodeFilter.FILTER_REJECT;
-                    }
+        if (
+            element.classList &&
+            element.classList.contains(
+                "firebase-formatted-text"
+            )
+        ) {
+            return;
+        }
 
-                    if (getCodes(node.nodeValue).length === 0) {
-                        return NodeFilter.FILTER_REJECT;
-                    }
 
-                    return NodeFilter.FILTER_ACCEPT;
+        const walker =
+            document.createTreeWalker(
+                element,
+                NodeFilter.SHOW_TEXT,
+                {
+                    acceptNode:
+                        function (node) {
+
+                            if (
+                                !node.nodeValue ||
+                                !node.nodeValue.trim()
+                            ) {
+                                return NodeFilter.FILTER_REJECT;
+                            }
+
+                            if (
+                                node.parentElement &&
+                                node.parentElement
+                                    .classList
+                                    .contains(
+                                        "firebase-formatted-text"
+                                    )
+                            ) {
+                                return NodeFilter.FILTER_REJECT;
+                            }
+
+                            if (
+                                node.parentElement &&
+                                isExcluded(
+                                    node.parentElement
+                                )
+                            ) {
+                                return NodeFilter.FILTER_REJECT;
+                            }
+
+                            if (
+                                getCodes(
+                                    node.nodeValue
+                                ).length === 0
+                            ) {
+                                return NodeFilter.FILTER_REJECT;
+                            }
+
+                            return NodeFilter.FILTER_ACCEPT;
+
+                        }
                 }
-            }
-        );
+            );
+
 
         const textNodes = [];
 
         let node;
 
-        while ((node = walker.nextNode())) {
+        while (
+            (node = walker.nextNode())
+        ) {
             textNodes.push(node);
         }
 
-        textNodes.forEach(function (textNode) {
-            formatTextNode(textNode);
-        });
+
+        textNodes.forEach(
+            function (textNode) {
+
+                formatTextNode(
+                    textNode
+                );
+
+            }
+        );
 
     }
 
 
     /* ============================================================
-       CLEAN TOOLBAR / NAVIGATION CODES
-       এখানে শুধু #code সরবে,
-       toolbar-এর কোনো CSS পরিবর্তন হবে না।
+       TOOLBAR CODE CLEANUP
+       ONLY removes #codes.
+       DOES NOT CHANGE TOOLBAR CSS.
     ============================================================ */
 
     function cleanToolbarCodes() {
 
         const selectors = [
+
             "#navToggleBtn",
             "#menuIcon",
             "#backIcon",
@@ -784,57 +933,151 @@
             ".header",
             ".navigation",
             "[role='navigation']"
+
         ];
+
 
         document.querySelectorAll(
             selectors.join(",")
-        ).forEach(function (container) {
+        ).forEach(
+            function (container) {
 
-            const walker = document.createTreeWalker(
-                container,
-                NodeFilter.SHOW_TEXT
-            );
+                const walker =
+                    document.createTreeWalker(
+                        container,
+                        NodeFilter.SHOW_TEXT
+                    );
 
-            const nodes = [];
+                const nodes = [];
 
-            let node;
+                let node;
 
-            while ((node = walker.nextNode())) {
-                nodes.push(node);
-            }
-
-            nodes.forEach(function (textNode) {
-
-                const cleaned = cleanText(
-                    textNode.nodeValue
-                );
-
-                if (cleaned !== textNode.nodeValue) {
-                    textNode.nodeValue = cleaned;
+                while (
+                    (node = walker.nextNode())
+                ) {
+                    nodes.push(node);
                 }
 
-            });
 
-        });
+                nodes.forEach(
+                    function (textNode) {
+
+                        const cleaned =
+                            cleanText(
+                                textNode.nodeValue
+                            );
+
+                        if (
+                            cleaned !==
+                            textNode.nodeValue
+                        ) {
+
+                            textNode.nodeValue =
+                                cleaned;
+
+                        }
+
+                    }
+                );
+
+            }
+        );
 
     }
 
 
     /* ============================================================
-       APPLY TO ALL RELEVANT CONTENT
+       RESET OLD VERSION'S PARENT STYLES
+       This prevents the previous formatter from leaving
+       Data Card text white.
     ============================================================ */
 
-    function applyFirebaseTextColors(root) {
+    function removeOldFormatterStyles() {
 
-        root = root || document.body;
+        document
+            .querySelectorAll(
+                "[data-firebase-formatted='true']"
+            )
+            .forEach(
+                function (element) {
+
+                    /*
+                     * New formatter spans are preserved.
+                     */
+
+                    if (
+                        element.classList.contains(
+                            "firebase-formatted-text"
+                        )
+                    ) {
+                        return;
+                    }
+
+
+                    const properties = [
+
+                        "color",
+                        "background-image",
+                        "background-clip",
+                        "-webkit-background-clip",
+                        "-webkit-text-fill-color",
+                        "background-size",
+                        "animation",
+                        "font-weight",
+                        "font-style",
+                        "text-decoration",
+                        "text-decoration-color",
+                        "text-decoration-thickness",
+                        "background-color",
+                        "padding",
+                        "border-radius",
+                        "text-shadow"
+
+                    ];
+
+
+                    properties.forEach(
+                        function (property) {
+
+                            element.style.removeProperty(
+                                property
+                            );
+
+                        }
+                    );
+
+
+                    element.removeAttribute(
+                        "data-firebase-formatted"
+                    );
+
+                }
+            );
+
+    }
+
+
+    /* ============================================================
+       APPLY TO ALL CONTENT
+    ============================================================ */
+
+    function applyFirebaseTextColors(
+        root
+    ) {
+
+        root =
+            root || document.body;
 
         if (!root) {
             return;
         }
 
+
         addAnimationStyles();
 
+
         const selectors = [
+
             "h1",
             "h2",
             "h3",
@@ -866,60 +1109,87 @@
             "[class*='category']",
             "[class*='subcategory']",
             "[class*='data']",
-            "[class*='notice']",
-            "[class*='header']"
+            "[class*='notice']"
+
         ];
+
 
         let elements = [];
 
+
         if (
             root.matches &&
-            selectors.some(function (selector) {
-                try {
-                    return root.matches(selector);
-                } catch (e) {
-                    return false;
+            selectors.some(
+                function (selector) {
+
+                    try {
+
+                        return root.matches(
+                            selector
+                        );
+
+                    } catch (e) {
+
+                        return false;
+
+                    }
+
                 }
-            })
+            )
         ) {
+
             elements.push(root);
+
         }
+
 
         try {
 
-            elements = elements.concat(
-                Array.from(
-                    root.querySelectorAll(
-                        selectors.join(",")
+            elements =
+                elements.concat(
+                    Array.from(
+                        root.querySelectorAll(
+                            selectors.join(",")
+                        )
                     )
-                )
-            );
+                );
 
         } catch (e) {
+
             console.warn(
-                "Firebase formatter selector error:",
+                "Firebase formatter error:",
                 e
             );
+
         }
 
 
-        /* Remove duplicate elements */
+        /*
+         * Remove duplicates.
+         */
 
-        elements = Array.from(
-            new Set(elements)
+        elements =
+            Array.from(
+                new Set(elements)
+            );
+
+
+        elements.forEach(
+            function (element) {
+
+                if (
+                    !isExcluded(element)
+                ) {
+
+                    formatElement(
+                        element
+                    );
+
+                }
+
+            }
         );
 
-
-        elements.forEach(function (element) {
-
-            if (!isExcluded(element)) {
-                formatElement(element);
-            }
-
-        });
-
-
-        /* Toolbar codes must always disappear */
 
         cleanToolbarCodes();
 
@@ -928,55 +1198,69 @@
 
     /* ============================================================
        MUTATION OBSERVER
-       Firebase dynamic data / cards / profiles
-       ============================================================ */
+       Firebase data dynamically added হলে formatter আবার চলবে।
+    ============================================================ */
 
     let observerTimer = null;
 
-    const observer = new MutationObserver(
-        function (mutations) {
+    const observer =
+        new MutationObserver(
+            function (mutations) {
 
-            let shouldRun = false;
+                let shouldRun = false;
 
-            mutations.forEach(function (mutation) {
 
-                if (
-                    mutation.type === "childList" &&
-                    (
-                        mutation.addedNodes.length > 0 ||
-                        mutation.removedNodes.length > 0
-                    )
-                ) {
-                    shouldRun = true;
+                mutations.forEach(
+                    function (mutation) {
+
+                        if (
+                            mutation.type ===
+                            "childList" &&
+                            mutation.addedNodes.length > 0
+                        ) {
+
+                            shouldRun = true;
+
+                        }
+
+
+                        if (
+                            mutation.type ===
+                            "characterData"
+                        ) {
+
+                            shouldRun = true;
+
+                        }
+
+                    }
+                );
+
+
+                if (!shouldRun) {
+                    return;
                 }
 
-                if (mutation.type === "characterData") {
-                    shouldRun = true;
-                }
 
-            });
-
-
-            if (!shouldRun) {
-                return;
-            }
+                clearTimeout(
+                    observerTimer
+                );
 
 
-            clearTimeout(observerTimer);
+                observerTimer =
+                    setTimeout(
+                        function () {
 
-            observerTimer = setTimeout(
-                function () {
+                            applyFirebaseTextColors(
+                                document.body
+                            );
 
-                    applyFirebaseTextColors(
-                        document.body
+                        },
+                        80
                     );
 
-                },
-                50
-            );
-
-        }
-    );
+            }
+        );
 
 
     /* ============================================================
@@ -987,9 +1271,25 @@
 
         addAnimationStyles();
 
+        /*
+         * Remove styles left by the previous version.
+         */
+
+        removeOldFormatterStyles();
+
+
+        /*
+         * Apply new formatter.
+         */
+
         applyFirebaseTextColors(
             document.body
         );
+
+
+        /*
+         * Watch Firebase dynamic content.
+         */
 
         observer.observe(
             document.body,
@@ -1007,7 +1307,10 @@
        PAGE LOAD
     ============================================================ */
 
-    if (document.readyState === "loading") {
+    if (
+        document.readyState ===
+        "loading"
+    ) {
 
         document.addEventListener(
             "DOMContentLoaded",
@@ -1022,8 +1325,7 @@
 
 
     /* ============================================================
-       PUBLIC FUNCTION
-       চাইলে অন্য JS file থেকেও call করা যাবে
+       PUBLIC API
     ============================================================ */
 
     window.applyFirebaseTextColors =
@@ -1032,11 +1334,14 @@
 
     window.firebaseTextFormatter = {
 
-        apply: applyFirebaseTextColors,
+        apply:
+            applyFirebaseTextColors,
 
-        clean: cleanText,
+        clean:
+            cleanText,
 
-        codes: FORMAT_CODES
+        codes:
+            FORMAT_CODES
 
     };
 
