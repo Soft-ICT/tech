@@ -4,6 +4,9 @@ import {
     logoutAdmin
 } from "./auth.js";
 
+import { AppThemeManager } from './themeManager.js';
+
+
 import {
     ref,
     set,
