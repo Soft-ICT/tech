@@ -2,7 +2,7 @@
    Firebase Text Color & Design Formatter
    File: Js/color-formatter.js
 
-   SAFE VERSION
+   SAFE VERSION (FLICKER FIX)
    ✔ Data Card safe
    ✔ Data Profile safe
    ✔ Category safe
@@ -1433,7 +1433,7 @@
             );
 
 
-                elements.forEach(
+        elements.forEach(
             function (element) {
 
                 if (
@@ -1533,7 +1533,7 @@
                             );
 
                         },
-                        100
+                        50
                     );
 
             }
@@ -1546,7 +1546,7 @@
 
     function initializeFormatter() {
 
-        cleanToolbarCodes(); // এই লাইনটি যোগ করা হয়েছে[span_2](start_span)[span_2](end_span)
+        cleanToolbarCodes();
 
         addFormatterCSS();
 
@@ -1595,8 +1595,14 @@
 
 
     /* ============================================================
-       PAGE LOAD
+       PAGE LOAD & INSTANT EXECUTION
     ============================================================ */
+
+    // ইনস্ট্যান্ট রান যাতে কোড লোড হওয়ামাত্রই ফ্ল্যাশ করার সুযোগ না পায়
+    if (document.body) {
+        cleanToolbarCodes();
+        applyFirebaseTextColors(document.body);
+    }
 
     if (
         document.readyState ===
