@@ -1,6 +1,6 @@
 /**
  * Color & Design Formatter for Firebase Data
- * Path: js/color-formatter.js
+ * Path: Js/color-formatter.js
  */
 
 (function () {
@@ -18,30 +18,36 @@
     };
 
     function applyDynamicStyles() {
-        const allElements = document.querySelectorAll('span, p, div, b, strong, td, th');
+        // প্রজেক্টের শুধুমাত্র ডাটা কার্ড বা কনটেন্ট এরিয়ার এলিমেন্টগুলো টার্গেট করা
+        // টুলবার, ন্যাভবার, ক্যাটাগরি বা হেডার এরিয়া বাদ দেওয়া হয়েছে যাতে সেগুলোর কালার পরিবর্তন না হয়
+        const contentElements = document.querySelectorAll('.data-card-item, .data-card, .card, .info-content, p, span, div, b, strong, td, th');
 
-        allElements.forEach(el => {
-            // ১. যদি এটি টুলবার, হেডার বা ওপরের নেভিগেশন বার হয়, তবে সেটিকে সরাসরি স্কিপ করবে
-            if (el.closest('header, nav, .toolbar, .navbar, [class*="toolbar"], [class*="header"], [id*="toolbar"], [id*="header"]')) {
+        contentElements.forEach(el => {
+            // যদি এলিমেন্টটি টুলবার বা ক্যাটাগরি নেভিগেশনের অংশ হয়, তবে স্কিপ করবে
+            if (el.closest('header, nav, .toolbar, .navbar, .category-bar, .sub-category, [class*="toolbar"], [class*="navbar"], [class*="category"], [class*="header"]')) {
                 return;
             }
 
+            // শুধুমাত্র সরাসরি টেক্সট ধারণকারী এলিমেন্টগুলোর ওপর কাজ করবে
             if (el.children.length === 0 && el.textContent) {
-                let text = el.textContent;
+                let originalText = el.textContent;
 
                 for (const key in COLOR_KEYWORDS) {
-                    if (text.includes(key)) {
+                    if (originalText.includes(key)) {
                         let config = COLOR_KEYWORDS[key];
                         
-                        // হ্যাশট্যাগ রিমোভ করে টেক্সট পরিষ্কার করা এবং লাল করা
-                        el.textContent = text.replace(key, '').trim();
+                        // ১. কোডটি বা কি-ওয়ার্ডটি স্ক্রিন থেকে সম্পূর্ণ মুছে ফেলা (হাইড করা)
+                        let cleanText = originalText.replace(key, '').trim();
+                        el.textContent = cleanText;
                         el.dataset.styledProcessed = "true";
 
+                        // ২. সুনির্দিষ্ট কালার বা ডিজাইন অ্যাপ্লাই করা
                         if (config.type === 'text') {
                             el.style.color = config.color;
                             el.style.fontWeight = 'bold';
                         } else if (config.type === 'underline') {
                             el.style.borderBottom = config.borderBottom;
+                            el.style.paddingBottom = '2px';
                         } else if (config.type === 'gradient') {
                             el.style.background = config.background;
                             el.style.color = config.color;
@@ -53,6 +59,7 @@
         });
     }
 
+    // ফায়ারবেজ থেকে ডাটা লোড বা পরিবর্তন হওয়ার সময় ডাইনামিক্যালি কাজ করার জন্য
     const observer = new MutationObserver(() => {
         applyDynamicStyles();
     });
@@ -62,5 +69,7 @@
         observer.observe(document.body, { childList: true, subtree: true });
     });
 
+    // রেন্ডারিং নিশ্চিত করতে টাইমার ব্যবহার
     setTimeout(applyDynamicStyles, 400);
+    setTimeout(applyDynamicStyles, 900);
 })();
