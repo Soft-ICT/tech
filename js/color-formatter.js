@@ -18,46 +18,49 @@
     };
 
     function applyDynamicStyles() {
-        // প্রজেক্টের মেইন ডাটা কার্ড বা লিস্ট আইটেমগুলো টার্গেট করা (টুলবার বাদ দিয়ে)
-        const targetElements = document.querySelectorAll('.data-card-item, .data-card-name, .data-card-detail, .info-value');
+        // পেজের সব টেক্সট নোড স্ক্যান করবে, তবে টুলবার বা হেডার বাদে
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+        let node;
 
-        targetElements.forEach(el => {
-            if (el.dataset.styledProcessed) return;
+        while (node = walker.nextNode()) {
+            let text = node.nodeValue;
+            if (!text) continue;
 
-            let originalHTML = el.innerHTML;
-            let matchedKey = null;
-            let styleConfig = null;
-
-            // কালার কি-ওয়ার্ড খোঁজা
+            // চেক করা হচ্ছে টেক্সটে কোনো কালার কোড আছে কি না
             for (const key in COLOR_KEYWORDS) {
-                if (originalHTML.includes(key)) {
-                    matchedKey = key;
-                    styleConfig = COLOR_KEYWORDS[key];
-                    break;
+                if (text.includes(key)) {
+                    let parentElement = node.parentElement;
+                    if (!parentElement) continue;
+
+                    // টুলবার, ন্যাভবার বা হেডার এরিয়া হলে সেটিকে স্কিপ করবে (সুরক্ষিত রাখবে)
+                    if (parentElement.closest('header, nav, .toolbar, .navbar, [class*="toolbar"], [class*="header"]')) {
+                        continue;
+                    }
+
+                    if (parentElement.dataset.styledProcessed) continue;
+                    parentElement.dataset.styledProcessed = "true";
+
+                    // হ্যাশট্যাগ রিমোভ করে টেক্সট পরিচ্ছন্ন করা
+                    let cleanHtml = parentElement.innerHTML.replace(key, '').trim();
+                    parentElement.innerHTML = cleanHtml;
+
+                    // কালার বা ডিজাইন অ্যাপ্লাই করা
+                    let config = COLOR_KEYWORDS[key];
+                    if (config.type === 'text') {
+                        parentElement.style.color = config.color;
+                        parentElement.style.fontWeight = 'bold';
+                    } else if (config.type === 'underline') {
+                        parentElement.style.borderBottom = config.borderBottom;
+                    } else if (config.type === 'gradient') {
+                        parentElement.style.background = config.background;
+                        parentElement.style.color = config.color;
+                    }
                 }
             }
-
-            if (matchedKey && styleConfig) {
-                // হ্যাশট্যাগ রিমোভ করে টেক্সট পরিষ্কার করা
-                el.innerHTML = originalHTML.replace(matchedKey, '').trim();
-                el.dataset.styledProcessed = "true";
-
-                // ডিজাইন বা কালার অ্যাপ্লাই করা
-                if (styleConfig.type === 'text') {
-                    el.style.color = styleConfig.color;
-                    el.style.fontWeight = 'bold';
-                } else if (styleConfig.type === 'underline') {
-                    el.style.borderBottom = styleConfig.borderBottom;
-                    el.style.paddingBottom = '2px';
-                } else if (styleConfig.type === 'gradient') {
-                    el.style.background = styleConfig.background;
-                    el.style.color = styleConfig.color;
-                }
-            }
-        });
+        }
     }
 
-    // DOM পরিবর্তন লক্ষ্য করার জন্য Observer
+    // DOM লোড বা পরিবর্তন হলে স্বয়ংক্রিয়ভাবে রান করবে
     const observer = new MutationObserver(() => {
         applyDynamicStyles();
     });
@@ -67,5 +70,5 @@
         observer.observe(document.body, { childList: true, subtree: true });
     });
 
-    setTimeout(applyDynamicStyles, 500);
+    setTimeout(applyDynamicStyles, 600);
 })();
