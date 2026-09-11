@@ -920,6 +920,83 @@ body:not(.dark-mode) .drawer-footer {
     margin-bottom: 20px;
 }
 
+/* =========================================================
+   COMPLETE WEB TEXT DESIGN SYSTEM (CSS)
+   ========================================================= */
+
+.text-bold { font-weight: bold; }
+.text-italic { font-style: italic; }
+.text-underline { text-decoration: underline; }
+.text-strike { text-decoration: line-through; }
+
+/* বেসিক কালারসমূহ */
+.c-red { color: #ef4444; }
+.c-green { color: #10b981; }
+.c-blue { color: #3b82f6; }
+.c-cyan { color: #06b6d4; }
+.c-magenta { color: #d946ef; }
+.c-yellow { color: #eab308; }
+.c-black { color: #000000; }
+.c-white { color: #ffffff; }
+.c-orange { color: #f97316; }
+
+/* অ্যাডভান্সড ভিজ্যুয়াল ইফেক্টস */
+.effect-outline {
+    color: #fff;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+.effect-shadow {
+    text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.4);
+}
+.effect-blur {
+    color: transparent;
+    text-shadow: 0 0 6px rgba(0,0,0,0.6);
+}
+.effect-neon {
+    color: #06b6d4;
+    text-shadow: 0 0 5px #06b6d4, 0 0 10px #06b6d4, 0 0 20px #d946ef, 0 0 30px #d946ef;
+}
+.effect-3d {
+    text-shadow: 3px 3px 0px #4b5563, 5px 5px 10px rgba(0,0,0,0.3);
+}
+.effect-rainbow {
+    background: linear-gradient(45deg, #ef4444, #f59e0b, #10b981, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: bold;
+}
+.effect-gradient {
+    background: linear-gradient(45deg, #ef4444, #3b82f6, #d946ef);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: bold;
+}
+.effect-shimmer {
+    background: linear-gradient(90deg, #9ca3af 0%, #ffffff 50%, #9ca3af 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmerAnim 1.5s linear infinite;
+    font-weight: bold;
+}
+@keyframes shimmerAnim {
+    to { background-position: 200% center; }
+}
+.effect-gradient-anim {
+    background: linear-gradient(270deg, #ef4444, #3b82f6, #d946ef);
+    background-size: 400% 400%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientAnim 3s ease infinite;
+    font-weight: bold;
+}
+@keyframes gradientAnim {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+
 @media (max-width: 600px) {
     .topbar { height: 58px; padding: 0 10px; }
     .sub-toolbar { height: 46px; padding: 0 12px; }
