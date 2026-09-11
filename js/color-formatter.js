@@ -1,6 +1,6 @@
 /**
  * Color & Design Formatter for Firebase Data
- * Path: Js/color-formatter.js
+ * Path: js/color-formatter.js
  */
 
 (function () {
@@ -18,27 +18,25 @@
     };
 
     function applyDynamicStyles() {
-        // পেজের সমস্ত এলিমেন্ট চেক করা (যেগুলোতে টেক্সট আছে)
-        const allElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, span, p, div, a, b, strong, td, th');
+        const allElements = document.querySelectorAll('span, p, div, b, strong, td, th');
 
         allElements.forEach(el => {
-            // যদি ভেতরের কোনো চাইল্ড এলিমেন্ট না থাকে (শুধু সরাসরি টেক্সট থাকে)
+            // ১. যদি এটি টুলবার, হেডার বা ওপরের নেভিগেশন বার হয়, তবে সেটিকে সরাসরি স্কিপ করবে
+            if (el.closest('header, nav, .toolbar, .navbar, [class*="toolbar"], [class*="header"], [id*="toolbar"], [id*="header"]')) {
+                return;
+            }
+
             if (el.children.length === 0 && el.textContent) {
                 let text = el.textContent;
 
                 for (const key in COLOR_KEYWORDS) {
                     if (text.includes(key)) {
-                        // টুলবার বা হেডার এরিয়া যদি বাঁচাতে চান, তবে নিচের কন্ডিশনটি রাখতে পারেন। 
-                        // তবে টাইটেল বা হেডার লাল করতে চাইলে এই প্রটেকশন হটিয়ে দেওয়া ভালো। 
-                        // যেহেতু আপনি কমান্ড্যান্ট লেখাটি কালার করতে চাচ্ছেন, তাই এটি হেডার হলেও কাজ করবে।
-
                         let config = COLOR_KEYWORDS[key];
                         
-                        // টেক্সট থেকে কি-ওয়ার্ড রিমোভ করে পরিচ্ছন্ন করা
+                        // হ্যাশট্যাগ রিমোভ করে টেক্সট পরিষ্কার করা এবং লাল করা
                         el.textContent = text.replace(key, '').trim();
                         el.dataset.styledProcessed = "true";
 
-                        // স্টাইল অ্যাপ্লাই করা
                         if (config.type === 'text') {
                             el.style.color = config.color;
                             el.style.fontWeight = 'bold';
@@ -55,7 +53,6 @@
         });
     }
 
-    // DOM পরিবর্তন বা পেজ লোড হওয়ার সাথে সাথে রান করার জন্য
     const observer = new MutationObserver(() => {
         applyDynamicStyles();
     });
@@ -65,7 +62,5 @@
         observer.observe(document.body, { childList: true, subtree: true });
     });
 
-    // ডাইনামিক রেন্ডারিংয়ের জন্য অতিরিক্ত টাইমার
-    setTimeout(applyDynamicStyles, 300);
-    setTimeout(applyDynamicStyles, 800);
+    setTimeout(applyDynamicStyles, 400);
 })();
