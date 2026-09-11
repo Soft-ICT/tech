@@ -18,43 +18,46 @@
     };
 
     function applyDynamicStyles() {
-        // প্রজেক্টের যেকোনো টেক্সট এলিমেন্ট বা কার্ডের ভেতরের লেখা স্ক্যান করার জন্য
-        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
-        let node;
+        // প্রজেক্টের মেইন ডাটা কার্ড বা লিস্ট আইটেমগুলো টার্গেট করা (টুলবার বাদ দিয়ে)
+        const targetElements = document.querySelectorAll('.data-card-item, .data-card-name, .data-card-detail, .info-value');
 
-        while (node = walker.nextNode()) {
-            let text = node.nodeValue;
-            if (!text) continue;
+        targetElements.forEach(el => {
+            if (el.dataset.styledProcessed) return;
 
+            let originalHTML = el.innerHTML;
+            let matchedKey = null;
+            let styleConfig = null;
+
+            // কালার কি-ওয়ার্ড খোঁজা
             for (const key in COLOR_KEYWORDS) {
-                if (text.includes(key)) {
-                    // এলিমেন্টটিকে ফাদার ট্যাগ সহ খুঁজে বের করা
-                    let parentElement = node.parentElement;
-                    if (parentElement && !parentElement.dataset.styledProcessed) {
-                        parentElement.dataset.styledProcessed = "true";
-                        
-                        // পুরো টেক্সট থেকে হ্যাশট্যাগ রিমোভ করা
-                        let cleanHtml = parentElement.innerHTML.replace(key, '').trim();
-                        parentElement.innerHTML = cleanHtml;
-
-                        // কালার বা স্টাইল অ্যাপ্লাই করা
-                        let config = COLOR_KEYWORDS[key];
-                        if (config.type === 'text') {
-                            parentElement.style.color = config.color;
-                            parentElement.style.fontWeight = 'bold';
-                        } else if (config.type === 'underline') {
-                            parentElement.style.borderBottom = config.borderBottom;
-                        } else if (config.type === 'gradient') {
-                            parentElement.style.background = config.background;
-                            parentElement.style.color = config.color;
-                        }
-                    }
+                if (originalHTML.includes(key)) {
+                    matchedKey = key;
+                    styleConfig = COLOR_KEYWORDS[key];
+                    break;
                 }
             }
-        }
+
+            if (matchedKey && styleConfig) {
+                // হ্যাশট্যাগ রিমোভ করে টেক্সট পরিষ্কার করা
+                el.innerHTML = originalHTML.replace(matchedKey, '').trim();
+                el.dataset.styledProcessed = "true";
+
+                // ডিজাইন বা কালার অ্যাপ্লাই করা
+                if (styleConfig.type === 'text') {
+                    el.style.color = styleConfig.color;
+                    el.style.fontWeight = 'bold';
+                } else if (styleConfig.type === 'underline') {
+                    el.style.borderBottom = styleConfig.borderBottom;
+                    el.style.paddingBottom = '2px';
+                } else if (styleConfig.type === 'gradient') {
+                    el.style.background = styleConfig.background;
+                    el.style.color = styleConfig.color;
+                }
+            }
+        });
     }
 
-    // পেজে ডাটা লোড হওয়ার পর এবং পরিবর্তন হলে রান করবে
+    // DOM পরিবর্তন লক্ষ্য করার জন্য Observer
     const observer = new MutationObserver(() => {
         applyDynamicStyles();
     });
@@ -64,6 +67,5 @@
         observer.observe(document.body, { childList: true, subtree: true });
     });
 
-    // অতিরিক্ত সুরক্ষার জন্য সামান্য সময় পর পর চেক করা
-    setTimeout(applyDynamicස්ටাইল, 500);
+    setTimeout(applyDynamicStyles, 500);
 })();
