@@ -1546,6 +1546,8 @@
 
     function initializeFormatter() {
 
+        cleanToolbarCodes(); // এই লাইনটি যোগ করা হয়েছে[span_2](start_span)[span_2](end_span)
+
         addFormatterCSS();
 
 
@@ -1609,7 +1611,6 @@
     } else {
 
         initializeFormatter();
-       cleanToolbarCodes();
 
     }
 
