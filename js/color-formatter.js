@@ -1609,6 +1609,7 @@
     } else {
 
         initializeFormatter();
+       cleanToolbarCodes();
 
     }
 
