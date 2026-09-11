@@ -2,30 +2,18 @@
    Firebase Text Color & Design Formatter
    File: Js/color-formatter.js
 
-   Features:
-   ✔ Basic colors
-   ✔ Bold / Italic / Underline
-   ✔ Highlight
-   ✔ Static Gradient
-   ✔ Animated Gradient
-   ✔ Aurora
-   ✔ Fire
-   ✔ Ocean
-   ✔ Purple
-   ✔ Sunset
-   ✔ Green
-   ✔ Rainbow
-   ✔ Shadow
-   ✔ Glow
-   ✔ Multiple codes
+   SAFE VERSION
    ✔ Data Card safe
    ✔ Data Profile safe
-   ✔ Category / Sub-category safe
+   ✔ Category safe
+   ✔ Sub-category safe
    ✔ Home Notice safe
    ✔ Scrolling Notice safe
    ✔ Firebase dynamic content
-   ✔ Formatting codes never visible
-   ✔ Toolbar design is not changed
+   ✔ Multiple formatting codes
+   ✔ Animated gradients
+   ✔ Formatting codes hidden
+   ✔ Toolbar untouched
 ============================================================ */
 
 (function () {
@@ -169,165 +157,62 @@
         /* ================= STATIC GRADIENT ================= */
 
         "#grad_ocean": {
-            backgroundImage:
-                "linear-gradient(90deg,#00c6ff,#0072ff)",
-            backgroundClip: "text",
-            webkitBackgroundClip: "text",
-            color: "transparent",
-            webkitTextFillColor: "transparent"
+            gradientClass: "firebase-gradient-ocean"
         },
 
         "#grad_fire": {
-            backgroundImage:
-                "linear-gradient(90deg,#ff512f,#f09819)",
-            backgroundClip: "text",
-            webkitBackgroundClip: "text",
-            color: "transparent",
-            webkitTextFillColor: "transparent"
+            gradientClass: "firebase-gradient-fire"
         },
 
         "#grad_purple": {
-            backgroundImage:
-                "linear-gradient(90deg,#8e2de2,#4a00e0)",
-            backgroundClip: "text",
-            webkitBackgroundClip: "text",
-            color: "transparent",
-            webkitTextFillColor: "transparent"
+            gradientClass: "firebase-gradient-purple"
         },
 
         "#grad_green": {
-            backgroundImage:
-                "linear-gradient(90deg,#00b09b,#96c93d)",
-            backgroundClip: "text",
-            webkitBackgroundClip: "text",
-            color: "transparent",
-            webkitTextFillColor: "transparent"
+            gradientClass: "firebase-gradient-green"
         },
 
         "#grad_sunset": {
-            backgroundImage:
-                "linear-gradient(90deg,#ff512f,#dd2476)",
-            backgroundClip: "text",
-            webkitBackgroundClip: "text",
-            color: "transparent",
-            webkitTextFillColor: "transparent"
+            gradientClass: "firebase-gradient-sunset"
         },
 
         "#grad_blue": {
-            backgroundImage:
-                "linear-gradient(90deg,#36d1dc,#5b86e5)",
-            backgroundClip: "text",
-            webkitBackgroundClip: "text",
-            color: "transparent",
-            webkitTextFillColor: "transparent"
+            gradientClass: "firebase-gradient-blue"
         },
 
 
-        /* ========================================================
-           ANIMATED GRADIENT
-        ======================================================== */
+        /* ================= ANIMATED GRADIENT ================= */
 
         "#grad_animated": {
-            backgroundImage:
-                "linear-gradient(270deg,#ff0080,#7928ca,#2afadf,#00c6ff,#ff0080)",
-            backgroundSize: "400% 400%",
-            backgroundClip: "text",
-            webkitBackgroundClip: "text",
-            color: "transparent",
-            webkitTextFillColor: "transparent",
-            animation:
-                "firebaseGradientAnimation 6s ease infinite"
+            gradientClass: "firebase-gradient-animated"
         },
-
 
         "#grad_aurora": {
-            backgroundImage:
-                "linear-gradient(270deg,#00f2fe,#4facfe,#a18cd1,#fbc2eb,#00f2fe)",
-            backgroundSize: "500% 500%",
-            backgroundClip: "text",
-            webkitBackgroundClip: "text",
-            color: "transparent",
-            webkitTextFillColor: "transparent",
-            animation:
-                "firebaseAuroraAnimation 8s ease infinite"
+            gradientClass: "firebase-gradient-aurora"
         },
-
 
         "#grad_fire_animated": {
-            backgroundImage:
-                "linear-gradient(270deg,#ff0000,#ff512f,#ff8a00,#ffd000,#ff0000)",
-            backgroundSize: "400% 400%",
-            backgroundClip: "text",
-            webkitBackgroundClip: "text",
-            color: "transparent",
-            webkitTextFillColor: "transparent",
-            animation:
-                "firebaseFireAnimation 4s ease infinite"
+            gradientClass: "firebase-gradient-fire-animated"
         },
-
 
         "#grad_ocean_animated": {
-            backgroundImage:
-                "linear-gradient(270deg,#00c6ff,#0072ff,#00f2fe,#4facfe,#00c6ff)",
-            backgroundSize: "400% 400%",
-            backgroundClip: "text",
-            webkitBackgroundClip: "text",
-            color: "transparent",
-            webkitTextFillColor: "transparent",
-            animation:
-                "firebaseOceanAnimation 7s ease infinite"
+            gradientClass: "firebase-gradient-ocean-animated"
         },
-
 
         "#grad_purple_animated": {
-            backgroundImage:
-                "linear-gradient(270deg,#7f00ff,#e100ff,#8e2de2,#4a00e0,#7f00ff)",
-            backgroundSize: "400% 400%",
-            backgroundClip: "text",
-            webkitBackgroundClip: "text",
-            color: "transparent",
-            webkitTextFillColor: "transparent",
-            animation:
-                "firebasePurpleAnimation 6s ease infinite"
+            gradientClass: "firebase-gradient-purple-animated"
         },
-
 
         "#grad_sunset_animated": {
-            backgroundImage:
-                "linear-gradient(270deg,#ff512f,#f09819,#ff0066,#ff8a00,#ff512f)",
-            backgroundSize: "400% 400%",
-            backgroundClip: "text",
-            webkitBackgroundClip: "text",
-            color: "transparent",
-            webkitTextFillColor: "transparent",
-            animation:
-                "firebaseSunsetAnimation 6s ease infinite"
+            gradientClass: "firebase-gradient-sunset-animated"
         },
-
 
         "#grad_green_animated": {
-            backgroundImage:
-                "linear-gradient(270deg,#00b09b,#96c93d,#00f260,#0575e6,#00b09b)",
-            backgroundSize: "400% 400%",
-            backgroundClip: "text",
-            webkitBackgroundClip: "text",
-            color: "transparent",
-            webkitTextFillColor: "transparent",
-            animation:
-                "firebaseGreenAnimation 7s ease infinite"
+            gradientClass: "firebase-gradient-green-animated"
         },
 
-
         "#grad_rainbow": {
-            backgroundImage:
-                "linear-gradient(270deg,#ff0000,#ff8a00,#ffe600,#00c853,#00b0ff,#7c4dff,#ff00c8,#ff0000)",
-            backgroundSize: "600% 600%",
-            backgroundClip: "text",
-            webkitBackgroundClip: "text",
-            color: "transparent",
-            webkitTextFillColor: "transparent",
-            animation:
-                "firebaseRainbowAnimation 8s linear infinite"
+            gradientClass: "firebase-gradient-rainbow"
         },
 
 
@@ -375,192 +260,486 @@
 
 
     /* ============================================================
-       ANIMATION CSS
+       CSS
     ============================================================ */
 
-    function addAnimationStyles() {
+    function addFormatterCSS() {
 
         if (
             document.getElementById(
-                "firebaseFormatterAnimationCSS"
+                "firebaseFormatterSafeCSS"
             )
         ) {
             return;
         }
 
-        const style = document.createElement("style");
+        const style =
+            document.createElement("style");
 
         style.id =
-            "firebaseFormatterAnimationCSS";
+            "firebaseFormatterSafeCSS";
 
         style.textContent = `
 
-            @keyframes firebaseGradientAnimation {
+/* ============================================================
+   IMPORTANT:
+   These rules affect ONLY formatter-created spans.
+   No card, profile or parent element is modified.
+============================================================ */
 
-                0% {
-                    background-position: 0% 50%;
-                }
-
-                50% {
-                    background-position: 100% 50%;
-                }
-
-                100% {
-                    background-position: 0% 50%;
-                }
-
-            }
+.firebase-formatted-text {
+    display: inline;
+}
 
 
-            @keyframes firebaseAuroraAnimation {
+/* ================= STATIC GRADIENT ================= */
 
-                0% {
-                    background-position: 0% 50%;
-                }
+.firebase-gradient-ocean,
+.firebase-gradient-fire,
+.firebase-gradient-purple,
+.firebase-gradient-green,
+.firebase-gradient-sunset,
+.firebase-gradient-blue,
+.firebase-gradient-animated,
+.firebase-gradient-aurora,
+.firebase-gradient-fire-animated,
+.firebase-gradient-ocean-animated,
+.firebase-gradient-purple-animated,
+.firebase-gradient-sunset-animated,
+.firebase-gradient-green-animated,
+.firebase-gradient-rainbow {
 
-                25% {
-                    background-position: 50% 100%;
-                }
+    background-clip: text;
+    -webkit-background-clip: text;
 
-                50% {
-                    background-position: 100% 50%;
-                }
+    color: transparent !important;
+    -webkit-text-fill-color: transparent !important;
 
-                75% {
-                    background-position: 50% 0%;
-                }
-
-                100% {
-                    background-position: 0% 50%;
-                }
-
-            }
-
-
-            @keyframes firebaseFireAnimation {
-
-                0% {
-                    background-position: 0% 50%;
-                }
-
-                50% {
-                    background-position: 100% 50%;
-                }
-
-                100% {
-                    background-position: 0% 50%;
-                }
-
-            }
+}
 
 
-            @keyframes firebaseOceanAnimation {
+/* ================= OCEAN ================= */
 
-                0% {
-                    background-position: 0% 50%;
-                }
-
-                50% {
-                    background-position: 100% 50%;
-                }
-
-                100% {
-                    background-position: 0% 50%;
-                }
-
-            }
+.firebase-gradient-ocean {
+    background-image:
+        linear-gradient(
+            90deg,
+            #00c6ff,
+            #0072ff
+        );
+}
 
 
-            @keyframes firebasePurpleAnimation {
+/* ================= FIRE ================= */
 
-                0% {
-                    background-position: 0% 50%;
-                }
-
-                50% {
-                    background-position: 100% 50%;
-                }
-
-                100% {
-                    background-position: 0% 50%;
-                }
-
-            }
+.firebase-gradient-fire {
+    background-image:
+        linear-gradient(
+            90deg,
+            #ff512f,
+            #f09819
+        );
+}
 
 
-            @keyframes firebaseSunsetAnimation {
+/* ================= PURPLE ================= */
 
-                0% {
-                    background-position: 0% 50%;
-                }
-
-                50% {
-                    background-position: 100% 50%;
-                }
-
-                100% {
-                    background-position: 0% 50%;
-                }
-
-            }
+.firebase-gradient-purple {
+    background-image:
+        linear-gradient(
+            90deg,
+            #8e2de2,
+            #4a00e0
+        );
+}
 
 
-            @keyframes firebaseGreenAnimation {
+/* ================= GREEN ================= */
 
-                0% {
-                    background-position: 0% 50%;
-                }
-
-                50% {
-                    background-position: 100% 50%;
-                }
-
-                100% {
-                    background-position: 0% 50%;
-                }
-
-            }
+.firebase-gradient-green {
+    background-image:
+        linear-gradient(
+            90deg,
+            #00b09b,
+            #96c93d
+        );
+}
 
 
-            @keyframes firebaseRainbowAnimation {
+/* ================= SUNSET ================= */
 
-                0% {
-                    background-position: 0% 50%;
-                }
-
-                50% {
-                    background-position: 100% 50%;
-                }
-
-                100% {
-                    background-position: 0% 50%;
-                }
-
-            }
+.firebase-gradient-sunset {
+    background-image:
+        linear-gradient(
+            90deg,
+            #ff512f,
+            #dd2476
+        );
+}
 
 
-            /*
-             * Only the formatter-created text span
-             * receives these styles.
-             */
+/* ================= BLUE ================= */
 
-            .firebase-formatted-text {
-                display: inline;
-            }
+.firebase-gradient-blue {
+    background-image:
+        linear-gradient(
+            90deg,
+            #36d1dc,
+            #5b86e5
+        );
+}
 
-        `;
+
+/* ================= ANIMATED ================= */
+
+.firebase-gradient-animated {
+
+    background-image:
+        linear-gradient(
+            270deg,
+            #ff0080,
+            #7928ca,
+            #2afadf,
+            #00c6ff,
+            #ff0080
+        );
+
+    background-size:
+        400% 400%;
+
+    animation:
+        firebaseGradientAnimation
+        6s ease infinite;
+}
+
+
+/* ================= AURORA ================= */
+
+.firebase-gradient-aurora {
+
+    background-image:
+        linear-gradient(
+            270deg,
+            #00f2fe,
+            #4facfe,
+            #a18cd1,
+            #fbc2eb,
+            #00f2fe
+        );
+
+    background-size:
+        500% 500%;
+
+    animation:
+        firebaseAuroraAnimation
+        8s ease infinite;
+}
+
+
+/* ================= FIRE ANIMATED ================= */
+
+.firebase-gradient-fire-animated {
+
+    background-image:
+        linear-gradient(
+            270deg,
+            #ff0000,
+            #ff512f,
+            #ff8a00,
+            #ffd000,
+            #ff0000
+        );
+
+    background-size:
+        400% 400%;
+
+    animation:
+        firebaseFireAnimation
+        4s ease infinite;
+}
+
+
+/* ================= OCEAN ANIMATED ================= */
+
+.firebase-gradient-ocean-animated {
+
+    background-image:
+        linear-gradient(
+            270deg,
+            #00c6ff,
+            #0072ff,
+            #00f2fe,
+            #4facfe,
+            #00c6ff
+        );
+
+    background-size:
+        400% 400%;
+
+    animation:
+        firebaseOceanAnimation
+        7s ease infinite;
+}
+
+
+/* ================= PURPLE ANIMATED ================= */
+
+.firebase-gradient-purple-animated {
+
+    background-image:
+        linear-gradient(
+            270deg,
+            #7f00ff,
+            #e100ff,
+            #8e2de2,
+            #4a00e0,
+            #7f00ff
+        );
+
+    background-size:
+        400% 400%;
+
+    animation:
+        firebasePurpleAnimation
+        6s ease infinite;
+}
+
+
+/* ================= SUNSET ANIMATED ================= */
+
+.firebase-gradient-sunset-animated {
+
+    background-image:
+        linear-gradient(
+            270deg,
+            #ff512f,
+            #f09819,
+            #ff0066,
+            #ff8a00,
+            #ff512f
+        );
+
+    background-size:
+        400% 400%;
+
+    animation:
+        firebaseSunsetAnimation
+        6s ease infinite;
+}
+
+
+/* ================= GREEN ANIMATED ================= */
+
+.firebase-gradient-green-animated {
+
+    background-image:
+        linear-gradient(
+            270deg,
+            #00b09b,
+            #96c93d,
+            #00f260,
+            #0575e6,
+            #00b09b
+        );
+
+    background-size:
+        400% 400%;
+
+    animation:
+        firebaseGreenAnimation
+        7s ease infinite;
+}
+
+
+/* ================= RAINBOW ================= */
+
+.firebase-gradient-rainbow {
+
+    background-image:
+        linear-gradient(
+            270deg,
+            #ff0000,
+            #ff8a00,
+            #ffe600,
+            #00c853,
+            #00b0ff,
+            #7c4dff,
+            #ff00c8,
+            #ff0000
+        );
+
+    background-size:
+        600% 600%;
+
+    animation:
+        firebaseRainbowAnimation
+        8s linear infinite;
+}
+
+
+/* ============================================================
+   ANIMATIONS
+============================================================ */
+
+@keyframes firebaseGradientAnimation {
+
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+
+}
+
+
+@keyframes firebaseAuroraAnimation {
+
+    0% {
+        background-position: 0% 50%;
+    }
+
+    25% {
+        background-position: 50% 100%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    75% {
+        background-position: 50% 0%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+
+}
+
+
+@keyframes firebaseFireAnimation {
+
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+
+}
+
+
+@keyframes firebaseOceanAnimation {
+
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+
+}
+
+
+@keyframes firebasePurpleAnimation {
+
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+
+}
+
+
+@keyframes firebaseSunsetAnimation {
+
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+
+}
+
+
+@keyframes firebaseGreenAnimation {
+
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+
+}
+
+
+@keyframes firebaseRainbowAnimation {
+
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+
+}
+
+`;
 
         document.head.appendChild(style);
     }
 
 
     /* ============================================================
-       EXCLUDED TOOLBAR / NAVIGATION
+       EXCLUDED AREAS
     ============================================================ */
 
     function isExcluded(element) {
 
-        if (!element || element.nodeType !== 1) {
+        if (
+            !element ||
+            element.nodeType !== 1
+        ) {
             return true;
         }
 
@@ -584,6 +763,19 @@
 
 
     /* ============================================================
+       CODE LIST
+    ============================================================ */
+
+    const SORTED_CODES =
+        Object.keys(FORMAT_CODES)
+            .sort(function (a, b) {
+
+                return b.length - a.length;
+
+            });
+
+
+    /* ============================================================
        FIND CODES
     ============================================================ */
 
@@ -593,24 +785,28 @@
             return [];
         }
 
-        const found = [];
+        const result = [];
 
-        Object.keys(FORMAT_CODES).forEach(
+        SORTED_CODES.forEach(
             function (code) {
 
-                if (text.indexOf(code) !== -1) {
-                    found.push(code);
+                if (
+                    text.indexOf(code) !== -1
+                ) {
+
+                    result.push(code);
+
                 }
 
             }
         );
 
-        return found;
+        return result;
     }
 
 
     /* ============================================================
-       REMOVE CODES
+       CLEAN CODES
     ============================================================ */
 
     function cleanText(text) {
@@ -621,7 +817,7 @@
 
         let result = text;
 
-        Object.keys(FORMAT_CODES).forEach(
+        SORTED_CODES.forEach(
             function (code) {
 
                 result =
@@ -635,77 +831,70 @@
 
 
     /* ============================================================
-       APPLY STYLES ONLY TO THE NEW SPAN
+       APPLY NORMAL STYLES
     ============================================================ */
 
-    function applyStyles(element, codes) {
+    function applyNormalStyles(
+        element,
+        codes
+    ) {
 
-        if (
-            !element ||
-            !codes ||
-            codes.length === 0
-        ) {
-            return;
-        }
+        let gradientClass = null;
 
-        let hasGradient = false;
+        codes.forEach(
+            function (code) {
 
-        codes.forEach(function (code) {
+                const config =
+                    FORMAT_CODES[code];
 
-            const styles =
-                FORMAT_CODES[code];
+                if (!config) {
+                    return;
+                }
 
-            if (!styles) {
-                return;
-            }
 
-            Object.keys(styles).forEach(
-                function (property) {
+                if (
+                    config.gradientClass
+                ) {
 
-                    const value =
-                        styles[property];
+                    gradientClass =
+                        config.gradientClass;
 
-                    if (
-                        property ===
-                        "backgroundImage" &&
-                        String(value)
-                            .indexOf("gradient") !== -1
-                    ) {
-                        hasGradient = true;
-                    }
-
-                    element.style.setProperty(
-                        property,
-                        value,
-                        "important"
-                    );
+                    return;
 
                 }
-            );
-
-        });
 
 
-        /*
-         * Gradient is allowed to make ONLY this span
-         * transparent so the gradient can show through.
-         */
+                Object.keys(config).forEach(
+                    function (property) {
 
-        if (hasGradient) {
+                        if (
+                            property ===
+                            "gradientClass"
+                        ) {
+                            return;
+                        }
 
-            element.style.setProperty(
-                "color",
-                "transparent",
-                "important"
-            );
+                        element.style.setProperty(
+                            property,
+                            config[property],
+                            "important"
+                        );
 
-            element.style.setProperty(
-                "-webkit-text-fill-color",
-                "transparent",
-                "important"
+                    }
+                );
+
+            }
+        );
+
+
+        if (gradientClass) {
+
+            element.classList.add(
+                gradientClass
             );
 
         }
+
 
         element.classList.add(
             "firebase-formatted-text"
@@ -720,7 +909,7 @@
 
 
     /* ============================================================
-       FORMAT ONE TEXT NODE
+       FORMAT TEXT NODE
     ============================================================ */
 
     function formatTextNode(textNode) {
@@ -735,15 +924,21 @@
         const original =
             textNode.nodeValue;
 
+
         const codes =
             getCodes(original);
 
-        if (codes.length === 0) {
+
+        if (
+            codes.length === 0
+        ) {
             return;
         }
 
+
         const parent =
             textNode.parentElement;
+
 
         if (
             !parent ||
@@ -753,49 +948,48 @@
         }
 
 
-        /*
-         * Remove all codes from visible text.
-         */
-
-        const cleaned =
-            cleanText(original);
-
-        if (!cleaned) {
-            textNode.nodeValue = "";
+        if (
+            parent.classList &&
+            parent.classList.contains(
+                "firebase-formatted-text"
+            )
+        ) {
             return;
         }
 
 
-        /*
-         * IMPORTANT:
-         *
-         * We create a separate SPAN.
-         *
-         * Therefore:
-         *
-         * Name#red
-         *
-         * changes only Name.
-         *
-         * The whole Data Card does NOT become red,
-         * white or transparent.
-         */
+        const cleaned =
+            cleanText(original);
+
+
+        if (
+            !cleaned.trim()
+        ) {
+
+            textNode.nodeValue = "";
+
+            return;
+
+        }
+
 
         const span =
             document.createElement("span");
 
+
+        span.className =
+            "firebase-formatted-text";
+
+
         span.textContent =
             cleaned;
 
-        applyStyles(
+
+        applyNormalStyles(
             span,
             codes
         );
 
-
-        /*
-         * Replace only the original text node.
-         */
 
         parent.replaceChild(
             span,
@@ -818,14 +1012,13 @@
             return;
         }
 
-        if (isExcluded(element)) {
+
+        if (
+            isExcluded(element)
+        ) {
             return;
         }
 
-
-        /*
-         * Do not process formatter-created spans again.
-         */
 
         if (
             element.classList &&
@@ -842,6 +1035,7 @@
                 element,
                 NodeFilter.SHOW_TEXT,
                 {
+
                     acceptNode:
                         function (node) {
 
@@ -852,25 +1046,34 @@
                                 return NodeFilter.FILTER_REJECT;
                             }
 
+
+                            const parent =
+                                node.parentElement;
+
+
                             if (
-                                node.parentElement &&
-                                node.parentElement
-                                    .classList
-                                    .contains(
-                                        "firebase-formatted-text"
-                                    )
+                                !parent
                             ) {
                                 return NodeFilter.FILTER_REJECT;
                             }
 
+
                             if (
-                                node.parentElement &&
-                                isExcluded(
-                                    node.parentElement
+                                parent.classList &&
+                                parent.classList.contains(
+                                    "firebase-formatted-text"
                                 )
                             ) {
                                 return NodeFilter.FILTER_REJECT;
                             }
+
+
+                            if (
+                                isExcluded(parent)
+                            ) {
+                                return NodeFilter.FILTER_REJECT;
+                            }
+
 
                             if (
                                 getCodes(
@@ -880,25 +1083,31 @@
                                 return NodeFilter.FILTER_REJECT;
                             }
 
+
                             return NodeFilter.FILTER_ACCEPT;
 
                         }
+
                 }
             );
 
 
-        const textNodes = [];
+        const nodes = [];
+
 
         let node;
+
 
         while (
             (node = walker.nextNode())
         ) {
-            textNodes.push(node);
+
+            nodes.push(node);
+
         }
 
 
-        textNodes.forEach(
+        nodes.forEach(
             function (textNode) {
 
                 formatTextNode(
@@ -912,84 +1121,7 @@
 
 
     /* ============================================================
-       TOOLBAR CODE CLEANUP
-       ONLY removes #codes.
-       DOES NOT CHANGE TOOLBAR CSS.
-    ============================================================ */
-
-    function cleanToolbarCodes() {
-
-        const selectors = [
-
-            "#navToggleBtn",
-            "#menuIcon",
-            "#backIcon",
-            "nav",
-            "header",
-            ".navbar",
-            ".topbar",
-            ".toolbar",
-            ".appbar",
-            ".header",
-            ".navigation",
-            "[role='navigation']"
-
-        ];
-
-
-        document.querySelectorAll(
-            selectors.join(",")
-        ).forEach(
-            function (container) {
-
-                const walker =
-                    document.createTreeWalker(
-                        container,
-                        NodeFilter.SHOW_TEXT
-                    );
-
-                const nodes = [];
-
-                let node;
-
-                while (
-                    (node = walker.nextNode())
-                ) {
-                    nodes.push(node);
-                }
-
-
-                nodes.forEach(
-                    function (textNode) {
-
-                        const cleaned =
-                            cleanText(
-                                textNode.nodeValue
-                            );
-
-                        if (
-                            cleaned !==
-                            textNode.nodeValue
-                        ) {
-
-                            textNode.nodeValue =
-                                cleaned;
-
-                        }
-
-                    }
-                );
-
-            }
-        );
-
-    }
-
-
-    /* ============================================================
-       RESET OLD VERSION'S PARENT STYLES
-       This prevents the previous formatter from leaving
-       Data Card text white.
+       REMOVE OLD FORMATTER STYLES
     ============================================================ */
 
     function removeOldFormatterStyles() {
@@ -1001,11 +1133,8 @@
             .forEach(
                 function (element) {
 
-                    /*
-                     * New formatter spans are preserved.
-                     */
-
                     if (
+                        element.classList &&
                         element.classList.contains(
                             "firebase-formatted-text"
                         )
@@ -1017,11 +1146,12 @@
                     const properties = [
 
                         "color",
+                        "background",
                         "background-image",
+                        "background-size",
                         "background-clip",
                         "-webkit-background-clip",
                         "-webkit-text-fill-color",
-                        "background-size",
                         "animation",
                         "font-weight",
                         "font-style",
@@ -1058,7 +1188,139 @@
 
 
     /* ============================================================
-       APPLY TO ALL CONTENT
+       CLEAN OLD FORMATTER SPANS
+    ============================================================ */
+
+    function cleanOldFormatterSpans() {
+
+        document
+            .querySelectorAll(
+                ".firebase-formatted-text"
+            )
+            .forEach(
+                function (span) {
+
+                    const parent =
+                        span.parentNode;
+
+
+                    if (!parent) {
+                        return;
+                    }
+
+
+                    /*
+                     * Remove old formatter span
+                     * only when it no longer contains
+                     * a formatting code.
+                     */
+
+                    const text =
+                        span.textContent || "";
+
+
+                    if (
+                        getCodes(text).length === 0
+                    ) {
+
+                        /*
+                         * Do not unwrap a valid
+                         * formatted span unnecessarily.
+                         */
+
+                        return;
+
+                    }
+
+                }
+            );
+
+    }
+
+
+    /* ============================================================
+       TOOLBAR CLEANUP
+    ============================================================ */
+
+    function cleanToolbarCodes() {
+
+        const selectors = [
+
+            "#navToggleBtn",
+            "#menuIcon",
+            "#backIcon",
+            "nav",
+            "header",
+            ".navbar",
+            ".topbar",
+            ".toolbar",
+            ".appbar",
+            ".header",
+            ".navigation",
+            "[role='navigation']"
+
+        ];
+
+
+        document
+            .querySelectorAll(
+                selectors.join(",")
+            )
+            .forEach(
+                function (container) {
+
+                    const walker =
+                        document.createTreeWalker(
+                            container,
+                            NodeFilter.SHOW_TEXT
+                        );
+
+
+                    const nodes = [];
+
+
+                    let node;
+
+
+                    while (
+                        (node = walker.nextNode())
+                    ) {
+
+                        nodes.push(node);
+
+                    }
+
+
+                    nodes.forEach(
+                        function (textNode) {
+
+                            const cleaned =
+                                cleanText(
+                                    textNode.nodeValue
+                                );
+
+
+                            if (
+                                cleaned !==
+                                textNode.nodeValue
+                            ) {
+
+                                textNode.nodeValue =
+                                    cleaned;
+
+                            }
+
+                        }
+                    );
+
+                }
+            );
+
+    }
+
+
+    /* ============================================================
+       APPLY
     ============================================================ */
 
     function applyFirebaseTextColors(
@@ -1068,12 +1330,13 @@
         root =
             root || document.body;
 
+
         if (!root) {
             return;
         }
 
 
-        addAnimationStyles();
+        addFormatterCSS();
 
 
         const selectors = [
@@ -1117,33 +1380,33 @@
         let elements = [];
 
 
-        if (
-            root.matches &&
-            selectors.some(
-                function (selector) {
+        try {
 
-                    try {
+            if (
+                root.matches &&
+                selectors.some(
+                    function (selector) {
 
-                        return root.matches(
-                            selector
-                        );
+                        try {
 
-                    } catch (e) {
+                            return root.matches(
+                                selector
+                            );
 
-                        return false;
+                        } catch (e) {
+
+                            return false;
+
+                        }
 
                     }
+                )
+            ) {
 
-                }
-            )
-        ) {
+                elements.push(root);
 
-            elements.push(root);
+            }
 
-        }
-
-
-        try {
 
             elements =
                 elements.concat(
@@ -1154,19 +1417,15 @@
                     )
                 );
 
-        } catch (e) {
+        } catch (error) {
 
             console.warn(
-                "Firebase formatter error:",
-                e
+                "Firebase formatter:",
+                error
             );
 
         }
 
-
-        /*
-         * Remove duplicates.
-         */
 
         elements =
             Array.from(
@@ -1198,46 +1457,66 @@
 
     /* ============================================================
        MUTATION OBSERVER
-       Firebase data dynamically added হলে formatter আবার চলবে।
     ============================================================ */
 
-    let observerTimer = null;
+    let observerTimer =
+        null;
+
+
+    let observerStarted =
+        false;
+
 
     const observer =
         new MutationObserver(
             function (mutations) {
 
-                let shouldRun = false;
+                let shouldRun =
+                    false;
 
 
-                mutations.forEach(
-                    function (mutation) {
+                for (
+                    let i = 0;
+                    i < mutations.length;
+                    i++
+                ) {
 
-                        if (
-                            mutation.type ===
-                            "childList" &&
-                            mutation.addedNodes.length > 0
-                        ) {
-
-                            shouldRun = true;
-
-                        }
+                    const mutation =
+                        mutations[i];
 
 
-                        if (
-                            mutation.type ===
-                            "characterData"
-                        ) {
+                    if (
+                        mutation.type ===
+                        "childList" &&
+                        mutation.addedNodes.length
+                    ) {
 
-                            shouldRun = true;
+                        shouldRun =
+                            true;
 
-                        }
+                        break;
 
                     }
-                );
 
 
-                if (!shouldRun) {
+                    if (
+                        mutation.type ===
+                        "characterData"
+                    ) {
+
+                        shouldRun =
+                            true;
+
+                        break;
+
+                    }
+
+                }
+
+
+                if (
+                    !shouldRun
+                ) {
                     return;
                 }
 
@@ -1256,7 +1535,7 @@
                             );
 
                         },
-                        80
+                        100
                     );
 
             }
@@ -1269,17 +1548,19 @@
 
     function initializeFormatter() {
 
-        addAnimationStyles();
+        addFormatterCSS();
+
 
         /*
-         * Remove styles left by the previous version.
+         * Remove styles created by
+         * the older formatter version.
          */
 
         removeOldFormatterStyles();
 
 
         /*
-         * Apply new formatter.
+         * Format current Firebase content.
          */
 
         applyFirebaseTextColors(
@@ -1288,17 +1569,27 @@
 
 
         /*
-         * Watch Firebase dynamic content.
+         * Start observer only once.
          */
 
-        observer.observe(
-            document.body,
-            {
-                childList: true,
-                subtree: true,
-                characterData: true
-            }
-        );
+        if (
+            !observerStarted
+        ) {
+
+            observer.observe(
+                document.body,
+                {
+                    childList: true,
+                    subtree: true,
+                    characterData: true
+                }
+            );
+
+
+            observerStarted =
+                true;
+
+        }
 
     }
 
