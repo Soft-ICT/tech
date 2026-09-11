@@ -4,9 +4,6 @@ import {
     logoutAdmin
 } from "./auth.js";
 
-import { AppThemeManager } from './themeManager.js';
-
-
 import {
     ref,
     set,
@@ -769,6 +766,10 @@ function renderCategories(searchVal = "") {
         const imgSrc = category.image ? escapeHTML(category.image) : DEFAULT_CATEGORY_IMAGE;
         const imageHtml = `<img src="${imgSrc}" alt="${escapeHTML(category.name)}" class="cat-card-img" onerror="this.src='${DEFAULT_CATEGORY_IMAGE}'">`;
 
+        // কাস্টম কালার সাপোর্ট
+        const catColor = window.sanitizeTextColor ? window.sanitizeTextColor(category.color) : "";
+        const titleStyle = catColor ? `style="color: ${catColor};"` : "";
+
         const adminActions = isAdmin
             ? `
                 <div class="action-btn-group">
@@ -786,7 +787,7 @@ function renderCategories(searchVal = "") {
         card.innerHTML = `
             <div class="cat-click">
                 ${imageHtml}
-                <h3>${escapeHTML(category.name)} ${pinBadge}</h3>
+                <h3 ${titleStyle}>${escapeHTML(category.name)} ${pinBadge}</h3>
             </div>
             ${adminActions}
         `;
@@ -822,15 +823,18 @@ function openCategoryModal(isSubCategory = false, editObj = null) {
     const title = document.getElementById("categoryModalTitle");
     const inputName = document.getElementById("categoryNameInput");
     const inputImage = document.getElementById("categoryImageInput");
+    const inputColor = document.getElementById("categoryColorInput");
 
     if (editObj) {
         title.textContent = "Category এডিট করুন";
         inputName.value = editObj.name || "";
         if (inputImage) inputImage.value = editObj.image || "";
+        if (inputColor) inputColor.value = editObj.color || "";
     } else {
         title.textContent = isSubCategory ? "নতুন Sub-Category" : "নতুন Category";
         inputName.value = "";
         if (inputImage) inputImage.value = "";
+        if (inputColor) inputColor.value = "";
     }
 
     openModal("categoryModal");
@@ -841,18 +845,21 @@ async function saveCategory() {
 
     const name = document.getElementById("categoryNameInput")?.value.trim();
     const image = document.getElementById("categoryImageInput")?.value.trim() || "";
+    const color = window.sanitizeTextColor ? window.sanitizeTextColor(document.getElementById("categoryColorInput")?.value) : "";
 
     if (!name) return showToast("Category Name লিখুন");
 
     if (editingItem) {
         editingItem.name = name;
         editingItem.image = image;
+        editingItem.color = color;
         editingItem = null;
     } else {
         database.categories.push({
             id: generateId("cat"),
             name: name,
             image: image,
+            color: color,
             parentId: currentCategoryId ? currentCategoryId : null,
             pinned: false,
             pinnedAt: 0,
@@ -881,7 +888,7 @@ function editCategory(id) {
 }
 
 async function deleteCategory(id) {
-    const isConfirmed = await customConfirm("আপনি কি নিশ্চিত এই Category মুছে ফেলতে চান?");
+    const isConfirmed = await customConfirm("আপনি কি এই Category মুছে ফেলতে চান?");
     if (!isConfirmed) return;
 
     database.categories = database.categories.filter(c => c.id !== id && c.parentId !== id);
@@ -896,24 +903,29 @@ function openHeaderModal(editObj = null) {
     if (window.currentUserRole !== "admin") return;
     editingItem = editObj;
     const input = document.getElementById("headerNameInput");
+    const inputColor = document.getElementById("headerColorInput");
     if (input) input.value = editObj ? editObj.title : "";
+    if (inputColor) inputColor.value = editObj ? (editObj.color || "") : "";
     openModal("headerModal");
 }
 
 async function saveHeader() {
     if (window.currentUserRole !== "admin") return;
     const title = document.getElementById("headerNameInput")?.value.trim();
+    const color = window.sanitizeTextColor ? window.sanitizeTextColor(document.getElementById("headerColorInput")?.value) : "";
 
     if (!title || !currentCategoryId) return showToast("হেডার নাম লিখুন");
 
     if (editingItem) {
         editingItem.title = title;
+        editingItem.color = color;
         editingItem = null;
     } else {
         database.headers.push({
             id: generateId("header"),
             categoryId: currentCategoryId,
             title: title,
+            color: color,
             pinned: false,
             pinnedAt: 0,
             createdAt: Date.now()
@@ -969,6 +981,11 @@ function createDataCardElement(item) {
         : `<div class="data-card-avatar">👤</div>`;
 
     const pinIcon = item.pinned ? "📌" : "📍";
+    
+    // কাস্টম কালার সাপোর্ট
+    const dataColor = window.sanitizeTextColor ? window.sanitizeTextColor(item.color) : "";
+    const nameStyle = dataColor ? `style="color: ${dataColor};"` : "";
+
     const adminActions = isAdmin
         ? `
             <div class="card-admin-actions" style="display:flex;gap:4px;">
@@ -985,7 +1002,7 @@ function createDataCardElement(item) {
     dataEl.innerHTML = `
         ${avatarHtml}
         <div class="data-card-info">
-            <div class="data-card-name">${name} ${dataPinMark}</div>
+            <div class="data-card-name" ${nameStyle}>${name} ${dataPinMark}</div>
             <div class="data-card-detail">📱 মোবাইল: ${mobile}</div>
             <div class="data-card-detail">☎️ টেলিফোন: ${phone}</div>
             <div class="data-card-detail">💼 পদবী: ${designation}</div>
@@ -1037,6 +1054,9 @@ function openDataModal(editObj = null) {
     document.getElementById("dataCurrentOffice").value = editObj?.currentOffice || "";
     document.getElementById("dataPermanentAddress").value = editObj?.permanentAddress || "";
     document.getElementById("dataAdminInfo").value = editObj?.adminInfo || "";
+    
+    const colorInput = document.getElementById("dataColorInput");
+    if (colorInput) colorInput.value = editObj?.color || "";
 
     const select = document.getElementById("dataHeaderSelect");
     if (select) {
@@ -1063,6 +1083,7 @@ async function saveData() {
     const mobile = document.getElementById("dataMobile")?.value.trim() || "";
     const phone = document.getElementById("dataPhone")?.value.trim() || "";
     const email = document.getElementById("dataEmail")?.value.trim() || "";
+    const color = window.sanitizeTextColor ? window.sanitizeTextColor(document.getElementById("dataColorInput")?.value) : "";
 
     if (!name) return showToast("নাম প্রদান করুন");
 
@@ -1084,6 +1105,7 @@ async function saveData() {
         currentOffice: document.getElementById("dataCurrentOffice")?.value.trim() || "",
         permanentAddress: document.getElementById("dataPermanentAddress")?.value.trim() || "",
         adminInfo: document.getElementById("dataAdminInfo")?.value.trim() || "",
+        color: color,
         headerId: document.getElementById("dataHeaderSelect")?.value || null
     };
 
@@ -1279,6 +1301,9 @@ function renderCategoryDetails(searchVal = "") {
             const subImgSrc = sub.image ? escapeHTML(sub.image) : DEFAULT_CATEGORY_IMAGE;
             const imageHtml = `<img src="${subImgSrc}" alt="${escapeHTML(sub.name)}" class="cat-card-img" onerror="this.src='${DEFAULT_CATEGORY_IMAGE}'">`;
 
+            const subColor = window.sanitizeTextColor ? window.sanitizeTextColor(sub.color) : "";
+            const subTitleStyle = subColor ? `style="color: ${subColor};"` : "";
+
             const adminActions = isAdmin
                 ? `
                     <div>
@@ -1294,7 +1319,7 @@ function renderCategoryDetails(searchVal = "") {
             item.innerHTML = `
                 <div class="sub-click">
                     ${imageHtml}
-                    <h3>${escapeHTML(sub.name)} ${subPinBadge}</h3>
+                    <h3 ${subTitleStyle}>${escapeHTML(sub.name)} ${subPinBadge}</h3>
                 </div>
                 ${adminActions}
             `;
@@ -1368,6 +1393,10 @@ function renderCategoryDetails(searchVal = "") {
             headerBox.className = "header-box";
 
             const pinIcon = header.pinned ? "📌" : "📍";
+            
+            const headColor = window.sanitizeTextColor ? window.sanitizeTextColor(header.color) : "";
+            const headTitleStyle = headColor ? `style="color: ${headColor};"` : "";
+
             const adminActions = isAdmin
                 ? `
                     <div>
@@ -1382,7 +1411,7 @@ function renderCategoryDetails(searchVal = "") {
 
             headerBox.innerHTML = `
                 <div class="header-banner">
-                    <span>${escapeHTML(header.title)} ${headerPinMark}</span>
+                    <span ${headTitleStyle}>${escapeHTML(header.title)} ${headerPinMark}</span>
                     ${adminActions}
                 </div>
             `;
@@ -1433,15 +1462,11 @@ function showDataPage(dataId) {
 
     updateAdminUI();
 
-    // অফলাইনে থাকলে Firebase request করা হবে না।
-    // Local cache-এর ডাটা দিয়েই সরাসরি details page দেখানো হবে।
     if (!navigator.onLine) {
         renderDataDetailsContent(item);
         return;
     }
 
-    // অনলাইন অবস্থাতেও Firebase response-এর জন্য অপেক্ষা না করে
-    // প্রথমে ডাটার details দেখানো হবে।
     renderDataDetailsContent(item);
 
     const devId = getDeviceId();
@@ -1451,12 +1476,8 @@ function showDataPage(dataId) {
         if (snapshot.exists() && snapshot.val().status === "approved") {
             isDeviceVerified = true;
         }
-
-        // Verification status পাওয়ার পর UI প্রয়োজন হলে আপডেট হবে।
         renderDataDetailsContent(item);
-
     }).catch(() => {
-        // Firebase request ব্যর্থ হলেও local data দিয়ে details দেখাবে।
         renderDataDetailsContent(item);
     });
 }
@@ -1480,6 +1501,9 @@ function renderDataDetailsContent(item) {
         ? `<img src="${photo}" alt="${name}" class="details-avatar-large" onerror="this.outerHTML='<div class=\\'details-avatar-large\\'>👤</div>'">`
         : `<div class="details-avatar-large">👤</div>`;
 
+    const dataColor = window.sanitizeTextColor ? window.sanitizeTextColor(item.color) : "";
+    const nameStyle = dataColor ? `style="color: ${dataColor};"` : "";
+
     const isAuthorized = isDeviceVerified || isAdmin;
     const showAdminInfoBox = isAuthorized && adminInfo;
     const showPermanentAddressBox = isAuthorized && permanentAddress;
@@ -1488,7 +1512,7 @@ function renderDataDetailsContent(item) {
     container.innerHTML = `
         <div class="details-header-section">
             <div class="avatar-wrapper">${avatarHtml}</div>
-            <h2 style="font-size:22px;font-weight:700;">${name}</h2>
+            <h2 style="font-size:22px;font-weight:700;" ${nameStyle}>${name}</h2>
             <p style="color:var(--text-muted);font-size:15px;">${designation}</p>
         </div>
 
@@ -1541,7 +1565,7 @@ function setupHoldToVerify(button) {
             clearHold();
             if (navigator.vibrate) navigator.vibrate(60);
             openModal("verifyModal");
-        }, 10000); // ১০ সেকেন্ড (১০,০০০ মিলিগ্রাম/মিলি সেকেন্ড)
+        }, 10000);
     };
 
     const clearHold = () => {
@@ -1560,7 +1584,6 @@ function setupHoldToVerify(button) {
     button.addEventListener("touchend", clearHold);
     button.addEventListener("touchcancel", clearHold);
 
-    // সাধারণ ক্লিক ইভেন্ট নিষ্ক্রিয় রাখা যাতে শুধু হোল্ড করলেই কাজ করে
     button.addEventListener("click", (e) => {
         e.preventDefault();
         showToast("⚠️ 'Get VIP' বাটনটি কমপক্ষে ১০ সেকেন্ড চেপে ধরে রাখুন!");
