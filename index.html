@@ -1745,6 +1745,7 @@
     ">
 
     <div
+        id="homeNoticeBox"
         style="
             background: var(--card-bg, #fff);
             color: var(--text-main, #333);
@@ -1989,7 +1990,6 @@
             passwordButton.textContent = "যাচাই হচ্ছে...";
 
             try {
-                // সরাসরি আপনার প্রজেক্টের firebase.js এর db থেকে ডাটা আনছে
                 const passwordRef = ref(db, 'webapp/admin/password');
                 const snapshot = await get(passwordRef);
 
@@ -2040,10 +2040,71 @@
     })();
     </script>
 
-    <script src="js/textDesign.js"></script>
-<script src="js/app.js"></script> <!-- আপনার মেইন ফাইল যার উপরে textDesign.js থাকতে হবে -->
 
-    
+<!-- ============================================================
+     UNIVERSAL DYNAMIC COLOR MANAGER (CATEGORY, SUB-CAT, HEADER, PROFILE, NOTICE)
+     ============================================================ -->
+<script>
+    const AppThemeManager = {
+        applyTheme(colors) {
+            // ১. হেডার কালার
+            const headerEl = document.querySelector('header.topbar');
+            if (headerEl && colors.header) headerEl.style.backgroundColor = colors.header;
+
+            // ২. ক্যাটাগরি আইটেম কালার
+            document.querySelectorAll('.category-item, .category-card').forEach(el => {
+                if (colors.category) el.style.backgroundColor = colors.category;
+            });
+
+            // ৩. সাব-ক্যাটাগরি কালার
+            document.querySelectorAll('.sub-category-item, .sub-cat-card').forEach(el => {
+                if (colors.subCategory) el.style.backgroundColor = colors.subCategory;
+            });
+
+            // ৪. ডাটা প্রোফাইল কার্ড কালার
+            document.querySelectorAll('.data-profile, .profile-card, .details-container-card').forEach(el => {
+                if (colors.dataProfile) el.style.backgroundColor = colors.dataProfile;
+            });
+
+            // ৫. হোম নোটিশ পপআপ কালার
+            const homeNoticeEl = document.getElementById('homeNoticeBox');
+            if (homeNoticeEl && colors.homeNotice) homeNoticeEl.style.backgroundColor = colors.homeNotice;
+
+            // ৬. স্লাইডিং/স্ক্রোলিং নোটিশ কালার
+            const scrollingNoticeEl = document.getElementById('slidingNoticeContainer');
+            if (scrollingNoticeEl && colors.scrollingNotice) scrollingNoticeEl.style.backgroundColor = colors.scrollingNotice;
+
+            localStorage.setItem('app_custom_colors', JSON.stringify(colors));
+        },
+
+        loadSavedTheme() {
+            const savedColors = localStorage.getItem('app_custom_colors');
+            if (savedColors) {
+                try {
+                    this.applyTheme(JSON.parse(savedColors));
+                } catch (e) {
+                    console.error("Theme parse error:", e);
+                }
+            }
+        }
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        AppThemeManager.loadSavedTheme();
+        
+        // ডাইনামিকালি রেন্ডার হওয়া ইলিমেন্টগুলোর ওপর থিম বজায় রাখতে অবজার্ভার যুক্ত করা হলো
+        const observer = new MutationObserver(() => {
+            const savedColors = localStorage.getItem('app_custom_colors');
+            if (savedColors) {
+                try {
+                    AppThemeManager.applyTheme(JSON.parse(savedColors));
+                } catch (e) {}
+            }
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+    });
+</script>
+
 
 <script type="module">
     import { initDrawer } from './js/drawer.js';
