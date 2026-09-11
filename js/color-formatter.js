@@ -2,7 +2,9 @@
    Firebase Text Color & Design Formatter
    File: Js/color-formatter.js
 
-   SAFE VERSION (FLICKER FIX)
+   FINAL VERSION
+   ✔ No color-code flash
+   ✔ Toolbar protected
    ✔ Data Card safe
    ✔ Data Profile safe
    ✔ Category safe
@@ -13,7 +15,8 @@
    ✔ Multiple formatting codes
    ✔ Animated gradients
    ✔ Formatting codes hidden
-   ✔ Toolbar untouched
+   ✔ Toolbar never formatted
+   ✔ MutationObserver safe
 ============================================================ */
 
 (function () {
@@ -260,6 +263,102 @@
 
 
     /* ============================================================
+       TOOLBAR SELECTORS
+    ============================================================ */
+
+    const TOOLBAR_SELECTORS = [
+
+        "#navToggleBtn",
+        "#menuIcon",
+        "#backIcon",
+        "nav",
+        "header",
+        ".navbar",
+        ".topbar",
+        ".toolbar",
+        ".appbar",
+        ".header",
+        ".navigation",
+        "[role='navigation']"
+
+    ];
+
+
+    const TOOLBAR_SELECTOR =
+        TOOLBAR_SELECTORS.join(",");
+
+
+    /* ============================================================
+       EARLY TOOLBAR PROTECTION
+       IMPORTANT FOR ZERO-VISIBLE-FLASH
+    ============================================================ */
+
+    function installEarlyToolbarProtection() {
+
+        let style =
+            document.getElementById(
+                "firebaseFormatterEarlyProtection"
+            );
+
+
+        if (style) {
+            return;
+        }
+
+
+        style =
+            document.createElement("style");
+
+
+        style.id =
+            "firebaseFormatterEarlyProtection";
+
+
+        style.textContent = `
+
+/*
+ * Toolbar is temporarily invisible while
+ * Firebase formatter removes formatting codes.
+ *
+ * It becomes visible immediately after cleanup.
+ */
+
+${TOOLBAR_SELECTOR} {
+    visibility: hidden !important;
+}
+
+${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
+    visibility: visible !important;
+}
+
+`;
+
+
+        /*
+         * Put the protection as early as possible.
+         */
+
+        if (document.head) {
+
+            document.head.insertBefore(
+                style,
+                document.head.firstChild
+            );
+
+        } else {
+
+            document.documentElement
+                .insertBefore(
+                    style,
+                    document.documentElement.firstChild
+                );
+
+        }
+
+    }
+
+
+    /* ============================================================
        CSS
     ============================================================ */
 
@@ -273,26 +372,23 @@
             return;
         }
 
+
         const style =
             document.createElement("style");
+
 
         style.id =
             "firebaseFormatterSafeCSS";
 
-        style.textContent = `
 
-/* ============================================================
-   IMPORTANT:
-   These rules affect ONLY formatter-created spans.
-   No card, profile or parent element is modified.
-============================================================ */
+        style.textContent = `
 
 .firebase-formatted-text {
     display: inline;
 }
 
 
-/* ================= STATIC GRADIENT ================= */
+/* ================= STATIC + ANIMATED GRADIENT ================= */
 
 .firebase-gradient-ocean,
 .firebase-gradient-fire,
@@ -321,72 +417,84 @@
 /* ================= OCEAN ================= */
 
 .firebase-gradient-ocean {
+
     background-image:
         linear-gradient(
             90deg,
             #00c6ff,
             #0072ff
         );
+
 }
 
 
 /* ================= FIRE ================= */
 
 .firebase-gradient-fire {
+
     background-image:
         linear-gradient(
             90deg,
             #ff512f,
             #f09819
         );
+
 }
 
 
 /* ================= PURPLE ================= */
 
 .firebase-gradient-purple {
+
     background-image:
         linear-gradient(
             90deg,
             #8e2de2,
             #4a00e0
         );
+
 }
 
 
 /* ================= GREEN ================= */
 
 .firebase-gradient-green {
+
     background-image:
         linear-gradient(
             90deg,
             #00b09b,
             #96c93d
         );
+
 }
 
 
 /* ================= SUNSET ================= */
 
 .firebase-gradient-sunset {
+
     background-image:
         linear-gradient(
             90deg,
             #ff512f,
             #dd2476
         );
+
 }
 
 
 /* ================= BLUE ================= */
 
 .firebase-gradient-blue {
+
     background-image:
         linear-gradient(
             90deg,
             #36d1dc,
             #5b86e5
         );
+
 }
 
 
@@ -410,6 +518,7 @@
     animation:
         firebaseGradientAnimation
         6s ease infinite;
+
 }
 
 
@@ -433,6 +542,7 @@
     animation:
         firebaseAuroraAnimation
         8s ease infinite;
+
 }
 
 
@@ -456,6 +566,7 @@
     animation:
         firebaseFireAnimation
         4s ease infinite;
+
 }
 
 
@@ -479,6 +590,7 @@
     animation:
         firebaseOceanAnimation
         7s ease infinite;
+
 }
 
 
@@ -502,6 +614,7 @@
     animation:
         firebasePurpleAnimation
         6s ease infinite;
+
 }
 
 
@@ -525,6 +638,7 @@
     animation:
         firebaseSunsetAnimation
         6s ease infinite;
+
 }
 
 
@@ -548,6 +662,7 @@
     animation:
         firebaseGreenAnimation
         7s ease infinite;
+
 }
 
 
@@ -574,6 +689,7 @@
     animation:
         firebaseRainbowAnimation
         8s linear infinite;
+
 }
 
 
@@ -726,7 +842,9 @@
 
 `;
 
+
         document.head.appendChild(style);
+
     }
 
 
@@ -743,22 +861,11 @@
             return true;
         }
 
-        return !!element.closest(`
 
-            #navToggleBtn,
-            #menuIcon,
-            #backIcon,
-            nav,
-            header,
-            .navbar,
-            .topbar,
-            .toolbar,
-            .appbar,
-            .header,
-            .navigation,
-            [role="navigation"]
+        return !!element.closest(
+            TOOLBAR_SELECTOR
+        );
 
-        `);
     }
 
 
@@ -785,7 +892,9 @@
             return [];
         }
 
+
         const result = [];
+
 
         SORTED_CODES.forEach(
             function (code) {
@@ -801,7 +910,9 @@
             }
         );
 
+
         return result;
+
     }
 
 
@@ -815,7 +926,9 @@
             return "";
         }
 
+
         let result = text;
+
 
         SORTED_CODES.forEach(
             function (code) {
@@ -826,7 +939,9 @@
             }
         );
 
+
         return result;
+
     }
 
 
@@ -839,13 +954,16 @@
         codes
     ) {
 
-        let gradientClass = null;
+        let gradientClass =
+            null;
+
 
         codes.forEach(
             function (code) {
 
                 const config =
                     FORMAT_CODES[code];
+
 
                 if (!config) {
                     return;
@@ -874,6 +992,7 @@
                             return;
                         }
 
+
                         element.style.setProperty(
                             property,
                             config[property],
@@ -900,6 +1019,7 @@
             "firebase-formatted-text"
         );
 
+
         element.setAttribute(
             "data-firebase-formatted",
             "true"
@@ -920,6 +1040,7 @@
         ) {
             return;
         }
+
 
         const original =
             textNode.nodeValue;
@@ -966,7 +1087,8 @@
             !cleaned.trim()
         ) {
 
-            textNode.nodeValue = "";
+            textNode.nodeValue =
+                "";
 
             return;
 
@@ -974,7 +1096,9 @@
 
 
         const span =
-            document.createElement("span");
+            document.createElement(
+                "span"
+            );
 
 
         span.className =
@@ -1051,10 +1175,10 @@
                                 node.parentElement;
 
 
-                            if (
-                                !parent
-                            ) {
+                            if (!parent) {
+
                                 return NodeFilter.FILTER_REJECT;
+
                             }
 
 
@@ -1188,82 +1312,95 @@
 
 
     /* ============================================================
-       TOOLBAR CLEANUP (Immediate Execution for Toolbar)
+       TOOLBAR CLEANUP
+       IMPORTANT:
+       Cleanup FIRST, visibility AFTER cleanup.
     ============================================================ */
+
+    let toolbarCleaned =
+        false;
+
 
     function cleanToolbarCodes() {
 
-        const selectors = [
-
-            "#navToggleBtn",
-            "#menuIcon",
-            "#backIcon",
-            "nav",
-            "header",
-            ".navbar",
-            ".topbar",
-            ".toolbar",
-            ".appbar",
-            ".header",
-            ".navigation",
-            "[role='navigation']"
-
-        ];
+        const containers =
+            document.querySelectorAll(
+                TOOLBAR_SELECTOR
+            );
 
 
-        document
-            .querySelectorAll(
-                selectors.join(",")
-            )
-            .forEach(
-                function (container) {
-
-                    const walker =
-                        document.createTreeWalker(
-                            container,
-                            NodeFilter.SHOW_TEXT
-                        );
+        if (!containers.length) {
+            return;
+        }
 
 
-                    const nodes = [];
+        containers.forEach(
+            function (container) {
 
-
-                    let node;
-
-
-                    while (
-                        (node = walker.nextNode())
-                    ) {
-
-                        nodes.push(node);
-
-                    }
-
-
-                    nodes.forEach(
-                        function (textNode) {
-
-                            const cleaned =
-                                cleanText(
-                                    textNode.nodeValue
-                                );
-
-
-                            if (
-                                cleaned !==
-                                textNode.nodeValue
-                            ) {
-
-                                textNode.nodeValue =
-                                    cleaned;
-
-                            }
-
-                        }
+                const walker =
+                    document.createTreeWalker(
+                        container,
+                        NodeFilter.SHOW_TEXT
                     );
 
+
+                const nodes = [];
+
+
+                let node;
+
+
+                while (
+                    (node = walker.nextNode())
+                ) {
+
+                    nodes.push(node);
+
                 }
-            );
+
+
+                nodes.forEach(
+                    function (textNode) {
+
+                        const original =
+                            textNode.nodeValue;
+
+
+                        const cleaned =
+                            cleanText(
+                                original
+                            );
+
+
+                        if (
+                            cleaned !==
+                            original
+                        ) {
+
+                            textNode.nodeValue =
+                                cleaned;
+
+                        }
+
+                    }
+                );
+
+
+                /*
+                 * Make this toolbar visible only
+                 * AFTER its text has been cleaned.
+                 */
+
+                container.classList.add(
+                    "firebase-toolbar-clean-ready"
+                );
+
+            }
+        );
+
+
+        toolbarCleaned =
+            true;
 
     }
 
@@ -1283,6 +1420,17 @@
         if (!root) {
             return;
         }
+
+
+        /*
+         * ALWAYS CLEAN TOOLBAR FIRST.
+         *
+         * This is important.
+         * Formatting must never happen before
+         * toolbar cleanup.
+         */
+
+        cleanToolbarCodes();
 
 
         addFormatterCSS();
@@ -1398,7 +1546,16 @@
             }
         );
 
+
+        /*
+         * Final toolbar cleanup.
+         *
+         * If Firebase inserted toolbar content
+         * during formatting, it is cleaned here.
+         */
+
         cleanToolbarCodes();
+
     }
 
 
@@ -1411,6 +1568,10 @@
 
 
     let observerStarted =
+        false;
+
+
+    let observerRunning =
         false;
 
 
@@ -1468,6 +1629,13 @@
                 }
 
 
+                /*
+                 * First cleanup toolbar immediately.
+                 */
+
+                cleanToolbarCodes();
+
+
                 clearTimeout(
                     observerTimer
                 );
@@ -1477,12 +1645,32 @@
                     setTimeout(
                         function () {
 
-                            applyFirebaseTextColors(
-                                document.body
-                            );
+                            if (
+                                observerRunning
+                            ) {
+                                return;
+                            }
+
+
+                            observerRunning =
+                                true;
+
+
+                            try {
+
+                                applyFirebaseTextColors(
+                                    document.body
+                                );
+
+                            } finally {
+
+                                observerRunning =
+                                    false;
+
+                            }
 
                         },
-                        10
+                        0
                     );
 
             }
@@ -1495,26 +1683,36 @@
 
     function initializeFormatter() {
 
-        cleanToolbarCodes();
+        /*
+         * IMPORTANT ORDER:
+         *
+         * 1. Protect toolbar
+         * 2. Add formatter CSS
+         * 3. Clean toolbar
+         * 4. Remove old styles
+         * 5. Format Firebase text
+         * 6. Clean toolbar again
+         * 7. Start observer
+         */
+
+        installEarlyToolbarProtection();
+
 
         addFormatterCSS();
 
 
-        /*
-         * Remove styles created by
-         * the older formatter version.
-         */
+        cleanToolbarCodes();
+
 
         removeOldFormatterStyles();
 
 
-        /*
-         * Format current Firebase content.
-         */
-
         applyFirebaseTextColors(
             document.body
         );
+
+
+        cleanToolbarCodes();
 
 
         /*
@@ -1522,7 +1720,8 @@
          */
 
         if (
-            !observerStarted
+            !observerStarted &&
+            document.body
         ) {
 
             observer.observe(
@@ -1544,15 +1743,40 @@
 
 
     /* ============================================================
-       PAGE LOAD & INSTANT EXECUTION (FLICKER PREVENTION)
+       EARLY EXECUTION
     ============================================================ */
 
-    // ইনস্ট্যান্ট রান যাতে কোড লোড হওয়ামাত্রই ফ্ল্যাশ করার সুযোগ না পায়
-    if (document.body) {
+    /*
+     * Install protection as early as possible.
+     */
+
+    installEarlyToolbarProtection();
+
+
+    /*
+     * If body already exists, perform immediate cleanup.
+     */
+
+    if (
+        document.body
+    ) {
+
         cleanToolbarCodes();
+
         addFormatterCSS();
-        applyFirebaseTextColors(document.body);
+
+        applyFirebaseTextColors(
+            document.body
+        );
+
+        cleanToolbarCodes();
+
     }
+
+
+    /* ============================================================
+       PAGE LOAD
+    ============================================================ */
 
     if (
         document.readyState ===
@@ -1561,7 +1785,10 @@
 
         document.addEventListener(
             "DOMContentLoaded",
-            initializeFormatter
+            initializeFormatter,
+            {
+                once: true
+            }
         );
 
     } else {
