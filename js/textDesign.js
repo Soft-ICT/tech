@@ -5,13 +5,12 @@ function applyTextDesign(rawText) {
     // ===== BASIC FORMATTING =====
     text = text.replace(/\*\*__\-\-((?:.|\n)+?)\-\_\_\*\*/g, '<b><i><u>$1</u></i></b>');
     text = text.replace(/\*\*\-\-((?:.|\n)+?)\-\*\*/g, '<b><u>$1</u></b>');
-    text = text.replace(/\_\___\-\-((?:.|\n)+?)\-\_\_\_\_/g, '<i><u>$1</u></i>');
     text = text.replace(/\*\*((?:.|\n)+?)\*\*/g, '<b>$1</b>');
     text = text.replace(/\_\_((?:.|\n)+?)\_\_/g, '<i>$1</i>');
     text = text.replace(/\-\-((?:.|\n)+?)\-\-/g, '<u>$1</u>');
     text = text.replace(/\~\~((?:.|\n)+?)\~\~/g, '<strike>$1</strike>');
     
-    // সাইজ পরিবর্তন (Small & Large)
+    // সাইজ পরিবর্তন
     text = text.replace(/\!\!\!((?:.|\n)+?)\!\!\!/g, '<span style="font-size: 2em;">$1</span>');
     text = text.replace(/\!\!((?:.|\n)+?)\!\!/g, '<span style="font-size: 1.5em;">$1</span>');
     text = text.replace(/\#((?:.|\n)+?)\#/g, '<span style="background-color: yellow; color: black; padding: 2px 4px;">$1</span>');
@@ -46,14 +45,13 @@ function applyTextDesign(rawText) {
     text = text.replace(/%OUTLINE\{((?:.|\n)+?)\}%/g, '<span class="effect-outline">$1</span>');
     text = text.replace(/%SHADOW\{((?:.|\n)+?)\}%/g, '<span class="effect-shadow">$1</span>');
     text = text.replace(/%BLUR\{((?:.|\n)+?)\}%/g, '<span class="effect-blur">$1</span>');
-    text.replace(/%RAINBOW\{((?:.|\n)+?)\}%/g, '<span class="effect-rainbow">$1</span>');
     text = text.replace(/%RAINBOW\{((?:.|\n)+?)\}%/g, '<span class="effect-rainbow">$1</span>');
     text = text.replace(/%NEON\{((?:.|\n)+?)\}%/g, '<span class="effect-neon">$1</span>');
     text = text.replace(/%3D\{((?:.|\n)+?)\}%/g, '<span class="effect-3d">$1</span>');
     text = text.replace(/%SHIMMER\{((?:.|\n)+?)\}%/g, '<span class="effect-shimmer">$1</span>');
     text = text.replace(/%GRADIENT_ANIM\{((?:.|\n)+?)\}%/g, '<span class="effect-gradient-anim">$1</span>');
 
-    // ===== HIGHLIGHT EFFECT (%HIGHLIGHT{text;textColor;bgColor}%) =====
+    // ===== HIGHLIGHT EFFECT =====
     text = text.replace(/%HIGHLIGHT\{(.*?)\;(.*?)\;(.*?)\}%/g, function(match, t, fg, bg) {
         return `<span style="color: ${fg}; background-color: ${bg}; padding: 2px 4px; border-radius: 3px;">${t}</span>`;
     });
