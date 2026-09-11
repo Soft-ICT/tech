@@ -1188,58 +1188,7 @@
 
 
     /* ============================================================
-       CLEAN OLD FORMATTER SPANS
-    ============================================================ */
-
-    function cleanOldFormatterSpans() {
-
-        document
-            .querySelectorAll(
-                ".firebase-formatted-text"
-            )
-            .forEach(
-                function (span) {
-
-                    const parent =
-                        span.parentNode;
-
-
-                    if (!parent) {
-                        return;
-                    }
-
-
-                    /*
-                     * Remove old formatter span
-                     * only when it no longer contains
-                     * a formatting code.
-                     */
-
-                    const text =
-                        span.textContent || "";
-
-
-                    if (
-                        getCodes(text).length === 0
-                    ) {
-
-                        /*
-                         * Do not unwrap a valid
-                         * formatted span unnecessarily.
-                         */
-
-                        return;
-
-                    }
-
-                }
-            );
-
-    }
-
-
-    /* ============================================================
-       TOOLBAR CLEANUP
+       TOOLBAR CLEANUP (Immediate Execution for Toolbar)
     ============================================================ */
 
     function cleanToolbarCodes() {
@@ -1533,7 +1482,7 @@
                             );
 
                         },
-                        50
+                        10
                     );
 
             }
@@ -1595,12 +1544,13 @@
 
 
     /* ============================================================
-       PAGE LOAD & INSTANT EXECUTION
+       PAGE LOAD & INSTANT EXECUTION (FLICKER PREVENTION)
     ============================================================ */
 
     // ইনস্ট্যান্ট রান যাতে কোড লোড হওয়ামাত্রই ফ্ল্যাশ করার সুযোগ না পায়
     if (document.body) {
         cleanToolbarCodes();
+        addFormatterCSS();
         applyFirebaseTextColors(document.body);
     }
 
