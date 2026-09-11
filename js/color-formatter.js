@@ -18,1806 +18,1441 @@
    ✔ Toolbar never formatted
    ✔ MutationObserver safe
 ============================================================ */
+/* ============================================================
+   FIREBASE TEXT COLOR / FORMATTER
+   Anti-Flash Edition
+   ============================================================ */
 
-(function () {
+"use strict";
 
-    "use strict";
+/* ============================================================
+   FORMAT CODES
+   ============================================================ */
 
+const FORMAT_CODES = {
 
-    /* ============================================================
-       FORMAT CODES
-    ============================================================ */
+    /* ---------- BASIC COLORS ---------- */
 
-    const FORMAT_CODES = {
+    "#red": {
+        color: "#ef4444"
+    },
 
-        /* ================= BASIC COLORS ================= */
+    "#blue": {
+        color: "#3b82f6"
+    },
 
-        "#red": {
-            color: "#ff0000"
-        },
+    "#green": {
+        color: "#22c55e"
+    },
 
-        "#blue": {
-            color: "#0066ff"
-        },
+    "#yellow": {
+        color: "#eab308"
+    },
 
-        "#green": {
-            color: "#00a000"
-        },
+    "#purple": {
+        color: "#a855f7"
+    },
 
-        "#yellow": {
-            color: "#d4a800"
-        },
+    "#pink": {
+        color: "#ec4899"
+    },
 
-        "#purple": {
-            color: "#8000ff"
-        },
+    "#orange": {
+        color: "#f97316"
+    },
 
-        "#pink": {
-            color: "#ff1493"
-        },
+    "#cyan": {
+        color: "#06b6d4"
+    },
 
-        "#orange": {
-            color: "#ff6600"
-        },
+    "#teal": {
+        color: "#14b8a6"
+    },
 
-        "#cyan": {
-            color: "#00bcd4"
-        },
+    "#indigo": {
+        color: "#6366f1"
+    },
 
-        "#teal": {
-            color: "#009688"
-        },
+    "#black": {
+        color: "#000000"
+    },
 
-        "#indigo": {
-            color: "#3f51b5"
-        },
+    "#white": {
+        color: "#ffffff"
+    },
 
-        "#black": {
-            color: "#000000"
-        },
 
-        "#white": {
-            color: "#ffffff"
-        },
+    /* ---------- TEXT STYLE ---------- */
 
+    "#bold": {
+        fontWeight: "700"
+    },
 
-        /* ================= TEXT STYLE ================= */
+    "#italic": {
+        fontStyle: "italic"
+    },
 
-        "#bold": {
-            fontWeight: "700"
-        },
+    "#underline": {
+        textDecoration: "underline"
+    },
 
-        "#italic": {
-            fontStyle: "italic"
-        },
+    "#underline_gold": {
+        textDecoration: "underline",
+        textDecorationColor: "#f59e0b",
+        textDecorationThickness: "2px"
+    },
 
-        "#underline": {
-            textDecoration: "underline"
-        },
+    "#underline_red": {
+        textDecoration: "underline",
+        textDecorationColor: "#ef4444",
+        textDecorationThickness: "2px"
+    },
 
-        "#underline_gold": {
-            textDecoration: "underline",
-            textDecorationColor: "#d4a017",
-            textDecorationThickness: "2px"
-        },
+    "#underline_blue": {
+        textDecoration: "underline",
+        textDecorationColor: "#3b82f6",
+        textDecorationThickness: "2px"
+    },
 
-        "#underline_red": {
-            textDecoration: "underline",
-            textDecorationColor: "#ff0000",
-            textDecorationThickness: "2px"
-        },
+    "#strike": {
+        textDecoration: "line-through"
+    },
 
-        "#underline_blue": {
-            textDecoration: "underline",
-            textDecorationColor: "#0066ff",
-            textDecorationThickness: "2px"
-        },
 
-        "#strike": {
-            textDecoration: "line-through"
-        },
+    /* ---------- HIGHLIGHT ---------- */
 
+    "#highlight": {
+        background: "#fff59d"
+    },
 
-        /* ================= HIGHLIGHT ================= */
+    "#highlight_blue": {
+        background: "#bfdbfe"
+    },
 
-        "#highlight": {
-            backgroundColor: "#fff176",
-            padding: "2px 5px",
-            borderRadius: "4px"
-        },
+    "#highlight_green": {
+        background: "#bbf7d0"
+    },
 
-        "#highlight_blue": {
-            backgroundColor: "#bbdefb",
-            padding: "2px 5px",
-            borderRadius: "4px"
-        },
+    "#highlight_red": {
+        background: "#fecaca"
+    },
 
-        "#highlight_green": {
-            backgroundColor: "#c8e6c9",
-            padding: "2px 5px",
-            borderRadius: "4px"
-        },
+    "#highlight_purple": {
+        background: "#e9d5ff"
+    },
 
-        "#highlight_red": {
-            backgroundColor: "#ffcdd2",
-            padding: "2px 5px",
-            borderRadius: "4px"
-        },
+    "#highlight_pink": {
+        background: "#fbcfe8"
+    },
 
-        "#highlight_purple": {
-            backgroundColor: "#e1bee7",
-            padding: "2px 5px",
-            borderRadius: "4px"
-        },
 
-        "#highlight_pink": {
-            backgroundColor: "#f8bbd0",
-            padding: "2px 5px",
-            borderRadius: "4px"
-        },
+    /* ---------- STATIC GRADIENT ---------- */
 
+    "#grad_ocean": {
+        gradientClass: "firebase-grad-ocean"
+    },
 
-        /* ================= STATIC GRADIENT ================= */
+    "#grad_fire": {
+        gradientClass: "firebase-grad-fire"
+    },
 
-        "#grad_ocean": {
-            gradientClass: "firebase-gradient-ocean"
-        },
+    "#grad_purple": {
+        gradientClass: "firebase-grad-purple"
+    },
 
-        "#grad_fire": {
-            gradientClass: "firebase-gradient-fire"
-        },
+    "#grad_green": {
+        gradientClass: "firebase-grad-green"
+    },
 
-        "#grad_purple": {
-            gradientClass: "firebase-gradient-purple"
-        },
+    "#grad_sunset": {
+        gradientClass: "firebase-grad-sunset"
+    },
 
-        "#grad_green": {
-            gradientClass: "firebase-gradient-green"
-        },
+    "#grad_blue": {
+        gradientClass: "firebase-grad-blue"
+    },
 
-        "#grad_sunset": {
-            gradientClass: "firebase-gradient-sunset"
-        },
 
-        "#grad_blue": {
-            gradientClass: "firebase-gradient-blue"
-        },
+    /* ---------- ANIMATED GRADIENT ---------- */
 
+    "#grad_animated": {
+        gradientClass: "firebase-grad-animated"
+    },
 
-        /* ================= ANIMATED GRADIENT ================= */
+    "#grad_aurora": {
+        gradientClass: "firebase-grad-aurora"
+    },
 
-        "#grad_animated": {
-            gradientClass: "firebase-gradient-animated"
-        },
+    "#grad_fire_animated": {
+        gradientClass: "firebase-grad-fire-animated"
+    },
 
-        "#grad_aurora": {
-            gradientClass: "firebase-gradient-aurora"
-        },
+    "#grad_ocean_animated": {
+        gradientClass: "firebase-grad-ocean-animated"
+    },
 
-        "#grad_fire_animated": {
-            gradientClass: "firebase-gradient-fire-animated"
-        },
+    "#grad_purple_animated": {
+        gradientClass: "firebase-grad-purple-animated"
+    },
 
-        "#grad_ocean_animated": {
-            gradientClass: "firebase-gradient-ocean-animated"
-        },
+    "#grad_sunset_animated": {
+        gradientClass: "firebase-grad-sunset-animated"
+    },
 
-        "#grad_purple_animated": {
-            gradientClass: "firebase-gradient-purple-animated"
-        },
+    "#grad_green_animated": {
+        gradientClass: "firebase-grad-green-animated"
+    },
 
-        "#grad_sunset_animated": {
-            gradientClass: "firebase-gradient-sunset-animated"
-        },
+    "#grad_rainbow": {
+        gradientClass: "firebase-grad-rainbow"
+    },
 
-        "#grad_green_animated": {
-            gradientClass: "firebase-gradient-green-animated"
-        },
 
-        "#grad_rainbow": {
-            gradientClass: "firebase-gradient-rainbow"
-        },
+    /* ---------- SHADOW ---------- */
 
+    "#shadow": {
+        textShadow: "1px 1px 3px rgba(0,0,0,.35)"
+    },
 
-        /* ================= SHADOW ================= */
+    "#shadow_dark": {
+        textShadow: "2px 2px 5px rgba(0,0,0,.75)"
+    },
 
-        "#shadow": {
-            textShadow:
-                "2px 2px 5px rgba(0,0,0,0.35)"
-        },
 
-        "#shadow_dark": {
-            textShadow:
-                "2px 3px 6px rgba(0,0,0,0.75)"
-        },
+    /* ---------- GLOW ---------- */
 
+    "#glow_blue": {
+        textShadow:
+            "0 0 5px #3b82f6, 0 0 10px #3b82f6"
+    },
 
-        /* ================= GLOW ================= */
+    "#glow_red": {
+        textShadow:
+            "0 0 5px #ef4444, 0 0 10px #ef4444"
+    },
 
-        "#glow_blue": {
-            textShadow:
-                "0 0 5px #00aaff,0 0 10px #00aaff,0 0 20px #0088ff"
-        },
+    "#glow_green": {
+        textShadow:
+            "0 0 5px #22c55e, 0 0 10px #22c55e"
+    },
 
-        "#glow_red": {
-            textShadow:
-                "0 0 5px #ff0000,0 0 10px #ff0000,0 0 20px #ff0000"
-        },
+    "#glow_purple": {
+        textShadow:
+            "0 0 5px #a855f7, 0 0 10px #a855f7"
+    },
 
-        "#glow_green": {
-            textShadow:
-                "0 0 5px #00ff55,0 0 10px #00ff55,0 0 20px #00cc44"
-        },
+    "#glow_cyan": {
+        textShadow:
+            "0 0 5px #06b6d4, 0 0 10px #06b6d4"
+    }
+};
 
-        "#glow_purple": {
-            textShadow:
-                "0 0 5px #b000ff,0 0 10px #b000ff,0 0 20px #8000ff"
-        },
 
-        "#glow_cyan": {
-            textShadow:
-                "0 0 5px #00ffff,0 0 10px #00ffff,0 0 20px #00bfff"
-        }
+/* ============================================================
+   SELECTORS THAT MUST NEVER BE FORMATTED
+   ============================================================ */
 
-    };
+const TOOLBAR_SELECTORS = [
 
+    "#navToggleBtn",
+    "#menuIcon",
+    "#backIcon",
 
-    /* ============================================================
-       TOOLBAR SELECTORS
-    ============================================================ */
+    "nav",
+    "header",
 
-    const TOOLBAR_SELECTORS = [
+    ".navbar",
+    ".topbar",
+    ".toolbar",
+    ".appbar",
+    ".header",
+    ".navigation",
 
-        "#navToggleBtn",
-        "#menuIcon",
-        "#backIcon",
-        "nav",
-        "header",
-        ".navbar",
-        ".topbar",
-        ".toolbar",
-        ".appbar",
-        ".header",
-        ".navigation",
-        "[role='navigation']"
+    '[role="navigation"]'
+];
 
-    ];
 
+/* ============================================================
+   CHECK EXCLUDED ELEMENT
+   ============================================================ */
 
-    const TOOLBAR_SELECTOR =
-        TOOLBAR_SELECTORS.join(",");
+function isExcluded(element) {
 
+    if (!element || element.nodeType !== 1) {
+        return true;
+    }
 
-    /* ============================================================
-       EARLY TOOLBAR PROTECTION
-       IMPORTANT FOR ZERO-VISIBLE-FLASH
-    ============================================================ */
+    try {
 
-    function installEarlyToolbarProtection() {
+        return TOOLBAR_SELECTORS.some(selector => {
 
-        let style =
-            document.getElementById(
-                "firebaseFormatterEarlyProtection"
-            );
+            try {
+                return element.matches(selector) ||
+                       !!element.closest(selector);
+            } catch (e) {
+                return false;
+            }
 
+        });
 
-        if (style) {
-            return;
-        }
+    } catch (e) {
 
-
-        style =
-            document.createElement("style");
-
-
-        style.id =
-            "firebaseFormatterEarlyProtection";
-
-
-        style.textContent = `
-
-/*
- * Toolbar is temporarily invisible while
- * Firebase formatter removes formatting codes.
- *
- * It becomes visible immediately after cleanup.
- */
-
-${TOOLBAR_SELECTOR} {
-    visibility: hidden !important;
+        return false;
+    }
 }
 
-${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
-    visibility: visible !important;
-}
 
-`;
+/* ============================================================
+   CSS
+   ============================================================ */
+
+function addFormatterCSS() {
+
+    if (document.getElementById("firebaseFormatterCSS")) {
+        return;
+    }
+
+    const style = document.createElement("style");
+
+    style.id = "firebaseFormatterCSS";
+
+    style.textContent = `
+
+        .firebase-formatted-text {
+            display: inline;
+        }
 
 
-        /*
-         * Put the protection as early as possible.
-         */
+        /* ---------- OCEAN ---------- */
 
-        if (document.head) {
-
-            document.head.insertBefore(
-                style,
-                document.head.firstChild
+        .firebase-grad-ocean {
+            background: linear-gradient(
+                90deg,
+                #06b6d4,
+                #3b82f6,
+                #6366f1
             );
 
-        } else {
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-            document.documentElement
-                .insertBefore(
-                    style,
-                    document.documentElement.firstChild
+
+        /* ---------- FIRE ---------- */
+
+        .firebase-grad-fire {
+            background: linear-gradient(
+                90deg,
+                #ef4444,
+                #f97316,
+                #eab308
+            );
+
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+
+        /* ---------- PURPLE ---------- */
+
+        .firebase-grad-purple {
+            background: linear-gradient(
+                90deg,
+                #8b5cf6,
+                #a855f7,
+                #ec4899
+            );
+
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+
+        /* ---------- GREEN ---------- */
+
+        .firebase-grad-green {
+            background: linear-gradient(
+                90deg,
+                #16a34a,
+                #22c55e,
+                #14b8a6
+            );
+
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+
+        /* ---------- SUNSET ---------- */
+
+        .firebase-grad-sunset {
+            background: linear-gradient(
+                90deg,
+                #f97316,
+                #ec4899,
+                #8b5cf6
+            );
+
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+
+        /* ---------- BLUE ---------- */
+
+        .firebase-grad-blue {
+            background: linear-gradient(
+                90deg,
+                #2563eb,
+                #06b6d4
+            );
+
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+
+        /* ---------- ANIMATED ---------- */
+
+        .firebase-grad-animated {
+            background:
+                linear-gradient(
+                    270deg,
+                    #ef4444,
+                    #f97316,
+                    #eab308,
+                    #22c55e,
+                    #06b6d4,
+                    #3b82f6,
+                    #a855f7,
+                    #ec4899
                 );
 
+            background-size: 500% 500%;
+
+            animation:
+                firebaseGradientMove 5s ease infinite;
+
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+
+        .firebase-grad-aurora {
+            background:
+                linear-gradient(
+                    270deg,
+                    #22d3ee,
+                    #6366f1,
+                    #a855f7,
+                    #ec4899,
+                    #22d3ee
+                );
+
+            background-size: 400% 400%;
+
+            animation:
+                firebaseGradientMove 6s ease infinite;
+
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+
+        .firebase-grad-fire-animated {
+            background:
+                linear-gradient(
+                    270deg,
+                    #dc2626,
+                    #ef4444,
+                    #f97316,
+                    #eab308,
+                    #dc2626
+                );
+
+            background-size: 400% 400%;
+
+            animation:
+                firebaseGradientMove 4s ease infinite;
+
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+
+        .firebase-grad-ocean-animated {
+            background:
+                linear-gradient(
+                    270deg,
+                    #0891b2,
+                    #06b6d4,
+                    #3b82f6,
+                    #6366f1,
+                    #0891b2
+                );
+
+            background-size: 400% 400%;
+
+            animation:
+                firebaseGradientMove 5s ease infinite;
+
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+
+        .firebase-grad-purple-animated {
+            background:
+                linear-gradient(
+                    270deg,
+                    #7c3aed,
+                    #a855f7,
+                    #ec4899,
+                    #7c3aed
+                );
+
+            background-size: 400% 400%;
+
+            animation:
+                firebaseGradientMove 5s ease infinite;
+
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+
+        .firebase-grad-sunset-animated {
+            background:
+                linear-gradient(
+                    270deg,
+                    #f97316,
+                    #ef4444,
+                    #ec4899,
+                    #8b5cf6,
+                    #f97316
+                );
+
+            background-size: 400% 400%;
+
+            animation:
+                firebaseGradientMove 5s ease infinite;
+
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+
+        .firebase-grad-green-animated {
+            background:
+                linear-gradient(
+                    270deg,
+                    #16a34a,
+                    #22c55e,
+                    #14b8a6,
+                    #06b6d4,
+                    #16a34a
+                );
+
+            background-size: 400% 400%;
+
+            animation:
+                firebaseGradientMove 5s ease infinite;
+
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+
+        .firebase-grad-rainbow {
+            background:
+                linear-gradient(
+                    90deg,
+                    #ef4444,
+                    #f97316,
+                    #eab308,
+                    #22c55e,
+                    #06b6d4,
+                    #3b82f6,
+                    #8b5cf6,
+                    #ec4899
+                );
+
+            background-size: 300% 100%;
+
+            animation:
+                firebaseRainbowMove 5s linear infinite;
+
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+
+        @keyframes firebaseGradientMove {
+
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+
+        }
+
+
+        @keyframes firebaseRainbowMove {
+
+            0% {
+                background-position: 0% 50%;
+            }
+
+            100% {
+                background-position: 100% 50%;
+            }
+
+        }
+
+
+        /* ====================================================
+           ANTI FLASH
+           ==================================================== */
+
+        .firebase-format-pending {
+            visibility: hidden !important;
+        }
+
+
+        .firebase-format-ready {
+            visibility: visible !important;
+        }
+
+
+        /* Toolbar remains immediately protected */
+
+        #navToggleBtn,
+        #menuIcon,
+        #backIcon,
+        nav,
+        header,
+        .navbar,
+        .topbar,
+        .toolbar,
+        .appbar,
+        .header,
+        .navigation,
+        [role="navigation"] {
+
+            --firebase-toolbar-clean: 1;
+
+        }
+
+    `;
+
+    document.head.appendChild(style);
+}
+
+
+/* ============================================================
+   FIND FORMAT CODES
+   ============================================================ */
+
+function containsFormatCode(text) {
+
+    if (!text) {
+        return false;
+    }
+
+    for (const code of Object.keys(FORMAT_CODES)) {
+
+        if (text.includes(code)) {
+            return true;
         }
 
     }
 
-
-    /* ============================================================
-       CSS
-    ============================================================ */
-
-    function addFormatterCSS() {
-
-        if (
-            document.getElementById(
-                "firebaseFormatterSafeCSS"
-            )
-        ) {
-            return;
-        }
-
-
-        const style =
-            document.createElement("style");
-
-
-        style.id =
-            "firebaseFormatterSafeCSS";
-
-
-        style.textContent = `
-
-.firebase-formatted-text {
-    display: inline;
+    return false;
 }
 
 
-/* ================= STATIC + ANIMATED GRADIENT ================= */
-
-.firebase-gradient-ocean,
-.firebase-gradient-fire,
-.firebase-gradient-purple,
-.firebase-gradient-green,
-.firebase-gradient-sunset,
-.firebase-gradient-blue,
-.firebase-gradient-animated,
-.firebase-gradient-aurora,
-.firebase-gradient-fire-animated,
-.firebase-gradient-ocean-animated,
-.firebase-gradient-purple-animated,
-.firebase-gradient-sunset-animated,
-.firebase-gradient-green-animated,
-.firebase-gradient-rainbow {
-
-    background-clip: text;
-    -webkit-background-clip: text;
-
-    color: transparent !important;
-    -webkit-text-fill-color: transparent !important;
-
-}
-
-
-/* ================= OCEAN ================= */
-
-.firebase-gradient-ocean {
-
-    background-image:
-        linear-gradient(
-            90deg,
-            #00c6ff,
-            #0072ff
-        );
-
-}
-
-
-/* ================= FIRE ================= */
-
-.firebase-gradient-fire {
-
-    background-image:
-        linear-gradient(
-            90deg,
-            #ff512f,
-            #f09819
-        );
-
-}
-
-
-/* ================= PURPLE ================= */
-
-.firebase-gradient-purple {
-
-    background-image:
-        linear-gradient(
-            90deg,
-            #8e2de2,
-            #4a00e0
-        );
-
-}
-
-
-/* ================= GREEN ================= */
-
-.firebase-gradient-green {
-
-    background-image:
-        linear-gradient(
-            90deg,
-            #00b09b,
-            #96c93d
-        );
-
-}
-
-
-/* ================= SUNSET ================= */
-
-.firebase-gradient-sunset {
-
-    background-image:
-        linear-gradient(
-            90deg,
-            #ff512f,
-            #dd2476
-        );
-
-}
-
-
-/* ================= BLUE ================= */
-
-.firebase-gradient-blue {
-
-    background-image:
-        linear-gradient(
-            90deg,
-            #36d1dc,
-            #5b86e5
-        );
-
-}
-
-
-/* ================= ANIMATED ================= */
-
-.firebase-gradient-animated {
-
-    background-image:
-        linear-gradient(
-            270deg,
-            #ff0080,
-            #7928ca,
-            #2afadf,
-            #00c6ff,
-            #ff0080
-        );
-
-    background-size:
-        400% 400%;
-
-    animation:
-        firebaseGradientAnimation
-        6s ease infinite;
-
-}
-
-
-/* ================= AURORA ================= */
-
-.firebase-gradient-aurora {
-
-    background-image:
-        linear-gradient(
-            270deg,
-            #00f2fe,
-            #4facfe,
-            #a18cd1,
-            #fbc2eb,
-            #00f2fe
-        );
-
-    background-size:
-        500% 500%;
-
-    animation:
-        firebaseAuroraAnimation
-        8s ease infinite;
-
-}
-
-
-/* ================= FIRE ANIMATED ================= */
-
-.firebase-gradient-fire-animated {
-
-    background-image:
-        linear-gradient(
-            270deg,
-            #ff0000,
-            #ff512f,
-            #ff8a00,
-            #ffd000,
-            #ff0000
-        );
-
-    background-size:
-        400% 400%;
-
-    animation:
-        firebaseFireAnimation
-        4s ease infinite;
-
-}
-
-
-/* ================= OCEAN ANIMATED ================= */
-
-.firebase-gradient-ocean-animated {
-
-    background-image:
-        linear-gradient(
-            270deg,
-            #00c6ff,
-            #0072ff,
-            #00f2fe,
-            #4facfe,
-            #00c6ff
-        );
-
-    background-size:
-        400% 400%;
-
-    animation:
-        firebaseOceanAnimation
-        7s ease infinite;
-
-}
-
-
-/* ================= PURPLE ANIMATED ================= */
-
-.firebase-gradient-purple-animated {
-
-    background-image:
-        linear-gradient(
-            270deg,
-            #7f00ff,
-            #e100ff,
-            #8e2de2,
-            #4a00e0,
-            #7f00ff
-        );
-
-    background-size:
-        400% 400%;
-
-    animation:
-        firebasePurpleAnimation
-        6s ease infinite;
-
-}
-
-
-/* ================= SUNSET ANIMATED ================= */
-
-.firebase-gradient-sunset-animated {
-
-    background-image:
-        linear-gradient(
-            270deg,
-            #ff512f,
-            #f09819,
-            #ff0066,
-            #ff8a00,
-            #ff512f
-        );
-
-    background-size:
-        400% 400%;
-
-    animation:
-        firebaseSunsetAnimation
-        6s ease infinite;
-
-}
-
-
-/* ================= GREEN ANIMATED ================= */
-
-.firebase-gradient-green-animated {
-
-    background-image:
-        linear-gradient(
-            270deg,
-            #00b09b,
-            #96c93d,
-            #00f260,
-            #0575e6,
-            #00b09b
-        );
-
-    background-size:
-        400% 400%;
-
-    animation:
-        firebaseGreenAnimation
-        7s ease infinite;
-
-}
-
-
-/* ================= RAINBOW ================= */
-
-.firebase-gradient-rainbow {
-
-    background-image:
-        linear-gradient(
-            270deg,
-            #ff0000,
-            #ff8a00,
-            #ffe600,
-            #00c853,
-            #00b0ff,
-            #7c4dff,
-            #ff00c8,
-            #ff0000
-        );
-
-    background-size:
-        600% 600%;
-
-    animation:
-        firebaseRainbowAnimation
-        8s linear infinite;
+/* ============================================================
+   APPLY STYLE
+   ============================================================ */
+
+function applyFormatStyle(element, format) {
+
+    if (!element || !format) {
+        return;
+    }
+
+    if (format.color) {
+        element.style.color = format.color;
+    }
+
+    if (format.fontWeight) {
+        element.style.fontWeight = format.fontWeight;
+    }
+
+    if (format.fontStyle) {
+        element.style.fontStyle = format.fontStyle;
+    }
+
+    if (format.textDecoration) {
+        element.style.textDecoration =
+            format.textDecoration;
+    }
+
+    if (format.textDecorationColor) {
+        element.style.textDecorationColor =
+            format.textDecorationColor;
+    }
+
+    if (format.textDecorationThickness) {
+        element.style.textDecorationThickness =
+            format.textDecorationThickness;
+    }
+
+    if (format.background) {
+        element.style.background =
+            format.background;
+    }
+
+    if (format.textShadow) {
+        element.style.textShadow =
+            format.textShadow;
+    }
+
+    if (format.gradientClass) {
+        element.classList.add(format.gradientClass);
+    }
 
 }
 
 
 /* ============================================================
-   ANIMATIONS
-============================================================ */
+   FORMAT SINGLE TEXT NODE
+   ============================================================ */
 
-@keyframes firebaseGradientAnimation {
+function formatTextNode(textNode) {
 
-    0% {
-        background-position: 0% 50%;
+    if (!textNode ||
+        textNode.nodeType !== Node.TEXT_NODE) {
+        return;
     }
 
-    50% {
-        background-position: 100% 50%;
+    const parent = textNode.parentElement;
+
+    if (!parent) {
+        return;
     }
 
-    100% {
-        background-position: 0% 50%;
+    if (parent.closest(".firebase-formatted-text")) {
+        return;
     }
 
+    if (isExcluded(parent)) {
+        return;
+    }
+
+    const originalText = textNode.nodeValue;
+
+    if (!containsFormatCode(originalText)) {
+        return;
+    }
+
+    let cleanedText = originalText;
+
+    const formats = [];
+
+    for (const code of Object.keys(FORMAT_CODES)) {
+
+        if (cleanedText.includes(code)) {
+
+            formats.push(FORMAT_CODES[code]);
+
+            cleanedText =
+                cleanedText.split(code).join("");
+
+        }
+
+    }
+
+    const span = document.createElement("span");
+
+    span.className =
+        "firebase-formatted-text";
+
+    span.textContent = cleanedText;
+
+    formats.forEach(format => {
+        applyFormatStyle(span, format);
+    });
+
+    textNode.parentNode.replaceChild(
+        span,
+        textNode
+    );
 }
 
 
-@keyframes firebaseAuroraAnimation {
+/* ============================================================
+   FORMAT ELEMENT
+   ============================================================ */
 
-    0% {
-        background-position: 0% 50%;
+function formatElement(root) {
+
+    if (!root) {
+        return;
     }
 
-    25% {
-        background-position: 50% 100%;
+    if (root.nodeType === Node.TEXT_NODE) {
+        formatTextNode(root);
+        return;
     }
 
-    50% {
-        background-position: 100% 50%;
+    if (root.nodeType !== Node.ELEMENT_NODE) {
+        return;
     }
 
-    75% {
-        background-position: 50% 0%;
+    if (isExcluded(root)) {
+        return;
     }
 
-    100% {
-        background-position: 0% 50%;
+    if (root.classList.contains(
+        "firebase-formatted-text"
+    )) {
+        return;
     }
 
-}
-
-
-@keyframes firebaseFireAnimation {
-
-    0% {
-        background-position: 0% 50%;
-    }
-
-    50% {
-        background-position: 100% 50%;
-    }
-
-    100% {
-        background-position: 0% 50%;
-    }
-
-}
-
-
-@keyframes firebaseOceanAnimation {
-
-    0% {
-        background-position: 0% 50%;
-    }
-
-    50% {
-        background-position: 100% 50%;
-    }
-
-    100% {
-        background-position: 0% 50%;
-    }
-
-}
-
-
-@keyframes firebasePurpleAnimation {
-
-    0% {
-        background-position: 0% 50%;
-    }
-
-    50% {
-        background-position: 100% 50%;
-    }
-
-    100% {
-        background-position: 0% 50%;
-    }
-
-}
-
-
-@keyframes firebaseSunsetAnimation {
-
-    0% {
-        background-position: 0% 50%;
-    }
-
-    50% {
-        background-position: 100% 50%;
-    }
-
-    100% {
-        background-position: 0% 50%;
-    }
-
-}
-
-
-@keyframes firebaseGreenAnimation {
-
-    0% {
-        background-position: 0% 50%;
-    }
-
-    50% {
-        background-position: 100% 50%;
-    }
-
-    100% {
-        background-position: 0% 50%;
-    }
-
-}
-
-
-@keyframes firebaseRainbowAnimation {
-
-    0% {
-        background-position: 0% 50%;
-    }
-
-    50% {
-        background-position: 100% 50%;
-    }
-
-    100% {
-        background-position: 0% 50%;
-    }
-
-}
-
-`;
-
-
-        document.head.appendChild(style);
-
-    }
-
-
-    /* ============================================================
-       EXCLUDED AREAS
-    ============================================================ */
-
-    function isExcluded(element) {
-
-        if (
-            !element ||
-            element.nodeType !== 1
-        ) {
-            return true;
-        }
-
-
-        return !!element.closest(
-            TOOLBAR_SELECTOR
-        );
-
-    }
-
-
-    /* ============================================================
-       CODE LIST
-    ============================================================ */
-
-    const SORTED_CODES =
-        Object.keys(FORMAT_CODES)
-            .sort(function (a, b) {
-
-                return b.length - a.length;
-
-            });
-
-
-    /* ============================================================
-       FIND CODES
-    ============================================================ */
-
-    function getCodes(text) {
-
-        if (!text) {
-            return [];
-        }
-
-
-        const result = [];
-
-
-        SORTED_CODES.forEach(
-            function (code) {
-
-                if (
-                    text.indexOf(code) !== -1
-                ) {
-
-                    result.push(code);
-
-                }
-
-            }
-        );
-
-
-        return result;
-
-    }
-
-
-    /* ============================================================
-       CLEAN CODES
-    ============================================================ */
-
-    function cleanText(text) {
-
-        if (!text) {
-            return "";
-        }
-
-
-        let result = text;
-
-
-        SORTED_CODES.forEach(
-            function (code) {
-
-                result =
-                    result.split(code).join("");
-
-            }
-        );
-
-
-        return result;
-
-    }
-
-
-    /* ============================================================
-       APPLY NORMAL STYLES
-    ============================================================ */
-
-    function applyNormalStyles(
-        element,
-        codes
-    ) {
-
-        let gradientClass =
-            null;
-
-
-        codes.forEach(
-            function (code) {
-
-                const config =
-                    FORMAT_CODES[code];
-
-
-                if (!config) {
-                    return;
-                }
-
-
-                if (
-                    config.gradientClass
-                ) {
-
-                    gradientClass =
-                        config.gradientClass;
-
-                    return;
-
-                }
-
-
-                Object.keys(config).forEach(
-                    function (property) {
-
-                        if (
-                            property ===
-                            "gradientClass"
-                        ) {
-                            return;
-                        }
-
-
-                        element.style.setProperty(
-                            property,
-                            config[property],
-                            "important"
-                        );
-
-                    }
-                );
-
-            }
-        );
-
-
-        if (gradientClass) {
-
-            element.classList.add(
-                gradientClass
-            );
-
-        }
-
-
-        element.classList.add(
-            "firebase-formatted-text"
-        );
-
-
-        element.setAttribute(
-            "data-firebase-formatted",
-            "true"
-        );
-
-    }
-
-
-    /* ============================================================
-       FORMAT TEXT NODE
-    ============================================================ */
-
-    function formatTextNode(textNode) {
-
-        if (
-            !textNode ||
-            !textNode.nodeValue
-        ) {
-            return;
-        }
-
-
-        const original =
-            textNode.nodeValue;
-
-
-        const codes =
-            getCodes(original);
-
-
-        if (
-            codes.length === 0
-        ) {
-            return;
-        }
-
-
-        const parent =
-            textNode.parentElement;
-
-
-        if (
-            !parent ||
-            isExcluded(parent)
-        ) {
-            return;
-        }
-
-
-        if (
-            parent.classList &&
-            parent.classList.contains(
-                "firebase-formatted-text"
-            )
-        ) {
-            return;
-        }
-
-
-        const cleaned =
-            cleanText(original);
-
-
-        if (
-            !cleaned.trim()
-        ) {
-
-            textNode.nodeValue =
-                "";
-
-            return;
-
-        }
-
-
-        const span =
-            document.createElement(
-                "span"
-            );
-
-
-        span.className =
-            "firebase-formatted-text";
-
-
-        span.textContent =
-            cleaned;
-
-
-        applyNormalStyles(
-            span,
-            codes
-        );
-
-
-        parent.replaceChild(
-            span,
-            textNode
-        );
-
-    }
-
-
-    /* ============================================================
-       FORMAT ELEMENT
-    ============================================================ */
-
-    function formatElement(element) {
-
-        if (
-            !element ||
-            element.nodeType !== 1
-        ) {
-            return;
-        }
-
-
-        if (
-            isExcluded(element)
-        ) {
-            return;
-        }
-
-
-        if (
-            element.classList &&
-            element.classList.contains(
-                "firebase-formatted-text"
-            )
-        ) {
-            return;
-        }
-
-
-        const walker =
-            document.createTreeWalker(
-                element,
-                NodeFilter.SHOW_TEXT,
-                {
-
-                    acceptNode:
-                        function (node) {
-
-                            if (
-                                !node.nodeValue ||
-                                !node.nodeValue.trim()
-                            ) {
-                                return NodeFilter.FILTER_REJECT;
-                            }
-
-
-                            const parent =
-                                node.parentElement;
-
-
-                            if (!parent) {
-
-                                return NodeFilter.FILTER_REJECT;
-
-                            }
-
-
-                            if (
-                                parent.classList &&
-                                parent.classList.contains(
-                                    "firebase-formatted-text"
-                                )
-                            ) {
-                                return NodeFilter.FILTER_REJECT;
-                            }
-
-
-                            if (
-                                isExcluded(parent)
-                            ) {
-                                return NodeFilter.FILTER_REJECT;
-                            }
-
-
-                            if (
-                                getCodes(
-                                    node.nodeValue
-                                ).length === 0
-                            ) {
-                                return NodeFilter.FILTER_REJECT;
-                            }
-
-
-                            return NodeFilter.FILTER_ACCEPT;
-
-                        }
-
-                }
-            );
-
-
-        const nodes = [];
-
-
-        let node;
-
-
-        while (
-            (node = walker.nextNode())
-        ) {
-
-            nodes.push(node);
-
-        }
-
-
-        nodes.forEach(
-            function (textNode) {
-
-                formatTextNode(
-                    textNode
-                );
-
-            }
-        );
-
-    }
-
-
-    /* ============================================================
-       REMOVE OLD FORMATTER STYLES
-    ============================================================ */
-
-    function removeOldFormatterStyles() {
-
-        document
-            .querySelectorAll(
-                "[data-firebase-formatted='true']"
-            )
-            .forEach(
-                function (element) {
-
-                    if (
-                        element.classList &&
-                        element.classList.contains(
-                            "firebase-formatted-text"
-                        )
-                    ) {
-                        return;
+    const walker =
+        document.createTreeWalker(
+            root,
+            NodeFilter.SHOW_TEXT,
+            {
+                acceptNode(node) {
+
+                    if (!node.nodeValue ||
+                        !containsFormatCode(node.nodeValue)) {
+                        return NodeFilter.FILTER_REJECT;
                     }
 
+                    const p = node.parentElement;
 
-                    const properties = [
+                    if (!p ||
+                        isExcluded(p) ||
+                        p.closest(
+                            ".firebase-formatted-text"
+                        )) {
+                        return NodeFilter.FILTER_REJECT;
+                    }
 
-                        "color",
-                        "background",
-                        "background-image",
-                        "background-size",
-                        "background-clip",
-                        "-webkit-background-clip",
-                        "-webkit-text-fill-color",
-                        "animation",
-                        "font-weight",
-                        "font-style",
-                        "text-decoration",
-                        "text-decoration-color",
-                        "text-decoration-thickness",
-                        "background-color",
-                        "padding",
-                        "border-radius",
-                        "text-shadow"
-
-                    ];
-
-
-                    properties.forEach(
-                        function (property) {
-
-                            element.style.removeProperty(
-                                property
-                            );
-
-                        }
-                    );
-
-
-                    element.removeAttribute(
-                        "data-firebase-formatted"
-                    );
-
+                    return NodeFilter.FILTER_ACCEPT;
                 }
-            );
+            }
+        );
 
+    const nodes = [];
+
+    let node;
+
+    while ((node = walker.nextNode())) {
+        nodes.push(node);
     }
 
-
-    /* ============================================================
-       TOOLBAR CLEANUP
-       IMPORTANT:
-       Cleanup FIRST, visibility AFTER cleanup.
-    ============================================================ */
-
-    let toolbarCleaned =
-        false;
+    nodes.forEach(formatTextNode);
+}
 
 
-    function cleanToolbarCodes() {
+/* ============================================================
+   REMOVE OLD FORMATTER STYLES
+   ============================================================ */
 
-        const containers =
-            document.querySelectorAll(
-                TOOLBAR_SELECTOR
-            );
+function removeOldFormatterStyles(root) {
+
+    if (!root) {
+        return;
+    }
+
+    const elements =
+        root.querySelectorAll
+            ? root.querySelectorAll(
+                ".firebase-formatted-text"
+            )
+            : [];
+
+    elements.forEach(el => {
+
+        el.classList.remove(
+            "firebase-grad-ocean",
+            "firebase-grad-fire",
+            "firebase-grad-purple",
+            "firebase-grad-green",
+            "firebase-grad-sunset",
+            "firebase-grad-blue",
+            "firebase-grad-animated",
+            "firebase-grad-aurora",
+            "firebase-grad-fire-animated",
+            "firebase-grad-ocean-animated",
+            "firebase-grad-purple-animated",
+            "firebase-grad-sunset-animated",
+            "firebase-grad-green-animated",
+            "firebase-grad-rainbow"
+        );
+
+    });
+
+}
 
 
-        if (!containers.length) {
-            return;
-        }
+/* ============================================================
+   TOOLBAR CLEANER
+   ============================================================ */
 
+function cleanToolbarCodes() {
 
-        containers.forEach(
-            function (container) {
+    TOOLBAR_SELECTORS.forEach(selector => {
+
+        document.querySelectorAll(selector)
+            .forEach(toolbar => {
 
                 const walker =
                     document.createTreeWalker(
-                        container,
+                        toolbar,
                         NodeFilter.SHOW_TEXT
                     );
 
-
                 const nodes = [];
-
 
                 let node;
 
-
-                while (
-                    (node = walker.nextNode())
-                ) {
-
+                while ((node = walker.nextNode())) {
                     nodes.push(node);
-
                 }
 
+                nodes.forEach(textNode => {
 
-                nodes.forEach(
-                    function (textNode) {
+                    let text =
+                        textNode.nodeValue;
 
-                        const original =
-                            textNode.nodeValue;
+                    if (!containsFormatCode(text)) {
+                        return;
+                    }
 
+                    for (const code of
+                        Object.keys(FORMAT_CODES)) {
 
-                        const cleaned =
-                            cleanText(
-                                original
-                            );
-
-
-                        if (
-                            cleaned !==
-                            original
-                        ) {
-
-                            textNode.nodeValue =
-                                cleaned;
-
-                        }
+                        text =
+                            text.split(code).join("");
 
                     }
-                );
+
+                    textNode.nodeValue = text;
+
+                });
+
+            });
+
+    });
 
 
-                /*
-                 * Make this toolbar visible only
-                 * AFTER its text has been cleaned.
-                 */
-
-                container.classList.add(
-                    "firebase-toolbar-clean-ready"
-                );
-
-            }
-        );
+    document.documentElement.classList
+        .add("firebase-toolbar-clean-ready");
+}
 
 
-        toolbarCleaned =
-            true;
+/* ============================================================
+   MAIN FORMAT FUNCTION
+   ============================================================ */
+
+function applyFirebaseTextColors(root) {
+
+    root =
+        root || document.body;
+
+    if (!root) {
+        return;
+    }
+
+    addFormatterCSS();
+
+    if (root === document.body) {
+
+        document.body.classList
+            .add("firebase-format-pending");
+
+    } else {
+
+        root.classList
+            .add("firebase-format-pending");
 
     }
 
 
-    /* ============================================================
-       APPLY
-    ============================================================ */
+    /* --------------------------------------------
+       IMPORTANT:
+       FORMAT IMMEDIATELY.
+       NO requestAnimationFrame BEFORE FORMAT.
+       -------------------------------------------- */
 
-    function applyFirebaseTextColors(
-        root
-    ) {
+    removeOldFormatterStyles(root);
 
-        root =
-            root || document.body;
+    formatElement(root);
+
+    cleanToolbarCodes();
 
 
-        if (!root) {
-            return;
+    if (root === document.body) {
+
+        document.body.classList
+            .remove("firebase-format-pending");
+
+        document.body.classList
+            .add("firebase-format-ready");
+
+    } else {
+
+        root.classList
+            .remove("firebase-format-pending");
+
+        root.classList
+            .add("firebase-format-ready");
+
+    }
+
+}
+
+
+/* ============================================================
+   SYNCHRONOUS DOM FORMATTER
+   ============================================================ */
+
+let formatterInternalChange = false;
+
+
+/* ---------- ORIGINAL INNER HTML ---------- */
+
+const originalInnerHTMLDescriptor =
+    Object.getOwnPropertyDescriptor(
+        Element.prototype,
+        "innerHTML"
+    );
+
+
+if (
+    originalInnerHTMLDescriptor &&
+    originalInnerHTMLDescriptor.set
+) {
+
+    Object.defineProperty(
+        Element.prototype,
+        "innerHTML",
+        {
+
+            configurable:
+                originalInnerHTMLDescriptor.configurable,
+
+            enumerable:
+                originalInnerHTMLDescriptor.enumerable,
+
+            get:
+                originalInnerHTMLDescriptor.get,
+
+            set(value) {
+
+                originalInnerHTMLDescriptor.set
+                    .call(this, value);
+
+
+                if (
+                    formatterInternalChange ||
+                    !document.body
+                ) {
+                    return;
+                }
+
+
+                /*
+
+                   The important part:
+
+                   innerHTML is inserted and formatted
+                   during the SAME JavaScript task.
+
+                   Browser gets no opportunity to paint
+                   the raw Firebase formatting codes.
+
+                */
+
+                try {
+
+                    if (
+                        this !== document.documentElement &&
+                        !isExcluded(this)
+                    ) {
+
+                        formatElement(this);
+
+                    }
+
+                } catch (e) {
+
+                    console.error(
+                        "Formatter innerHTML error:",
+                        e
+                    );
+
+                }
+
+            }
+
         }
+    );
+
+}
 
 
-        /*
-         * ALWAYS CLEAN TOOLBAR FIRST.
-         *
-         * This is important.
-         * Formatting must never happen before
-         * toolbar cleanup.
-         */
+/* ============================================================
+   INSERT ADJACENT HTML
+   ============================================================ */
 
-        cleanToolbarCodes();
+const originalInsertAdjacentHTML =
+    Element.prototype.insertAdjacentHTML;
 
 
-        addFormatterCSS();
+if (originalInsertAdjacentHTML) {
+
+    Element.prototype.insertAdjacentHTML =
+        function(position, text) {
+
+            originalInsertAdjacentHTML.call(
+                this,
+                position,
+                text
+            );
 
 
-        const selectors = [
-
-            "h1",
-            "h2",
-            "h3",
-            "h4",
-            "h5",
-            "h6",
-            "div",
-            "span",
-            "p",
-            "b",
-            "strong",
-            "td",
-            "th",
-            "a",
-            "label",
-            "li",
-            "small",
-            "em",
-
-            "[data-category]",
-            "[data-subcategory]",
-            "[data-content]",
-            "[data-profile]",
-            "[data-data]",
-            "[data-color-text]",
-
-            "[class*='card']",
-            "[class*='profile']",
-            "[class*='category']",
-            "[class*='subcategory']",
-            "[class*='data']",
-            "[class*='notice']"
-
-        ];
+            if (
+                formatterInternalChange ||
+                isExcluded(this)
+            ) {
+                return;
+            }
 
 
-        let elements = [];
+            try {
+
+                formatElement(this);
+
+            } catch (e) {
+
+                console.error(
+                    "Formatter insertAdjacentHTML error:",
+                    e
+                );
+
+            }
+
+        };
+
+}
+
+
+/* ============================================================
+   APPEND CHILD PROTECTION
+   ============================================================ */
+
+const originalAppendChild =
+    Node.prototype.appendChild;
+
+
+Node.prototype.appendChild =
+    function(child) {
+
+        const result =
+            originalAppendChild.call(
+                this,
+                child
+            );
+
+
+        if (
+            formatterInternalChange ||
+            !document.body
+        ) {
+            return result;
+        }
 
 
         try {
 
             if (
-                root.matches &&
-                selectors.some(
-                    function (selector) {
-
-                        try {
-
-                            return root.matches(
-                                selector
-                            );
-
-                        } catch (e) {
-
-                            return false;
-
-                        }
-
-                    }
-                )
+                this.nodeType === Node.ELEMENT_NODE &&
+                !isExcluded(this)
             ) {
 
-                elements.push(root);
+                if (
+                    child.nodeType ===
+                    Node.ELEMENT_NODE
+                ) {
+
+                    formatElement(child);
+
+                } else if (
+                    child.nodeType ===
+                    Node.TEXT_NODE
+                ) {
+
+                    formatTextNode(child);
+
+                }
 
             }
 
+        } catch (e) {
 
-            elements =
-                elements.concat(
-                    Array.from(
-                        root.querySelectorAll(
-                            selectors.join(",")
-                        )
-                    )
-                );
-
-        } catch (error) {
-
-            console.warn(
-                "Firebase formatter:",
-                error
+            console.error(
+                "Formatter appendChild error:",
+                e
             );
 
         }
 
 
-        elements =
-            Array.from(
-                new Set(elements)
-            );
+        return result;
+
+    };
 
 
-        elements.forEach(
-            function (element) {
+/* ============================================================
+   MUTATION OBSERVER
+   ============================================================ */
 
-                if (
-                    !isExcluded(element)
-                ) {
-
-                    formatElement(
-                        element
-                    );
-
-                }
-
-            }
-        );
+let formatterObserver = null;
 
 
-        /*
-         * Final toolbar cleanup.
-         *
-         * If Firebase inserted toolbar content
-         * during formatting, it is cleaned here.
-         */
+function startFormatterObserver() {
 
-        cleanToolbarCodes();
-
+    if (
+        formatterObserver ||
+        !document.body
+    ) {
+        return;
     }
 
 
-    /* ============================================================
-       MUTATION OBSERVER
-    ============================================================ */
-
-    let observerTimer =
-        null;
-
-
-    let observerStarted =
-        false;
-
-
-    let observerRunning =
-        false;
-
-
-    const observer =
+    formatterObserver =
         new MutationObserver(
-            function (mutations) {
+            mutations => {
 
-                let shouldRun =
-                    false;
-
-
-                for (
-                    let i = 0;
-                    i < mutations.length;
-                    i++
-                ) {
-
-                    const mutation =
-                        mutations[i];
-
-
-                    if (
-                        mutation.type ===
-                        "childList" &&
-                        mutation.addedNodes.length
-                    ) {
-
-                        shouldRun =
-                            true;
-
-                        break;
-
-                    }
-
+                mutations.forEach(mutation => {
 
                     if (
                         mutation.type ===
                         "characterData"
                     ) {
 
-                        shouldRun =
-                            true;
+                        if (
+                            containsFormatCode(
+                                mutation.target.nodeValue
+                            )
+                        ) {
 
-                        break;
+                            formatTextNode(
+                                mutation.target
+                            );
 
+                        }
+
+                        return;
                     }
 
-                }
 
+                    mutation.addedNodes.forEach(node => {
 
-                if (
-                    !shouldRun
-                ) {
-                    return;
-                }
+                        if (
+                            node.nodeType ===
+                            Node.TEXT_NODE
+                        ) {
 
+                            if (
+                                containsFormatCode(
+                                    node.nodeValue
+                                )
+                            ) {
 
-                /*
-                 * First cleanup toolbar immediately.
-                 */
+                                formatTextNode(node);
+
+                            }
+
+                        } else if (
+                            node.nodeType ===
+                            Node.ELEMENT_NODE
+                        ) {
+
+                            if (!isExcluded(node)) {
+                                formatElement(node);
+                            }
+
+                        }
+
+                    });
+
+                });
+
 
                 cleanToolbarCodes();
 
-
-                clearTimeout(
-                    observerTimer
-                );
-
-
-                observerTimer =
-                    setTimeout(
-                        function () {
-
-                            if (
-                                observerRunning
-                            ) {
-                                return;
-                            }
-
-
-                            observerRunning =
-                                true;
-
-
-                            try {
-
-                                applyFirebaseTextColors(
-                                    document.body
-                                );
-
-                            } finally {
-
-                                observerRunning =
-                                    false;
-
-                            }
-
-                        },
-                        0
-                    );
-
             }
         );
 
 
-    /* ============================================================
-       INITIALIZE
-    ============================================================ */
+    formatterObserver.observe(
+        document.body,
+        {
+            childList: true,
+            subtree: true,
+            characterData: true
+        }
+    );
 
-    function initializeFormatter() {
-
-        /*
-         * IMPORTANT ORDER:
-         *
-         * 1. Protect toolbar
-         * 2. Add formatter CSS
-         * 3. Clean toolbar
-         * 4. Remove old styles
-         * 5. Format Firebase text
-         * 6. Clean toolbar again
-         * 7. Start observer
-         */
-
-        installEarlyToolbarProtection();
+}
 
 
-        addFormatterCSS();
+/* ============================================================
+   INITIALIZATION
+   ============================================================ */
+
+function initializeFirebaseFormatter() {
+
+    addFormatterCSS();
 
 
-        cleanToolbarCodes();
+    /*
+
+       Body is hidden ONLY while initial formatter
+       is running.
+
+       This prevents initial Firebase data flash.
+
+    */
+
+    if (document.body) {
+
+        document.body.classList
+            .add("firebase-format-pending");
+
+    }
 
 
-        removeOldFormatterStyles();
+    applyFirebaseTextColors(
+        document.body
+    );
 
 
-        applyFirebaseTextColors(
-            document.body
-        );
+    startFormatterObserver();
 
 
-        cleanToolbarCodes();
+    cleanToolbarCodes();
 
 
-        /*
-         * Start observer only once.
-         */
+    if (document.body) {
 
-        if (
-            !observerStarted &&
-            document.body
-        ) {
+        document.body.classList
+            .remove("firebase-format-pending");
 
-            observer.observe(
-                document.body,
-                {
-                    childList: true,
-                    subtree: true,
-                    characterData: true
-                }
+        document.body.classList
+            .add("firebase-format-ready");
+
+    }
+
+}
+
+
+/* ============================================================
+   DOM READY
+   ============================================================ */
+
+if (
+    document.readyState ===
+    "loading"
+) {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        initializeFirebaseFormatter,
+        {
+            once: true
+        }
+    );
+
+} else {
+
+    initializeFirebaseFormatter();
+
+}
+
+
+/* ============================================================
+   PAGE LOAD SAFETY
+   ============================================================ */
+
+window.addEventListener(
+    "load",
+    () => {
+
+        try {
+
+            applyFirebaseTextColors(
+                document.body
             );
 
+            cleanToolbarCodes();
 
-            observerStarted =
-                true;
+        } catch (e) {
+
+            console.error(
+                "Formatter load error:",
+                e
+            );
 
         }
 
+    },
+    {
+        once: true
     }
+);
 
 
-    /* ============================================================
-       EARLY EXECUTION
-    ============================================================ */
+/* ============================================================
+   GLOBAL ACCESS
+   ============================================================ */
 
-    /*
-     * Install protection as early as possible.
-     */
+window.FORMAT_CODES =
+    FORMAT_CODES;
 
-    installEarlyToolbarProtection();
+window.applyFirebaseTextColors =
+    applyFirebaseTextColors;
 
+window.formatElement =
+    formatElement;
 
-    /*
-     * If body already exists, perform immediate cleanup.
-     */
-
-    if (
-        document.body
-    ) {
-
-        cleanToolbarCodes();
-
-        addFormatterCSS();
-
-        applyFirebaseTextColors(
-            document.body
-        );
-
-        cleanToolbarCodes();
-
-    }
-
-
-    /* ============================================================
-       PAGE LOAD
-    ============================================================ */
-
-    if (
-        document.readyState ===
-        "loading"
-    ) {
-
-        document.addEventListener(
-            "DOMContentLoaded",
-            initializeFormatter,
-            {
-                once: true
-            }
-        );
-
-    } else {
-
-        initializeFormatter();
-
-    }
-
-
-    /* ============================================================
-       PUBLIC API
-    ============================================================ */
-
-    window.applyFirebaseTextColors =
-        applyFirebaseTextColors;
-
-
-    window.firebaseTextFormatter = {
-
-        apply:
-            applyFirebaseTextColors,
-
-        clean:
-            cleanText,
-
-        codes:
-            FORMAT_CODES
-
-    };
-
-
-})();
+window.cleanToolbarCodes =
+    cleanToolbarCodes;
