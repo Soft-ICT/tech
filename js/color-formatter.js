@@ -1,21 +1,26 @@
 /**
  * Color & Design Formatter for Firebase Data
- * Path: js/color-formatter.js
+ * Path: Js/color-formatter.js
  *
- * কাজ:
- * - শুধু Category / Sub-category / নির্দিষ্ট Content Text-এ color code কাজ করবে
- * - Toolbar / Navbar / Header-এর color পরিবর্তন করবে না
- * - #red, #blue ইত্যাদি কোড হাইড থাকবে
+ * Features:
+ * 1. Category / Sub-category / Data text-এর Color Code কাজ করবে
+ * 2. #red, #blue ইত্যাদি মূল text থেকে hide হবে
+ * 3. Toolbar-এর নিজের color/style পরিবর্তন হবে না
+ * 4. Toolbar-এ Color Code থাকলে শুধু Code hide হবে
+ * 5. Firebase dynamic content-এর সাথেও কাজ করবে
  */
 
 (function () {
+
     'use strict';
+
 
     // =========================================================
     // COLOR KEYWORDS
     // =========================================================
 
     const COLOR_KEYWORDS = {
+
         '#red': {
             color: '#ef4444',
             type: 'text'
@@ -56,43 +61,47 @@
             color: '#fff',
             type: 'gradient'
         }
+
     };
 
 
     // =========================================================
-    // যেসব এলাকা থেকে COLOR FORMATTER সম্পূর্ণভাবে বাদ যাবে
+    // TOOLBAR / HEADER EXCLUDE LIST
+    //
+    // এগুলোর কোনো Color / Background / Design পরিবর্তন করা হবে না
     // =========================================================
 
     const EXCLUDED_SELECTORS = [
+
         'header',
         'nav',
+
         '.navbar',
         '.topbar',
         '.toolbar',
+        '.header',
+
         '#toolbar',
         '#topbar',
-        '.header',
         '#header',
 
-        // আপনার অ্যাপের সম্ভাব্য Toolbar / Navigation
         '#navToggleBtn',
         '#menuIcon',
         '#backIcon',
 
-        // সাধারণ Button / Control
         'button',
         'input',
         'textarea',
         'select',
 
-        // Modal-এর control অংশ
         '.modal-header',
         '.modal-footer'
+
     ];
 
 
     // =========================================================
-    // CHECK: এই element formatter-এর জন্য নিষিদ্ধ কি না
+    // কোনো Element Toolbar/Header-এর ভিতরে আছে কি না
     // =========================================================
 
     function isExcludedElement(el) {
@@ -101,185 +110,457 @@
             return true;
         }
 
+
         // নিজে excluded কি না
         for (const selector of EXCLUDED_SELECTORS) {
+
             try {
+
                 if (el.matches(selector)) {
                     return true;
                 }
+
             } catch (e) {}
+
         }
 
-        // তার parent / ancestor excluded কি না
+
+        // Parent / Ancestor excluded কি না
         for (const selector of EXCLUDED_SELECTORS) {
+
             try {
+
                 if (el.closest(selector)) {
                     return true;
                 }
+
             } catch (e) {}
+
         }
+
 
         return false;
     }
 
 
     // =========================================================
-    // শুধু Content-এর জন্য formatter
+    // Color Code escape করার জন্য
+    // =========================================================
+
+    function escapeRegExp(string) {
+
+        return string.replace(
+            /[.*+?^${}()|[\]\\]/g,
+            '\\$&'
+        );
+
+    }
+
+
+    // =========================================================
+    // TEXT থেকে Color Code সরানো
+    // =========================================================
+
+    function removeColorCodes(text) {
+
+        if (!text) {
+            return text;
+        }
+
+
+        Object.keys(COLOR_KEYWORDS).forEach(function (key) {
+
+            const escapedKey = escapeRegExp(key);
+
+            const regex = new RegExp(
+                escapedKey,
+                'gi'
+            );
+
+            text = text.replace(regex, '');
+
+        });
+
+
+        return text;
+
+    }
+
+
+    // =========================================================
+    // CATEGORY / SUB-CATEGORY / DATA-এর Color Apply
     // =========================================================
 
     function applyColorToElement(el) {
 
-        if (!el || isExcludedElement(el)) {
+        if (!el) {
             return;
         }
 
-        // আগে থেকেই process করা হলে আবার পরিবর্তন করবে না
-        if (el.dataset.colorFormatterProcessed === "true") {
+
+        // Toolbar / Navbar হলে কোনোভাবেই Color Apply করবে না
+        if (isExcludedElement(el)) {
             return;
         }
 
-        // Child element থাকলে parent-এর পুরো textContent পরিবর্তন করা যাবে না
+
+        // আগে process করা হলে আবার process করবে না
+        if (
+            el.dataset &&
+            el.dataset.colorFormatterProcessed === 'true'
+        ) {
+
+            return;
+
+        }
+
+
+        // Child element থাকলে parent-এর text পরিবর্তন করা যাবে না
         if (el.childNodes.length !== 1) {
             return;
         }
 
+
         const node = el.childNodes[0];
 
-        // শুধু সরাসরি Text Node হলে কাজ করবে
-        if (!node || node.nodeType !== Node.TEXT_NODE) {
+
+        // শুধু Text Node-এর ক্ষেত্রে কাজ করবে
+        if (
+            !node ||
+            node.nodeType !== Node.TEXT_NODE
+        ) {
+
             return;
+
         }
 
+
         let text = node.textContent || '';
+
 
         if (!text.trim()) {
             return;
         }
 
+
         let foundKeyword = null;
         let config = null;
 
-        // Keyword খুঁজে বের করা
+
+        // =====================================================
+        // Color Code খুঁজে বের করা
+        // =====================================================
+
         for (const key in COLOR_KEYWORDS) {
-            if (text.includes(key)) {
+
+            if (text.toLowerCase().includes(
+                key.toLowerCase()
+            )) {
+
                 foundKeyword = key;
                 config = COLOR_KEYWORDS[key];
+
                 break;
+
             }
+
         }
 
-        // কোনো color code না থাকলে কিছু করবে না
+
+        // Color Code নেই
         if (!foundKeyword) {
             return;
         }
 
+
         // =====================================================
-        // COLOR CODE HIDE
+        // Color Code HIDE
         // =====================================================
 
         const cleanText = text
-            .replace(foundKeyword, '')
+            .replace(
+                new RegExp(
+                    escapeRegExp(foundKeyword),
+                    'gi'
+                ),
+                ''
+            )
             .trim();
+
 
         node.textContent = cleanText;
 
 
         // =====================================================
-        // STYLE APPLY
+        // TEXT COLOR
         // =====================================================
 
         if (config.type === 'text') {
 
             el.style.color = config.color;
+
             el.style.fontWeight = 'bold';
 
         }
 
+
+        // =====================================================
+        // UNDERLINE
+        // =====================================================
+
         else if (config.type === 'underline') {
 
-            el.style.borderBottom = config.borderBottom;
+            el.style.borderBottom =
+                config.borderBottom;
+
             el.style.paddingBottom = '2px';
 
         }
 
+
+        // =====================================================
+        // GRADIENT
+        // =====================================================
+
         else if (config.type === 'gradient') {
 
-            el.style.background = config.background;
-            el.style.color = config.color;
+            el.style.background =
+                config.background;
+
+            el.style.color =
+                config.color;
+
         }
 
 
-        // Processed mark
-        el.dataset.colorFormatterProcessed = "true";
+        // =====================================================
+        // Processed Mark
+        // =====================================================
+
+        if (el.dataset) {
+
+            el.dataset.colorFormatterProcessed =
+                'true';
+
+        }
+
     }
 
 
     // =========================================================
-    // CONTENT ELEMENT খুঁজে formatter চালানো
+    // TOOLBAR থেকে শুধু Color Code HIDE
+    //
+    // গুরুত্বপূর্ণ:
+    // এখানে কোনো CSS Color / Background পরিবর্তন করা হয় না।
+    // শুধু #red/#blue ইত্যাদি text থেকে সরানো হয়।
+    // =========================================================
+
+    function hideColorCodesFromToolbar() {
+
+        const toolbarSelectors = [
+
+            'header',
+            'nav',
+
+            '.navbar',
+            '.topbar',
+            '.toolbar',
+            '.header',
+
+            '#toolbar',
+            '#topbar',
+            '#header',
+
+            '#navToggleBtn'
+
+        ];
+
+
+        toolbarSelectors.forEach(function (selector) {
+
+            document
+                .querySelectorAll(selector)
+                .forEach(function (toolbar) {
+
+
+                    // Toolbar-এর ভিতরের Text Node খুঁজবে
+
+                    const walker =
+                        document.createTreeWalker(
+
+                            toolbar,
+
+                            NodeFilter.SHOW_TEXT,
+
+                            null,
+
+                            false
+
+                        );
+
+
+                    const textNodes = [];
+
+                    let node;
+
+
+                    while (
+                        node = walker.nextNode()
+                    ) {
+
+                        textNodes.push(node);
+
+                    }
+
+
+                    // প্রতিটি Text Node থেকে
+                    // শুধু Color Code remove করবে
+
+                    textNodes.forEach(function (textNode) {
+
+                        let text =
+                            textNode.nodeValue;
+
+
+                        if (!text) {
+                            return;
+                        }
+
+
+                        const newText =
+                            removeColorCodes(text);
+
+
+                        if (newText !== text) {
+
+                            textNode.nodeValue =
+                                newText;
+
+                        }
+
+                    });
+
+                });
+
+        });
+
+    }
+
+
+    // =========================================================
+    // MAIN COLOR FORMATTER
     // =========================================================
 
     function applyDynamicStyles() {
 
-        // পুরো document-এর সব div/span পরিবর্তন না করে
-        // Category / Content-এর সম্ভাব্য element-গুলো নেওয়া হচ্ছে।
 
-        const elements = document.querySelectorAll(
-            'h1, h2, h3, h4, h5, h6, ' +
-            'span, p, b, strong, ' +
-            'td, th, a, ' +
-            '[data-category], ' +
-            '[data-subcategory], ' +
-            '[data-content], ' +
-            '[data-color-text]'
-        );
+        // =====================================================
+        // Category / Sub-category / Data-এর জন্য Elements
+        // =====================================================
 
-        elements.forEach(el => {
+        const elements =
+            document.querySelectorAll(
+
+                'h1, h2, h3, h4, h5, h6, ' +
+
+                'span, p, b, strong, ' +
+
+                'td, th, a, ' +
+
+                '[data-category], ' +
+
+                '[data-subcategory], ' +
+
+                '[data-content], ' +
+
+                '[data-color-text]'
+
+            );
+
+
+        elements.forEach(function (el) {
+
             applyColorToElement(el);
+
         });
+
+
+        // =====================================================
+        // Toolbar-এ Color Code থাকলে শুধু Hide করবে
+        // =====================================================
+
+        hideColorCodesFromToolbar();
+
     }
 
 
     // =========================================================
-    // FIREBASE / DYNAMIC CONTENT OBSERVER
+    // MUTATION OBSERVER
+    //
+    // Firebase থেকে নতুন Data / Category আসলে
+    // formatter আবার কাজ করবে।
     // =========================================================
 
     let observerStarted = false;
 
+
     function startObserver() {
+
 
         if (observerStarted) {
             return;
         }
 
+
         if (!document.body) {
             return;
         }
 
+
         observerStarted = true;
 
-        const observer = new MutationObserver((mutations) => {
 
-            let shouldProcess = false;
+        const observer =
+            new MutationObserver(function (mutations) {
 
-            mutations.forEach(mutation => {
 
-                if (mutation.type === 'childList' &&
-                    mutation.addedNodes.length > 0) {
+                let shouldProcess = false;
 
-                    shouldProcess = true;
+
+                mutations.forEach(function (mutation) {
+
+                    if (
+                        mutation.type === 'childList' &&
+                        mutation.addedNodes.length > 0
+                    ) {
+
+                        shouldProcess = true;
+
+                    }
+
+                });
+
+
+                if (shouldProcess) {
+
+                    applyDynamicStyles();
+
                 }
+
             });
 
-            if (shouldProcess) {
-                applyDynamicStyles();
+
+        observer.observe(
+
+            document.body,
+
+            {
+                childList: true,
+                subtree: true
             }
-        });
 
+        );
 
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
     }
 
 
@@ -289,38 +570,92 @@
 
     function initializeColorFormatter() {
 
+
+        // প্রথমবার
         applyDynamicStyles();
 
+
+        // Observer চালু
         startObserver();
 
-        // Firebase data একটু পরে render হলে
-        setTimeout(applyDynamicStyles, 300);
-        setTimeout(applyDynamicStyles, 800);
-        setTimeout(applyDynamicStyles, 1500);
-        setTimeout(applyDynamicStyles, 3000);
+
+        // Firebase / Dynamic UI render হওয়ার পর
+        setTimeout(
+            applyDynamicStyles,
+            300
+        );
+
+
+        setTimeout(
+            applyDynamicStyles,
+            800
+        );
+
+
+        setTimeout(
+            applyDynamicStyles,
+            1500
+        );
+
+
+        setTimeout(
+            applyDynamicStyles,
+            3000
+        );
+
     }
 
 
-    if (document.readyState === 'loading') {
+    // =========================================================
+    // DOM READY
+    // =========================================================
+
+    if (
+        document.readyState ===
+        'loading'
+    ) {
 
         document.addEventListener(
+
             'DOMContentLoaded',
+
             initializeColorFormatter
+
         );
 
     } else {
 
         initializeColorFormatter();
+
     }
 
 
+    // =========================================================
+    // WINDOW LOAD
+    // =========================================================
+
     window.addEventListener(
+
         'load',
-        applyDynamicStyles
+
+        function () {
+
+            applyDynamicStyles();
+
+        }
+
     );
 
 
-    // অন্য JS থেকে চাইলে manually call করা যাবে
-    window.applyFirebaseTextColors = applyDynamicStyles;
+    // =========================================================
+    // GLOBAL FUNCTION
+    //
+    // অন্য JavaScript থেকে প্রয়োজন হলে:
+    // window.applyFirebaseTextColors();
+    // =========================================================
+
+    window.applyFirebaseTextColors =
+        applyDynamicStyles;
+
 
 })();
