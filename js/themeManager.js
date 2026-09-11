@@ -50,7 +50,32 @@ export const AppThemeManager = {
     }
 };
 
-// অটো রান করার জন্য
+// অটো রান এবং ইভেন্ট লিসেনার সেটআপ
 document.addEventListener('DOMContentLoaded', () => {
     AppThemeManager.loadSavedTheme();
+
+    // থিম সেভ করার বাটন ইভেন্ট
+    document.getElementById('saveThemeBtn')?.addEventListener('click', () => {
+        const newColors = {
+            header: document.getElementById('clrHeader')?.value,
+            category: document.getElementById('clrCategory')?.value,
+            subCategory: document.getElementById('clrSubCategory')?.value,
+            dataProfile: document.getElementById('clrDataProfile')?.value,
+            homeNotice: document.getElementById('clrHomeNotice')?.value,
+            scrollingNotice: document.getElementById('clrScrollingNotice')?.value
+        };
+
+        // থিম এপ্লাই ও লোকাল স্টোরেজে সেভ
+        AppThemeManager.applyTheme(newColors);
+        
+        // ফায়ারবেস রিয়েলটাইম ডেটাবেজে সেভ করতে চাইলে (অ্যাডমিনের জন্য):
+        // database.ref('settings/themeColors').set(newColors);
+
+        alert('থিম সফলভাবে আপডেট করা হয়েছে!');
+    });
+
+    // থিম রিসেট করার বাটন ইভেন্ট
+    document.getElementById('resetThemeBtn')?.addEventListener('click', () => {
+        AppThemeManager.resetTheme();
+    });
 });
