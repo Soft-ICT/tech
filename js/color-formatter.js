@@ -949,106 +949,172 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
        APPLY NORMAL STYLES
     ============================================================ */
 
-    function applyNormalStyles(
-        element,
-        codes
-    ) {
+    function applyFormatStyle(element, format) {
 
-        let gradientClass =
-            null;
+        let gradientClass = null;
 
-
-        codes.forEach(
-            function (code) {
-
-                const config =
-                    FORMAT_CODES[code];
-
-
-                if (!config) {
-                    return;
-                }
-
-
-                if (
-                    config.gradientClass
-                ) {
-
-                    gradientClass =
-                        config.gradientClass;
-
-                    return;
-
-                }
-
-
-                Object.keys(config).forEach(
-                    function (property) {
-
-                        if (
-                            property ===
-                            "gradientClass"
-                        ) {
-                            return;
-                        }
-
-
-                        element.style.setProperty(
-                            property,
-                            config[property],
-                            "important"
-                        );
-
-                    }
-                );
-
-            }
-        );
-
-
-        if (gradientClass) {
-
-            element.classList.add(
-                gradientClass
-            );
-
+        if (format.gradientClass) {
+            gradientClass = format.gradientClass;
         }
 
+        Object.keys(format).forEach(property => {
+
+            if (property === "gradientClass") {
+                return;
+            }
+
+            element.style.setProperty(
+                property,
+                format[property],
+                "important"
+            );
+
+        });
+
+        if (gradientClass) {
+            element.classList.add(gradientClass);
+        }
 
         element.classList.add(
             "firebase-formatted-text"
         );
 
-
         element.setAttribute(
             "data-firebase-formatted",
             "true"
         );
-
     }
 
 
     /* ============================================================
-       FORMAT TEXT NODE
+       FORMAT TEXT NODE (UPDATED)
     ============================================================ */
 
     function formatTextNode(textNode) {
 
-        if (
-            !textNode ||
-            !textNode.nodeValue
-        ) {
+        if (!textNode ||
+            textNode.nodeType !== Node.TEXT_NODE) {
+            return;
+        }
+
+        const parent = textNode.parentElement;
+
+        if (!parent ||
+            parent.closest(".firebase-formatted-text") ||
+            isExcluded(parent)) {
+            return;
+        }
+
+        const originalText = textNode.nodeValue;
+
+        /* ========================================================
+           NEW:
+           [#red]O+[/#red]
+           [#blue]ABC[/#blue]
+           [#bold]Name[/#bold]
+           ======================================================== */
+
+        const partialFormatRegex =
+            /\[(#[a-zA-Z0-9_]+)\]([\s\S]*?)\[\/\1\]/g;
+
+        if (partialFormatRegex.test(originalText)) {
+
+            partialFormatRegex.lastIndex = 0;
+
+            const fragment = document.createDocumentFragment();
+
+            let lastIndex = 0;
+            let match;
+
+            while (
+                (match = partialFormatRegex.exec(originalText))
+            ) {
+
+                /* আগের সাধারণ লেখা */
+                if (match.index > lastIndex) {
+
+                    fragment.appendChild(
+                        document.createTextNode(
+                            originalText.substring(
+                                lastIndex,
+                                match.index
+                            )
+                        )
+                    );
+
+                }
+
+                const code = match[1];
+                const content = match[2];
+
+                const format = FORMAT_CODES[code];
+
+                if (format) {
+
+                    const span =
+                        document.createElement("span");
+
+                    span.className =
+                        "firebase-formatted-text";
+
+                    span.textContent = content;
+
+                    applyFormatStyle(
+                        span,
+                        format
+                    );
+
+                    fragment.appendChild(span);
+
+                } else {
+
+                    /* অজানা code হলে মূল লেখা রাখবে */
+                    fragment.appendChild(
+                        document.createTextNode(
+                            match[0]
+                        )
+                    );
+
+                }
+
+                lastIndex =
+                    partialFormatRegex.lastIndex;
+            }
+
+            /* শেষের সাধারণ লেখা */
+            if (lastIndex < originalText.length) {
+
+                fragment.appendChild(
+                    document.createTextNode(
+                        originalText.substring(lastIndex)
+                    )
+                );
+
+            }
+
+            textNode.parentNode.replaceChild(
+                fragment,
+                textNode
+            );
+
             return;
         }
 
 
-        const original =
-            textNode.nodeValue;
+        /* ========================================================
+           OLD FORMAT SYSTEM
+           #red
+           #blue
+           #bold
+           ইত্যাদি
+           ======================================================== */
 
+        if (!originalText) {
+            return;
+        }
 
         const codes =
-            getCodes(original);
-
+            getCodes(originalText);
 
         if (
             codes.length === 0
@@ -1056,32 +1122,8 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
             return;
         }
 
-
-        const parent =
-            textNode.parentElement;
-
-
-        if (
-            !parent ||
-            isExcluded(parent)
-        ) {
-            return;
-        }
-
-
-        if (
-            parent.classList &&
-            parent.classList.contains(
-                "firebase-formatted-text"
-            )
-        ) {
-            return;
-        }
-
-
         const cleaned =
-            cleanText(original);
-
+            cleanText(originalText);
 
         if (
             !cleaned.trim()
@@ -1094,28 +1136,25 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
 
         }
 
-
         const span =
             document.createElement(
                 "span"
             );
 
-
         span.className =
             "firebase-formatted-text";
-
 
         span.textContent =
             cleaned;
 
+        codes.forEach(code => {
+            const format = FORMAT_CODES[code];
+            if (format) {
+                applyFormatStyle(span, format);
+            }
+        });
 
-        applyNormalStyles(
-            span,
-            codes
-        );
-
-
-        parent.replaceChild(
+        textNode.parentNode.replaceChild(
             span,
             textNode
         );
@@ -1199,9 +1238,13 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
                             }
 
 
+                            const original = node.nodeValue;
+                            const hasPartial = /\[(#[a-zA-Z0-9_]+)\]([\s\S]*?)\[\/\1\]/.test(original);
+
                             if (
+                                !hasPartial &&
                                 getCodes(
-                                    node.nodeValue
+                                    original
                                 ).length === 0
                             ) {
                                 return NodeFilter.FILTER_REJECT;
@@ -1366,10 +1409,12 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
                             textNode.nodeValue;
 
 
-                        const cleaned =
+                        let cleaned =
                             cleanText(
                                 original
                             );
+
+                        cleaned = cleaned.replace(/\[(#[a-zA-Z0-9_]+)\]([\s\S]*?)\[\/\1\]/g, '$2');
 
 
                         if (
@@ -1812,7 +1857,10 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
             applyFirebaseTextColors,
 
         clean:
-            cleanText,
+            function(text) {
+                let cleaned = cleanText(text);
+                return cleaned.replace(/\[(#[a-zA-Z0-9_]+)\]([\s\S]*?)\[\/\1\]/g, '$2');
+            },
 
         codes:
             FORMAT_CODES
