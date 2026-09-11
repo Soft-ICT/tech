@@ -1,1239 +1,995 @@
-/**
- * Advanced Firebase Text Color & Design Formatter
- * Version: Fixed Multi-Code
- *
- * Supports:
- * #red #blue #green #yellow #purple #pink
- * #orange #cyan #teal #indigo #black #white
- *
- * #bold #italic #underline
- * #underline_gold #underline_red #underline_blue
- * #strike
- *
- * #highlight
- * #highlight_blue #highlight_green
- * #highlight_red #highlight_purple #highlight_pink
- *
- * #grad_ocean #grad_fire #grad_purple
- * #grad_green #grad_sunset #grad_blue
- *
- * #shadow #shadow_dark
- *
- * #glow_blue #glow_red #glow_green
- * #glow_purple #glow_cyan
- *
- * Example:
- * কমান্ড্যান্ট#red#bold#underline
- */
+/* ============================================================
+   Firebase Text Color & Design Formatter
+   File: Js/color-formatter.js
+   Version: Advanced + Animated Gradient
+
+   Supports:
+   - Firebase text formatting codes
+   - Multiple codes on same text
+   - Data Card
+   - Data Profile
+   - Category
+   - Sub Category
+   - Header
+   - Home Notice
+   - Scrolling Notice
+   - Dynamic Firebase content
+   - Toolbar code cleanup
+   - Animated Gradients
+   - No formatting code is visible
+============================================================ */
 
 (function () {
+    "use strict";
 
-    'use strict';
+    /* ============================================================
+       FORMAT CODES
+    ============================================================ */
 
+    const FORMAT_CODES = {
 
-    // =========================================================
-    // ALL AVAILABLE CODES
-    // =========================================================
+        /* ---------- BASIC COLORS ---------- */
 
-    const COLOR_KEYWORDS = {
-
-        // -----------------------------------------------------
-        // BASIC COLORS
-        // -----------------------------------------------------
-
-        '#red': {
-            type: 'color',
-            value: '#ef4444'
+        "#red": {
+            color: "#ff0000"
         },
 
-        '#blue': {
-            type: 'color',
-            value: '#2563eb'
+        "#blue": {
+            color: "#0066ff"
         },
 
-        '#green': {
-            type: 'color',
-            value: '#10b981'
+        "#green": {
+            color: "#00a000"
         },
 
-        '#yellow': {
-            type: 'color',
-            value: '#f59e0b'
+        "#yellow": {
+            color: "#d4a800"
         },
 
-        '#purple': {
-            type: 'color',
-            value: '#8b5cf6'
+        "#purple": {
+            color: "#8000ff"
         },
 
-        '#pink': {
-            type: 'color',
-            value: '#ec4899'
+        "#pink": {
+            color: "#ff1493"
         },
 
-        '#orange': {
-            type: 'color',
-            value: '#f97316'
+        "#orange": {
+            color: "#ff6600"
         },
 
-        '#cyan': {
-            type: 'color',
-            value: '#06b6d4'
+        "#cyan": {
+            color: "#00bcd4"
         },
 
-        '#teal': {
-            type: 'color',
-            value: '#14b8a6'
+        "#teal": {
+            color: "#009688"
         },
 
-        '#indigo': {
-            type: 'color',
-            value: '#6366f1'
+        "#indigo": {
+            color: "#3f51b5"
         },
 
-        '#black': {
-            type: 'color',
-            value: '#111827'
+        "#black": {
+            color: "#000000"
         },
 
-        '#white': {
-            type: 'color',
-            value: '#ffffff'
+        "#white": {
+            color: "#ffffff"
         },
 
 
-        // -----------------------------------------------------
-        // TEXT STYLE
-        // -----------------------------------------------------
+        /* ---------- TEXT STYLE ---------- */
 
-        '#bold': {
-            type: 'bold'
+        "#bold": {
+            fontWeight: "700"
         },
 
-        '#italic': {
-            type: 'italic'
+        "#italic": {
+            fontStyle: "italic"
         },
 
-        '#underline': {
-            type: 'underline',
-            value: '2px solid currentColor'
+        "#underline": {
+            textDecoration: "underline"
         },
 
-        '#underline_gold': {
-            type: 'underline',
-            value: '2px solid #f59e0b'
+        "#underline_gold": {
+            textDecoration: "underline",
+            textDecorationColor: "#d4a017",
+            textDecorationThickness: "2px"
         },
 
-        '#underline_red': {
-            type: 'underline',
-            value: '2px solid #ef4444'
+        "#underline_red": {
+            textDecoration: "underline",
+            textDecorationColor: "#ff0000",
+            textDecorationThickness: "2px"
         },
 
-        '#underline_blue': {
-            type: 'underline',
-            value: '2px solid #2563eb'
+        "#underline_blue": {
+            textDecoration: "underline",
+            textDecorationColor: "#0066ff",
+            textDecorationThickness: "2px"
         },
 
-        '#strike': {
-            type: 'strike'
-        },
-
-
-        // -----------------------------------------------------
-        // HIGHLIGHT
-        // -----------------------------------------------------
-
-        '#highlight': {
-            type: 'highlight',
-            background: '#fff3a3'
-        },
-
-        '#highlight_blue': {
-            type: 'highlight',
-            background: '#bfdbfe'
-        },
-
-        '#highlight_green': {
-            type: 'highlight',
-            background: '#bbf7d0'
-        },
-
-        '#highlight_red': {
-            type: 'highlight',
-            background: '#fecaca'
-        },
-
-        '#highlight_purple': {
-            type: 'highlight',
-            background: '#ddd6fe'
-        },
-
-        '#highlight_pink': {
-            type: 'highlight',
-            background: '#fbcfe8'
+        "#strike": {
+            textDecoration: "line-through"
         },
 
 
-        // -----------------------------------------------------
-        // GRADIENT
-        // -----------------------------------------------------
+        /* ---------- HIGHLIGHT ---------- */
 
-        '#grad_ocean': {
-            type: 'gradient',
-            value:
-                'linear-gradient(135deg, #3b82f6, #06b6d4)'
+        "#highlight": {
+            backgroundColor: "#fff176",
+            padding: "2px 5px",
+            borderRadius: "4px"
         },
 
-        '#grad_fire': {
-            type: 'gradient',
-            value:
-                'linear-gradient(135deg, #ef4444, #f97316, #f59e0b)'
+        "#highlight_blue": {
+            backgroundColor: "#bbdefb",
+            padding: "2px 5px",
+            borderRadius: "4px"
         },
 
-        '#grad_purple': {
-            type: 'gradient',
-            value:
-                'linear-gradient(135deg, #8b5cf6, #ec4899)'
+        "#highlight_green": {
+            backgroundColor: "#c8e6c9",
+            padding: "2px 5px",
+            borderRadius: "4px"
         },
 
-        '#grad_green': {
-            type: 'gradient',
-            value:
-                'linear-gradient(135deg, #10b981, #22c55e)'
+        "#highlight_red": {
+            backgroundColor: "#ffcdd2",
+            padding: "2px 5px",
+            borderRadius: "4px"
         },
 
-        '#grad_sunset': {
-            type: 'gradient',
-            value:
-                'linear-gradient(135deg, #f97316, #ec4899, #8b5cf6)'
+        "#highlight_purple": {
+            backgroundColor: "#e1bee7",
+            padding: "2px 5px",
+            borderRadius: "4px"
         },
 
-        '#grad_blue': {
-            type: 'gradient',
-            value:
-                'linear-gradient(135deg, #1d4ed8, #60a5fa)'
-        },
-
-
-        // -----------------------------------------------------
-        // SHADOW
-        // -----------------------------------------------------
-
-        '#shadow': {
-            type: 'shadow',
-            value:
-                '2px 2px 4px rgba(0,0,0,0.35)'
-        },
-
-        '#shadow_dark': {
-            type: 'shadow',
-            value:
-                '2px 3px 6px rgba(0,0,0,0.55)'
+        "#highlight_pink": {
+            backgroundColor: "#f8bbd0",
+            padding: "2px 5px",
+            borderRadius: "4px"
         },
 
 
-        // -----------------------------------------------------
-        // GLOW
-        // -----------------------------------------------------
+        /* ---------- STATIC GRADIENT ---------- */
 
-        '#glow_blue': {
-            type: 'glow',
-            value: '#2563eb'
+        "#grad_ocean": {
+            backgroundImage: "linear-gradient(90deg,#00c6ff,#0072ff)",
+            backgroundClip: "text",
+            webkitBackgroundClip: "text",
+            color: "transparent",
+            webkitTextFillColor: "transparent"
         },
 
-        '#glow_red': {
-            type: 'glow',
-            value: '#ef4444'
+        "#grad_fire": {
+            backgroundImage: "linear-gradient(90deg,#ff512f,#f09819)",
+            backgroundClip: "text",
+            webkitBackgroundClip: "text",
+            color: "transparent",
+            webkitTextFillColor: "transparent"
         },
 
-        '#glow_green': {
-            type: 'glow',
-            value: '#10b981'
+        "#grad_purple": {
+            backgroundImage: "linear-gradient(90deg,#8e2de2,#4a00e0)",
+            backgroundClip: "text",
+            webkitBackgroundClip: "text",
+            color: "transparent",
+            webkitTextFillColor: "transparent"
         },
 
-        '#glow_purple': {
-            type: 'glow',
-            value: '#8b5cf6'
+        "#grad_green": {
+            backgroundImage: "linear-gradient(90deg,#00b09b,#96c93d)",
+            backgroundClip: "text",
+            webkitBackgroundClip: "text",
+            color: "transparent",
+            webkitTextFillColor: "transparent"
         },
 
-        '#glow_cyan': {
-            type: 'glow',
-            value: '#06b6d4'
+        "#grad_sunset": {
+            backgroundImage: "linear-gradient(90deg,#ff512f,#dd2476)",
+            backgroundClip: "text",
+            webkitBackgroundClip: "text",
+            color: "transparent",
+            webkitTextFillColor: "transparent"
+        },
+
+        "#grad_blue": {
+            backgroundImage: "linear-gradient(90deg,#36d1dc,#5b86e5)",
+            backgroundClip: "text",
+            webkitBackgroundClip: "text",
+            color: "transparent",
+            webkitTextFillColor: "transparent"
+        },
+
+
+        /* ========================================================
+           ANIMATED GRADIENT
+        ======================================================== */
+
+        "#grad_animated": {
+            backgroundImage:
+                "linear-gradient(270deg,#ff0080,#7928ca,#2afadf,#00c6ff,#ff0080)",
+            backgroundSize: "400% 400%",
+            backgroundClip: "text",
+            webkitBackgroundClip: "text",
+            color: "transparent",
+            webkitTextFillColor: "transparent",
+            animation: "firebaseGradientAnimation 6s ease infinite"
+        },
+
+        "#grad_aurora": {
+            backgroundImage:
+                "linear-gradient(270deg,#00f2fe,#4facfe,#a18cd1,#fbc2eb,#00f2fe)",
+            backgroundSize: "500% 500%",
+            backgroundClip: "text",
+            webkitBackgroundClip: "text",
+            color: "transparent",
+            webkitTextFillColor: "transparent",
+            animation: "firebaseAuroraAnimation 8s ease infinite"
+        },
+
+        "#grad_fire_animated": {
+            backgroundImage:
+                "linear-gradient(270deg,#ff0000,#ff512f,#ff8a00,#ffd000,#ff0000)",
+            backgroundSize: "400% 400%",
+            backgroundClip: "text",
+            webkitBackgroundClip: "text",
+            color: "transparent",
+            webkitTextFillColor: "transparent",
+            animation: "firebaseFireAnimation 4s ease infinite"
+        },
+
+        "#grad_ocean_animated": {
+            backgroundImage:
+                "linear-gradient(270deg,#00c6ff,#0072ff,#00f2fe,#4facfe,#00c6ff)",
+            backgroundSize: "400% 400%",
+            backgroundClip: "text",
+            webkitBackgroundClip: "text",
+            color: "transparent",
+            webkitTextFillColor: "transparent",
+            animation: "firebaseOceanAnimation 7s ease infinite"
+        },
+
+        "#grad_purple_animated": {
+            backgroundImage:
+                "linear-gradient(270deg,#7f00ff,#e100ff,#8e2de2,#4a00e0,#7f00ff)",
+            backgroundSize: "400% 400%",
+            backgroundClip: "text",
+            webkitBackgroundClip: "text",
+            color: "transparent",
+            webkitTextFillColor: "transparent",
+            animation: "firebasePurpleAnimation 6s ease infinite"
+        },
+
+        "#grad_sunset_animated": {
+            backgroundImage:
+                "linear-gradient(270deg,#ff512f,#f09819,#ff0066,#ff8a00,#ff512f)",
+            backgroundSize: "400% 400%",
+            backgroundClip: "text",
+            webkitBackgroundClip: "text",
+            color: "transparent",
+            webkitTextFillColor: "transparent",
+            animation: "firebaseSunsetAnimation 6s ease infinite"
+        },
+
+        "#grad_green_animated": {
+            backgroundImage:
+                "linear-gradient(270deg,#00b09b,#96c93d,#00f260,#0575e6,#00b09b)",
+            backgroundSize: "400% 400%",
+            backgroundClip: "text",
+            webkitBackgroundClip: "text",
+            color: "transparent",
+            webkitTextFillColor: "transparent",
+            animation: "firebaseGreenAnimation 7s ease infinite"
+        },
+
+        "#grad_rainbow": {
+            backgroundImage:
+                "linear-gradient(270deg,#ff0000,#ff8a00,#ffe600,#00c853,#00b0ff,#7c4dff,#ff00c8,#ff0000)",
+            backgroundSize: "600% 600%",
+            backgroundClip: "text",
+            webkitBackgroundClip: "text",
+            color: "transparent",
+            webkitTextFillColor: "transparent",
+            animation: "firebaseRainbowAnimation 8s linear infinite"
+        },
+
+
+        /* ---------- SHADOW ---------- */
+
+        "#shadow": {
+            textShadow: "2px 2px 5px rgba(0,0,0,0.35)"
+        },
+
+        "#shadow_dark": {
+            textShadow: "2px 3px 6px rgba(0,0,0,0.75)"
+        },
+
+
+        /* ---------- GLOW ---------- */
+
+        "#glow_blue": {
+            textShadow:
+                "0 0 5px #00aaff, 0 0 10px #00aaff, 0 0 20px #0088ff"
+        },
+
+        "#glow_red": {
+            textShadow:
+                "0 0 5px #ff0000, 0 0 10px #ff0000, 0 0 20px #ff0000"
+        },
+
+        "#glow_green": {
+            textShadow:
+                "0 0 5px #00ff55, 0 0 10px #00ff55, 0 0 20px #00cc44"
+        },
+
+        "#glow_purple": {
+            textShadow:
+                "0 0 5px #b000ff, 0 0 10px #b000ff, 0 0 20px #8000ff"
+        },
+
+        "#glow_cyan": {
+            textShadow:
+                "0 0 5px #00ffff, 0 0 10px #00ffff, 0 0 20px #00bfff"
         }
-
     };
 
 
-    // =========================================================
-    // ELEMENTS THAT MUST NEVER RECEIVE FORMATTER STYLES
-    // =========================================================
+    /* ============================================================
+       ADD ANIMATION CSS
+    ============================================================ */
 
-    const EXCLUDED_SELECTORS = [
+    function addAnimationStyles() {
 
-        'header',
-        'nav',
+        if (document.getElementById("firebaseFormatterAnimationCSS")) {
+            return;
+        }
 
-        '.navbar',
-        '.topbar',
-        '.toolbar',
-        '.header',
+        const style = document.createElement("style");
 
-        '#toolbar',
-        '#topbar',
-        '#header',
+        style.id = "firebaseFormatterAnimationCSS";
 
-        '#navToggleBtn',
-        '#menuIcon',
-        '#backIcon',
+        style.textContent = `
 
-        'button',
-        'input',
-        'textarea',
-        'select',
+            @keyframes firebaseGradientAnimation {
+                0% {
+                    background-position: 0% 50%;
+                }
 
-        '.modal-header',
-        '.modal-footer'
+                50% {
+                    background-position: 100% 50%;
+                }
 
-    ];
+                100% {
+                    background-position: 0% 50%;
+                }
+            }
+
+            @keyframes firebaseAuroraAnimation {
+                0% {
+                    background-position: 0% 50%;
+                }
+
+                25% {
+                    background-position: 50% 100%;
+                }
+
+                50% {
+                    background-position: 100% 50%;
+                }
+
+                75% {
+                    background-position: 50% 0%;
+                }
+
+                100% {
+                    background-position: 0% 50%;
+                }
+            }
+
+            @keyframes firebaseFireAnimation {
+                0% {
+                    background-position: 0% 50%;
+                }
+
+                50% {
+                    background-position: 100% 50%;
+                }
+
+                100% {
+                    background-position: 0% 50%;
+                }
+            }
+
+            @keyframes firebaseOceanAnimation {
+                0% {
+                    background-position: 0% 50%;
+                }
+
+                50% {
+                    background-position: 100% 50%;
+                }
+
+                100% {
+                    background-position: 0% 50%;
+                }
+            }
+
+            @keyframes firebasePurpleAnimation {
+                0% {
+                    background-position: 0% 50%;
+                }
+
+                50% {
+                    background-position: 100% 50%;
+                }
+
+                100% {
+                    background-position: 0% 50%;
+                }
+            }
+
+            @keyframes firebaseSunsetAnimation {
+                0% {
+                    background-position: 0% 50%;
+                }
+
+                50% {
+                    background-position: 100% 50%;
+                }
+
+                100% {
+                    background-position: 0% 50%;
+                }
+            }
+
+            @keyframes firebaseGreenAnimation {
+                0% {
+                    background-position: 0% 50%;
+                }
+
+                50% {
+                    background-position: 100% 50%;
+                }
+
+                100% {
+                    background-position: 0% 50%;
+                }
+            }
+
+            @keyframes firebaseRainbowAnimation {
+                0% {
+                    background-position: 0% 50%;
+                }
+
+                50% {
+                    background-position: 100% 50%;
+                }
+
+                100% {
+                    background-position: 0% 50%;
+                }
+            }
+
+        `;
+
+        document.head.appendChild(style);
+    }
 
 
-    // =========================================================
-    // CHECK WHETHER ELEMENT IS TOOLBAR / EXCLUDED
-    // =========================================================
+    /* ============================================================
+       EXCLUDED ELEMENTS
+       Toolbar / Navigation যেন পরিবর্তন না হয়
+    ============================================================ */
 
-    function isExcludedElement(el) {
+    function isExcluded(element) {
 
-        if (!el || el.nodeType !== 1) {
+        if (!element || element.nodeType !== 1) {
             return true;
         }
 
-
-        for (
-            const selector
-            of EXCLUDED_SELECTORS
-        ) {
-
-            try {
-
-                if (
-                    el.matches(selector)
-                ) {
-                    return true;
-                }
-
-            } catch (error) {}
-
-        }
-
-
-        for (
-            const selector
-            of EXCLUDED_SELECTORS
-        ) {
-
-            try {
-
-                if (
-                    el.closest(selector)
-                ) {
-                    return true;
-                }
-
-            } catch (error) {}
-
-        }
-
-
-        return false;
+        return !!element.closest(`
+            #navToggleBtn,
+            #menuIcon,
+            #backIcon,
+            nav,
+            header,
+            .navbar,
+            .topbar,
+            .toolbar,
+            .appbar,
+            .header,
+            .navigation,
+            [role="navigation"]
+        `);
     }
 
 
-    // =========================================================
-    // ESCAPE REGEX
-    // =========================================================
-
-    function escapeRegExp(text) {
-
-        return text.replace(
-            /[.*+?^${}()|[\]\\]/g,
-            '\\$&'
-        );
-
-    }
-
-
-    // =========================================================
-    // GET ALL CODES FROM TEXT
-    // =========================================================
+    /* ============================================================
+       GET FORMAT CODES
+    ============================================================ */
 
     function getCodes(text) {
 
+        if (!text) {
+            return [];
+        }
+
         const found = [];
 
-        Object.keys(
-            COLOR_KEYWORDS
-        ).forEach(
-            function (key) {
+        Object.keys(FORMAT_CODES).forEach(function (code) {
 
-                const regex =
-                    new RegExp(
-                        escapeRegExp(key),
-                        'gi'
-                    );
-
-                if (
-                    regex.test(text)
-                ) {
-
-                    found.push(key);
-
-                }
-
+            if (text.indexOf(code) !== -1) {
+                found.push(code);
             }
-        );
+
+        });
 
         return found;
     }
 
 
-    // =========================================================
-    // REMOVE ALL CODES
-    // =========================================================
+    /* ============================================================
+       REMOVE FORMAT CODES
+    ============================================================ */
 
     function cleanText(text) {
 
+        if (!text) {
+            return "";
+        }
+
         let result = text;
 
+        Object.keys(FORMAT_CODES).forEach(function (code) {
 
-        Object.keys(
-            COLOR_KEYWORDS
-        ).forEach(
-            function (key) {
+            result = result.split(code).join("");
 
-                result =
-                    result.replace(
-                        new RegExp(
-                            escapeRegExp(key),
-                            'gi'
-                        ),
-                        ''
-                    );
-
-            }
-        );
-
+        });
 
         return result;
-
     }
 
 
-    // =========================================================
-    // APPLY STYLE TO ONE ELEMENT
-    // =========================================================
+    /* ============================================================
+       APPLY STYLE
+    ============================================================ */
 
-    function applyStyles(
-        element,
-        codes
-    ) {
+    function applyStyles(element, codes) {
 
-        if (
-            !element ||
-            !codes ||
-            !codes.length
-        ) {
+        if (!element || !codes || codes.length === 0) {
             return;
         }
-
 
         let hasGradient = false;
         let hasColor = false;
-        let hasHighlight = false;
 
+        codes.forEach(function (code) {
 
-        // -----------------------------------------------------
-        // FIRST PASS
-        // -----------------------------------------------------
+            const styles = FORMAT_CODES[code];
 
-        codes.forEach(
-            function (code) {
+            if (!styles) {
+                return;
+            }
 
-                const config =
-                    COLOR_KEYWORDS[code];
+            Object.keys(styles).forEach(function (property) {
 
+                let value = styles[property];
 
-                if (!config) {
-                    return;
-                }
+                const importantProperties = [
+                    "color",
+                    "backgroundImage",
+                    "backgroundClip",
+                    "webkitBackgroundClip",
+                    "webkitTextFillColor",
+                    "backgroundSize",
+                    "animation",
+                    "fontWeight",
+                    "fontStyle",
+                    "textDecoration",
+                    "textDecorationColor",
+                    "textDecorationThickness",
+                    "backgroundColor",
+                    "padding",
+                    "borderRadius",
+                    "textShadow"
+                ];
 
-
-                if (
-                    config.type === 'gradient'
-                ) {
-
-                    hasGradient = true;
-
-                }
-
-
-                if (
-                    config.type === 'color'
-                ) {
-
+                if (property === "color") {
                     hasColor = true;
-
                 }
-
 
                 if (
-                    config.type === 'highlight'
+                    property === "backgroundImage" &&
+                    String(value).indexOf("gradient") !== -1
                 ) {
-
-                    hasHighlight = true;
-
+                    hasGradient = true;
                 }
 
-            }
-        );
-
-
-        // -----------------------------------------------------
-        // BASIC COLOR
-        // -----------------------------------------------------
-
-        const colorCode =
-            codes.find(
-                function (code) {
-
-                    return (
-                        COLOR_KEYWORDS[code] &&
-                        COLOR_KEYWORDS[code].type ===
-                        'color'
-                    );
-
-                }
-            );
-
-
-        if (
-            colorCode &&
-            !hasGradient
-        ) {
-
-            element.style.setProperty(
-                'color',
-                COLOR_KEYWORDS[colorCode].value,
-                'important'
-            );
-
-        }
-
-
-        // -----------------------------------------------------
-        // BOLD
-        // -----------------------------------------------------
-
-        if (
-            codes.includes('#bold')
-        ) {
-
-            element.style.setProperty(
-                'font-weight',
-                '700',
-                'important'
-            );
-
-        }
-
-
-        // -----------------------------------------------------
-        // ITALIC
-        // -----------------------------------------------------
-
-        if (
-            codes.includes('#italic')
-        ) {
-
-            element.style.setProperty(
-                'font-style',
-                'italic',
-                'important'
-            );
-
-        }
-
-
-        // -----------------------------------------------------
-        // UNDERLINE
-        // -----------------------------------------------------
-
-        const underlineCode =
-            codes.find(
-                function (code) {
-
-                    return (
-                        COLOR_KEYWORDS[code] &&
-                        COLOR_KEYWORDS[code].type ===
-                        'underline'
-                    );
-
-                }
-            );
-
-
-        if (underlineCode) {
-
-            element.style.setProperty(
-                'border-bottom',
-                COLOR_KEYWORDS[
-                    underlineCode
-                ].value,
-                'important'
-            );
-
-            element.style.setProperty(
-                'padding-bottom',
-                '2px',
-                'important'
-            );
-
-        }
-
-
-        // -----------------------------------------------------
-        // STRIKE
-        // -----------------------------------------------------
-
-        if (
-            codes.includes('#strike')
-        ) {
-
-            element.style.setProperty(
-                'text-decoration',
-                'line-through',
-                'important'
-            );
-
-        }
-
-
-        // -----------------------------------------------------
-        // HIGHLIGHT
-        // -----------------------------------------------------
-
-        const highlightCode =
-            codes.find(
-                function (code) {
-
-                    return (
-                        COLOR_KEYWORDS[code] &&
-                        COLOR_KEYWORDS[code].type ===
-                        'highlight'
-                    );
-
-                }
-            );
-
-
-        if (
-            highlightCode &&
-            !hasGradient
-        ) {
-
-            element.style.setProperty(
-                'background-color',
-                COLOR_KEYWORDS[
-                    highlightCode
-                ].background,
-                'important'
-            );
-
-            element.style.setProperty(
-                'padding',
-                '2px 6px',
-                'important'
-            );
-
-            element.style.setProperty(
-                'border-radius',
-                '4px',
-                'important'
-            );
-
-        }
-
-
-        // -----------------------------------------------------
-        // GRADIENT
-        // -----------------------------------------------------
-
-        const gradientCode =
-            codes.find(
-                function (code) {
-
-                    return (
-                        COLOR_KEYWORDS[code] &&
-                        COLOR_KEYWORDS[code].type ===
-                        'gradient'
-                    );
-
-                }
-            );
-
-
-        if (gradientCode) {
-
-            element.style.setProperty(
-                'background',
-                COLOR_KEYWORDS[
-                    gradientCode
-                ].value,
-                'important'
-            );
-
-            element.style.setProperty(
-                'background-clip',
-                'text',
-                'important'
-            );
-
-            element.style.setProperty(
-                '-webkit-background-clip',
-                'text',
-                'important'
-            );
-
-            element.style.setProperty(
-                'color',
-                'transparent',
-                'important'
-            );
-
-            element.style.setProperty(
-                '-webkit-text-fill-color',
-                'transparent',
-                'important'
-            );
-
-        }
-
-
-        // -----------------------------------------------------
-        // SHADOW
-        // -----------------------------------------------------
-
-        const shadowCode =
-            codes.find(
-                function (code) {
-
-                    return (
-                        COLOR_KEYWORDS[code] &&
-                        COLOR_KEYWORDS[code].type ===
-                        'shadow'
-                    );
-
-                }
-            );
-
-
-        if (shadowCode) {
-
-            element.style.setProperty(
-                'text-shadow',
-                COLOR_KEYWORDS[
-                    shadowCode
-                ].value,
-                'important'
-            );
-
-        }
-
-
-        // -----------------------------------------------------
-        // GLOW
-        // -----------------------------------------------------
-
-        const glowCode =
-            codes.find(
-                function (code) {
-
-                    return (
-                        COLOR_KEYWORDS[code] &&
-                        COLOR_KEYWORDS[code].type ===
-                        'glow'
-                    );
-
-                }
-            );
-
-
-        if (glowCode) {
-
-            const glowColor =
-                COLOR_KEYWORDS[
-                    glowCode
-                ].value;
-
-
-            // Gradient থাকলে gradient-এর color নষ্ট করবে না
-            if (!hasGradient) {
-
-                if (!hasColor) {
-
+                if (property === "animation") {
                     element.style.setProperty(
-                        'color',
-                        glowColor,
-                        'important'
+                        property,
+                        value,
+                        "important"
                     );
-
+                } else if (importantProperties.indexOf(property) !== -1) {
+                    element.style.setProperty(
+                        property,
+                        value,
+                        "important"
+                    );
+                } else {
+                    element.style[property] = value;
                 }
 
-            }
+            });
+
+        });
 
 
-            const existingShadow =
-                element.style.textShadow;
+        /* --------------------------------------------------------
+           Gradient should remain visible even when color is also
+           present. Gradient has priority over normal color.
+        -------------------------------------------------------- */
 
+        if (hasGradient) {
 
-            const glowShadow =
-                '0 0 5px ' +
-                glowColor +
-                ', 0 0 10px ' +
-                glowColor +
-                ', 0 0 18px ' +
-                glowColor;
+            element.style.setProperty(
+                "color",
+                "transparent",
+                "important"
+            );
 
-
-            if (
-                existingShadow &&
-                existingShadow !== 'none'
-            ) {
-
-                element.style.setProperty(
-                    'text-shadow',
-                    existingShadow +
-                    ', ' +
-                    glowShadow,
-                    'important'
-                );
-
-            } else {
-
-                element.style.setProperty(
-                    'text-shadow',
-                    glowShadow,
-                    'important'
-                );
-
-            }
+            element.style.setProperty(
+                "-webkit-text-fill-color",
+                "transparent",
+                "important"
+            );
 
         }
+
+
+        element.setAttribute(
+            "data-firebase-formatted",
+            "true"
+        );
 
     }
 
 
-    // =========================================================
-    // FORMAT A SINGLE TEXT ELEMENT
-    // =========================================================
+    /* ============================================================
+       FORMAT A TEXT NODE
+    ============================================================ */
+
+    function formatTextNode(textNode) {
+
+        if (!textNode || !textNode.nodeValue) {
+            return;
+        }
+
+        const original = textNode.nodeValue;
+
+        const codes = getCodes(original);
+
+        if (codes.length === 0) {
+            return;
+        }
+
+        const parent = textNode.parentElement;
+
+        if (!parent || isExcluded(parent)) {
+            return;
+        }
+
+        const cleaned = cleanText(original);
+
+        if (cleaned === "") {
+            textNode.nodeValue = "";
+            return;
+        }
+
+        /*
+         * সাধারণ Firebase field-এ suffix code ব্যবহার করা হয়।
+         * যেমন:
+         * কমান্ড্যান্ট#red#bold
+         *
+         * তাই পুরো text node-এর কোড সরিয়ে
+         * একই parent-এ style apply করা হচ্ছে।
+         */
+
+        textNode.nodeValue = cleaned;
+
+        applyStyles(parent, codes);
+
+    }
+
+
+    /* ============================================================
+       FORMAT ELEMENT
+    ============================================================ */
 
     function formatElement(element) {
 
-        if (!element) {
+        if (!element || element.nodeType !== 1) {
             return;
         }
 
-
-        // Toolbar / Header কখনো পরিবর্তন করবে না
-        if (
-            isExcludedElement(element)
-        ) {
+        if (isExcluded(element)) {
             return;
         }
 
+        const walker = document.createTreeWalker(
+            element,
+            NodeFilter.SHOW_TEXT,
+            {
+                acceptNode: function (node) {
 
-        const text =
-            element.textContent || '';
-
-
-        if (!text.includes('#')) {
-            return;
-        }
-
-
-        const codes =
-            getCodes(text);
-
-
-        if (!codes.length) {
-            return;
-        }
-
-
-        // -----------------------------------------------------
-        // IMPORTANT:
-        // শুধু direct text node-এর উপর নির্ভর করা হবে না।
-        // Element-এর ভিতরের সব Text Node খোঁজা হবে।
-        // -----------------------------------------------------
-
-        const walker =
-            document.createTreeWalker(
-                element,
-                NodeFilter.SHOW_TEXT,
-                {
-                    acceptNode: function (node) {
-
-                        if (
-                            !node.nodeValue ||
-                            !node.nodeValue.trim()
-                        ) {
-
-                            return NodeFilter.FILTER_REJECT;
-
-                        }
-
-
-                        if (
-                            node.parentElement &&
-                            isExcludedElement(
-                                node.parentElement
-                            )
-                        ) {
-
-                            return NodeFilter.FILTER_REJECT;
-
-                        }
-
-
-                        return NodeFilter.FILTER_ACCEPT;
-
+                    if (!node.nodeValue || !node.nodeValue.trim()) {
+                        return NodeFilter.FILTER_REJECT;
                     }
-                }
-            );
 
+                    if (
+                        node.parentElement &&
+                        isExcluded(node.parentElement)
+                    ) {
+                        return NodeFilter.FILTER_REJECT;
+                    }
+
+                    if (getCodes(node.nodeValue).length === 0) {
+                        return NodeFilter.FILTER_REJECT;
+                    }
+
+                    return NodeFilter.FILTER_ACCEPT;
+                }
+            }
+        );
 
         const textNodes = [];
 
-        let currentNode;
+        let node;
 
-
-        while (
-            currentNode =
-            walker.nextNode()
-        ) {
-
-            textNodes.push(
-                currentNode
-            );
-
+        while ((node = walker.nextNode())) {
+            textNodes.push(node);
         }
 
-
-        // -----------------------------------------------------
-        // FORMAT TEXT
-        // -----------------------------------------------------
-
-        textNodes.forEach(
-            function (textNode) {
-
-                const originalText =
-                    textNode.nodeValue;
-
-
-                const nodeCodes =
-                    getCodes(
-                        originalText
-                    );
-
-
-                if (!nodeCodes.length) {
-                    return;
-                }
-
-
-                const cleaned =
-                    cleanText(
-                        originalText
-                    );
-
-
-                // ------------------------------------------------
-                // যদি পুরো Text Node-এ একটি মাত্র Style থাকে
-                // তাহলে একই element-এ style দেওয়া হবে।
-                // ------------------------------------------------
-
-                const parent =
-                    textNode.parentElement;
-
-
-                if (
-                    parent &&
-                    !isExcludedElement(parent)
-                ) {
-
-                    // Text clean করা
-                    textNode.nodeValue =
-                        cleaned;
-
-                    // Style apply
-                    applyStyles(
-                        parent,
-                        nodeCodes
-                    );
-
-                }
-
-            }
-        );
+        textNodes.forEach(function (textNode) {
+            formatTextNode(textNode);
+        });
 
     }
 
 
-    // =========================================================
-    // REMOVE CODES EVERYWHERE FROM TOOLBAR
-    // =========================================================
+    /* ============================================================
+       CLEAN TOOLBAR / NAVIGATION CODES
+       এখানে শুধু #code সরবে,
+       toolbar-এর কোনো CSS পরিবর্তন হবে না।
+    ============================================================ */
 
     function cleanToolbarCodes() {
 
-        const toolbarSelectors = [
-
-            'header',
-            'nav',
-
-            '.navbar',
-            '.topbar',
-            '.toolbar',
-            '.header',
-
-            '#toolbar',
-            '#topbar',
-            '#header',
-
-            '#navToggleBtn'
-
+        const selectors = [
+            "#navToggleBtn",
+            "#menuIcon",
+            "#backIcon",
+            "nav",
+            "header",
+            ".navbar",
+            ".topbar",
+            ".toolbar",
+            ".appbar",
+            ".header",
+            ".navigation",
+            "[role='navigation']"
         ];
 
+        document.querySelectorAll(
+            selectors.join(",")
+        ).forEach(function (container) {
 
-        toolbarSelectors.forEach(
-            function (selector) {
+            const walker = document.createTreeWalker(
+                container,
+                NodeFilter.SHOW_TEXT
+            );
 
-                document
-                    .querySelectorAll(
-                        selector
-                    )
-                    .forEach(
-                        function (toolbar) {
+            const nodes = [];
 
+            let node;
 
-                            const walker =
-                                document.createTreeWalker(
-                                    toolbar,
-                                    NodeFilter.SHOW_TEXT,
-                                    null,
-                                    false
-                                );
-
-
-                            const nodes = [];
-
-                            let node;
-
-
-                            while (
-                                node =
-                                walker.nextNode()
-                            ) {
-
-                                nodes.push(
-                                    node
-                                );
-
-                            }
-
-
-                            nodes.forEach(
-                                function (textNode) {
-
-                                    const cleaned =
-                                        cleanText(
-                                            textNode.nodeValue
-                                        );
-
-
-                                    if (
-                                        cleaned !==
-                                        textNode.nodeValue
-                                    ) {
-
-                                        textNode.nodeValue =
-                                            cleaned;
-
-                                    }
-
-                                }
-                            );
-
-                        }
-                    );
-
+            while ((node = walker.nextNode())) {
+                nodes.push(node);
             }
-        );
+
+            nodes.forEach(function (textNode) {
+
+                const cleaned = cleanText(
+                    textNode.nodeValue
+                );
+
+                if (cleaned !== textNode.nodeValue) {
+                    textNode.nodeValue = cleaned;
+                }
+
+            });
+
+        });
 
     }
 
 
-    // =========================================================
-    // MAIN FORMATTER
-    // =========================================================
+    /* ============================================================
+       APPLY TO ALL RELEVANT CONTENT
+    ============================================================ */
 
-    function applyDynamicStyles() {
+    function applyFirebaseTextColors(root) {
 
+        root = root || document.body;
 
-        // -----------------------------------------------------
-        // সব সাধারণ content element
-        // -----------------------------------------------------
+        if (!root) {
+            return;
+        }
 
-        const elements =
-            document.querySelectorAll(
+        addAnimationStyles();
 
-                'h1, h2, h3, h4, h5, h6,' +
+        const selectors = [
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "div",
+            "span",
+            "p",
+            "b",
+            "strong",
+            "td",
+            "th",
+            "a",
+            "label",
+            "li",
+            "small",
+            "em",
 
-                'div, span, p, b, strong,' +
+            "[data-category]",
+            "[data-subcategory]",
+            "[data-content]",
+            "[data-profile]",
+            "[data-data]",
+            "[data-color-text]",
 
-                'td, th, a, label,' +
+            "[class*='card']",
+            "[class*='profile']",
+            "[class*='category']",
+            "[class*='subcategory']",
+            "[class*='data']",
+            "[class*='notice']",
+            "[class*='header']"
+        ];
 
-                'li, small, em,' +
+        let elements = [];
 
-                '[data-category],' +
+        if (
+            root.matches &&
+            selectors.some(function (selector) {
+                try {
+                    return root.matches(selector);
+                } catch (e) {
+                    return false;
+                }
+            })
+        ) {
+            elements.push(root);
+        }
 
-                '[data-subcategory],' +
+        try {
 
-                '[data-content],' +
-
-                '[data-profile],' +
-
-                '[data-data],' +
-
-                '[data-color-text],' +
-
-                '[class*="card"],' +
-
-                '[class*="profile"],' +
-
-                '[class*="category"],' +
-
-                '[class*="data"]'
-
+            elements = elements.concat(
+                Array.from(
+                    root.querySelectorAll(
+                        selectors.join(",")
+                    )
+                )
             );
 
-
-        elements.forEach(
-            function (element) {
-
-                if (
-                    isExcludedElement(
-                        element
-                    )
-                ) {
-
-                    return;
-
-                }
+        } catch (e) {
+            console.warn(
+                "Firebase formatter selector error:",
+                e
+            );
+        }
 
 
-                formatElement(
-                    element
-                );
+        /* Remove duplicate elements */
 
-            }
+        elements = Array.from(
+            new Set(elements)
         );
 
 
-        // -----------------------------------------------------
-        // সর্বশেষে Toolbar clean
-        // -----------------------------------------------------
+        elements.forEach(function (element) {
+
+            if (!isExcluded(element)) {
+                formatElement(element);
+            }
+
+        });
+
+
+        /* Toolbar codes must always disappear */
 
         cleanToolbarCodes();
 
     }
 
 
-    // =========================================================
-    // MUTATION OBSERVER
-    // =========================================================
+    /* ============================================================
+       MUTATION OBSERVER
+       Firebase dynamic data / cards / profiles
+       ============================================================ */
 
-    let observer = null;
+    let observerTimer = null;
 
+    const observer = new MutationObserver(
+        function (mutations) {
 
-    function startObserver() {
+            let shouldRun = false;
 
-        if (
-            observer ||
-            !document.body
-        ) {
+            mutations.forEach(function (mutation) {
 
-            return;
-
-        }
-
-
-        observer =
-            new MutationObserver(
-                function (mutations) {
-
-                    let changed = false;
-
-
-                    for (
-                        const mutation
-                        of mutations
-                    ) {
-
-                        if (
-                            mutation.type ===
-                            'childList'
-                        ) {
-
-                            if (
-                                mutation.addedNodes &&
-                                mutation.addedNodes.length
-                            ) {
-
-                                changed = true;
-                                break;
-
-                            }
-
-                        }
-
-
-                        if (
-                            mutation.type ===
-                            'characterData'
-                        ) {
-
-                            changed = true;
-                            break;
-
-                        }
-
-                    }
-
-
-                    if (changed) {
-
-                        // ছোট delay দিলে Firebase DOM
-                        // update-এর পর ঠিকভাবে কাজ করবে
-
-                        setTimeout(
-                            applyDynamicStyles,
-                            10
-                        );
-
-                    }
-
+                if (
+                    mutation.type === "childList" &&
+                    (
+                        mutation.addedNodes.length > 0 ||
+                        mutation.removedNodes.length > 0
+                    )
+                ) {
+                    shouldRun = true;
                 }
+
+                if (mutation.type === "characterData") {
+                    shouldRun = true;
+                }
+
+            });
+
+
+            if (!shouldRun) {
+                return;
+            }
+
+
+            clearTimeout(observerTimer);
+
+            observerTimer = setTimeout(
+                function () {
+
+                    applyFirebaseTextColors(
+                        document.body
+                    );
+
+                },
+                50
             );
 
+        }
+    );
+
+
+    /* ============================================================
+       INITIALIZE
+    ============================================================ */
+
+    function initializeFormatter() {
+
+        addAnimationStyles();
+
+        applyFirebaseTextColors(
+            document.body
+        );
 
         observer.observe(
             document.body,
@@ -1247,84 +1003,42 @@
     }
 
 
-    // =========================================================
-    // INITIALIZE
-    // =========================================================
+    /* ============================================================
+       PAGE LOAD
+    ============================================================ */
 
-    function initialize() {
-
-        applyDynamicStyles();
-
-        startObserver();
-
-
-        setTimeout(
-            applyDynamicStyles,
-            300
-        );
-
-
-        setTimeout(
-            applyDynamicStyles,
-            800
-        );
-
-
-        setTimeout(
-            applyDynamicStyles,
-            1500
-        );
-
-
-        setTimeout(
-            applyDynamicStyles,
-            3000
-        );
-
-    }
-
-
-    // =========================================================
-    // DOM READY
-    // =========================================================
-
-    if (
-        document.readyState ===
-        'loading'
-    ) {
+    if (document.readyState === "loading") {
 
         document.addEventListener(
-            'DOMContentLoaded',
-            initialize
+            "DOMContentLoaded",
+            initializeFormatter
         );
 
     } else {
 
-        initialize();
+        initializeFormatter();
 
     }
 
 
-    // =========================================================
-    // WINDOW LOAD
-    // =========================================================
-
-    window.addEventListener(
-        'load',
-        function () {
-
-            applyDynamicStyles();
-
-        }
-    );
-
-
-    // =========================================================
-    // GLOBAL FUNCTION
-    // =========================================================
+    /* ============================================================
+       PUBLIC FUNCTION
+       চাইলে অন্য JS file থেকেও call করা যাবে
+    ============================================================ */
 
     window.applyFirebaseTextColors =
-        applyDynamicStyles;
+        applyFirebaseTextColors;
+
+
+    window.firebaseTextFormatter = {
+
+        apply: applyFirebaseTextColors,
+
+        clean: cleanText,
+
+        codes: FORMAT_CODES
+
+    };
 
 
 })();
