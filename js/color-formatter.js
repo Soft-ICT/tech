@@ -1433,7 +1433,7 @@
             );
 
 
-        elements.forEach(
+                elements.forEach(
             function (element) {
 
                 if (
@@ -1449,7 +1449,7 @@
             }
         );
 
-
+        cleanToolbarCodes();
     }
 
 
