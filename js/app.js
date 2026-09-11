@@ -13,7 +13,6 @@ import {
     push
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
-
 import {
     db
 } from "./firebase.js";
@@ -33,6 +32,12 @@ function escapeHTML(str) {
             "'": "&#039;"
         }[match])
     );
+}
+
+function sanitizeTextColor(color) {
+    if (!color) return "";
+    const trimmed = String(color).trim();
+    return /^#([0-9A-Fa-f3|6]{3|6})$/.test(trimmed) || /^(rgb|hsl)a?\(.*\)$/.test(trimmed) || /^[a-zA-Z]+$/.test(trimmed) ? trimmed : "";
 }
 
 let database = {
@@ -767,8 +772,8 @@ function renderCategories(searchVal = "") {
         const imgSrc = category.image ? escapeHTML(category.image) : DEFAULT_CATEGORY_IMAGE;
         const imageHtml = `<img src="${imgSrc}" alt="${escapeHTML(category.name)}" class="cat-card-img" onerror="this.src='${DEFAULT_CATEGORY_IMAGE}'">`;
 
-        // কাস্টম কালার সাপোর্ট
-        const catColor = window.sanitizeTextColor ? window.sanitizeTextColor(category.color) : "";
+        // কাস্টম কালার সাপোর্ট (ক্যাটাগরি টাইটেল)
+        const catColor = sanitizeTextColor(category.color);
         const titleStyle = catColor ? `style="color: ${catColor};"` : "";
 
         const adminActions = isAdmin
@@ -824,18 +829,18 @@ function openCategoryModal(isSubCategory = false, editObj = null) {
     const title = document.getElementById("categoryModalTitle");
     const inputName = document.getElementById("categoryNameInput");
     const inputImage = document.getElementById("categoryImageInput");
-    const inputColor = document.getElementById("categoryColorInput");
+    const inputColor = document.getElementById("categoryColorInput"); // কালার ইনপুট ফিল্ড থাকলে
 
     if (editObj) {
         title.textContent = "Category এডিট করুন";
         inputName.value = editObj.name || "";
         if (inputImage) inputImage.value = editObj.image || "";
-        if (inputColor) inputColor.value = editObj.color || "";
+        if (inputColor) inputColor.value = editObj.color || "#000000";
     } else {
         title.textContent = isSubCategory ? "নতুন Sub-Category" : "নতুন Category";
         inputName.value = "";
         if (inputImage) inputImage.value = "";
-        if (inputColor) inputColor.value = "";
+        if (inputColor) inputColor.value = "#000000";
     }
 
     openModal("categoryModal");
@@ -846,7 +851,7 @@ async function saveCategory() {
 
     const name = document.getElementById("categoryNameInput")?.value.trim();
     const image = document.getElementById("categoryImageInput")?.value.trim() || "";
-    const color = window.sanitizeTextColor ? window.sanitizeTextColor(document.getElementById("categoryColorInput")?.value) : "";
+    const color = document.getElementById("categoryColorInput")?.value.trim() || "";
 
     if (!name) return showToast("Category Name লিখুন");
 
@@ -889,7 +894,7 @@ function editCategory(id) {
 }
 
 async function deleteCategory(id) {
-    const isConfirmed = await customConfirm("আপনি কি এই Category মুছে ফেলতে চান?");
+    const isConfirmed = await customConfirm("আপনি কি নিশ্চিত এই Category মুছে ফেলতে চান?");
     if (!isConfirmed) return;
 
     database.categories = database.categories.filter(c => c.id !== id && c.parentId !== id);
@@ -906,14 +911,14 @@ function openHeaderModal(editObj = null) {
     const input = document.getElementById("headerNameInput");
     const inputColor = document.getElementById("headerColorInput");
     if (input) input.value = editObj ? editObj.title : "";
-    if (inputColor) inputColor.value = editObj ? (editObj.color || "") : "";
+    if (inputColor) inputColor.value = editObj ? editObj.color || "" : "";
     openModal("headerModal");
 }
 
 async function saveHeader() {
     if (window.currentUserRole !== "admin") return;
     const title = document.getElementById("headerNameInput")?.value.trim();
-    const color = window.sanitizeTextColor ? window.sanitizeTextColor(document.getElementById("headerColorInput")?.value) : "";
+    const color = document.getElementById("headerColorInput")?.value.trim() || "";
 
     if (!title || !currentCategoryId) return showToast("হেডার নাম লিখুন");
 
@@ -981,12 +986,11 @@ function createDataCardElement(item) {
         ? `<img src="${photo}" alt="${name}" class="data-card-avatar" onerror="this.outerHTML='<div class=\\'data-card-avatar\\'>👤</div>'">`
         : `<div class="data-card-avatar">👤</div>`;
 
-    const pinIcon = item.pinned ? "📌" : "📍";
-    
-    // কাস্টম কালার সাপোর্ট
-    const dataColor = window.sanitizeTextColor ? window.sanitizeTextColor(item.color) : "";
+    // কাস্টম কালার সাপোর্ট (ডাটা কার্ড নেম)
+    const dataColor = sanitizeTextColor(item.color);
     const nameStyle = dataColor ? `style="color: ${dataColor};"` : "";
 
+    const pinIcon = item.pinned ? "📌" : "📍";
     const adminActions = isAdmin
         ? `
             <div class="card-admin-actions" style="display:flex;gap:4px;">
@@ -1056,8 +1060,8 @@ function openDataModal(editObj = null) {
     document.getElementById("dataPermanentAddress").value = editObj?.permanentAddress || "";
     document.getElementById("dataAdminInfo").value = editObj?.adminInfo || "";
     
-    const colorInput = document.getElementById("dataColorInput");
-    if (colorInput) colorInput.value = editObj?.color || "";
+    const dataColorInput = document.getElementById("dataColorInput");
+    if (dataColorInput) dataColorInput.value = editObj?.color || "";
 
     const select = document.getElementById("dataHeaderSelect");
     if (select) {
@@ -1084,7 +1088,7 @@ async function saveData() {
     const mobile = document.getElementById("dataMobile")?.value.trim() || "";
     const phone = document.getElementById("dataPhone")?.value.trim() || "";
     const email = document.getElementById("dataEmail")?.value.trim() || "";
-    const color = window.sanitizeTextColor ? window.sanitizeTextColor(document.getElementById("dataColorInput")?.value) : "";
+    const color = document.getElementById("dataColorInput")?.value.trim() || "";
 
     if (!name) return showToast("নাম প্রদান করুন");
 
@@ -1302,7 +1306,8 @@ function renderCategoryDetails(searchVal = "") {
             const subImgSrc = sub.image ? escapeHTML(sub.image) : DEFAULT_CATEGORY_IMAGE;
             const imageHtml = `<img src="${subImgSrc}" alt="${escapeHTML(sub.name)}" class="cat-card-img" onerror="this.src='${DEFAULT_CATEGORY_IMAGE}'">`;
 
-            const subColor = window.sanitizeTextColor ? window.sanitizeTextColor(sub.color) : "";
+            // সাব-ক্যাটাগরি কালার সাপোর্ট
+            const subColor = sanitizeTextColor(sub.color);
             const subTitleStyle = subColor ? `style="color: ${subColor};"` : "";
 
             const adminActions = isAdmin
@@ -1395,7 +1400,8 @@ function renderCategoryDetails(searchVal = "") {
 
             const pinIcon = header.pinned ? "📌" : "📍";
             
-            const headColor = window.sanitizeTextColor ? window.sanitizeTextColor(header.color) : "";
+            // হেডার কালার সাপোর্ট
+            const headColor = sanitizeTextColor(header.color);
             const headTitleStyle = headColor ? `style="color: ${headColor};"` : "";
 
             const adminActions = isAdmin
@@ -1502,9 +1508,6 @@ function renderDataDetailsContent(item) {
         ? `<img src="${photo}" alt="${name}" class="details-avatar-large" onerror="this.outerHTML='<div class=\\'details-avatar-large\\'>👤</div>'">`
         : `<div class="details-avatar-large">👤</div>`;
 
-    const dataColor = window.sanitizeTextColor ? window.sanitizeTextColor(item.color) : "";
-    const nameStyle = dataColor ? `style="color: ${dataColor};"` : "";
-
     const isAuthorized = isDeviceVerified || isAdmin;
     const showAdminInfoBox = isAuthorized && adminInfo;
     const showPermanentAddressBox = isAuthorized && permanentAddress;
@@ -1513,7 +1516,7 @@ function renderDataDetailsContent(item) {
     container.innerHTML = `
         <div class="details-header-section">
             <div class="avatar-wrapper">${avatarHtml}</div>
-            <h2 style="font-size:22px;font-weight:700;" ${nameStyle}>${name}</h2>
+            <h2 style="font-size:22px;font-weight:700;">${name}</h2>
             <p style="color:var(--text-muted);font-size:15px;">${designation}</p>
         </div>
 
