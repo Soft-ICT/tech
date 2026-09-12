@@ -1414,7 +1414,8 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
                                 original
                             );
 
-                        cleaned = cleaned.replace(/\[(#[a-zA-Z0-9_]+)\]([\s\S]*?)\[\/\1\]/g, '$2');
+                        cleaned = cleaned.replace(/\[\s*(#[a-zA-Z0-9_]+)?\s*\]([\s\S]*?)\[\s*\/\s*(#[a-zA-Z0-9_]+)?\s*\]/g, '$2');
+                        cleaned = cleaned.replace(/\[\s*\/?\s*\]/g, '');
 
 
                         if (
@@ -1860,7 +1861,10 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
             function(text) {
                 if (!text) return "";
                 let cleaned = cleanText(text);
-                return cleaned.replace(/\[(#[a-zA-Z0-9_]+)\]([\s\S]*?)\[\/\1\]/g, '$2');
+                // সমস্ত ট্যাগ এবং অসম্পূর্ণ বা খালি বন্ধনী পরিষ্কার করার উন্নত রেজেক্স
+                cleaned = cleaned.replace(/\[\s*(#[a-zA-Z0-9_]+)?\s*\]([\s\S]*?)\[\s*\/\s*(#[a-zA-Z0-9_]+)?\s*\]/g, '$2');
+                cleaned = cleaned.replace(/\[\s*\/?\s*\]/g, '');
+                return cleaned;
             },
 
         codes:
@@ -1870,7 +1874,7 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
 
 
     /* ============================================================
-       AUTO-INTERCEPTION FOR SHARING & COPYING (Enhanced)
+       AUTO-INTERCEPTION FOR SHARING & COPYING (Enhanced Clean)
     ============================================================ */
     if (navigator.clipboard && navigator.clipboard.writeText) {
         const originalWriteText = navigator.clipboard.writeText.bind(navigator.clipboard);
