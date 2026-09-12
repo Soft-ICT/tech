@@ -2,7 +2,7 @@
    Firebase Text Color & Design Formatter
    File: Js/color-formatter.js
 
-   FINAL VERSION
+   FINAL VERSION (WITH DYNAMIC HEX CODE SUPPORT)
    ✔ No color-code flash
    ✔ Toolbar protected
    ✔ Data Card safe
@@ -14,6 +14,7 @@
    ✔ Firebase dynamic content
    ✔ Multiple formatting codes
    ✔ Animated gradients
+   ✔ Dynamic Hex Code Support ([#RRGGBB] / [#RGB])
    ✔ Formatting codes hidden
    ✔ Toolbar never formatted
    ✔ MutationObserver safe
@@ -316,13 +317,6 @@
 
         style.textContent = `
 
-/*
- * Toolbar is temporarily invisible while
- * Firebase formatter removes formatting codes.
- *
- * It becomes visible immediately after cleanup.
- */
-
 ${TOOLBAR_SELECTOR} {
     visibility: hidden !important;
 }
@@ -333,10 +327,6 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
 
 `;
 
-
-        /*
-         * Put the protection as early as possible.
-         */
 
         if (document.head) {
 
@@ -387,9 +377,6 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
     display: inline;
 }
 
-
-/* ================= STATIC + ANIMATED GRADIENT ================= */
-
 .firebase-gradient-ocean,
 .firebase-gradient-fire,
 .firebase-gradient-purple,
@@ -413,431 +400,107 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
 
 }
 
-
-/* ================= OCEAN ================= */
-
 .firebase-gradient-ocean {
-
-    background-image:
-        linear-gradient(
-            90deg,
-            #00c6ff,
-            #0072ff
-        );
-
+    background-image: linear-gradient(90deg, #00c6ff, #0072ff);
 }
-
-
-/* ================= FIRE ================= */
-
 .firebase-gradient-fire {
-
-    background-image:
-        linear-gradient(
-            90deg,
-            #ff512f,
-            #f09819
-        );
-
+    background-image: linear-gradient(90deg, #ff512f, #f09819);
 }
-
-
-/* ================= PURPLE ================= */
-
 .firebase-gradient-purple {
-
-    background-image:
-        linear-gradient(
-            90deg,
-            #8e2de2,
-            #4a00e0
-        );
-
+    background-image: linear-gradient(90deg, #8e2de2, #4a00e0);
 }
-
-
-/* ================= GREEN ================= */
-
 .firebase-gradient-green {
-
-    background-image:
-        linear-gradient(
-            90deg,
-            #00b09b,
-            #96c93d
-        );
-
+    background-image: linear-gradient(90deg, #00b09b, #96c93d);
 }
-
-
-/* ================= SUNSET ================= */
-
 .firebase-gradient-sunset {
-
-    background-image:
-        linear-gradient(
-            90deg,
-            #ff512f,
-            #dd2476
-        );
-
+    background-image: linear-gradient(90deg, #ff512f, #dd2476);
 }
-
-
-/* ================= BLUE ================= */
-
 .firebase-gradient-blue {
-
-    background-image:
-        linear-gradient(
-            90deg,
-            #36d1dc,
-            #5b86e5
-        );
-
+    background-image: linear-gradient(90deg, #36d1dc, #5b86e5);
 }
-
-
-/* ================= ANIMATED ================= */
 
 .firebase-gradient-animated {
-
-    background-image:
-        linear-gradient(
-            270deg,
-            #ff0080,
-            #7928ca,
-            #2afadf,
-            #00c6ff,
-            #ff0080
-        );
-
-    background-size:
-        400% 400%;
-
-    animation:
-        firebaseGradientAnimation
-        6s ease infinite;
-
+    background-image: linear-gradient(270deg, #ff0080, #7928ca, #2afadf, #00c6ff, #ff0080);
+    background-size: 400% 400%;
+    animation: firebaseGradientAnimation 6s ease infinite;
 }
-
-
-/* ================= AURORA ================= */
-
 .firebase-gradient-aurora {
-
-    background-image:
-        linear-gradient(
-            270deg,
-            #00f2fe,
-            #4facfe,
-            #a18cd1,
-            #fbc2eb,
-            #00f2fe
-        );
-
-    background-size:
-        500% 500%;
-
-    animation:
-        firebaseAuroraAnimation
-        8s ease infinite;
-
+    background-image: linear-gradient(270deg, #00f2fe, #4facfe, #a18cd1, #fbc2eb, #00f2fe);
+    background-size: 500% 500%;
+    animation: firebaseAuroraAnimation 8s ease infinite;
 }
-
-
-/* ================= FIRE ANIMATED ================= */
-
 .firebase-gradient-fire-animated {
-
-    background-image:
-        linear-gradient(
-            270deg,
-            #ff0000,
-            #ff512f,
-            #ff8a00,
-            #ffd000,
-            #ff0000
-        );
-
-    background-size:
-        400% 400%;
-
-    animation:
-        firebaseFireAnimation
-        4s ease infinite;
-
+    background-image: linear-gradient(270deg, #ff0000, #ff512f, #ff8a00, #ffd000, #ff0000);
+    background-size: 400% 400%;
+    animation: firebaseFireAnimation 4s ease infinite;
 }
-
-
-/* ================= OCEAN ANIMATED ================= */
-
 .firebase-gradient-ocean-animated {
-
-    background-image:
-        linear-gradient(
-            270deg,
-            #00c6ff,
-            #0072ff,
-            #00f2fe,
-            #4facfe,
-            #00c6ff
-        );
-
-    background-size:
-        400% 400%;
-
-    animation:
-        firebaseOceanAnimation
-        7s ease infinite;
-
+    background-image: linear-gradient(270deg, #00c6ff, #0072ff, #00f2fe, #4facfe, #00c6ff);
+    background-size: 400% 400%;
+    animation: firebaseOceanAnimation 7s ease infinite;
 }
-
-
-/* ================= PURPLE ANIMATED ================= */
-
 .firebase-gradient-purple-animated {
-
-    background-image:
-        linear-gradient(
-            270deg,
-            #7f00ff,
-            #e100ff,
-            #8e2de2,
-            #4a00e0,
-            #7f00ff
-        );
-
-    background-size:
-        400% 400%;
-
-    animation:
-        firebasePurpleAnimation
-        6s ease infinite;
-
+    background-image: linear-gradient(270deg, #7f00ff, #e100ff, #8e2de2, #4a00e0, #7f00ff);
+    background-size: 400% 400%;
+    animation: firebasePurpleAnimation 6s ease infinite;
 }
-
-
-/* ================= SUNSET ANIMATED ================= */
-
 .firebase-gradient-sunset-animated {
-
-    background-image:
-        linear-gradient(
-            270deg,
-            #ff512f,
-            #f09819,
-            #ff0066,
-            #ff8a00,
-            #ff512f
-        );
-
-    background-size:
-        400% 400%;
-
-    animation:
-        firebaseSunsetAnimation
-        6s ease infinite;
-
+    background-image: linear-gradient(270deg, #ff512f, #f09819, #ff0066, #ff8a00, #ff512f);
+    background-size: 400% 400%;
+    animation: firebaseSunsetAnimation 6s ease infinite;
 }
-
-
-/* ================= GREEN ANIMATED ================= */
-
 .firebase-gradient-green-animated {
-
-    background-image:
-        linear-gradient(
-            270deg,
-            #00b09b,
-            #96c93d,
-            #00f260,
-            #0575e6,
-            #00b09b
-        );
-
-    background-size:
-        400% 400%;
-
-    animation:
-        firebaseGreenAnimation
-        7s ease infinite;
-
+    background-image: linear-gradient(270deg, #00b09b, #96c93d, #00f260, #0575e6, #00b09b);
+    background-size: 400% 400%;
+    animation: firebaseGreenAnimation 7s ease infinite;
 }
-
-
-/* ================= RAINBOW ================= */
-
 .firebase-gradient-rainbow {
-
-    background-image:
-        linear-gradient(
-            270deg,
-            #ff0000,
-            #ff8a00,
-            #ffe600,
-            #00c853,
-            #00b0ff,
-            #7c4dff,
-            #ff00c8,
-            #ff0000
-        );
-
-    background-size:
-        600% 600%;
-
-    animation:
-        firebaseRainbowAnimation
-        8s linear infinite;
-
+    background-image: linear-gradient(270deg, #ff0000, #ff8a00, #ffe600, #00c853, #00b0ff, #7c4dff, #ff00c8, #ff0000);
+    background-size: 600% 600%;
+    animation: firebaseRainbowAnimation 8s linear infinite;
 }
-
-
-/* ============================================================
-   ANIMATIONS
-============================================================ */
 
 @keyframes firebaseGradientAnimation {
-
-    0% {
-        background-position: 0% 50%;
-    }
-
-    50% {
-        background-position: 100% 50%;
-    }
-
-    100% {
-        background-position: 0% 50%;
-    }
-
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
-
-
 @keyframes firebaseAuroraAnimation {
-
-    0% {
-        background-position: 0% 50%;
-    }
-
-    25% {
-        background-position: 50% 100%;
-    }
-
-    50% {
-        background-position: 100% 50%;
-    }
-
-    75% {
-        background-position: 50% 0%;
-    }
-
-    100% {
-        background-position: 0% 50%;
-    }
-
+    0% { background-position: 0% 50%; }
+    25% { background-position: 50% 100%; }
+    50% { background-position: 100% 50%; }
+    75% { background-position: 50% 0%; }
+    100% { background-position: 0% 50%; }
 }
-
-
 @keyframes firebaseFireAnimation {
-
-    0% {
-        background-position: 0% 50%;
-    }
-
-    50% {
-        background-position: 100% 50%;
-    }
-
-    100% {
-        background-position: 0% 50%;
-    }
-
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
-
-
 @keyframes firebaseOceanAnimation {
-
-    0% {
-        background-position: 0% 50%;
-    }
-
-    50% {
-        background-position: 100% 50%;
-    }
-
-    100% {
-        background-position: 0% 50%;
-    }
-
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
-
-
 @keyframes firebasePurpleAnimation {
-
-    0% {
-        background-position: 0% 50%;
-    }
-
-    50% {
-        background-position: 100% 50%;
-    }
-
-    100% {
-        background-position: 0% 50%;
-    }
-
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
-
-
 @keyframes firebaseSunsetAnimation {
-
-    0% {
-        background-position: 0% 50%;
-    }
-
-    50% {
-        background-position: 100% 50%;
-    }
-
-    100% {
-        background-position: 0% 50%;
-    }
-
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
-
-
 @keyframes firebaseGreenAnimation {
-
-    0% {
-        background-position: 0% 50%;
-    }
-
-    50% {
-        background-position: 100% 50%;
-    }
-
-    100% {
-        background-position: 0% 50%;
-    }
-
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
-
-
 @keyframes firebaseRainbowAnimation {
-
-    0% {
-        background-position: 0% 50%;
-    }
-
-    50% {
-        background-position: 100% 50%;
-    }
-
-    100% {
-        background-position: 0% 50%;
-    }
-
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 `;
@@ -870,7 +533,31 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
 
 
     /* ============================================================
-       CODE LIST
+       HELPER: CHECK IF CODE IS VALID (PREDEFINED OR HEX)
+    ============================================================ */
+
+    function getFormatObject(code) {
+        if (!code) return null;
+
+        // যদি আগে থেকেই predefined লিস্টে থাকে
+        if (FORMAT_CODES[code]) {
+            return FORMAT_CODES[code];
+        }
+
+        // হেক্সা কোড চেক (যেমন: #FFFFFF, #FF5733 বা ছোট কোড #FFF)
+        const hexMatch = code.match(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/);
+        if (hexMatch) {
+            return {
+                color: code
+            };
+        }
+
+        return null;
+    }
+
+
+    /* ============================================================
+       CODE LIST (SORTED BY LENGTH)
     ============================================================ */
 
     const SORTED_CODES =
@@ -987,7 +674,7 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
 
 
     /* ============================================================
-       FORMAT TEXT NODE (UPDATED)
+       FORMAT TEXT NODE (UPDATED WITH HEX SUPPORT)
     ============================================================ */
 
     function formatTextNode(textNode) {
@@ -1008,10 +695,8 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
         const originalText = textNode.nodeValue;
 
         /* ========================================================
-           NEW:
-           [#red]O+[/#red]
-           [#blue]ABC[/#blue]
-           [#bold]Name[/#bold]
+           UPDATED REGEX TO SUPPORT PREDEFINED & HEX CODES
+           যেমন: [#red]Text[/#red] অথবা [#FFFFFF]Text[/#FFFFFF]
            ======================================================== */
 
         const partialFormatRegex =
@@ -1030,7 +715,6 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
                 (match = partialFormatRegex.exec(originalText))
             ) {
 
-                /* আগের সাধারণ লেখা */
                 if (match.index > lastIndex) {
 
                     fragment.appendChild(
@@ -1047,7 +731,7 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
                 const code = match[1];
                 const content = match[2];
 
-                const format = FORMAT_CODES[code];
+                const format = getFormatObject(code);
 
                 if (format) {
 
@@ -1068,7 +752,6 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
 
                 } else {
 
-                    /* অজানা code হলে মূল লেখা রাখবে */
                     fragment.appendChild(
                         document.createTextNode(
                             match[0]
@@ -1081,7 +764,6 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
                     partialFormatRegex.lastIndex;
             }
 
-            /* শেষের সাধারণ লেখা */
             if (lastIndex < originalText.length) {
 
                 fragment.appendChild(
@@ -1102,11 +784,7 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
 
 
         /* ========================================================
-           OLD FORMAT SYSTEM
-           #red
-           #blue
-           #bold
-           ইত্যাদি
+           OLD FORMAT SYSTEM FALLBACK
            ======================================================== */
 
         if (!originalText) {
@@ -1148,7 +826,7 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
             cleaned;
 
         codes.forEach(code => {
-            const format = FORMAT_CODES[code];
+            const format = getFormatObject(code);
             if (format) {
                 applyFormatStyle(span, format);
             }
@@ -1356,13 +1034,7 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
 
     /* ============================================================
        TOOLBAR CLEANUP
-       IMPORTANT:
-       Cleanup FIRST, visibility AFTER cleanup.
     ============================================================ */
-
-    let toolbarCleaned =
-        false;
-
 
     function cleanToolbarCodes() {
 
@@ -1432,21 +1104,12 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
                 );
 
 
-                /*
-                 * Make this toolbar visible only
-                 * AFTER its text has been cleaned.
-                 */
-
                 container.classList.add(
                     "firebase-toolbar-clean-ready"
                 );
 
             }
         );
-
-
-        toolbarCleaned =
-            true;
 
     }
 
@@ -1467,14 +1130,6 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
             return;
         }
 
-
-        /*
-         * ALWAYS CLEAN TOOLBAR FIRST.
-         *
-         * This is important.
-         * Formatting must never happen before
-         * toolbar cleanup.
-         */
 
         cleanToolbarCodes();
 
@@ -1593,13 +1248,6 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
         );
 
 
-        /*
-         * Final toolbar cleanup.
-         *
-         * If Firebase inserted toolbar content
-         * during formatting, it is cleaned here.
-         */
-
         cleanToolbarCodes();
 
     }
@@ -1612,10 +1260,8 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
     let observerTimer =
         null;
 
-
     let observerStarted =
         false;
-
 
     let observerRunning =
         false;
@@ -1675,10 +1321,6 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
                 }
 
 
-                /*
-                 * First cleanup toolbar immediately.
-                 */
-
                 cleanToolbarCodes();
 
 
@@ -1729,18 +1371,6 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
 
     function initializeFormatter() {
 
-        /*
-         * IMPORTANT ORDER:
-         *
-         * 1. Protect toolbar
-         * 2. Add formatter CSS
-         * 3. Clean toolbar
-         * 4. Remove old styles
-         * 5. Format Firebase text
-         * 6. Clean toolbar again
-         * 7. Start observer
-         */
-
         installEarlyToolbarProtection();
 
 
@@ -1760,10 +1390,6 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
 
         cleanToolbarCodes();
 
-
-        /*
-         * Start observer only once.
-         */
 
         if (
             !observerStarted &&
@@ -1792,16 +1418,8 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
        EARLY EXECUTION
     ============================================================ */
 
-    /*
-     * Install protection as early as possible.
-     */
-
     installEarlyToolbarProtection();
 
-
-    /*
-     * If body already exists, perform immediate cleanup.
-     */
 
     if (
         document.body
@@ -1861,7 +1479,6 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
             function(text) {
                 if (!text) return "";
                 let cleaned = cleanText(text);
-                // সমস্ত ট্যাগ এবং অসম্পূর্ণ বা খালি বন্ধনী পরিষ্কার করার উন্নত রেজেক্স
                 cleaned = cleaned.replace(/\[\s*(#[a-zA-Z0-9_]+)?\s*\]([\s\S]*?)\[\s*\/\s*(#[a-zA-Z0-9_]+)?\s*\]/g, '$2');
                 cleaned = cleaned.replace(/\[\s*\/?\s*\]/g, '');
                 return cleaned;
@@ -1874,7 +1491,7 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
 
 
     /* ============================================================
-       AUTO-INTERCEPTION FOR SHARING & COPYING (Enhanced Clean)
+       AUTO-INTERCEPTION FOR SHARING & COPYING
     ============================================================ */
     if (navigator.clipboard && navigator.clipboard.writeText) {
         const originalWriteText = navigator.clipboard.writeText.bind(navigator.clipboard);
