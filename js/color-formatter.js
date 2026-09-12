@@ -17,7 +17,6 @@
    ✔ Formatting codes hidden
    ✔ Toolbar never formatted
    ✔ MutationObserver safe
-   ✔ Auto-clean for Sharing & Copying (Added)
 ============================================================ */
 
 (function () {
@@ -1811,7 +1810,7 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
 
         addFormatterCSS();
 
-        applyFirebaseTextCodes(
+        applyFirebaseTextColors(
             document.body
         );
 
@@ -1845,19 +1844,11 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
 
 
     /* ============================================================
-       PUBLIC API & AUTO-CLEAN (SHARE/COPY FIX)
+       PUBLIC API (Added automated cleanup for sharing/copying)
     ============================================================ */
 
     window.applyFirebaseTextColors =
         applyFirebaseTextColors;
-
-
-    // মূল টেক্সট থেকে সকল ট্যাগ এবং কালার কোড রিমুভ করার ফাংশন
-    function universalCleanText(text) {
-        if (!text) return "";
-        let cleaned = cleanText(text);
-        return cleaned.replace(/\[(#[a-zA-Z0-9_]+)\]([\s\S]*?)\[\/\1\]/g, '$2');
-    }
 
 
     window.firebaseTextFormatter = {
@@ -1866,7 +1857,11 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
             applyFirebaseTextColors,
 
         clean:
-            universalCleanText,
+            function(text) {
+                if (!text) return "";
+                let cleaned = cleanText(text);
+                return cleaned.replace(/\[(#[a-zA-Z0-9_]+)\]([\s\S]*?)\[\/\1\]/g, '$2');
+            },
 
         codes:
             FORMAT_CODES
@@ -1875,45 +1870,23 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
 
 
     /* ============================================================
-       AUTOMATIC INTERCEPTION FOR SHARE & COPY (CONTACT FIX)
-       কন্টাক্ট শেয়ার বা ক্লিপবোর্ডে কপি করার সময় স্বয়ংক্রিয়ভাবে 
-       কোড রিমুভ করার জন্য এই অংশটুকু যুক্ত করা হয়েছে।
+       AUTO-INTERCEPTION FOR SHARING & COPYING
     ============================================================ */
-
-    // ১. ক্লিপবোর্ড কপি প্রটেকশন (navigator.clipboard.writeText ইন্টারসেপ্ট করা)
     if (navigator.clipboard && navigator.clipboard.writeText) {
         const originalWriteText = navigator.clipboard.writeText.bind(navigator.clipboard);
         navigator.clipboard.writeText = function (text) {
-            const cleanedText = universalCleanText(text);
-            return originalWriteText(cleanedText);
+            return originalWriteText(window.firebaseTextFormatter.clean(text));
         };
     }
 
-    // ২. নেটিভ শেয়ার প্রটেকশন (navigator.share ইন্টারসেপ্ট করা)
     if (navigator.share) {
         const originalShare = navigator.share.bind(navigator);
         navigator.share = function (shareData) {
             let modifiedData = { ...shareData };
-            if (modifiedData.text) {
-                modifiedData.text = universalCleanText(modifiedData.text);
-            }
-            if (modifiedData.title) {
-                modifiedData.title = universalCleanText(modifiedData.title);
-            }
+            if (modifiedData.text) modifiedData.text = window.firebaseTextFormatter.clean(modifiedData.text);
+            if (modifiedData.title) modifiedData.title = window.firebaseTextFormatter.clean(modifiedData.title);
             return originalShare(modifiedData);
         };
     }
-
-    // ৩. যদি কেউ সরাসরি ডাটা-অ্যাট্রিবিউট বা বাটনে ক্লিক করে ডেটা নেয়
-    document.addEventListener("click", function (event) {
-        const target = event.target.closest("[data-share-text], [data-copy-text]");
-        if (target) {
-            let rawText = target.getAttribute("data-share-text") || target.getAttribute("data-copy-text");
-            if (rawText) {
-                target.setAttribute("data-share-text", universalCleanText(rawText));
-                target.setAttribute("data-copy-text", universalCleanText(rawText));
-            }
-        }
-    }, true);
 
 })();
