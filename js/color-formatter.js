@@ -1844,7 +1844,7 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
 
 
     /* ============================================================
-       PUBLIC API (Added automated cleanup for sharing/copying)
+       PUBLIC API
     ============================================================ */
 
     window.applyFirebaseTextColors =
@@ -1870,7 +1870,7 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
 
 
     /* ============================================================
-       AUTO-INTERCEPTION FOR SHARING & COPYING
+       AUTO-INTERCEPTION FOR SHARING & COPYING (Enhanced)
     ============================================================ */
     if (navigator.clipboard && navigator.clipboard.writeText) {
         const originalWriteText = navigator.clipboard.writeText.bind(navigator.clipboard);
@@ -1885,6 +1885,7 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
             let modifiedData = { ...shareData };
             if (modifiedData.text) modifiedData.text = window.firebaseTextFormatter.clean(modifiedData.text);
             if (modifiedData.title) modifiedData.title = window.firebaseTextFormatter.clean(modifiedData.title);
+            if (modifiedData.url) modifiedData.url = window.firebaseTextFormatter.clean(modifiedData.url);
             return originalShare(modifiedData);
         };
     }
