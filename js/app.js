@@ -412,12 +412,18 @@ function setupEvents() {
         const searchBox = document.getElementById("searchBox");
         const isSearchOpen = searchBox && !searchBox.classList.contains("hidden");
 
+        // Search চালু থাকলে শুধু Search বন্ধ হবে।
+        // এই অবস্থায় কোনোভাবেই history.back() বা Drawer চালু হবে না।
         if (isSearchOpen) {
             closeHeaderSearch();
-        } else if (currentCategoryId || currentDataId || isAllSearchActive) {
+            return;
+        }
+
+        // Category / Data / All Search page হলে Back কাজ করবে।
+        // Home অবস্থায় Drawer-এর কাজ drawer.js নিজেই করবে।
+        if (currentCategoryId || currentDataId || isAllSearchActive) {
             history.back();
-        } else {
-            showToast("মেনু! সেবাটি দ্রুত কার্যকর করা হবে");
+            return;
         }
     });
 
@@ -1430,11 +1436,15 @@ function showDataPage(dataId) {
 
     updateAdminUI();
 
+    // অফলাইনে থাকলে Firebase request করা হবে না।
+    // Local cache-এর ডাটা দিয়েই সরাসরি details page দেখানো হবে।
     if (!navigator.onLine) {
         renderDataDetailsContent(item);
         return;
     }
 
+    // অনলাইন অবস্থাতেও Firebase response-এর জন্য অপেক্ষা না করে
+    // প্রথমে ডাটার details দেখানো হবে।
     renderDataDetailsContent(item);
 
     const devId = getDeviceId();
@@ -1444,8 +1454,12 @@ function showDataPage(dataId) {
         if (snapshot.exists() && snapshot.val().status === "approved") {
             isDeviceVerified = true;
         }
+
+        // Verification status পাওয়ার পর UI প্রয়োজন হলে আপডেট হবে।
         renderDataDetailsContent(item);
+
     }).catch(() => {
+        // Firebase request ব্যর্থ হলেও local data দিয়ে details দেখাবে।
         renderDataDetailsContent(item);
     });
 }
@@ -1530,7 +1544,7 @@ function setupHoldToVerify(button) {
             clearHold();
             if (navigator.vibrate) navigator.vibrate(60);
             openModal("verifyModal");
-        }, 10000);
+        }, 10000); // ১০ সেকেন্ড (১০,০০০ মিলিগ্রাম/মিলি সেকেন্ড)
     };
 
     const clearHold = () => {
@@ -1549,6 +1563,7 @@ function setupHoldToVerify(button) {
     button.addEventListener("touchend", clearHold);
     button.addEventListener("touchcancel", clearHold);
 
+    // সাধারণ ক্লিক ইভেন্ট নিষ্ক্রিয় রাখা যাতে শুধু হোল্ড করলেই কাজ করে
     button.addEventListener("click", (e) => {
         e.preventDefault();
         showToast("⚠️ 'Get VIP' বাটনটি কমপক্ষে ১০ সেকেন্ড চেপে ধরে রাখুন!");
