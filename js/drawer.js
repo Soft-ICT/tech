@@ -111,6 +111,30 @@ export function initDrawer() {
     if (navToggleBtn) {
         navToggleBtn.addEventListener('click', (e) => {
             e.stopPropagation();
+
+            // Back icon / Search / Sub-page অবস্থায় Drawer কখনো খুলবে না।
+            // শুধু তিন লাইনের Menu icon দৃশ্যমান থাকলেই Drawer খুলবে।
+            const menuIcon = document.getElementById('menuIcon');
+            const backIcon = document.getElementById('backIcon');
+            const searchBox = document.getElementById('searchBox');
+
+            const isMenuVisible =
+                menuIcon &&
+                !menuIcon.classList.contains('hidden');
+
+            const isBackVisible =
+                backIcon &&
+                !backIcon.classList.contains('hidden');
+
+            const isSearchOpen =
+                searchBox &&
+                !searchBox.classList.contains('hidden');
+
+            // Search চালু বা Back icon দৃশ্যমান থাকলে Drawer স্পর্শ করবে না।
+            if (isSearchOpen || isBackVisible || !isMenuVisible) {
+                return;
+            }
+
             if (drawer.classList.contains('open')) {
                 closeDrawer();
             } else {
