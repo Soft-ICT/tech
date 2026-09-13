@@ -233,6 +233,15 @@ function closeHeaderSearch() {
 }
 
 function handlePopState(event) {
+    // ব্যাক বাটন প্রেস করলে প্রথমে ড্রয়ার খোলা থাকলে তা বন্ধ করবে[span_0](start_span)[span_0](end_span)
+    const drawer = document.getElementById("appDrawer");
+    if (drawer && drawer.classList.contains("open")) {
+        drawer.classList.remove("open");
+        document.getElementById("appDrawerOverlay")?.classList.remove("show");
+        document.body.style.overflow = "";
+        return;
+    }
+
     closeHeaderSearch();
     const state = event.state;
 
@@ -409,15 +418,27 @@ function setupEvents() {
     document.getElementById("themeBtn")?.addEventListener("click", toggleTheme);
 
     document.getElementById("navToggleBtn")?.addEventListener("click", () => {
+        const drawer = document.getElementById("appDrawer");
+        const isDrawerOpen = drawer && drawer.classList.contains("open");
         const searchBox = document.getElementById("searchBox");
         const isSearchOpen = searchBox && !searchBox.classList.contains("hidden");
 
-        if (isSearchOpen) {
+        if (isDrawerOpen) {
+            // ড্রয়ার খোলা থাকলে তা বন্ধ করবে[span_1](start_span)[span_1](end_span)
+            drawer.classList.remove("open");
+            document.getElementById("appDrawerOverlay")?.classList.remove("show");
+            document.body.style.overflow = "";
+        } else if (isSearchOpen) {
             closeHeaderSearch();
         } else if (currentCategoryId || currentDataId || isAllSearchActive) {
             history.back();
         } else {
-            showToast("মেনু! সেবাটি দ্রুত কার্যকর করা হবে");
+            // ড্রয়ার বন্ধ থাকলে মেনু বাটন ক্লিক করলে ড্রয়ার ওপেন হবে
+            if (drawer) {
+                drawer.classList.add("open");
+                document.getElementById("appDrawerOverlay")?.classList.add("show");
+                document.body.style.overflow = "hidden";
+            }
         }
     });
 
