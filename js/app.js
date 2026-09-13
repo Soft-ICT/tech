@@ -233,16 +233,7 @@ function closeHeaderSearch() {
 }
 
 function handlePopState(event) {
-    const searchBox = document.getElementById("searchBox");
-    const isSearchOpen = searchBox && !searchBox.classList.contains("hidden");
-
-    // সার্চ খোলা থাকলে ব্যাক বাটন প্রেস করলে প্রথমে সার্চ বন্ধ হবে, ড্রয়ার বা পেজ পরিবর্তন হবে না
-    if (isSearchOpen) {
-        closeHeaderSearch();
-        history.pushState(window.history.state, ""); // হিস্ট্রি স্টেট ব্যালেন্স রাখতে
-        return;
-    }
-
+    closeHeaderSearch();
     const state = event.state;
 
     if (!state || state.page === "home") {
@@ -421,13 +412,13 @@ function setupEvents() {
         const searchBox = document.getElementById("searchBox");
         const isSearchOpen = searchBox && !searchBox.classList.contains("hidden");
 
-        // সার্চ বক্স খোলা থাকলে টগল বাটন ক্লিক করলে ড্রয়ার খুলবে না, শুধু সার্চ বন্ধ হবে
         if (isSearchOpen) {
             closeHeaderSearch();
         } else if (currentCategoryId || currentDataId || isAllSearchActive) {
             history.back();
+        } else {
+            showToast("মেনু! সেবাটি দ্রুত কার্যকর করা হবে");
         }
-        // অন্যথায় drawer.js এর ইভেন্ট হ্যান্ডলার ড্রয়ার ওপেন করবে
     });
 
     document.getElementById("searchBtn")?.addEventListener("click", () => {
@@ -1453,7 +1444,9 @@ function showDataPage(dataId) {
         if (snapshot.exists() && snapshot.val().status === "approved") {
             isDeviceVerified = true;
         }
+
         renderDataDetailsContent(item);
+
     }).catch(() => {
         renderDataDetailsContent(item);
     });
