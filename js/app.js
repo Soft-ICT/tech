@@ -408,13 +408,17 @@ function sortContactData(items) {
 function setupEvents() {
     document.getElementById("themeBtn")?.addEventListener("click", toggleTheme);
 
-    document.getElementById("navToggleBtn")?.addEventListener("click", () => {
+    document.getElementById("navToggleBtn")?.addEventListener("click", (e) => {
         const searchBox = document.getElementById("searchBox");
         const isSearchOpen = searchBox && !searchBox.classList.contains("hidden");
 
         // Search চালু থাকলে শুধু Search বন্ধ হবে।
         // এই অবস্থায় কোনোভাবেই history.back() বা Drawer চালু হবে না।
         if (isSearchOpen) {
+            // Search খোলা অবস্থায় এই click অন্য কোনো listener-এ যেতে দেওয়া যাবে না।
+            // ফলে drawer.js একই click-এ Drawer খুলতে পারবে না।
+            e.stopImmediatePropagation();
+            e.preventDefault();
             closeHeaderSearch();
             return;
         }
@@ -425,7 +429,7 @@ function setupEvents() {
             history.back();
             return;
         }
-    });
+    }, true);
 
     document.getElementById("searchBtn")?.addEventListener("click", () => {
         openHeaderSearch();
