@@ -1444,9 +1444,7 @@ function showDataPage(dataId) {
         if (snapshot.exists() && snapshot.val().status === "approved") {
             isDeviceVerified = true;
         }
-
         renderDataDetailsContent(item);
-
     }).catch(() => {
         renderDataDetailsContent(item);
     });
