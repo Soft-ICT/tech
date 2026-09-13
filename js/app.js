@@ -233,16 +233,16 @@ function closeHeaderSearch() {
 }
 
 function handlePopState(event) {
-    // ব্যাক বাটন প্রেস করলে প্রথমে ড্রয়ার খোলা থাকলে তা বন্ধ করবে[span_0](start_span)[span_0](end_span)
-    const drawer = document.getElementById("appDrawer");
-    if (drawer && drawer.classList.contains("open")) {
-        drawer.classList.remove("open");
-        document.getElementById("appDrawerOverlay")?.classList.remove("show");
-        document.body.style.overflow = "";
+    const searchBox = document.getElementById("searchBox");
+    const isSearchOpen = searchBox && !searchBox.classList.contains("hidden");
+
+    // সার্চ খোলা থাকলে ব্যাক বাটন প্রেস করলে প্রথমে সার্চ বন্ধ হবে, ড্রয়ার বা পেজ পরিবর্তন হবে না
+    if (isSearchOpen) {
+        closeHeaderSearch();
+        history.pushState(window.history.state, ""); // হিস্ট্রি স্টেট ব্যালেন্স রাখতে
         return;
     }
 
-    closeHeaderSearch();
     const state = event.state;
 
     if (!state || state.page === "home") {
@@ -418,28 +418,16 @@ function setupEvents() {
     document.getElementById("themeBtn")?.addEventListener("click", toggleTheme);
 
     document.getElementById("navToggleBtn")?.addEventListener("click", () => {
-        const drawer = document.getElementById("appDrawer");
-        const isDrawerOpen = drawer && drawer.classList.contains("open");
         const searchBox = document.getElementById("searchBox");
         const isSearchOpen = searchBox && !searchBox.classList.contains("hidden");
 
-        if (isDrawerOpen) {
-            // ড্রয়ার খোলা থাকলে তা বন্ধ করবে[span_1](start_span)[span_1](end_span)
-            drawer.classList.remove("open");
-            document.getElementById("appDrawerOverlay")?.classList.remove("show");
-            document.body.style.overflow = "";
-        } else if (isSearchOpen) {
+        // সার্চ বক্স খোলা থাকলে টগল বাটন ক্লিক করলে ড্রয়ার খুলবে না, শুধু সার্চ বন্ধ হবে
+        if (isSearchOpen) {
             closeHeaderSearch();
         } else if (currentCategoryId || currentDataId || isAllSearchActive) {
             history.back();
-        } else {
-            // ড্রয়ার বন্ধ থাকলে মেনু বাটন ক্লিক করলে ড্রয়ার ওপেন হবে
-            if (drawer) {
-                drawer.classList.add("open");
-                document.getElementById("appDrawerOverlay")?.classList.add("show");
-                document.body.style.overflow = "hidden";
-            }
         }
+        // অন্যথায় drawer.js এর ইভেন্ট হ্যান্ডলার ড্রয়ার ওপেন করবে
     });
 
     document.getElementById("searchBtn")?.addEventListener("click", () => {
@@ -1451,15 +1439,11 @@ function showDataPage(dataId) {
 
     updateAdminUI();
 
-    // অফলাইনে থাকলে Firebase request করা হবে না।
-    // Local cache-এর ডাটা দিয়েই সরাসরি details page দেখানো হবে।
     if (!navigator.onLine) {
         renderDataDetailsContent(item);
         return;
     }
 
-    // অনলাইন অবস্থাতেও Firebase response-এর জন্য অপেক্ষা না করে
-    // প্রথমে ডাটার details দেখানো হবে।
     renderDataDetailsContent(item);
 
     const devId = getDeviceId();
@@ -1469,12 +1453,8 @@ function showDataPage(dataId) {
         if (snapshot.exists() && snapshot.val().status === "approved") {
             isDeviceVerified = true;
         }
-
-        // Verification status পাওয়ার পর UI প্রয়োজন হলে আপডেট হবে।
         renderDataDetailsContent(item);
-
     }).catch(() => {
-        // Firebase request ব্যর্থ হলেও local data দিয়ে details দেখাবে।
         renderDataDetailsContent(item);
     });
 }
@@ -1559,7 +1539,7 @@ function setupHoldToVerify(button) {
             clearHold();
             if (navigator.vibrate) navigator.vibrate(60);
             openModal("verifyModal");
-        }, 10000); // ১০ সেকেন্ড (১০,০০০ মিলিগ্রাম/মিলি সেকেন্ড)
+        }, 10000);
     };
 
     const clearHold = () => {
@@ -1578,7 +1558,6 @@ function setupHoldToVerify(button) {
     button.addEventListener("touchend", clearHold);
     button.addEventListener("touchcancel", clearHold);
 
-    // সাধারণ ক্লিক ইভেন্ট নিষ্ক্রিয় রাখা যাতে শুধু হোল্ড করলেই কাজ করে
     button.addEventListener("click", (e) => {
         e.preventDefault();
         showToast("⚠️ 'Get VIP' বাটনটি কমপক্ষে ১০ সেকেন্ড চেপে ধরে রাখুন!");
