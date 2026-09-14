@@ -157,11 +157,9 @@ function handleDrawerAction(action) {
             break;
         case 'favorite':
             if (typeof renderFavoriteView === 'function') {
-                // ব্রাউজার হিস্টরিতে স্টেট যোগ করা হলো যাতে ব্যাক বাটন কাজ করে
                 history.pushState({ page: "favorite" }, "");
                 renderFavoriteView();
                 
-                // থ্রি-লাইনস হাইড করে ব্যাক বাটন শো করার জন্য
                 const menuIcon = document.getElementById('menuIcon');
                 const backIcon = document.getElementById('backIcon');
                 if (menuIcon) menuIcon.classList.add('hidden');
