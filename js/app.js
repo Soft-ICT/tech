@@ -4,7 +4,6 @@ import {
     logoutAdmin
 } from "./auth.js";
 
-
 import {
     ref,
     set,
@@ -956,7 +955,7 @@ async function deleteHeader(id) {
 }
 
 // -------------------------------------------------------------
-// ফেভারিট ম্যানেজমেন্ট সিস্টেম (নতুন যোগ করা অংশ)
+// ফেভারিট ম্যানেজমেন্ট সিস্টেম
 // -------------------------------------------------------------
 function getFavoriteIds() {
     try {
@@ -1049,10 +1048,12 @@ function createDataCardElement(item) {
     const pinIcon = item.pinned ? "📌" : "📍";
     const favIcon = isFavorite(item.id) ? "❤️" : "🤍";
 
+    // অ্যাডমিন প্যানেলে ফেভারিট আইকন হাইড থাকবে, ইউজার অ্যাপে প্রদর্শিত হবে
+    const favButtonHtml = !isAdmin ? `<button class="btn-fav-item custom-action-btn" title="ফেভারিট">${favIcon}</button>` : "";
+
     const adminActions = isAdmin
         ? `
             <div class="card-admin-actions" style="display:flex;gap:4px; align-items:center;">
-                <button class="btn-fav-item custom-action-btn" title="ফেভারিট">${favIcon}</button>
                 <button class="btn-pin-data custom-action-btn" title="পিন">${pinIcon}</button>
                 <button class="btn-move-data custom-action-btn" title="মুভ">📦</button>
                 <button class="btn-edit-data custom-action-btn" title="এডিট">✏️</button>
@@ -1061,7 +1062,7 @@ function createDataCardElement(item) {
         `
         : `
             <div class="card-admin-actions" style="display:flex;gap:4px; align-items:center;">
-                <button class="btn-fav-item custom-action-btn" title="ফেভারিট">${favIcon}</button>
+                ${favButtonHtml}
             </div>
         `;
 
