@@ -2,8 +2,8 @@
    Firebase Text Color & Design Formatter
    File: Js/color-formatter.js
 
-   FINAL VERSION (WITH DYNAMIC HEX CODE SUPPORT)
-   ✔ No color-code flash
+   FINAL VERSION (WITH ZERO-FLASH FIX)
+   ✔ No color-code flash / millisecond visibility fix
    ✔ Toolbar protected
    ✔ Data Card safe
    ✔ Data Profile safe
@@ -291,7 +291,6 @@
 
     /* ============================================================
        EARLY TOOLBAR PROTECTION
-       IMPORTANT FOR ZERO-VISIBLE-FLASH
     ============================================================ */
 
     function installEarlyToolbarProtection() {
@@ -672,7 +671,7 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
 
 
     /* ============================================================
-       FORMAT TEXT NODE (UPDATED WITH HEX SUPPORT)
+       FORMAT TEXT NODE
     ============================================================ */
 
     function formatTextNode(textNode) {
@@ -775,10 +774,6 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
             return;
         }
 
-
-        /* ========================================================
-           OLD FORMAT SYSTEM FALLBACK
-           ======================================================== */
 
         if (!originalText) {
             return;
@@ -1243,11 +1238,16 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
 
         cleanToolbarCodes();
 
+        // ফরম্যাটিং শেষ হওয়া মাত্র পেজ দৃশ্যমান করার জন্য ক্লাস যুক্ত করা হলো
+        if (document.body) {
+            document.body.classList.add("firebase-formatted-ready");
+        }
+
     }
 
 
     /* ============================================================
-       MUTATION OBSERVER (FIXED WITH DEBOUNCE DELAY)
+       MUTATION OBSERVER
     ============================================================ */
 
     let observerTimer =
@@ -1351,7 +1351,7 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
                             }
 
                         },
-                        80 // ডেবাউন্স টাইম বাড়িয়ে ৮০ মিলি-সেকেন্ড করা হয়েছে, যাতে মিলি-সেকেন্ডে ফ্লিকারিং না করে
+                        100 // সেফটির জন্য ডেবাউন্স টাইম ১০০ মিলি-সেকেন্ড করা হয়েছে
                     );
 
             }
