@@ -13,6 +13,17 @@
 
     <title>Police Phonebook</title>
 
+        <!-- কন্টেন্ট পুরোপুরি ফরম্যাট হওয়ার আগে কোড ফ্লিক হওয়া রোধ করতে -->
+    <style>
+        body:not(.firebase-formatted-ready) {
+            opacity: 0;
+            transition: opacity 0.2s ease-in;
+        }
+        body.firebase-formatted-ready {
+            opacity: 1;
+        }
+    </style>
+
     <link rel="manifest" href="manifest.json?v=1.1">
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
