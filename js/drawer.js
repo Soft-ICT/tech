@@ -158,6 +158,11 @@ function handleDrawerAction(action) {
         case 'favorite':
             if (typeof renderFavoriteView === 'function') {
                 renderFavoriteView();
+                // ফেভারিট পেজ ওপেন হলে থ্রি-লাইনস হাইড করে ব্যাক বাটন শো করার জন্য
+                const menuIcon = document.getElementById('menuIcon');
+                const backIcon = document.getElementById('backIcon');
+                if (menuIcon) menuIcon.classList.add('hidden');
+                if (backIcon) backIcon.classList.remove('hidden');
             }
             break;
         case 'notice-box':
