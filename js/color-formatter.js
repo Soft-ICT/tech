@@ -2,8 +2,8 @@
    Firebase Text Color & Design Formatter
    File: Js/color-formatter.js
 
-   FINAL VERSION (WITH ZERO-FLASH FIX)
-   ✔ No color-code flash / millisecond visibility fix
+   FINAL VERSION (WITH DYNAMIC HEX CODE SUPPORT)
+   ✔ No color-code flash
    ✔ Toolbar protected
    ✔ Data Card safe
    ✔ Data Profile safe
@@ -291,6 +291,7 @@
 
     /* ============================================================
        EARLY TOOLBAR PROTECTION
+       IMPORTANT FOR ZERO-VISIBLE-FLASH
     ============================================================ */
 
     function installEarlyToolbarProtection() {
@@ -538,10 +539,12 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
     function getFormatObject(code) {
         if (!code) return null;
 
+        // যদি আগে থেকেই predefined লিস্টে থাকে
         if (FORMAT_CODES[code]) {
             return FORMAT_CODES[code];
         }
 
+        // হেক্সা কোড চেক (যেমন: #FFFFFF, #FF5733 বা ছোট কোড #FFF)
         const hexMatch = code.match(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/);
         if (hexMatch) {
             return {
@@ -671,7 +674,7 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
 
 
     /* ============================================================
-       FORMAT TEXT NODE
+       FORMAT TEXT NODE (UPDATED WITH HEX SUPPORT)
     ============================================================ */
 
     function formatTextNode(textNode) {
@@ -690,6 +693,11 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
         }
 
         const originalText = textNode.nodeValue;
+
+        /* ========================================================
+           UPDATED REGEX TO SUPPORT PREDEFINED & HEX CODES
+           যেমন: [#red]Text[/#red] অথবা [#FFFFFF]Text[/#FFFFFF]
+           ======================================================== */
 
         const partialFormatRegex =
             /\[(#[a-zA-Z0-9_]+)\]([\s\S]*?)\[\/\1\]/g;
@@ -774,6 +782,10 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
             return;
         }
 
+
+        /* ========================================================
+           OLD FORMAT SYSTEM FALLBACK
+           ======================================================== */
 
         if (!originalText) {
             return;
@@ -1238,11 +1250,6 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
 
         cleanToolbarCodes();
 
-        // ফরম্যাটিং শেষ হওয়া মাত্র পেজ দৃশ্যমান করার জন্য ক্লাস যুক্ত করা হলো
-        if (document.body) {
-            document.body.classList.add("firebase-formatted-ready");
-        }
-
     }
 
 
@@ -1351,7 +1358,7 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
                             }
 
                         },
-                        100 // সেফটির জন্য ডেবাউন্স টাইম ১০০ মিলি-সেকেন্ড করা হয়েছে
+                        0
                     );
 
             }
