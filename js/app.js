@@ -1711,3 +1711,80 @@ function showToast(msg) {
     toast.classList.add("show");
     setTimeout(() => toast.classList.remove("show"), 2500);
 }
+
+// ১. ফেভারিট আইডিগুলো লোড করা
+function getFavoriteIds() {
+    try {
+        const favs = localStorage.getItem("police_pb_favorites");
+        return favs ? JSON.parse(favs) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+// ২. ফেভারিট যোগ বা বাদ দেওয়া (টগল করা)
+function toggleFavorite(dataId, event) {
+    if (event) event.stopPropagation();
+    let favs = getFavoriteIds();
+    const index = favs.indexOf(dataId);
+    
+    if (index > -1) {
+        favs.splice(index, 1);
+        console.log("ফেভারিট থেকে সরানো হয়েছে");
+    } else {
+        favs.push(dataId);
+        console.log("ফেভারিটে যোগ করা হয়েছে");
+    }
+    
+    localStorage.setItem("police_pb_favorites", JSON.stringify(favs));
+    if (typeof refreshCurrentView === 'function') refreshCurrentView();
+}
+
+// ৩. চেক করা ফেভারিট আছে কি না
+function isFavorite(dataId) {
+    return getFavoriteIds().includes(dataId);
+}
+
+// ৪. ড্রয়ার বা মেনু থেকে ফেভারিট পেজ ওপেন করার ভিউ
+function renderFavoriteView() {
+    const appTitle = document.getElementById("appTitle");
+    if (appTitle) {
+        const titleText = appTitle.querySelector(".app-title-text") || appTitle;
+        titleText.textContent = "Favorite Numbers";
+    }
+
+    document.getElementById("verifiedBadge")?.classList.add("hidden");
+    document.getElementById("mainDashboardView")?.classList.remove("hidden");
+    document.getElementById("categoryDetailsView")?.classList.add("hidden");
+    document.getElementById("dataDetailsView")?.classList.add("hidden");
+    document.getElementById("allSearchContainer")?.classList.add("hidden");
+
+    const list = document.getElementById("categoryList");
+    const emptyState = document.getElementById("emptyState");
+    
+    if (list) list.innerHTML = "";
+    
+    const favIds = getFavoriteIds();
+    let favData = (database.data || []).filter(d => favIds.includes(d.id));
+
+    if (favData.length === 0) {
+        if (emptyState) {
+            emptyState.classList.remove("hidden");
+            emptyState.querySelector("h2").textContent = "কোনো ফেভারিট নাম্বার নেই";
+            emptyState.querySelector("p").textContent = "হার্ট আইকনে ক্লিক করে ফেভারিটে যুক্ত করুন।";
+        }
+        if (list) list.classList.add("hidden");
+        return;
+    }
+
+    if (emptyState) emptyState.classList.add("hidden");
+    if (list) {
+        list.classList.remove("hidden");
+        favData.forEach(item => {
+            list.appendChild(createDataCardElement(item));
+        });
+    }
+}
+
+// গ্লোবালি এক্সেস করার জন্য
+window.renderFavoriteView = renderFavoriteView;
