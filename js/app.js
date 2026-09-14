@@ -1048,7 +1048,7 @@ function createDataCardElement(item) {
     const pinIcon = item.pinned ? "📌" : "📍";
     const favIcon = isFavorite(item.id) ? "❤️" : "🤍";
 
-    // অ্যাডমিন প্যানেলে ফেভারিট আইকন হাইড থাকবে, ইউজার অ্যাপে প্রদর্শিত হবে
+    // অ্যাডমিন মোডে ডাটা কার্ড হতে ফেভারিট আইকন হাইড থাকবে, ইউজার অ্যাপে প্রদর্শিত হবে
     const favButtonHtml = !isAdmin ? `<button class="btn-fav-item custom-action-btn" title="ফেভারিট">${favIcon}</button>` : "";
 
     const adminActions = isAdmin
