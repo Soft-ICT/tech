@@ -2,9 +2,9 @@
    Firebase Text Color & Design Formatter
    File: Js/color-formatter.js
 
-   FINAL VERSION (WITH DYNAMIC HEX CODE SUPPORT)
+   FINAL VERSION — ZERO FLASH / TOOLBAR PROTECTED
    ✔ No color-code flash
-   ✔ Toolbar protected
+   ✔ Toolbar protected before content formatting
    ✔ Data Card safe
    ✔ Data Profile safe
    ✔ Category safe
@@ -14,261 +14,121 @@
    ✔ Firebase dynamic content
    ✔ Multiple formatting codes
    ✔ Animated gradients
-   ✔ Dynamic Hex Code Support ([#RRGGBB] / [#RGB])
+   ✔ Dynamic Hex Code Support (#RRGGBB / #RGB)
    ✔ Formatting codes hidden
    ✔ Toolbar never formatted
    ✔ MutationObserver safe
 ============================================================ */
 
 (function () {
-
     "use strict";
 
-
-    /* ============================================================
-       FORMAT CODES
-    ============================================================ */
-
     const FORMAT_CODES = {
+        "#red": { color: "#ff0000" },
+        "#blue": { color: "#0066ff" },
+        "#green": { color: "#00a000" },
+        "#yellow": { color: "#d4a800" },
+        "#purple": { color: "#8000ff" },
+        "#pink": { color: "#ff1493" },
+        "#orange": { color: "#ff6600" },
+        "#cyan": { color: "#00bcd4" },
+        "#teal": { color: "#009688" },
+        "#indigo": { color: "#3f51b5" },
+        "#black": { color: "#000000" },
+        "#white": { color: "#ffffff" },
 
-        /* ================= BASIC COLORS ================= */
-
-        "#red": {
-            color: "#ff0000"
-        },
-
-        "#blue": {
-            color: "#0066ff"
-        },
-
-        "#green": {
-            color: "#00a000"
-        },
-
-        "#yellow": {
-            color: "#d4a800"
-        },
-
-        "#purple": {
-            color: "#8000ff"
-        },
-
-        "#pink": {
-            color: "#ff1493"
-        },
-
-        "#orange": {
-            color: "#ff6600"
-        },
-
-        "#cyan": {
-            color: "#00bcd4"
-        },
-
-        "#teal": {
-            color: "#009688"
-        },
-
-        "#indigo": {
-            color: "#3f51b5"
-        },
-
-        "#black": {
-            color: "#000000"
-        },
-
-        "#white": {
-            color: "#ffffff"
-        },
-
-
-        /* ================= TEXT STYLE ================= */
-
-        "#bold": {
-            fontWeight: "700"
-        },
-
-        "#italic": {
-            fontStyle: "italic"
-        },
-
-        "#underline": {
-            textDecoration: "underline"
-        },
-
+        "#bold": { fontWeight: "700" },
+        "#italic": { fontStyle: "italic" },
+        "#underline": { textDecoration: "underline" },
         "#underline_gold": {
             textDecoration: "underline",
             textDecorationColor: "#d4a017",
             textDecorationThickness: "2px"
         },
-
         "#underline_red": {
             textDecoration: "underline",
             textDecorationColor: "#ff0000",
             textDecorationThickness: "2px"
         },
-
         "#underline_blue": {
             textDecoration: "underline",
             textDecorationColor: "#0066ff",
             textDecorationThickness: "2px"
         },
-
-        "#strike": {
-            textDecoration: "line-through"
-        },
-
-
-        /* ================= HIGHLIGHT ================= */
+        "#strike": { textDecoration: "line-through" },
 
         "#highlight": {
             backgroundColor: "#fff176",
             padding: "2px 5px",
             borderRadius: "4px"
         },
-
         "#highlight_blue": {
             backgroundColor: "#bbdefb",
             padding: "2px 5px",
             borderRadius: "4px"
         },
-
         "#highlight_green": {
             backgroundColor: "#c8e6c9",
             padding: "2px 5px",
             borderRadius: "4px"
         },
-
         "#highlight_red": {
             backgroundColor: "#ffcdd2",
             padding: "2px 5px",
             borderRadius: "4px"
         },
-
         "#highlight_purple": {
             backgroundColor: "#e1bee7",
             padding: "2px 5px",
             borderRadius: "4px"
         },
-
         "#highlight_pink": {
             backgroundColor: "#f8bbd0",
             padding: "2px 5px",
             borderRadius: "4px"
         },
 
+        "#grad_ocean": { gradientClass: "firebase-gradient-ocean" },
+        "#grad_fire": { gradientClass: "firebase-gradient-fire" },
+        "#grad_purple": { gradientClass: "firebase-gradient-purple" },
+        "#grad_green": { gradientClass: "firebase-gradient-green" },
+        "#grad_sunset": { gradientClass: "firebase-gradient-sunset" },
+        "#grad_blue": { gradientClass: "firebase-gradient-blue" },
 
-        /* ================= STATIC GRADIENT ================= */
-
-        "#grad_ocean": {
-            gradientClass: "firebase-gradient-ocean"
-        },
-
-        "#grad_fire": {
-            gradientClass: "firebase-gradient-fire"
-        },
-
-        "#grad_purple": {
-            gradientClass: "firebase-gradient-purple"
-        },
-
-        "#grad_green": {
-            gradientClass: "firebase-gradient-green"
-        },
-
-        "#grad_sunset": {
-            gradientClass: "firebase-gradient-sunset"
-        },
-
-        "#grad_blue": {
-            gradientClass: "firebase-gradient-blue"
-        },
-
-
-        /* ================= ANIMATED GRADIENT ================= */
-
-        "#grad_animated": {
-            gradientClass: "firebase-gradient-animated"
-        },
-
-        "#grad_aurora": {
-            gradientClass: "firebase-gradient-aurora"
-        },
-
-        "#grad_fire_animated": {
-            gradientClass: "firebase-gradient-fire-animated"
-        },
-
-        "#grad_ocean_animated": {
-            gradientClass: "firebase-gradient-ocean-animated"
-        },
-
-        "#grad_purple_animated": {
-            gradientClass: "firebase-gradient-purple-animated"
-        },
-
-        "#grad_sunset_animated": {
-            gradientClass: "firebase-gradient-sunset-animated"
-        },
-
-        "#grad_green_animated": {
-            gradientClass: "firebase-gradient-green-animated"
-        },
-
-        "#grad_rainbow": {
-            gradientClass: "firebase-gradient-rainbow"
-        },
-
-
-        /* ================= SHADOW ================= */
+        "#grad_animated": { gradientClass: "firebase-gradient-animated" },
+        "#grad_aurora": { gradientClass: "firebase-gradient-aurora" },
+        "#grad_fire_animated": { gradientClass: "firebase-gradient-fire-animated" },
+        "#grad_ocean_animated": { gradientClass: "firebase-gradient-ocean-animated" },
+        "#grad_purple_animated": { gradientClass: "firebase-gradient-purple-animated" },
+        "#grad_sunset_animated": { gradientClass: "firebase-gradient-sunset-animated" },
+        "#grad_green_animated": { gradientClass: "firebase-gradient-green-animated" },
+        "#grad_rainbow": { gradientClass: "firebase-gradient-rainbow" },
 
         "#shadow": {
-            textShadow:
-                "2px 2px 5px rgba(0,0,0,0.35)"
+            textShadow: "2px 2px 5px rgba(0,0,0,0.35)"
         },
-
         "#shadow_dark": {
-            textShadow:
-                "2px 3px 6px rgba(0,0,0,0.75)"
+            textShadow: "2px 3px 6px rgba(0,0,0,0.75)"
         },
-
-
-        /* ================= GLOW ================= */
 
         "#glow_blue": {
-            textShadow:
-                "0 0 5px #00aaff,0 0 10px #00aaff,0 0 20px #0088ff"
+            textShadow: "0 0 5px #00aaff,0 0 10px #00aaff,0 0 20px #0088ff"
         },
-
         "#glow_red": {
-            textShadow:
-                "0 0 5px #ff0000,0 0 10px #ff0000,0 0 20px #ff0000"
+            textShadow: "0 0 5px #ff0000,0 0 10px #ff0000,0 0 20px #ff0000"
         },
-
         "#glow_green": {
-            textShadow:
-                "0 0 5px #00ff55,0 0 10px #00ff55,0 0 20px #00cc44"
+            textShadow: "0 0 5px #00ff55,0 0 10px #00ff55,0 0 20px #00cc44"
         },
-
         "#glow_purple": {
-            textShadow:
-                "0 0 5px #b000ff,0 0 10px #b000ff,0 0 20px #8000ff"
+            textShadow: "0 0 5px #b000ff,0 0 10px #b000ff,0 0 20px #8000ff"
         },
-
         "#glow_cyan": {
-            textShadow:
-                "0 0 5px #00ffff,0 0 10px #00ffff,0 0 20px #00bfff"
+            textShadow: "0 0 5px #00ffff,0 0 10px #00ffff,0 0 20px #00bfff"
         }
-
     };
 
-
-    /* ============================================================
-       TOOLBAR SELECTORS
-    ============================================================ */
-
     const TOOLBAR_SELECTORS = [
-
         "#navToggleBtn",
         "#menuIcon",
         "#backIcon",
@@ -281,98 +141,52 @@
         ".header",
         ".navigation",
         "[role='navigation']"
-
     ];
 
+    const TOOLBAR_SELECTOR = TOOLBAR_SELECTORS.join(",");
 
-    const TOOLBAR_SELECTOR =
-        TOOLBAR_SELECTORS.join(",");
-
-
-    /* ============================================================
-       EARLY TOOLBAR PROTECTION
-       IMPORTANT FOR ZERO-VISIBLE-FLASH
-    ============================================================ */
-
+    /*
+     * IMPORTANT:
+     * The old version hid the toolbar and then tried to reveal it only
+     * after DOM text cleanup. That can race with Firebase rendering and
+     * MutationObserver.
+     *
+     * This version protects toolbar TEXT itself instead:
+     * - toolbar elements remain visible
+     * - formatting is never applied inside them
+     * - formatting tokens are removed synchronously when text nodes appear
+     *
+     * A small CSS rule also prevents any formatter span from being
+     * displayed inside toolbar if another script creates one accidentally.
+     */
     function installEarlyToolbarProtection() {
-
-        let style =
-            document.getElementById(
-                "firebaseFormatterEarlyProtection"
-            );
-
-
-        if (style) {
+        if (document.getElementById("firebaseFormatterEarlyProtection")) {
             return;
         }
 
-
-        style =
-            document.createElement("style");
-
-
-        style.id =
-            "firebaseFormatterEarlyProtection";
-
-
+        const style = document.createElement("style");
+        style.id = "firebaseFormatterEarlyProtection";
         style.textContent = `
-
-${TOOLBAR_SELECTOR} {
-    visibility: hidden !important;
+${TOOLBAR_SELECTOR} .firebase-formatted-text {
+    color: inherit !important;
+    background: none !important;
+    background-image: none !important;
+    -webkit-text-fill-color: currentColor !important;
+    animation: none !important;
+    text-shadow: none !important;
 }
-
-${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
-    visibility: visible !important;
-}
-
 `;
-
-
-        if (document.head) {
-
-            document.head.insertBefore(
-                style,
-                document.head.firstChild
-            );
-
-        } else {
-
-            document.documentElement
-                .insertBefore(
-                    style,
-                    document.documentElement.firstChild
-                );
-
-        }
-
+        const parent = document.head || document.documentElement;
+        if (parent) parent.appendChild(style);
     }
 
-
-    /* ============================================================
-       CSS
-    ============================================================ */
-
     function addFormatterCSS() {
+        if (document.getElementById("firebaseFormatterSafeCSS")) return;
 
-        if (
-            document.getElementById(
-                "firebaseFormatterSafeCSS"
-            )
-        ) {
-            return;
-        }
-
-
-        const style =
-            document.createElement("style");
-
-
-        style.id =
-            "firebaseFormatterSafeCSS";
-
+        const style = document.createElement("style");
+        style.id = "firebaseFormatterSafeCSS";
 
         style.textContent = `
-
 .firebase-formatted-text {
     display: inline;
 }
@@ -391,13 +205,10 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
 .firebase-gradient-sunset-animated,
 .firebase-gradient-green-animated,
 .firebase-gradient-rainbow {
-
     background-clip: text;
     -webkit-background-clip: text;
-
     color: transparent !important;
     -webkit-text-fill-color: transparent !important;
-
 }
 
 .firebase-gradient-ocean {
@@ -472,6 +283,13 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
     75% { background-position: 50% 0%; }
     100% { background-position: 0% 50%; }
 }
+@keyframes firebaseFireAnimation,
+firebaseOceanAnimation,
+firebasePurpleAnimation,
+firebaseSunsetAnimation,
+firebaseGreenAnimation,
+firebaseRainbowAnimation {
+}
 @keyframes firebaseFireAnimation {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
@@ -502,643 +320,359 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
 }
-
 `;
-
-
         document.head.appendChild(style);
-
     }
-
-
-    /* ============================================================
-       EXCLUDED AREAS
-    ============================================================ */
 
     function isExcluded(element) {
-
-        if (
-            !element ||
-            element.nodeType !== 1
-        ) {
-            return true;
-        }
-
-
-        return !!element.closest(
-            TOOLBAR_SELECTOR
-        );
-
+        if (!element || element.nodeType !== 1) return true;
+        return !!element.closest(TOOLBAR_SELECTOR);
     }
-
-
-    /* ============================================================
-       HELPER: CHECK IF CODE IS VALID (PREDEFINED OR HEX)
-    ============================================================ */
 
     function getFormatObject(code) {
         if (!code) return null;
 
-        // যদি আগে থেকেই predefined লিস্টে থাকে
         if (FORMAT_CODES[code]) {
             return FORMAT_CODES[code];
         }
 
-        // হেক্সা কোড চেক (যেমন: #FFFFFF, #FF5733 বা ছোট কোড #FFF)
         const hexMatch = code.match(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/);
         if (hexMatch) {
-            return {
-                color: code
-            };
+            return { color: code };
         }
 
         return null;
     }
 
-
-    /* ============================================================
-       CODE LIST (SORTED BY LENGTH)
-    ============================================================ */
-
-    const SORTED_CODES =
-        Object.keys(FORMAT_CODES)
-            .sort(function (a, b) {
-
-                return b.length - a.length;
-
-            });
-
-
-    /* ============================================================
-       FIND CODES
-    ============================================================ */
+    const SORTED_CODES = Object.keys(FORMAT_CODES)
+        .sort(function (a, b) {
+            return b.length - a.length;
+        });
 
     function getCodes(text) {
-
-        if (!text) {
-            return [];
-        }
-
+        if (!text) return [];
 
         const result = [];
 
-
-        SORTED_CODES.forEach(
-            function (code) {
-
-                if (
-                    text.indexOf(code) !== -1
-                ) {
-
-                    result.push(code);
-
-                }
-
+        SORTED_CODES.forEach(function (code) {
+            if (text.indexOf(code) !== -1) {
+                result.push(code);
             }
-        );
+        });
 
-
-        return result;
-
-    }
-
-
-    /* ============================================================
-       CLEAN CODES
-    ============================================================ */
-
-    function cleanText(text) {
-
-        if (!text) {
-            return "";
+        /*
+         * Dynamic HEX codes are intentionally collected separately.
+         * This prevents a hex value such as #FF5733 from being left behind.
+         */
+        const hexCodes = text.match(/#[0-9a-fA-F]{3}(?![0-9a-fA-F])|#[0-9a-fA-F]{6}(?![0-9a-fA-F])/g);
+        if (hexCodes) {
+            hexCodes.forEach(function (code) {
+                if (result.indexOf(code) === -1) result.push(code);
+            });
         }
 
+        return result;
+    }
+
+    function cleanText(text) {
+        if (!text) return "";
 
         let result = text;
 
+        SORTED_CODES.forEach(function (code) {
+            result = result.split(code).join("");
+        });
 
-        SORTED_CODES.forEach(
-            function (code) {
+        result = result.replace(/#[0-9a-fA-F]{3}(?![0-9a-fA-F])/g, "");
+        result = result.replace(/#[0-9a-fA-F]{6}(?![0-9a-fA-F])/g, "");
 
-                result =
-                    result.split(code).join("");
-
-            }
+        result = result.replace(
+            /\[\s*(#[a-zA-Z0-9_]+)\s*\]([\s\S]*?)\[\s*\/\s*(#[a-zA-Z0-9_]+)\s*\]/g,
+            "$2"
         );
 
+        result = result.replace(/\[\s*\/?\s*\]/g, "");
 
         return result;
-
     }
 
-
-    /* ============================================================
-       APPLY NORMAL STYLES
-    ============================================================ */
-
     function applyFormatStyle(element, format) {
-
         let gradientClass = null;
 
         if (format.gradientClass) {
             gradientClass = format.gradientClass;
         }
 
-        Object.keys(format).forEach(property => {
-
-            if (property === "gradientClass") {
-                return;
-            }
+        Object.keys(format).forEach(function (property) {
+            if (property === "gradientClass") return;
 
             element.style.setProperty(
                 property,
                 format[property],
                 "important"
             );
-
         });
 
         if (gradientClass) {
             element.classList.add(gradientClass);
         }
 
-        element.classList.add(
-            "firebase-formatted-text"
-        );
-
-        element.setAttribute(
-            "data-firebase-formatted",
-            "true"
-        );
+        element.classList.add("firebase-formatted-text");
+        element.setAttribute("data-firebase-formatted", "true");
     }
 
-
-    /* ============================================================
-       FORMAT TEXT NODE (UPDATED WITH HEX SUPPORT)
-    ============================================================ */
-
     function formatTextNode(textNode) {
-
-        if (!textNode ||
-            textNode.nodeType !== Node.TEXT_NODE) {
-            return;
-        }
+        if (!textNode || textNode.nodeType !== Node.TEXT_NODE) return;
 
         const parent = textNode.parentElement;
 
-        if (!parent ||
+        if (
+            !parent ||
             parent.closest(".firebase-formatted-text") ||
-            isExcluded(parent)) {
+            isExcluded(parent)
+        ) {
             return;
         }
 
         const originalText = textNode.nodeValue;
-
-        /* ========================================================
-           UPDATED REGEX TO SUPPORT PREDEFINED & HEX CODES
-           যেমন: [#red]Text[/#red] অথবা [#FFFFFF]Text[/#FFFFFF]
-           ======================================================== */
+        if (!originalText) return;
 
         const partialFormatRegex =
             /\[(#[a-zA-Z0-9_]+)\]([\s\S]*?)\[\/\1\]/g;
 
         if (partialFormatRegex.test(originalText)) {
-
             partialFormatRegex.lastIndex = 0;
 
             const fragment = document.createDocumentFragment();
-
             let lastIndex = 0;
             let match;
 
-            while (
-                (match = partialFormatRegex.exec(originalText))
-            ) {
-
+            while ((match = partialFormatRegex.exec(originalText))) {
                 if (match.index > lastIndex) {
-
                     fragment.appendChild(
                         document.createTextNode(
-                            originalText.substring(
-                                lastIndex,
-                                match.index
-                            )
+                            originalText.substring(lastIndex, match.index)
                         )
                     );
-
                 }
 
                 const code = match[1];
                 const content = match[2];
-
                 const format = getFormatObject(code);
 
                 if (format) {
-
-                    const span =
-                        document.createElement("span");
-
-                    span.className =
-                        "firebase-formatted-text";
-
+                    const span = document.createElement("span");
+                    span.className = "firebase-formatted-text";
                     span.textContent = content;
 
-                    applyFormatStyle(
-                        span,
-                        format
-                    );
-
+                    applyFormatStyle(span, format);
                     fragment.appendChild(span);
-
                 } else {
-
                     fragment.appendChild(
-                        document.createTextNode(
-                            match[0]
-                        )
+                        document.createTextNode(match[0])
                     );
-
                 }
 
-                lastIndex =
-                    partialFormatRegex.lastIndex;
+                lastIndex = partialFormatRegex.lastIndex;
             }
 
             if (lastIndex < originalText.length) {
-
                 fragment.appendChild(
                     document.createTextNode(
                         originalText.substring(lastIndex)
                     )
                 );
-
             }
 
-            textNode.parentNode.replaceChild(
-                fragment,
-                textNode
-            );
-
+            textNode.parentNode.replaceChild(fragment, textNode);
             return;
         }
 
+        const codes = getCodes(originalText);
 
-        /* ========================================================
-           OLD FORMAT SYSTEM FALLBACK
-           ======================================================== */
+        if (codes.length === 0) return;
 
-        if (!originalText) {
+        const cleaned = cleanText(originalText);
+
+        if (!cleaned.trim()) {
+            textNode.nodeValue = "";
             return;
         }
 
-        const codes =
-            getCodes(originalText);
+        const span = document.createElement("span");
+        span.className = "firebase-formatted-text";
+        span.textContent = cleaned;
 
-        if (
-            codes.length === 0
-        ) {
-            return;
-        }
-
-        const cleaned =
-            cleanText(originalText);
-
-        if (
-            !cleaned.trim()
-        ) {
-
-            textNode.nodeValue =
-                "";
-
-            return;
-
-        }
-
-        const span =
-            document.createElement(
-                "span"
-            );
-
-        span.className =
-            "firebase-formatted-text";
-
-        span.textContent =
-            cleaned;
-
-        codes.forEach(code => {
+        codes.forEach(function (code) {
             const format = getFormatObject(code);
             if (format) {
                 applyFormatStyle(span, format);
             }
         });
 
-        textNode.parentNode.replaceChild(
-            span,
-            textNode
-        );
-
+        textNode.parentNode.replaceChild(span, textNode);
     }
 
-
-    /* ============================================================
-       FORMAT ELEMENT
-    ============================================================ */
-
     function formatElement(element) {
-
-        if (
-            !element ||
-            element.nodeType !== 1
-        ) {
-            return;
-        }
-
-
-        if (
-            isExcluded(element)
-        ) {
-            return;
-        }
-
+        if (!element || element.nodeType !== 1) return;
+        if (isExcluded(element)) return;
 
         if (
             element.classList &&
-            element.classList.contains(
-                "firebase-formatted-text"
-            )
+            element.classList.contains("firebase-formatted-text")
         ) {
             return;
         }
 
+        const walker = document.createTreeWalker(
+            element,
+            NodeFilter.SHOW_TEXT,
+            {
+                acceptNode: function (node) {
+                    if (!node.nodeValue || !node.nodeValue.trim()) {
+                        return NodeFilter.FILTER_REJECT;
+                    }
 
-        const walker =
-            document.createTreeWalker(
-                element,
-                NodeFilter.SHOW_TEXT,
-                {
-
-                    acceptNode:
-                        function (node) {
-
-                            if (
-                                !node.nodeValue ||
-                                !node.nodeValue.trim()
-                            ) {
-                                return NodeFilter.FILTER_REJECT;
-                            }
-
-
-                            const parent =
-                                node.parentElement;
-
-
-                            if (!parent) {
-
-                                return NodeFilter.FILTER_REJECT;
-
-                            }
-
-
-                            if (
-                                parent.classList &&
-                                parent.classList.contains(
-                                    "firebase-formatted-text"
-                                )
-                            ) {
-                                return NodeFilter.FILTER_REJECT;
-                            }
-
-
-                            if (
-                                isExcluded(parent)
-                            ) {
-                                return NodeFilter.FILTER_REJECT;
-                            }
-
-
-                            const original = node.nodeValue;
-                            const hasPartial = /\[(#[a-zA-Z0-9_]+)\]([\s\S]*?)\[\/\1\]/.test(original);
-
-                            if (
-                                !hasPartial &&
-                                getCodes(
-                                    original
-                                ).length === 0
-                            ) {
-                                return NodeFilter.FILTER_REJECT;
-                            }
-
-
-                            return NodeFilter.FILTER_ACCEPT;
-
-                        }
-
-                }
-            );
-
-
-        const nodes = [];
-
-
-        let node;
-
-
-        while (
-            (node = walker.nextNode())
-        ) {
-
-            nodes.push(node);
-
-        }
-
-
-        nodes.forEach(
-            function (textNode) {
-
-                formatTextNode(
-                    textNode
-                );
-
-            }
-        );
-
-    }
-
-
-    /* ============================================================
-       REMOVE OLD FORMATTER STYLES
-    ============================================================ */
-
-    function removeOldFormatterStyles() {
-
-        document
-            .querySelectorAll(
-                "[data-firebase-formatted='true']"
-            )
-            .forEach(
-                function (element) {
+                    const parent = node.parentElement;
+                    if (!parent) return NodeFilter.FILTER_REJECT;
 
                     if (
-                        element.classList &&
-                        element.classList.contains(
+                        parent.classList &&
+                        parent.classList.contains(
                             "firebase-formatted-text"
                         )
                     ) {
-                        return;
+                        return NodeFilter.FILTER_REJECT;
                     }
 
+                    if (isExcluded(parent)) {
+                        return NodeFilter.FILTER_REJECT;
+                    }
 
-                    const properties = [
+                    const original = node.nodeValue;
 
-                        "color",
-                        "background",
-                        "background-image",
-                        "background-size",
-                        "background-clip",
-                        "-webkit-background-clip",
-                        "-webkit-text-fill-color",
-                        "animation",
-                        "font-weight",
-                        "font-style",
-                        "text-decoration",
-                        "text-decoration-color",
-                        "text-decoration-thickness",
-                        "background-color",
-                        "padding",
-                        "border-radius",
-                        "text-shadow"
-
-                    ];
-
-
-                    properties.forEach(
-                        function (property) {
-
-                            element.style.removeProperty(
-                                property
-                            );
-
-                        }
-                    );
-
-
-                    element.removeAttribute(
-                        "data-firebase-formatted"
-                    );
-
-                }
-            );
-
-    }
-
-
-    /* ============================================================
-       TOOLBAR CLEANUP
-    ============================================================ */
-
-    function cleanToolbarCodes() {
-
-        const containers =
-            document.querySelectorAll(
-                TOOLBAR_SELECTOR
-            );
-
-
-        if (!containers.length) {
-            return;
-        }
-
-
-        containers.forEach(
-            function (container) {
-
-                const walker =
-                    document.createTreeWalker(
-                        container,
-                        NodeFilter.SHOW_TEXT
-                    );
-
-
-                const nodes = [];
-
-
-                let node;
-
-
-                while (
-                    (node = walker.nextNode())
-                ) {
-
-                    nodes.push(node);
-
-                }
-
-
-                nodes.forEach(
-                    function (textNode) {
-
-                        const original =
-                            textNode.nodeValue;
-
-
-                        let cleaned =
-                            cleanText(
-                                original
-                            );
-
-                        cleaned = cleaned.replace(/\[\s*(#[a-zA-Z0-9_]+)?\s*\]([\s\S]*?)\[\s*\/\s*(#[a-zA-Z0-9_]+)?\s*\]/g, '$2');
-                        cleaned = cleaned.replace(/\[\s*\/?\s*\]/g, '');
-
-
-                        if (
-                            cleaned !==
+                    const hasPartial =
+                        /\[(#[a-zA-Z0-9_]+)\]([\s\S]*?)\[\/\1\]/.test(
                             original
-                        ) {
+                        );
 
-                            textNode.nodeValue =
-                                cleaned;
-
-                        }
-
+                    if (
+                        !hasPartial &&
+                        getCodes(original).length === 0
+                    ) {
+                        return NodeFilter.FILTER_REJECT;
                     }
-                );
 
-
-                container.classList.add(
-                    "firebase-toolbar-clean-ready"
-                );
-
+                    return NodeFilter.FILTER_ACCEPT;
+                }
             }
         );
 
-    }
+        const nodes = [];
+        let node;
 
-
-    /* ============================================================
-       APPLY
-    ============================================================ */
-
-    function applyFirebaseTextColors(
-        root
-    ) {
-
-        root =
-            root || document.body;
-
-
-        if (!root) {
-            return;
+        while ((node = walker.nextNode())) {
+            nodes.push(node);
         }
 
+        nodes.forEach(function (textNode) {
+            formatTextNode(textNode);
+        });
+    }
 
+    function removeOldFormatterStyles() {
+        document
+            .querySelectorAll("[data-firebase-formatted='true']")
+            .forEach(function (element) {
+                if (
+                    element.classList &&
+                    element.classList.contains(
+                        "firebase-formatted-text"
+                    )
+                ) {
+                    return;
+                }
+
+                const properties = [
+                    "color",
+                    "background",
+                    "background-image",
+                    "background-size",
+                    "background-clip",
+                    "-webkit-background-clip",
+                    "-webkit-text-fill-color",
+                    "animation",
+                    "font-weight",
+                    "font-style",
+                    "text-decoration",
+                    "text-decoration-color",
+                    "text-decoration-thickness",
+                    "background-color",
+                    "padding",
+                    "border-radius",
+                    "text-shadow"
+                ];
+
+                properties.forEach(function (property) {
+                    element.style.removeProperty(property);
+                });
+
+                element.removeAttribute("data-firebase-formatted");
+            });
+    }
+
+    /*
+     * TOOLBAR CLEANUP
+     *
+     * The key fix is here:
+     * We do NOT hide the toolbar anymore.
+     * We clean toolbar text immediately and synchronously.
+     * MutationObserver also handles Firebase/DOM-injected toolbar text.
+     */
+    function cleanToolbarCodes() {
+        const containers =
+            document.querySelectorAll(TOOLBAR_SELECTOR);
+
+        if (!containers.length) return;
+
+        containers.forEach(function (container) {
+            const walker = document.createTreeWalker(
+                container,
+                NodeFilter.SHOW_TEXT
+            );
+
+            const nodes = [];
+            let node;
+
+            while ((node = walker.nextNode())) {
+                nodes.push(node);
+            }
+
+            nodes.forEach(function (textNode) {
+                const original = textNode.nodeValue;
+                if (!original) return;
+
+                const cleaned = cleanText(original);
+
+                if (cleaned !== original) {
+                    textNode.nodeValue = cleaned;
+                }
+            });
+        });
+    }
+
+    function applyFirebaseTextColors(root) {
+        root = root || document.body;
+        if (!root) return;
+
+        /*
+         * Cleanup happens BEFORE formatting.
+         * This is especially important after Firebase inserts content.
+         */
         cleanToolbarCodes();
-
-
         addFormatterCSS();
 
-
         const selectors = [
-
             "h1",
             "h2",
             "h3",
@@ -1157,356 +691,224 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
             "li",
             "small",
             "em",
-
             "[data-category]",
             "[data-subcategory]",
             "[data-content]",
             "[data-profile]",
             "[data-data]",
             "[data-color-text]",
-
             "[class*='card']",
             "[class*='profile']",
             "[class*='category']",
             "[class*='subcategory']",
             "[class*='data']",
             "[class*='notice']"
-
         ];
-
 
         let elements = [];
 
-
         try {
-
             if (
                 root.matches &&
-                selectors.some(
-                    function (selector) {
-
-                        try {
-
-                            return root.matches(
-                                selector
-                            );
-
-                        } catch (e) {
-
-                            return false;
-
-                        }
-
+                selectors.some(function (selector) {
+                    try {
+                        return root.matches(selector);
+                    } catch (e) {
+                        return false;
                     }
-                )
+                })
             ) {
-
                 elements.push(root);
-
             }
 
-
-            elements =
-                elements.concat(
-                    Array.from(
-                        root.querySelectorAll(
-                            selectors.join(",")
-                        )
+            elements = elements.concat(
+                Array.from(
+                    root.querySelectorAll(
+                        selectors.join(",")
                     )
-                );
-
+                )
+            );
         } catch (error) {
-
             console.warn(
                 "Firebase formatter:",
                 error
             );
-
         }
 
+        elements = Array.from(new Set(elements));
 
-        elements =
-            Array.from(
-                new Set(elements)
-            );
-
-
-        elements.forEach(
-            function (element) {
-
-                if (
-                    !isExcluded(element)
-                ) {
-
-                    formatElement(
-                        element
-                    );
-
-                }
-
+        elements.forEach(function (element) {
+            if (!isExcluded(element)) {
+                formatElement(element);
             }
-        );
+        });
 
-
+        /*
+         * Final synchronous cleanup.
+         */
         cleanToolbarCodes();
-
     }
 
+    let observerTimer = null;
+    let observerStarted = false;
+    let observerRunning = false;
 
-    /* ============================================================
-       MUTATION OBSERVER
-    ============================================================ */
+    const observer = new MutationObserver(function (mutations) {
+        let shouldRun = false;
 
-    let observerTimer =
-        null;
+        for (let i = 0; i < mutations.length; i++) {
+            const mutation = mutations[i];
 
-    let observerStarted =
-        false;
-
-    let observerRunning =
-        false;
-
-
-    const observer =
-        new MutationObserver(
-            function (mutations) {
-
-                let shouldRun =
-                    false;
-
-
-                for (
-                    let i = 0;
-                    i < mutations.length;
-                    i++
-                ) {
-
-                    const mutation =
-                        mutations[i];
-
-
-                    if (
-                        mutation.type ===
-                        "childList" &&
-                        mutation.addedNodes.length
-                    ) {
-
-                        shouldRun =
-                            true;
-
-                        break;
-
-                    }
-
-
-                    if (
-                        mutation.type ===
-                        "characterData"
-                    ) {
-
-                        shouldRun =
-                            true;
-
-                        break;
-
-                    }
-
-                }
-
-
-                if (
-                    !shouldRun
-                ) {
-                    return;
-                }
-
-
-                cleanToolbarCodes();
-
-
-                clearTimeout(
-                    observerTimer
-                );
-
-
-                observerTimer =
-                    setTimeout(
-                        function () {
-
-                            if (
-                                observerRunning
-                            ) {
-                                return;
-                            }
-
-
-                            observerRunning =
-                                true;
-
-
-                            try {
-
-                                applyFirebaseTextColors(
-                                    document.body
-                                );
-
-                            } finally {
-
-                                observerRunning =
-                                    false;
-
-                            }
-
-                        },
-                        0
-                    );
-
+            if (
+                mutation.type === "childList" &&
+                mutation.addedNodes.length
+            ) {
+                shouldRun = true;
+                break;
             }
-        );
 
+            if (mutation.type === "characterData") {
+                shouldRun = true;
+                break;
+            }
+        }
 
-    /* ============================================================
-       INITIALIZE
-    ============================================================ */
+        if (!shouldRun) return;
+
+        /*
+         * Synchronous cleanup first.
+         * Do not wait for setTimeout before removing toolbar codes.
+         */
+        cleanToolbarCodes();
+
+        clearTimeout(observerTimer);
+
+        observerTimer = setTimeout(function () {
+            if (observerRunning) return;
+
+            observerRunning = true;
+
+            try {
+                applyFirebaseTextColors(document.body);
+            } finally {
+                observerRunning = false;
+            }
+        }, 0);
+    });
 
     function initializeFormatter() {
-
         installEarlyToolbarProtection();
-
-
         addFormatterCSS();
 
-
         cleanToolbarCodes();
-
-
         removeOldFormatterStyles();
 
-
-        applyFirebaseTextColors(
-            document.body
-        );
-
-
+        applyFirebaseTextColors(document.body);
         cleanToolbarCodes();
 
+        if (!observerStarted && document.body) {
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true,
+                characterData: true
+            });
 
-        if (
-            !observerStarted &&
-            document.body
-        ) {
-
-            observer.observe(
-                document.body,
-                {
-                    childList: true,
-                    subtree: true,
-                    characterData: true
-                }
-            );
-
-
-            observerStarted =
-                true;
-
+            observerStarted = true;
         }
-
     }
 
-
-    /* ============================================================
-       EARLY EXECUTION
-    ============================================================ */
-
+    /*
+     * EARLY EXECUTION
+     */
     installEarlyToolbarProtection();
 
-
-    if (
-        document.body
-    ) {
-
+    if (document.body) {
         cleanToolbarCodes();
-
         addFormatterCSS();
-
-        applyFirebaseTextColors(
-            document.body
-        );
-
+        applyFirebaseTextColors(document.body);
         cleanToolbarCodes();
-
     }
 
-
-    /* ============================================================
-       PAGE LOAD
-    ============================================================ */
-
-    if (
-        document.readyState ===
-        "loading"
-    ) {
-
+    /*
+     * PAGE LOAD
+     */
+    if (document.readyState === "loading") {
         document.addEventListener(
             "DOMContentLoaded",
             initializeFormatter,
-            {
-                once: true
-            }
+            { once: true }
         );
-
     } else {
-
         initializeFormatter();
-
     }
 
-
-    /* ============================================================
-       PUBLIC API
-    ============================================================ */
-
+    /*
+     * PUBLIC API
+     */
     window.applyFirebaseTextColors =
         applyFirebaseTextColors;
 
-
     window.firebaseTextFormatter = {
+        apply: applyFirebaseTextColors,
 
-        apply:
-            applyFirebaseTextColors,
+        clean: function (text) {
+            if (!text) return "";
 
-        clean:
-            function(text) {
-                if (!text) return "";
-                let cleaned = cleanText(text);
-                cleaned = cleaned.replace(/\[\s*(#[a-zA-Z0-9_]+)?\s*\]([\s\S]*?)\[\s*\/\s*(#[a-zA-Z0-9_]+)?\s*\]/g, '$2');
-                cleaned = cleaned.replace(/\[\s*\/?\s*\]/g, '');
-                return cleaned;
-            },
+            return cleanText(text);
+        },
 
-        codes:
-            FORMAT_CODES
-
+        codes: FORMAT_CODES
     };
 
+    /*
+     * AUTO-INTERCEPTION FOR COPYING & SHARING
+     */
+    if (
+        navigator.clipboard &&
+        navigator.clipboard.writeText
+    ) {
+        const originalWriteText =
+            navigator.clipboard.writeText.bind(
+                navigator.clipboard
+            );
 
-    /* ============================================================
-       AUTO-INTERCEPTION FOR SHARING & COPYING
-    ============================================================ */
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        const originalWriteText = navigator.clipboard.writeText.bind(navigator.clipboard);
         navigator.clipboard.writeText = function (text) {
-            return originalWriteText(window.firebaseTextFormatter.clean(text));
+            return originalWriteText(
+                window.firebaseTextFormatter.clean(text)
+            );
         };
     }
 
     if (navigator.share) {
-        const originalShare = navigator.share.bind(navigator);
+        const originalShare =
+            navigator.share.bind(navigator);
+
         navigator.share = function (shareData) {
-            let modifiedData = { ...shareData };
-            if (modifiedData.text) modifiedData.text = window.firebaseTextFormatter.clean(modifiedData.text);
-            if (modifiedData.title) modifiedData.title = window.firebaseTextFormatter.clean(modifiedData.title);
-            if (modifiedData.url) modifiedData.url = window.firebaseTextFormatter.clean(modifiedData.url);
+            const modifiedData = {
+                ...shareData
+            };
+
+            if (modifiedData.text) {
+                modifiedData.text =
+                    window.firebaseTextFormatter.clean(
+                        modifiedData.text
+                    );
+            }
+
+            if (modifiedData.title) {
+                modifiedData.title =
+                    window.firebaseTextFormatter.clean(
+                        modifiedData.title
+                    );
+            }
+
+            if (modifiedData.url) {
+                modifiedData.url =
+                    window.firebaseTextFormatter.clean(
+                        modifiedData.url
+                    );
+            }
+
             return originalShare(modifiedData);
         };
     }
