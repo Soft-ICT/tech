@@ -31,7 +31,6 @@ export function initDrawer() {
                         <span class="menu-ico">🔍</span> 
                         <span class="menu-text">Search All Unit & Number</span>
                     </li>
-                    <!-- অ্যাডমিন বা ইউজার সব অবস্থাতেই ড্রয়ারে ফেভারিট অপশন দৃশ্যমান থাকবে -->
                     <li data-action="favorite" id="drawerFavoriteItem">
                         <span class="menu-ico">❤️</span> 
                         <span class="menu-text">Favorite Number</span>
@@ -148,6 +147,7 @@ function handleDrawerAction(action) {
     switch (action) {
         case 'home':
             if (typeof showMainDashboardView === 'function') {
+                history.pushState({ page: "home" }, "");
                 showMainDashboardView();
             }
             break;
@@ -157,13 +157,7 @@ function handleDrawerAction(action) {
             break;
         case 'favorite':
             if (typeof renderFavoriteView === 'function') {
-                history.pushState({ page: "favorite" }, "");
-                renderFavoriteView();
-                
-                const menuIcon = document.getElementById('menuIcon');
-                const backIcon = document.getElementById('backIcon');
-                if (menuIcon) menuIcon.classList.add('hidden');
-                if (backIcon) backIcon.classList.remove('hidden');
+                renderFavoriteView(true);
             }
             break;
         case 'notice-box':
