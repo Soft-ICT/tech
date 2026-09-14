@@ -413,19 +413,13 @@ function setupEvents() {
         const searchBox = document.getElementById("searchBox");
         const isSearchOpen = searchBox && !searchBox.classList.contains("hidden");
 
-        // Search চালু থাকলে শুধু Search বন্ধ হবে।
-        // এই অবস্থায় কোনোভাবেই history.back() বা Drawer চালু হবে না।
         if (isSearchOpen) {
-            // Search খোলা অবস্থায় এই click অন্য কোনো listener-এ যেতে দেওয়া যাবে না।
-            // ফলে drawer.js একই click-এ Drawer খুলতে পারবে না।
             e.stopImmediatePropagation();
             e.preventDefault();
             closeHeaderSearch();
             return;
         }
 
-        // Category / Data / All Search page হলে Back কাজ করবে।
-        // Home অবস্থায় Drawer-এর কাজ drawer.js নিজেই করবে।
         if (currentCategoryId || currentDataId || isAllSearchActive) {
             history.back();
             return;
@@ -961,6 +955,82 @@ async function deleteHeader(id) {
     showToast("Header ডিলিট করা হয়েছে");
 }
 
+// -------------------------------------------------------------
+// ফেভারিট ম্যানেজমেন্ট সিস্টেম (নতুন যোগ করা অংশ)
+// -------------------------------------------------------------
+function getFavoriteIds() {
+    try {
+        const favs = localStorage.getItem("police_pb_favorites");
+        return favs ? JSON.parse(favs) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function toggleFavorite(dataId, event) {
+    if (event) event.stopPropagation();
+    let favs = getFavoriteIds();
+    const index = favs.indexOf(dataId);
+    
+    if (index > -1) {
+        favs.splice(index, 1);
+        showToast("ফেভারিট থেকে সরানো হয়েছে");
+    } else {
+        favs.push(dataId);
+        showToast("ফেভারিটে যোগ করা হয়েছে");
+    }
+    
+    localStorage.setItem("police_pb_favorites", JSON.stringify(favs));
+    if (typeof refreshCurrentView === 'function') refreshCurrentView();
+}
+
+function isFavorite(dataId) {
+    return getFavoriteIds().includes(dataId);
+}
+
+function renderFavoriteView() {
+    const appTitle = document.getElementById("appTitle");
+    if (appTitle) {
+        const titleText = appTitle.querySelector(".app-title-text") || appTitle;
+        titleText.textContent = "Favorite Numbers";
+    }
+
+    document.getElementById("verifiedBadge")?.classList.add("hidden");
+    document.getElementById("mainDashboardView")?.classList.remove("hidden");
+    document.getElementById("categoryDetailsView")?.classList.add("hidden");
+    document.getElementById("dataDetailsView")?.classList.add("hidden");
+    document.getElementById("allSearchContainer")?.classList.add("hidden");
+
+    const list = document.getElementById("categoryList");
+    const emptyState = document.getElementById("emptyState");
+    
+    if (list) list.innerHTML = "";
+    
+    const favIds = getFavoriteIds();
+    let favData = (database.data || []).filter(d => favIds.includes(d.id));
+
+    if (favData.length === 0) {
+        if (emptyState) {
+            emptyState.classList.remove("hidden");
+            emptyState.querySelector("h2").textContent = "কোনো ফেভারিট নাম্বার নেই";
+            emptyState.querySelector("p").textContent = "হার্ট আইকনে ক্লিক করে ফেভারিটে যুক্ত করুন।";
+        }
+        if (list) list.classList.add("hidden");
+        return;
+    }
+
+    if (emptyState) emptyState.classList.add("hidden");
+    if (list) {
+        list.classList.remove("hidden");
+        favData.forEach(item => {
+            list.appendChild(createDataCardElement(item));
+        });
+    }
+}
+
+window.renderFavoriteView = renderFavoriteView;
+// -------------------------------------------------------------
+
 function createDataCardElement(item) {
     const isAdmin = window.currentUserRole === "admin";
     const dataEl = document.createElement("div");
@@ -977,16 +1047,23 @@ function createDataCardElement(item) {
         : `<div class="data-card-avatar">👤</div>`;
 
     const pinIcon = item.pinned ? "📌" : "📍";
+    const favIcon = isFavorite(item.id) ? "❤️" : "🤍";
+
     const adminActions = isAdmin
         ? `
-            <div class="card-admin-actions" style="display:flex;gap:4px;">
+            <div class="card-admin-actions" style="display:flex;gap:4px; align-items:center;">
+                <button class="btn-fav-item custom-action-btn" title="ফেভারিট">${favIcon}</button>
                 <button class="btn-pin-data custom-action-btn" title="পিন">${pinIcon}</button>
                 <button class="btn-move-data custom-action-btn" title="মুভ">📦</button>
                 <button class="btn-edit-data custom-action-btn" title="এডিট">✏️</button>
                 <button class="btn-del-data custom-action-btn" style="color:#ef4444" title="ডিলিট">🗑️</button>
             </div>
         `
-        : "";
+        : `
+            <div class="card-admin-actions" style="display:flex;gap:4px; align-items:center;">
+                <button class="btn-fav-item custom-action-btn" title="ফেভারিট">${favIcon}</button>
+            </div>
+        `;
 
     const dataPinMark = (isAdmin && item.pinned) ? "📌" : "";
 
@@ -1003,10 +1080,15 @@ function createDataCardElement(item) {
 
     dataEl.addEventListener("click", () => openDataPage(item.id));
 
-    if (isAdmin) {
-        const actionGroup = dataEl.querySelector(".card-admin-actions");
-        if (actionGroup) actionGroup.addEventListener("click", e => e.stopPropagation());
+    const actionGroup = dataEl.querySelector(".card-admin-actions");
+    if (actionGroup) actionGroup.addEventListener("click", e => e.stopPropagation());
 
+    dataEl.querySelector(".btn-fav-item")?.addEventListener("click", e => {
+        e.stopPropagation();
+        toggleFavorite(item.id, e);
+    });
+
+    if (isAdmin) {
         dataEl.querySelector(".btn-pin-data")?.addEventListener("click", e => {
             e.stopPropagation();
             togglePinData(item.id);
@@ -1441,15 +1523,11 @@ function showDataPage(dataId) {
 
     updateAdminUI();
 
-    // অফলাইনে থাকলে Firebase request করা হবে না।
-    // Local cache-এর ডাটা দিয়েই সরাসরি details page দেখানো হবে।
     if (!navigator.onLine) {
         renderDataDetailsContent(item);
         return;
     }
 
-    // অনলাইন অবস্থাতেও Firebase response-এর জন্য অপেক্ষা না করে
-    // প্রথমে ডাটার details দেখানো হবে।
     renderDataDetailsContent(item);
 
     const devId = getDeviceId();
@@ -1460,11 +1538,9 @@ function showDataPage(dataId) {
             isDeviceVerified = true;
         }
 
-        // Verification status পাওয়ার পর UI প্রয়োজন হলে আপডেট হবে।
         renderDataDetailsContent(item);
 
     }).catch(() => {
-        // Firebase request ব্যর্থ হলেও local data দিয়ে details দেখাবে।
         renderDataDetailsContent(item);
     });
 }
@@ -1549,7 +1625,7 @@ function setupHoldToVerify(button) {
             clearHold();
             if (navigator.vibrate) navigator.vibrate(60);
             openModal("verifyModal");
-        }, 10000); // ১০ সেকেন্ড (১০,০০০ মিলিগ্রাম/মিলি সেকেন্ড)
+        }, 10000);
     };
 
     const clearHold = () => {
@@ -1568,7 +1644,6 @@ function setupHoldToVerify(button) {
     button.addEventListener("touchend", clearHold);
     button.addEventListener("touchcancel", clearHold);
 
-    // সাধারণ ক্লিক ইভেন্ট নিষ্ক্রিয় রাখা যাতে শুধু হোল্ড করলেই কাজ করে
     button.addEventListener("click", (e) => {
         e.preventDefault();
         showToast("⚠️ 'Get VIP' বাটনটি কমপক্ষে ১০ সেকেন্ড চেপে ধরে রাখুন!");
@@ -1711,80 +1786,3 @@ function showToast(msg) {
     toast.classList.add("show");
     setTimeout(() => toast.classList.remove("show"), 2500);
 }
-
-// ১. ফেভারিট আইডিগুলো লোড করা
-function getFavoriteIds() {
-    try {
-        const favs = localStorage.getItem("police_pb_favorites");
-        return favs ? JSON.parse(favs) : [];
-    } catch (e) {
-        return [];
-    }
-}
-
-// ২. ফেভারিট যোগ বা বাদ দেওয়া (টগল করা)
-function toggleFavorite(dataId, event) {
-    if (event) event.stopPropagation();
-    let favs = getFavoriteIds();
-    const index = favs.indexOf(dataId);
-    
-    if (index > -1) {
-        favs.splice(index, 1);
-        console.log("ফেভারিট থেকে সরানো হয়েছে");
-    } else {
-        favs.push(dataId);
-        console.log("ফেভারিটে যোগ করা হয়েছে");
-    }
-    
-    localStorage.setItem("police_pb_favorites", JSON.stringify(favs));
-    if (typeof refreshCurrentView === 'function') refreshCurrentView();
-}
-
-// ৩. চেক করা ফেভারিট আছে কি না
-function isFavorite(dataId) {
-    return getFavoriteIds().includes(dataId);
-}
-
-// ৪. ড্রয়ার বা মেনু থেকে ফেভারিট পেজ ওপেন করার ভিউ
-function renderFavoriteView() {
-    const appTitle = document.getElementById("appTitle");
-    if (appTitle) {
-        const titleText = appTitle.querySelector(".app-title-text") || appTitle;
-        titleText.textContent = "Favorite Numbers";
-    }
-
-    document.getElementById("verifiedBadge")?.classList.add("hidden");
-    document.getElementById("mainDashboardView")?.classList.remove("hidden");
-    document.getElementById("categoryDetailsView")?.classList.add("hidden");
-    document.getElementById("dataDetailsView")?.classList.add("hidden");
-    document.getElementById("allSearchContainer")?.classList.add("hidden");
-
-    const list = document.getElementById("categoryList");
-    const emptyState = document.getElementById("emptyState");
-    
-    if (list) list.innerHTML = "";
-    
-    const favIds = getFavoriteIds();
-    let favData = (database.data || []).filter(d => favIds.includes(d.id));
-
-    if (favData.length === 0) {
-        if (emptyState) {
-            emptyState.classList.remove("hidden");
-            emptyState.querySelector("h2").textContent = "কোনো ফেভারিট নাম্বার নেই";
-            emptyState.querySelector("p").textContent = "হার্ট আইকনে ক্লিক করে ফেভারিটে যুক্ত করুন।";
-        }
-        if (list) list.classList.add("hidden");
-        return;
-    }
-
-    if (emptyState) emptyState.classList.add("hidden");
-    if (list) {
-        list.classList.remove("hidden");
-        favData.forEach(item => {
-            list.appendChild(createDataCardElement(item));
-        });
-    }
-}
-
-// গ্লোবালি এক্সেস করার জন্য
-window.renderFavoriteView = renderFavoriteView;
