@@ -31,7 +31,7 @@ export function initDrawer() {
                         <span class="menu-ico">🔍</span> 
                         <span class="menu-text">Search All Unit & Number</span>
                     </li>
-                    <!-- ইউজার অ্যাপের জন্য ফেভারিট অপশন, অ্যাডমিন মোডে এটি হাইড থাকবে -->
+                    <!-- অ্যাডমিন বা ইউজার সব অবস্থাতেই ড্রয়ারে ফেভারিট অপশন দৃশ্যমান থাকবে -->
                     <li data-action="favorite" id="drawerFavoriteItem">
                         <span class="menu-ico">❤️</span> 
                         <span class="menu-text">Favorite Number</span>
@@ -90,26 +90,12 @@ export function initDrawer() {
 
     document.body.insertAdjacentHTML('beforeend', drawerHTML);
 
-    // অ্যাডমিন রোল অনুযায়ী ড্রয়ারের ফেভারিট অপশন হাইড/শো করার ব্যবস্থা
-    const drawerFavItem = document.getElementById('drawerFavoriteItem');
-    if (drawerFavItem) {
-        if (window.currentUserRole === "admin") {
-            drawerFavItem.style.display = "none";
-        } else {
-            drawerFavItem.style.display = "flex";
-        }
-    }
-
     const drawer = document.getElementById('appDrawer');
     const overlay = document.getElementById('appDrawerOverlay');
     const navToggleBtn = document.getElementById('navToggleBtn');
     const closeDrawerBtn = document.getElementById('closeDrawerBtn');
 
     function openDrawer() {
-        // ড্রয়ার ওপেন হওয়ার সময়ও রোল চেক করে আপডেট করে নেওয়া ভালো
-        if (drawerFavItem) {
-            drawerFavItem.style.display = (window.currentUserRole === "admin") ? "none" : "flex";
-        }
         drawer.classList.add('open');
         overlay.classList.add('show');
         document.body.style.overflow = 'hidden';
@@ -170,8 +156,7 @@ function handleDrawerAction(action) {
             if (allSearchBtn) allSearchBtn.click();
             break;
         case 'favorite':
-            // অ্যাডমিন না হলে ড্রয়ার থেকে ফেভারিট পেজে যেতে পারবে
-            if (window.currentUserRole !== "admin" && typeof renderFavoriteView === 'function') {
+            if (typeof renderFavoriteView === 'function') {
                 renderFavoriteView();
             }
             break;
