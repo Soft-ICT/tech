@@ -46,6 +46,7 @@ let editingItem = null;
 let movingDataId = null;
 let isAllSearchActive = false;
 let isSearchMode = false;
+let isFavoriteActive = false; // ফেভারিট ভিউ ট্র্যাক করার জন্য
 
 window.currentUserRole = "guest";
 let isDeviceVerified = false;
@@ -66,7 +67,7 @@ function checkDeviceVerificationStatus() {
     onValue(approvedRef, (snapshot) => {
         if (snapshot.exists() && snapshot.val().status === "approved") {
             isDeviceVerified = true;
-            if (!currentCategoryId && !currentDataId && !isAllSearchActive) {
+            if (!currentCategoryId && !currentDataId && !isAllSearchActive && !isFavoriteActive) {
                 document.getElementById("verifiedBadge")?.classList.remove("hidden");
             }
         } else {
@@ -115,7 +116,7 @@ watchAuth((user, role) => {
 });
 
 function isAllSupportOrSearchActive() {
-    return isAllSearchActive || currentCategoryId !== null || currentDataId !== null;
+    return isAllSearchActive || currentCategoryId !== null || currentDataId !== null || isFavoriteActive;
 }
 
 function updateAdminUI() {
@@ -135,7 +136,7 @@ function updateAdminUI() {
     const adminContainer = document.getElementById("adminActionContainer");
     if (adminContainer) {
         if (isAdmin && !isAllSupportOrSearchActive()) {
-            adminContainer.classList.remove("hidden");
+            adminContainer.classList.remove("flex"); // Changed to classList management
             adminContainer.style.display = "flex";
         } else {
             adminContainer.classList.add("hidden");
@@ -145,7 +146,7 @@ function updateAdminUI() {
 
     document.querySelectorAll(".admin-only").forEach(el => {
         if (isAdmin) {
-            if (el.id === "addCategoryBtn" && isAllSearchActive) {
+            if (el.id === "addCategoryBtn" && (isAllSearchActive || isFavoriteActive)) {
                 el.classList.add("hidden");
             } else {
                 el.classList.remove("hidden");
@@ -225,7 +226,7 @@ function closeHeaderSearch() {
         if (searchBtn) searchBtn.classList.remove("hidden");
         if (input) input.value = "";
         
-        if (!currentCategoryId && !currentDataId && !isAllSearchActive) {
+        if (!currentCategoryId && !currentDataId && !isAllSearchActive && !isFavoriteActive) {
             setNavState(false);
         }
         handleSearch();
@@ -237,16 +238,24 @@ function handlePopState(event) {
     const state = event.state;
 
     if (!state || state.page === "home") {
+        isFavoriteActive = false;
         closeAllSearchUI();
         showMainDashboardView(false);
     } else if (state.page === "allSearch") {
+        isFavoriteActive = false;
         if (!isAllSearchActive) {
             activateAllSearchUI();
         }
+    } else if (state.page === "favorite") {
+        isFavoriteActive = true;
+        closeAllSearchUI();
+        renderFavoriteView(false);
     } else if (state.page === "category") {
+        isFavoriteActive = false;
         closeAllSearchUI();
         showCategoryView(state.categoryId, false);
     } else if (state.page === "data") {
+        isFavoriteActive = false;
         closeAllSearchUI();
         showDataPage(state.dataId, false);
     }
@@ -419,7 +428,7 @@ function setupEvents() {
             return;
         }
 
-        if (currentCategoryId || currentDataId || isAllSearchActive) {
+        if (currentCategoryId || currentDataId || isAllSearchActive || isFavoriteActive) {
             history.back();
             return;
         }
@@ -655,6 +664,8 @@ function handleSearch() {
 
     if (isAllSearchActive) {
         renderAllSearch();
+    } else if (isFavoriteActive) {
+        renderFavoriteView(false);
     } else if (currentCategoryId) {
         renderCategoryDetails(searchVal);
     } else {
@@ -664,6 +675,7 @@ function handleSearch() {
 
 function activateAllSearchUI() {
     isAllSearchActive = true;
+    isFavoriteActive = false;
     const container = document.getElementById("allSearchContainer");
     const list = document.getElementById("categoryList");
     const emptyState = document.getElementById("emptyState");
@@ -987,7 +999,13 @@ function isFavorite(dataId) {
     return getFavoriteIds().includes(dataId);
 }
 
-function renderFavoriteView() {
+function renderFavoriteView(pushHistory = true) {
+    if (pushHistory) history.pushState({ page: "favorite" }, "");
+    isFavoriteActive = true;
+    currentCategoryId = null;
+    currentDataId = null;
+    isAllSearchActive = false;
+
     const appTitle = document.getElementById("appTitle");
     if (appTitle) {
         const titleText = appTitle.querySelector(".app-title-text") || appTitle;
@@ -995,6 +1013,11 @@ function renderFavoriteView() {
     }
 
     document.getElementById("verifiedBadge")?.classList.add("hidden");
+    setNavState(true);
+
+    const subToolbar = document.querySelector(".sub-toolbar") || document.getElementById("subToolbar") || document.getElementById("allSearchBtn");
+    if (subToolbar) subToolbar.classList.add("hidden");
+
     document.getElementById("mainDashboardView")?.classList.remove("hidden");
     document.getElementById("categoryDetailsView")?.classList.add("hidden");
     document.getElementById("dataDetailsView")?.classList.add("hidden");
@@ -1006,7 +1029,20 @@ function renderFavoriteView() {
     if (list) list.innerHTML = "";
     
     const favIds = getFavoriteIds();
+    const rawVal = document.getElementById("searchInput")?.value.trim();
+    const searchVal = rawVal ? rawVal.toLowerCase() : "";
+
     let favData = (database.data || []).filter(d => favIds.includes(d.id));
+
+    if (searchVal && searchVal !== "admin@jr") {
+        favData = favData.filter(d =>
+            (d.name && d.name.toLowerCase().includes(searchVal)) ||
+            (d.mobile && d.mobile.toLowerCase().includes(searchVal)) ||
+            (d.phone && d.phone.toLowerCase().includes(searchVal)) ||
+            (d.designation && d.designation.toLowerCase().includes(searchVal)) ||
+            (d.email && d.email.toLowerCase().includes(searchVal))
+        );
+    }
 
     if (favData.length === 0) {
         if (emptyState) {
@@ -1025,6 +1061,7 @@ function renderFavoriteView() {
             list.appendChild(createDataCardElement(item));
         });
     }
+    updateAdminUI();
 }
 
 window.renderFavoriteView = renderFavoriteView;
@@ -1048,7 +1085,6 @@ function createDataCardElement(item) {
     const pinIcon = item.pinned ? "📌" : "📍";
     const favIcon = isFavorite(item.id) ? "❤️" : "🤍";
 
-    // অ্যাডমিন মোডে ডাটা কার্ড হতে ফেভারিট আইকন হাইড থাকবে, ইউজার অ্যাপে প্রদর্শিত হবে
     const favButtonHtml = !isAdmin ? `<button class="btn-fav-item custom-action-btn" title="ফেভারিট">${favIcon}</button>` : "";
 
     const adminActions = isAdmin
@@ -1277,6 +1313,7 @@ function showCategoryView(id) {
 
     currentCategoryId = id;
     currentDataId = null;
+    isFavoriteActive = false;
 
     const appTitle = document.getElementById("appTitle");
     if (appTitle) {
@@ -1304,6 +1341,7 @@ function showCategoryView(id) {
 function showMainDashboardView() {
     currentCategoryId = null;
     currentDataId = null;
+    isFavoriteActive = false;
 
     const appTitle = document.getElementById("appTitle");
     if (appTitle) {
@@ -1339,6 +1377,8 @@ function refreshCurrentView() {
         showCategoryView(currentCategoryId);
     } else if (isAllSearchActive) {
         renderAllSearch();
+    } else if (isFavoriteActive) {
+        renderFavoriteView(false);
     } else {
         showMainDashboardView(false);
     }
@@ -1515,6 +1555,7 @@ function showDataPage(dataId) {
     if (!item) return;
 
     currentDataId = dataId;
+    isFavoriteActive = false;
     document.getElementById("verifiedBadge")?.classList.add("hidden");
     setNavState(true);
 
