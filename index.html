@@ -13,6 +13,17 @@
 
     <title>Police Phonebook</title>
 
+    <!-- কন্টেন্ট পুরোপুরি ফরম্যাট হওয়ার আগে কোড ফ্লিক হওয়া রোধ করতে -->
+    <style>
+        body:not(.firebase-formatted-ready) {
+            opacity: 0;
+            transition: opacity 0.2s ease-in;
+        }
+        body.firebase-formatted-ready {
+            opacity: 1;
+        }
+    </style>
+
     <link rel="manifest" href="manifest.json?v=1.1">
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -1948,6 +1959,10 @@
             passwordGate.classList.remove("show");
             document.body.classList.remove("app-locked");
             appContainer.classList.add("app-unlocked");
+            
+            // ফরম্যাটিং সম্পন্ন হওয়ার সিগন্যাল দিতে ক্লাস যুক্ত করা হলো যাতে কোড ফ্লিক না করে
+            document.body.classList.add("firebase-formatted-ready");
+
             passwordInput.value = "";
             passwordError.textContent = "";
         }
@@ -1989,7 +2004,6 @@
             passwordButton.textContent = "যাচাই হচ্ছে...";
 
             try {
-                // সরাসরি আপনার প্রজেক্টের firebase.js এর db থেকে ডাটা আনছে
                 const passwordRef = ref(db, 'webapp/admin/password');
                 const snapshot = await get(passwordRef);
 
@@ -2047,9 +2061,6 @@
         initDrawer();
     });
 </script>
-
-    <script src="js/color-formatter.js"></script>
-    
     
 
 </body>
