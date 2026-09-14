@@ -1,7 +1,6 @@
 // js/drawer.js
 
 export function initDrawer() {
-    // ড্রয়ারের আল্ট্রা-মডার্ন এইচটিএমএল স্ট্রাকচার
     const drawerHTML = `
         <div id="appDrawerOverlay" class="drawer-overlay"></div>
         <nav id="appDrawer" class="app-drawer">
@@ -32,7 +31,8 @@ export function initDrawer() {
                         <span class="menu-ico">🔍</span> 
                         <span class="menu-text">Search All Unit & Number</span>
                     </li>
-                    <li data-action="favorite">
+                    <!-- ইউজার অ্যাপের জন্য ফেভারিট অপশন, অ্যাডমিন মোডে এটি হাইড থাকবে -->
+                    <li data-action="favorite" id="drawerFavoriteItem">
                         <span class="menu-ico">❤️</span> 
                         <span class="menu-text">Favorite Number</span>
                     </li>
@@ -83,7 +83,6 @@ export function initDrawer() {
         </nav>
     `;
 
-    // যদি আগে কোনো ড্রয়ার থেকে থাকে তবে তা রিমूव করে নতুনটি যুক্ত করা
     const existingDrawer = document.getElementById('appDrawer');
     const existingOverlay = document.getElementById('appDrawerOverlay');
     if (existingDrawer) existingDrawer.remove();
@@ -91,12 +90,26 @@ export function initDrawer() {
 
     document.body.insertAdjacentHTML('beforeend', drawerHTML);
 
+    // অ্যাডমিন রোল অনুযায়ী ড্রয়ারের ফেভারিট অপশন হাইড/শো করার ব্যবস্থা
+    const drawerFavItem = document.getElementById('drawerFavoriteItem');
+    if (drawerFavItem) {
+        if (window.currentUserRole === "admin") {
+            drawerFavItem.style.display = "none";
+        } else {
+            drawerFavItem.style.display = "flex";
+        }
+    }
+
     const drawer = document.getElementById('appDrawer');
     const overlay = document.getElementById('appDrawerOverlay');
     const navToggleBtn = document.getElementById('navToggleBtn');
     const closeDrawerBtn = document.getElementById('closeDrawerBtn');
 
     function openDrawer() {
+        // ড্রয়ার ওপেন হওয়ার সময়ও রোল চেক করে আপডেট করে নেওয়া ভালো
+        if (drawerFavItem) {
+            drawerFavItem.style.display = (window.currentUserRole === "admin") ? "none" : "flex";
+        }
         drawer.classList.add('open');
         overlay.classList.add('show');
         document.body.style.overflow = 'hidden';
@@ -112,25 +125,14 @@ export function initDrawer() {
         navToggleBtn.addEventListener('click', (e) => {
             e.stopPropagation();
 
-            // Back icon / Search / Sub-page অবস্থায় Drawer কখনো খুলবে না।
-            // শুধু তিন লাইনের Menu icon দৃশ্যমান থাকলেই Drawer খুলবে।
             const menuIcon = document.getElementById('menuIcon');
             const backIcon = document.getElementById('backIcon');
             const searchBox = document.getElementById('searchBox');
 
-            const isMenuVisible =
-                menuIcon &&
-                !menuIcon.classList.contains('hidden');
+            const isMenuVisible = menuIcon && !menuIcon.classList.contains('hidden');
+            const isBackVisible = backIcon && !backIcon.classList.contains('hidden');
+            const isSearchOpen = searchBox && !searchBox.classList.contains('hidden');
 
-            const isBackVisible =
-                backIcon &&
-                !backIcon.classList.contains('hidden');
-
-            const isSearchOpen =
-                searchBox &&
-                !searchBox.classList.contains('hidden');
-
-            // Search চালু বা Back icon দৃশ্যমান থাকলে Drawer স্পর্শ করবে না।
             if (isSearchOpen || isBackVisible || !isMenuVisible) {
                 return;
             }
@@ -159,11 +161,19 @@ export function initDrawer() {
 function handleDrawerAction(action) {
     switch (action) {
         case 'home':
-            console.log('Home clicked');
+            if (typeof showMainDashboardView === 'function') {
+                showMainDashboardView();
+            }
             break;
         case 'search':
             const allSearchBtn = document.getElementById('allSearchBtn');
             if (allSearchBtn) allSearchBtn.click();
+            break;
+        case 'favorite':
+            // অ্যাডমিন না হলে ড্রয়ার থেকে ফেভারিট পেজে যেতে পারবে
+            if (window.currentUserRole !== "admin" && typeof renderFavoriteView === 'function') {
+                renderFavoriteView();
+            }
             break;
         case 'notice-box':
             console.log('Notice Box clicked');
