@@ -539,12 +539,10 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
     function getFormatObject(code) {
         if (!code) return null;
 
-        // যদি আগে থেকেই predefined লিস্টে থাকে
         if (FORMAT_CODES[code]) {
             return FORMAT_CODES[code];
         }
 
-        // হেক্সা কোড চেক (যেমন: #FFFFFF, #FF5733 বা ছোট কোড #FFF)
         const hexMatch = code.match(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/);
         if (hexMatch) {
             return {
@@ -693,11 +691,6 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
         }
 
         const originalText = textNode.nodeValue;
-
-        /* ========================================================
-           UPDATED REGEX TO SUPPORT PREDEFINED & HEX CODES
-           যেমন: [#red]Text[/#red] অথবা [#FFFFFF]Text[/#FFFFFF]
-           ======================================================== */
 
         const partialFormatRegex =
             /\[(#[a-zA-Z0-9_]+)\]([\s\S]*?)\[\/\1\]/g;
@@ -1254,7 +1247,7 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
 
 
     /* ============================================================
-       MUTATION OBSERVER
+       MUTATION OBSERVER (FIXED WITH DEBOUNCE DELAY)
     ============================================================ */
 
     let observerTimer =
@@ -1358,7 +1351,7 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
                             }
 
                         },
-                        0
+                        80 // ডেবাউন্স টাইম বাড়িয়ে ৮০ মিলি-সেকেন্ড করা হয়েছে, যাতে মিলি-সেকেন্ডে ফ্লিকারিং না করে
                     );
 
             }
