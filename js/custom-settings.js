@@ -11,37 +11,50 @@ function applyCustomSettings() {
     const contentFontSize = localStorage.getItem('app_content_font_size'); 
     const appLanguage = localStorage.getItem('app_language');
 
-    // ১. থিম কালার (টপবার, হেডার, ড্রয়ার হেডার এবং ডাটা হেডার বা ব্যানার একসাথে পরিবর্তন হবে)
+    // ১. থিম কালার (টপবার, হেডার, ড্রয়ার হেডার এবং মার্কিং করা ডাটা হেডার সহ সমস্ত ব্যানার)
     if (themeColor) {
         document.documentElement.style.setProperty('--primary-color', themeColor);
         
-        // টপবার এবং ড্রয়ার হেডার
-        const headersAndToolbars = document.querySelectorAll('.topbar, .drawer-header, .sub-toolbar');
-        headersAndToolbars.forEach(el => {
-            el.style.backgroundColor = themeColor;
+        // টপবার, ড্রয়ার হেডার, সাব-টুলবার
+        const toolbars = document.querySelectorAll('.topbar, .drawer-header, .sub-toolbar');
+        toolbars.forEach(el => {
+            el.style.setProperty('background-color', themeColor, 'important');
         });
 
-        // ক্যাটাগরি ডিটেইলস পেজের ডাটা হেডার বা ব্যানার (.header-box এবং .header-banner)
-        const dataHeaders = document.querySelectorAll('.header-box, .header-banner');
-        dataHeaders.forEach(el => {
-            el.style.backgroundColor = themeColor;
-            el.style.color = "#ffffff"; // থিম কালার দিলে টেক্সট যাতে স্পষ্ট দেখা যায়
+        // মার্কিং করা ডাটা হেডার বা ব্যানার (.header-box, .header-banner ইত্যাদি)
+        const markedHeaders = document.querySelectorAll('.header-box, .header-banner, .header-banner span');
+        markedHeaders.forEach(el => {
+            el.style.setProperty('background-color', themeColor, 'important');
+            el.style.setProperty('color', '#ffffff', 'important'); // ব্যাকগ্রাউন্ড কালার গাঢ় হলে টেক্সট সাদা দেখাবে
         });
     }
 
     // ২. ব্যাকগ্রাউন্ড কালার
     if (bgColor) {
         document.body.style.backgroundColor = bgColor;
-        const mainDashboard = document.getElementById('mainDashboardView');
-        if (mainDashboard) mainDashboard.style.backgroundColor = bgColor;
+        const views = document.querySelectorAll('#mainDashboardView, #categoryDetailsView, #dataDetailsView, .all-search-container');
+        views.forEach(v => v.style.backgroundColor = bgColor);
     }
 
-    // ৩. টেক্সট কালার (সারা অ্যাপের মেইন টেক্সট এবং কার্ডের ভেতরের টেক্সট কালার ফোর্সিং)
+    // ৩. টেক্সট কালার (color-formatter.js এর কোড বাদে পুরো অ্যাপের সমস্ত টেক্সট কালার পরিবর্তন)
     if (textColor) {
         document.body.style.color = textColor;
-        const textElements = document.querySelectorAll('.data-card-name, .data-card-detail, .category-card h3, .subcategory-card h3, .info-value, .info-label');
-        textElements.forEach(el => {
-            el.style.color = textColor;
+
+        // সমস্ত টেক্সট কন্টেইনার এবং এলিমেন্টগুলোর কালার ফোর্সিং (যেগুলো কালার-ফরমেটার দ্বারা বিশেষভাবে রঙিন নয়)
+        const allTextElements = document.querySelectorAll(`
+            .category-card h3, .subcategory-card h3, 
+            .data-card-name, .data-card-detail, 
+            .details-info-box, .info-label, .info-value, 
+            .menu-text, .drawer-section-title, 
+            #appTitle, .topbar span, .topbar h2,
+            .header-banner span
+        `);
+
+        allTextElements.forEach(el => {
+            // যদি এলিমেন্টটিতে color-formatter বা কাস্টম স্টাইল না থাকে তবেই টেক্সট কালার বসবে
+            if (!el.hasAttribute('data-custom-colored')) {
+                el.style.setProperty('color', textColor, 'important');
+            }
         });
     }
 
@@ -67,18 +80,15 @@ function applyCustomSettings() {
     }
 }
 
-// ল্যাঙ্গুয়েজ চেঞ্জ করার কার্যকরী ফাংশন (বাংলা / ইংরেজি লেবেল পরিবর্তন)
+// ল্যাঙ্গুয়েজ চেঞ্জ করার কার্যকরী ফাংশন
 function applyLanguageTranslation(lang) {
-    // আপনি চাইলে এখানে স্ট্যাটিক লেবেল বা UI টেক্সট পরিবর্তন করতে পারেন
     if (lang === 'en') {
-        // ইংরেজির জন্য লেবেল পরিবর্তন লজিক
         document.querySelectorAll('.data-card-detail').forEach(el => {
             if (el.textContent.includes('মোবাইল:')) el.innerHTML = el.innerHTML.replace('মোবাইল:', 'Mobile:');
             if (el.textContent.includes('টেলিফোন:')) el.innerHTML = el.innerHTML.replace('টেলিফোন:', 'Phone:');
             if (el.textContent.includes('পদবী:')) el.innerHTML = el.innerHTML.replace('পদবী:', 'Designation:');
         });
     } else {
-        // বাংলার জন্য লেবেল পরিবর্তন লজিক
         document.querySelectorAll('.data-card-detail').forEach(el => {
             if (el.textContent.includes('Mobile:')) el.innerHTML = el.innerHTML.replace('Mobile:', 'মোবাইল:');
             if (el.textContent.includes('Phone:')) el.innerHTML = el.innerHTML.replace('Phone:', 'টেলিফোন:');
@@ -104,12 +114,9 @@ export function setupCustomSettingsListener() {
             localStorage.setItem('app_text_color', e.target.value);
             applyCustomSettings();
         }
-        // ল্যাঙ্গুয়েজ রেডিও বাটন বা সিলেক্ট হ্যান্ডেল করা
         if (e.target.name === 'appLang' || e.target.id === 'languageSelect') {
-            const langVal = e.target.value;
-            localStorage.setItem('app_language', langVal);
+            localStorage.setItem('app_language', e.target.value);
             applyCustomSettings();
-            // রেন্ডার রিফ্রেশ করার জন্য 
             if (typeof refreshCurrentView === 'function') {
                 refreshCurrentView();
             }
