@@ -50,13 +50,21 @@ function applyBackground() {
     document.body.style.setProperty("background-repeat", "no-repeat", "important");
     document.body.style.setProperty("background-attachment", "fixed", "important");
 
+    // ব্যাকগ্রাউন্ড ইমেজ থাকলে এই ক্লাসটি যুক্ত হবে, ফলে কার্ড ট্রান্সপারেন্ট হবে
+    document.body.classList.add("has-bg-image");
+
     if (color) {
       document.body.style.setProperty("background-color", color, "important");
     }
-  } else if (color) {
-    document.body.style.setProperty("background-color", color, "important");
+  } else {
+    // শুধু কালার থাকলে বা ছবি না থাকলে ক্লাসটি রিমুভ হয়ে যাবে, কার্ড সলিড থাকবে
+    document.body.classList.remove("has-bg-image");
     document.body.style.removeProperty("background-image");
-    document.body.style.setProperty("background-attachment", "fixed", "important");
+
+    if (color) {
+      document.body.style.setProperty("background-color", color, "important");
+      document.body.style.setProperty("background-attachment", "fixed", "important");
+    }
   }
 
   const dashboard = document.getElementById("mainDashboardView");
@@ -120,7 +128,6 @@ function createBackgroundImageUI() {
   box.style.gap = "8px";
   box.style.marginTop = "10px";
 
-  // Gallery Button (🖼️)
   const chooseButton = document.createElement("button");
   chooseButton.type = "button";
   chooseButton.id = "chooseBgImageBtn";
@@ -131,14 +138,12 @@ function createBackgroundImageUI() {
   chooseButton.style.fontSize = "20px";
   chooseButton.style.cursor = "pointer";
 
-  // Hidden File Input
   const input = document.createElement("input");
   input.type = "file";
   input.id = "bgImageInput";
   input.accept = "image/*";
   input.style.display = "none";
 
-  // Remove Button (🗑️)
   const removeButton = document.createElement("button");
   removeButton.type = "button";
   removeButton.id = "removeBgImageBtn";
