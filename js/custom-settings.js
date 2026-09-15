@@ -25,17 +25,16 @@ function updateGlobalStyles() {
                 background-color: ${themeColor} !important;
             }
             
-            /* ২. ডাটা হেডার বা ব্যানার: নিজস্ব বর্ডার-রেডিয়াস ও শেপ ঠিক রেখে শুধু কালার পরিবর্তন হবে */
+            /* ২. হেডারের অরিজিনাল ডিজাইন, বর্ডার-রেডিয়াস ও শেপ শতভাগ ঠিক রেখে শুধু ব্যাকগ্রাউন্ড ও টেক্সট কালার পরিবর্তন */
             .header-box, .header-banner {
                 background-color: ${themeColor} !important;
-                /* ফিক্সড উইডথ বা মার্জিন ওভাররাইড রিমুভ করা হলো যাতে অরিজিনাল ডিজাইন নষ্ট না হয় */
             }
             .header-box h2, .header-box h3, .header-banner span, .header-banner h2 {
                 color: #ffffff !important;
             }
         ` : ''}
 
-        /* ৩. মূল ব্যাকগ্রাউন্ড কালার */
+        /* ৩. মূল ব্যাকগ্রাউন্ড কালার (শুধু বডিতে এপ্লাই হবে, কার্ড বা হেডারে প্রভাব ফেলবে না) */
         ${bgColor ? `
             body {
                 background-color: ${bgColor} !important;
@@ -45,7 +44,7 @@ function updateGlobalStyles() {
             }
         ` : ''}
 
-        /* ৪. টেক্সট কালার (কার্ডের লেআউট ও ডিজাইন অক্ষুণ্ণ রেখে নির্দিষ্ট UI এলিমেন্টে) */
+        /* ৪. টেক্সট কালার (নির্দিষ্ট UI এলিমেন্টে, কার্ডের ডিজাইন নষ্ট না করে) */
         ${textColor ? `
             .category-card h3, .subcategory-card h3, 
             .menu-text, .drawer-section-title, 
