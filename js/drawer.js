@@ -142,11 +142,11 @@ export function initDrawer() {
         });
     });
 
-    // অ্যাপ লোড হওয়ার সাথে সাথে সেভ করা কালারগুলো এপ্লাই করা
+    // অ্যাপ লোড হওয়ার সাথে সাথে কালার স্টাইল এপ্লাই করা
     applySavedThemeStyles();
 }
 
-// গ্লোবাল স্টাইল এবং টেক্সট কালার একসাথে এপ্লাই করার ফাংশন
+// অ্যাপের গ্লোবাল টেক্সট কালার, ব্যাকগ্রাউন্ড ও স্প্ল্যাশ স্ক্রিন কালার একসাথে এপ্লাই করার ফাংশন
 function applySavedThemeStyles() {
     const bgColor = localStorage.getItem('app_bg_color');
     const textColor = localStorage.getItem('app_text_color');
@@ -154,17 +154,28 @@ function applySavedThemeStyles() {
 
     if (bgColor) {
         document.body.style.backgroundColor = bgColor;
+        const splashScreen = document.getElementById('splashScreen');
+        if (splashScreen) {
+            splashScreen.style.backgroundColor = bgColor;
+        }
     }
 
     if (textColor) {
-        // অ্যাপের সব হেডিং, প্যারাগ্রাফ এবং সাধারণ লেখার কালার একসাথে পরিবর্তন করবে
-        const allTextElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, label, li');
+        // ক্যাটাগরি, সাব-ক্যাটাগরি, ডাটা কার্ড, প্রোফাইল এবং স্প্ল্যাশ স্ক্রিনের সমস্ত টেক্সট একসাথে পরিবর্তন করা
+        const allTextElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, label, li, .card, .profile-name, .title');
         allTextElements.forEach(el => {
-            // ড্রয়ার বা মোডালের ভেতরের টেক্সট যাতে নষ্ট না হয়, তাই সেগুলোর বাইরে মেইন অ্যাপের টেক্সট টার্গেট করা
             if (!el.closest('#appDrawer') && !el.closest('#settingsModal') && !el.closest('#customDeleteModal')) {
                 el.style.color = textColor;
             }
         });
+        
+        const splashScreen = document.getElementById('splashScreen');
+        if (splashScreen) {
+            const splashTexts = splashScreen.querySelectorAll('*');
+            splashTexts.forEach(el => {
+                el.style.color = textColor;
+            });
+        }
     }
 
     if (themeColor) {
@@ -189,7 +200,7 @@ function showCustomDeleteModal(onConfirm) {
                 <h3 style="margin: 0 0 15px 0; font-size: 20px; font-weight: 700; color: #111;">নিশ্চিতকরণ</h3>
                 
                 <p style="margin: 0 0 25px 0; font-size: 15px; color: #444; line-height: 1.5;">
-                    আপনি কি নিশ্চিত সমস্ত ডাটা ও লগইন তথ্য মুছে ফেলতে চান?
+                    আপনি কি নিশ্চিত সমস্ত ডাটা ও লগইন তথ্য মুছে ফেলতে চান? (এর ফলে অ্যাপটি একদম প্রথম ইন্সটলের অবস্থার মতো হয়ে যাবে এবং পুনরায় পাসওয়ার্ড দিয়ে প্রবেশ করতে হবে।)
                 </p>
                 
                 <div style="display: flex; justify-content: flex-end; gap: 10px;">
@@ -286,26 +297,35 @@ function initSettingsModal() {
 
     const modal = document.getElementById('settingsModal');
 
-    // লাইভ ব্যাকগ্রাউন্ড কালার পরিবর্তন ও সেভ করা
+    // লাইভ ব্যাকগ্রাউন্ড কালার পরিবর্তন ও স্প্ল্যাশ স্ক্রিনে ইফেক্ট দেওয়া
     const bgColorInput = document.getElementById('bgColorInput');
     bgColorInput.addEventListener('input', (e) => {
         const selectedColor = e.target.value;
         localStorage.setItem('app_bg_color', selectedColor);
         document.body.style.backgroundColor = selectedColor;
+        const splashScreen = document.getElementById('splashScreen');
+        if (splashScreen) splashScreen.style.backgroundColor = selectedColor;
     });
 
-    // লাইভ টেক্সট কালার পরিবর্তন এবং একসাথে সব টেক্সটে এপ্লাই ও সেভ করা
+    // লাইভ টেক্সট কালার পরিবর্তন এবং সব ক্যাটাগরি, কার্ড ও প্রোফাইলের লেখায় একসাথে এপ্লাই করা
     const textColorInput = document.getElementById('textColorInput');
     textColorInput.addEventListener('input', (e) => {
         const selectedColor = e.target.value;
         localStorage.setItem('app_text_color', selectedColor);
         
-        const allTextElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, label, li');
+        const allTextElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, label, li, .card, .profile-name, .title');
         allTextElements.forEach(el => {
             if (!el.closest('#appDrawer') && !el.closest('#settingsModal') && !el.closest('#customDeleteModal')) {
                 el.style.color = selectedColor;
             }
         });
+
+        const splashScreen = document.getElementById('splashScreen');
+        if (splashScreen) {
+            splashScreen.querySelectorAll('*').forEach(el => {
+                el.style.color = selectedColor;
+            });
+        }
     });
 
     const themeColorInput = document.getElementById('themeColorInput');
@@ -361,6 +381,10 @@ function initSettingsModal() {
             window.location.reload();
         });
     });
+
+    if (typeof window.createBackgroundImageUI === 'function') {
+        window.createBackgroundImageUI();
+    }
 }
 
 function handleDrawerAction(action) {
