@@ -1860,3 +1860,41 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+
+
+
+
+
+// কুকি এবং লোকালস্টোরেজে ভাষা সেভ করার ফাংশন
+function setLanguage(lang) {
+    const value = `/bn/${lang}`;
+    document.cookie = `googtrans=${value};path=/;max-age=31536000`;
+    document.cookie = `googtrans=${value};domain=${document.domain};path=/;max-age=31536000`;
+    localStorage.setItem('selected_app_language', lang);
+}
+
+// রেডিও বাটনে ইভেন্ট লিসেনার
+document.addEventListener("change", function (e) {
+    if (e.target && e.target.name === "appLanguage") {
+        const selectedLang = e.target.value; // 'bn' অথবা 'en'
+        setLanguage(selectedLang);
+        location.reload();
+    }
+});
+
+// পেজ লোড হওয়ার পর ক্যাশ বা কুকি চেক করে স্বয়ংক্রিয়ভাবে ভাষা সেট করা
+window.addEventListener("DOMContentLoaded", () => {
+    const savedLang = localStorage.getItem('selected_app_language');
+    const matchCookie = document.cookie.match(/googtrans=\/bn\/([a-z]+)/);
+    
+    let currentLang = matchCookie ? matchCookie[1] : (savedLang || 'bn');
+    
+    if (savedLang && (!matchCookie || matchCookie[1] !== savedLang)) {
+        setLanguage(savedLang);
+    }
+
+    const radio = document.getElementById(currentLang === "en" ? "langEn" : "langBn");
+    if (radio) {
+        radio.checked = true;
+    }
+});
