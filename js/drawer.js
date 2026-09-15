@@ -142,15 +142,16 @@ export function initDrawer() {
         });
     });
 
-    // অ্যাপ লোড হওয়ার সাথে সাথে কালার স্টাইল এপ্লাই করা
+    // অ্যাপ লোড হওয়ার সাথে সাথে কালার পার্মানেন্টভাবে এপ্লাই করা
     applySavedThemeStyles();
 }
 
-// অ্যাপের গ্লোবাল টেক্সট কালার, ব্যাকগ্রাউন্ড ও স্প্ল্যাশ স্ক্রিন কালার একসাথে এপ্লাই করার ফাংশন
+// গ্লোবাল স্টাইল, স্প্ল্যাশ স্ক্রিন এবং টেক্সট কালার পার্মানেন্ট রাখার ফাংশন
 function applySavedThemeStyles() {
     const bgColor = localStorage.getItem('app_bg_color');
     const textColor = localStorage.getItem('app_text_color');
     const themeColor = localStorage.getItem('app_theme_color');
+    const bgImage = localStorage.getItem('app_bg_image');
 
     if (bgColor) {
         document.body.style.backgroundColor = bgColor;
@@ -160,22 +161,39 @@ function applySavedThemeStyles() {
         }
     }
 
-    if (textColor) {
-        // ক্যাটাগরি, সাব-ক্যাটাগরি, ডাটা কার্ড, প্রোফাইল এবং স্প্ল্যাশ স্ক্রিনের সমস্ত টেক্সট একসাথে পরিবর্তন করা
-        const allTextElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, label, li, .card, .profile-name, .title');
-        allTextElements.forEach(el => {
-            if (!el.closest('#appDrawer') && !el.closest('#settingsModal') && !el.closest('#customDeleteModal')) {
-                el.style.color = textColor;
-            }
-        });
-        
+    if (bgImage) {
+        document.body.style.backgroundImage = `url(${bgImage})`;
+        document.body.style.backgroundSize = 'cover';
+        document.body.style.backgroundPosition = 'center';
         const splashScreen = document.getElementById('splashScreen');
         if (splashScreen) {
-            const splashTexts = splashScreen.querySelectorAll('*');
-            splashTexts.forEach(el => {
-                el.style.color = textColor;
-            });
+            splashScreen.style.backgroundImage = `url(${bgImage})`;
+            splashScreen.style.backgroundSize = 'cover';
+            splashScreen.style.backgroundPosition = 'center';
         }
+    }
+
+    if (textColor) {
+        const applyTextColor = () => {
+            const allTextElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, label, li, .card, .profile-name, .title');
+            allTextElements.forEach(el => {
+                if (!el.closest('#appDrawer') && !el.closest('#settingsModal') && !el.closest('#customDeleteModal')) {
+                    el.style.color = textColor;
+                }
+            });
+            
+            const splashScreen = document.getElementById('splashScreen');
+            if (splashScreen) {
+                splashScreen.querySelectorAll('*').forEach(el => {
+                    el.style.color = textColor;
+                });
+            }
+        };
+
+        // সাথে সাথে এবং DOM পুরোপুরি লোড হওয়ার পরেও টেক্সট কালার নিশ্চিত করা যাতে রিসেট না হয়
+        applyTextColor();
+        setTimeout(applyTextColor, 100);
+        setTimeout(applyTextColor, 500);
     }
 
     if (themeColor) {
@@ -185,6 +203,11 @@ function applySavedThemeStyles() {
         });
     }
 }
+
+// অ্যাপ স্টার্ট হওয়ার সময় স্বয়ংক্রিয়ভাবে স্টাইল এপ্লাই করার জন্য গ্লোবাল কল
+document.addEventListener("DOMContentLoaded", () => {
+    applySavedThemeStyles();
+});
 
 // প্রথম ছবির স্টাইলে কাস্টম কনফার্মেশন মোডাল
 function showCustomDeleteModal(onConfirm) {
@@ -297,7 +320,7 @@ function initSettingsModal() {
 
     const modal = document.getElementById('settingsModal');
 
-    // লাইভ ব্যাকগ্রাউন্ড কালার পরিবর্তন ও স্প্ল্যাশ স্ক্রিনে ইফেক্ট দেওয়া
+    // লাইভ ব্যাকগ্রাউন্ড কালার এবং স্প্ল্যাশ স্ক্রিন সিঙ্ক
     const bgColorInput = document.getElementById('bgColorInput');
     bgColorInput.addEventListener('input', (e) => {
         const selectedColor = e.target.value;
@@ -307,7 +330,7 @@ function initSettingsModal() {
         if (splashScreen) splashScreen.style.backgroundColor = selectedColor;
     });
 
-    // লাইভ টেক্সট কালার পরিবর্তন এবং সব ক্যাটাগরি, কার্ড ও প্রোফাইলের লেখায় একসাথে এপ্লাই করা
+    // লাইভ টেক্সট কালার পরিবর্তন এবং স্প্ল্যাশ স্ক্রিনসহ সব জায়গায় এপ্লাই করা
     const textColorInput = document.getElementById('textColorInput');
     textColorInput.addEventListener('input', (e) => {
         const selectedColor = e.target.value;
