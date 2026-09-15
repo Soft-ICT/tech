@@ -216,7 +216,7 @@ function applySavedThemeStyles() {
 
 
     const splash =
-        document.getElementById("splashScreen");
+        document.getElementById("splash-screen");
 
     if (splash) {
         applyBackgroundToElement(
@@ -713,7 +713,7 @@ function initSettingsModal() {
 
 
     /* ============================================================
-       BACKGROUND COLOR (UPDATED WITH SPLASH SCREEN)
+       BACKGROUND COLOR
     ============================================================ */
 
     document.getElementById("bgColorInput")
@@ -726,16 +726,14 @@ function initSettingsModal() {
                 color
             );
 
-            // বডি এবং ব্যাকগ্রাউন্ড ইমেজ ঠিক রেখে ব্যাকগ্রাউন্ড কালার সেট করা
             applyBackgroundToElement(
                 document.body,
                 color,
                 localStorage.getItem("app_bg_image")
             );
 
-            // স্প্ল্যাশ স্ক্রিনেও ডায়নামিকালি ব্যাকগ্রাউন্ড কালার বা ইমেজ অ্যাপ্লাই করা
             const splash =
-                document.getElementById("splashScreen");
+                document.getElementById("splash-screen");
 
             if (splash) {
                 applyBackgroundToElement(
