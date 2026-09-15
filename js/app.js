@@ -1828,3 +1828,35 @@ function showToast(msg) {
     toast.classList.add("show");
     setTimeout(() => toast.classList.remove("show"), 2500);
 }
+
+// কুকি সেট করার ফাংশন (গুগল ট্রান্সলেট এই কুকি চেনে)
+function setLanguageCookie(lang) {
+  // গুগল ট্রান্সলেটের ফরম্যাট হলো /মূল_ভাষা/লক্ষ্য_ভাষা (যেমন: /bn/en অথবা /bn/bn)
+  const value = `/bn/${lang}`;
+  document.cookie = `googtrans=${value};path=/`;
+  document.cookie = `googtrans=${value};domain=${document.domain};path=/`;
+}
+
+// রেডিও বাটনে ইভেন্ট লিসেনার যুক্ত করা
+document.addEventListener("change", function (e) {
+  if (e.target && e.target.name === "appLanguage") {
+    const selectedLang = e.target.value; // 'bn' অথবা 'en'
+    
+    // কুকি আপডেট করা
+    setLanguageCookie(selectedLang);
+    
+    // পেজ রিলোড দিলে গুগল ট্রান্সলেট অটোমেটিক ভাষা পরিবর্তন করে নেবে
+    location.reload();
+  }
+});
+
+// পেজ লোড হওয়ার পর বর্তমান ভাষা অনুযায়ী রেডিও বাটন টিক মার্ক করা রাখার জন্য
+window.addEventListener("DOMContentLoaded", () => {
+  const matchCookie = document.cookie.match(/googtrans=\/bn\/([a-z]+)/);
+  if (matchCookie && matchCookie[1]) {
+    const currentLang = matchCookie[1];
+    const radio = document.getElementById(currentLang === "en" ? "langEn" : "langBn");
+    if (radio) radio.checked = true;
+  }
+});
+
