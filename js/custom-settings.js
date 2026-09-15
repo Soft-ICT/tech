@@ -48,7 +48,6 @@ function applyBackground() {
     document.body.style.setProperty("background-size", "cover", "important");
     document.body.style.setProperty("background-position", "center center", "important");
     document.body.style.setProperty("background-repeat", "no-repeat", "important");
-    // ইমেজ ফিক্সড থাকবে, স্ক্রল করলে নড়াচড়া বা উঠানামা করবে না
     document.body.style.setProperty("background-attachment", "fixed", "important");
 
     if (color) {
@@ -195,6 +194,7 @@ function saveBackgroundImage(file) {
       try {
         localStorage.setItem(CS_BG_IMAGE, data);
         applyBackground();
+        alert("ব্যাকগ্রাউন্ড ইমেজ সফলভাবে সেট করা হয়েছে!");
       } catch (error) {
         alert("ছবিটি সংরক্ষণ করা যায়নি। ছোট সাইজের ছবি দিন।");
       }
@@ -209,6 +209,7 @@ function removeBackgroundImage() {
   const input = document.getElementById("bgImageInput");
   if (input) input.value = "";
   applyBackground();
+  alert("ব্যাকগ্রাউন্ড ইমেজ রিমুভ করা হয়েছে!");
 }
 
 /* ============================================================
@@ -248,6 +249,7 @@ window.addEventListener("DOMContentLoaded", function () {
   setTimeout(createBackgroundImageUI, 500);
 });
 
+window.createBackgroundImageUI = createBackgroundImageUI;
 window.applyCustomSettings = applyCustomSettings;
 window.applyThemeColor = applyThemeColor;
 window.applyBackground = applyBackground;
