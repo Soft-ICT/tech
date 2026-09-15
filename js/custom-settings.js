@@ -2,7 +2,7 @@
 
 "use strict";
 
-// ডাইনামিক গ্লোবাল CSS স্টাইল ট্যাগ তৈরি বা আপডেট করার ফাংশন (স্থায়ী সমাধানের জন্য)
+// নিরাপদ এবং নিখুঁত গ্লোবাল CSS স্টাইল ট্যাগ আপডেট করার ফাংশন
 function updateGlobalStyles() {
     const themeColor = localStorage.getItem('app_theme_color');
     const bgColor = localStorage.getItem('app_bg_color');
@@ -11,7 +11,6 @@ function updateGlobalStyles() {
     const contentFontSize = localStorage.getItem('app_content_font_size'); 
     const appLanguage = localStorage.getItem('app_language');
 
-    // একটি ইউনিক আইডি দিয়ে স্টাইল ট্যাগ তৈরি করা যাতে বারবার ডুপ্লিকেট না হয়
     let styleTag = document.getElementById('dynamic-custom-app-styles');
     if (!styleTag) {
         styleTag = document.createElement('style');
@@ -19,39 +18,37 @@ function updateGlobalStyles() {
         document.head.appendChild(styleTag);
     }
 
-    // গ্লোবাল CSS রুলস তৈরি যা পুরো অ্যাপে স্থায়ীভাবে কাজ করবে
     let cssRules = `
-        /* ১. থিম কালার (টপবার, হেডার, ড্রয়ার হেডার এবং মার্কিং করা হেডার) */
+        /* ১. থিম কালার (টপবার, হেডার এবং ব্যানার) */
         ${themeColor ? `
             .topbar, .drawer-header, .sub-toolbar {
                 background-color: ${themeColor} !important;
             }
-            .header-box, .header-banner, .header-banner span {
+            .header-box, .header-banner {
                 background-color: ${themeColor} !important;
                 color: #ffffff !important;
             }
+            .header-banner span {
+                color: #ffffff !important;
+            }
         ` : ''}
 
-        /* ২. ব্যাকগ্রাউন্ড কালার */
+        /* ২. ব্যাকগ্রাউন্ড কালার (শুধু মূল কন্টেইনারে এপ্লাই হবে, কার্ডের বডি নষ্ট হবে না) */
         ${bgColor ? `
-            body, #mainDashboardView, #categoryDetailsView, #dataDetailsView, .all-search-container {
+            body {
                 background-color: ${bgColor} !important;
             }
+            #mainDashboardView, #categoryDetailsView, #dataDetailsView, .all-search-container {
+                background-color: transparent !important;
+            }
         ` : ''}
 
-        /* ৩. টেক্সট কালার (color-formatter এর কালার বাদে সব টেক্সটে এপ্লাই হবে) */
+        /* ৩. টেক্সট কালার (এটি শুধুমাত্র নির্দিষ্ট টেক্সট ক্লাসগুলোতে কাজ করবে, কার্ডের লেআউট নষ্ট করবে না) */
         ${textColor ? `
-            body, .category-card h3, .subcategory-card h3, 
-            .data-card-name, .data-card-detail, 
-            .details-info-box, .info-label, .info-value, 
+            .category-card h3, .subcategory-card h3, 
             .menu-text, .drawer-section-title, 
-            #appTitle, .topbar span, .topbar h2,
-            .header-banner span, p, span, div {
+            #appTitle, .topbar span, .topbar h2 {
                 color: ${textColor} !important;
-            }
-            /* মার্কিং করা হেডারের টেক্সট থিম কালার দিলে সবসময় সাদা থাকবে */
-            .header-box, .header-banner, .header-banner span {
-                color: #ffffff !important;
             }
         ` : ''}
 
@@ -62,9 +59,9 @@ function updateGlobalStyles() {
             }
         ` : ''}
 
-        /* ৫. কন্টেন্ট ফন্ট সাইজ (ডাটা কার্ড এবং ডাটা প্রোফাইল) */
+        /* ৫. কন্টেন্ট ফন্ট সাইজ (ডাটা কার্ডের ভেতরের লেখা ও প্রোফাইল) */
         ${contentFontSize ? `
-            .data-card-info, .details-info-box, .data-card-name, .data-card-detail {
+            .data-card-name, .data-card-detail, .details-info-box, .info-label, .info-value {
                 font-size: ${contentFontSize}px !important;
             }
         ` : ''}
@@ -72,7 +69,6 @@ function updateGlobalStyles() {
 
     styleTag.innerHTML = cssRules;
 
-    // ভাষা পরিবর্তনের হ্যান্ডেল
     if (appLanguage) {
         applyLanguageTranslation(appLanguage);
     }
@@ -95,7 +91,7 @@ function applyLanguageTranslation(lang) {
     }
 }
 
-// সেটিংসের ইভেন্ট লিসেনার এবং লাইভ আপডেট সেটআপ
+// সেটিংসের ইভেন্ট লিসেনার
 export function setupCustomSettingsListener() {
     document.addEventListener('change', (e) => {
         if (!e.target) return;
@@ -122,7 +118,7 @@ export function setupCustomSettingsListener() {
     });
 
     document.addEventListener('input', (e) => {
-        if (!e.target) return;
+        if (!e.target.id) return;
 
         if (e.target.id === 'fontSizeRange') {
             localStorage.setItem('app_ui_font_size', e.target.value);
@@ -135,10 +131,9 @@ export function setupCustomSettingsListener() {
     });
 }
 
-// MutationObserver ব্যবহার করে অ্যাপের যেকোনো জায়গায় নতুন কন্টেন্ট বা ভিউ লোড হলে সাথে সাথে স্টাইল বজায় রাখা
+// DOM পরিবর্তন ট্র্যাক করার জন্য অবজারভার
 function observeDOMChanges() {
-    const observer = new MutationObserver((mutations) => {
-        // পেজে নতুন এলিমেন্ট যোগ হলেই গ্লোবাল স্টাইল রি-এপ্লাই হবে, ফলে আর সাময়িক পরিবর্তন হয়ে মুছে যাবে না
+    const observer = new MutationObserver(() => {
         updateGlobalStyles();
     });
 
@@ -148,7 +143,6 @@ function observeDOMChanges() {
     });
 }
 
-// পেজ লোড হওয়ার সাথে সাথে সেটিংস কল করা এবং অবজারভার চালু করা
 window.addEventListener('DOMContentLoaded', () => {
     updateGlobalStyles();
     setupCustomSettingsListener();
