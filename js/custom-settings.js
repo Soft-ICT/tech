@@ -2,19 +2,22 @@
 
 "use strict";
 
-// অ্যাপ লোড হওয়ার সাথে সাথে সেভ করা সেটিংস অ্যাপ্লাই করা
+// অ্যাপ লোড হওয়ার সাথে সাথে এবং পরিবর্তন করলে সেটিংস অ্যাপ্লাই করার ফাংশন
 function applyCustomSettings() {
     const themeColor = localStorage.getItem('app_theme_color');
     const bgColor = localStorage.getItem('app_bg_color');
     const textColor = localStorage.getItem('app_text_color');
-    const fontSize = localStorage.getItem('app_font_size');
-    const contentFontSize = localStorage.getItem('app_content_font_size');
+    const uiFontSize = localStorage.getItem('app_ui_font_size'); // ড্রয়ার, ক্যাটাগরি ও সাব-ক্যাটাগরির জন্য
+    const contentFontSize = localStorage.getItem('app_content_font_size'); // ডাটা ও প্রোফাইলের জন্য
+    const appLanguage = localStorage.getItem('app_language');
 
-    // ১. থিম কালার (হেডার বা প্রাইমারি এলিমেন্ট)
+    // ১. থিম কালার (হেডার, টপবার ও ড্রয়ার হেডার একসাথে পরিবর্তন হবে)
     if (themeColor) {
         document.documentElement.style.setProperty('--primary-color', themeColor);
-        const topbar = document.querySelector('.topbar, .drawer-header');
-        if (topbar) topbar.style.backgroundColor = themeColor;
+        const headersAndToolbars = document.querySelectorAll('.topbar, .drawer-header, .header-banner, .sub-toolbar');
+        headersAndToolbars.forEach(el => {
+            el.style.backgroundColor = themeColor;
+        });
     }
 
     // ২. ব্যাকগ্রাউন্ড কালার
@@ -27,43 +30,63 @@ function applyCustomSettings() {
         document.body.style.color = textColor;
     }
 
-    // ৪. ফন্ট সাইজ
-    if (fontSize) {
-        document.body.style.fontSize = fontSize + 'px';
+    // ৪. UI ফন্ট সাইজ (ড্রয়ার, ক্যাটাগরি, সাব-ক্যাটাগরি ও মেনু টেক্সট)
+    if (uiFontSize) {
+        const uiElements = document.querySelectorAll('.menu-text, .category-card h3, .subcategory-card h3, .drawer-section-title');
+        uiElements.forEach(el => {
+            el.style.fontSize = uiFontSize + 'px';
+        });
     }
 
-    // ৫. কন্টেন্ট ফন্ট সাইজ
+    // ৫. কন্টেন্ট ফন্ট সাইজ (ডাটা কার্ড এবং ডাটা প্রোফাইল ডিটেইলসের জন্য)
     if (contentFontSize) {
-        document.querySelectorAll('.data-card-detail, .category-card h3, .menu-text').forEach(el => {
+        const contentElements = document.querySelectorAll('.data-card-info, .details-info-box, .data-card-name');
+        contentElements.forEach(el => {
             el.style.fontSize = contentFontSize + 'px';
         });
     }
+
+    // ৬. ভাষা বা ল্যাঙ্গুয়েজ মোড হ্যান্ডেল করার লজিক (যদি থাকে)
+    if (appLanguage) {
+        // এখানে আপনার অ্যাপের ভাষা পরিবর্তনের লজিক বা ফাংশন কল করতে পারেন
+        console.log("Current App Language:", appLanguage);
+    }
 }
 
-// সেটিংস মোডাল থেকে ডাটা পরিবর্তন করে সেভ করার ফাংশন (বাইপাস লজিক)
+// সেটিংসের ইভেন্ট লিসেনার এবং লাইভ আপডেট সেটআপ
 export function setupCustomSettingsListener() {
-    // সেটিংসে পরিবর্তন আসলে লাইভ প্রিভিউ বা স্টোরেজে সেভ করার ইভেন্ট
     document.addEventListener('change', (e) => {
-        if (e.target && e.target.id === 'themeColorInput') {
+        if (!e.target) return;
+
+        if (e.target.id === 'themeColorInput') {
             localStorage.setItem('app_theme_color', e.target.value);
             applyCustomSettings();
         }
-        if (e.target && e.target.id === 'bgColorInput') {
+        if (e.target.id === 'bgColorInput') {
             localStorage.setItem('app_bg_color', e.target.value);
             applyCustomSettings();
         }
-        if (e.target && e.target.id === 'textColorInput') {
+        if (e.target.id === 'textColorInput') {
             localStorage.setItem('app_text_color', e.target.value);
             applyCustomSettings();
+        }
+        // ল্যাঙ্গুয়েজ রেডিও বাটন হ্যান্ডেল করা
+        if (e.target.name === 'appLang') {
+            localStorage.setItem('app_language', e.target.value);
+            applyCustomSettings();
+            // চাইলে পেজ রিলোড বা ভাষা পরিবর্তনের রি-রেন্ডার ফাংশন কল করতে পারেন
+            window.location.reload();
         }
     });
 
     document.addEventListener('input', (e) => {
-        if (e.target && e.target.id === 'fontSizeRange') {
-            localStorage.setItem('app_font_size', e.target.value);
+        if (!e.target) return;
+
+        if (e.target.id === 'fontSizeRange') {
+            localStorage.setItem('app_ui_font_size', e.target.value);
             applyCustomSettings();
         }
-        if (e.target && e.target.id === 'contentFontSizeRange') {
+        if (e.target.id === 'contentFontSizeRange') {
             localStorage.setItem('app_content_font_size', e.target.value);
             applyCustomSettings();
         }
