@@ -2,30 +2,9 @@
 
 "use strict";
 
-/* ============================================================
-   CUSTOM SETTINGS
-   ------------------------------------------------------------
-   1. Theme Color:
-      - Toolbar / Header design unchanged
-      - Only color changes
-
-   2. Global Text Color:
-      - All normal application text changes
-      - Color Formatter text remains untouched
-
-   3. Font Size:
-      - UI font size changes UI text
-      - Content font size changes Data Card + Data Profile
-      - Card/Profile dimensions automatically match the font size
-
-   4. Language:
-      - Central translation system
-      - Bengali <-> English UI labels
-   ============================================================ */
-
 
 /* ============================================================
-   1. UPDATE GLOBAL STYLES
+   GLOBAL STYLE UPDATE
    ============================================================ */
 
 function updateGlobalStyles() {
@@ -38,12 +17,6 @@ function updateGlobalStyles() {
 
     const textColor =
         localStorage.getItem("app_text_color");
-
-    const uiFontSize =
-        localStorage.getItem("app_ui_font_size");
-
-    const contentFontSize =
-        localStorage.getItem("app_content_font_size");
 
     const appLanguage =
         localStorage.getItem("app_language");
@@ -69,86 +42,29 @@ function updateGlobalStyles() {
     }
 
 
-    /* --------------------------------------------------------
-       CONTENT FONT SIZE
-       -------------------------------------------------------- */
-
-    const contentSize =
-        parseInt(contentFontSize, 10) || 16;
-
-
-    /*
-       Calculate proportional card spacing.
-
-       Base:
-       16px -> normal size
-
-       If font increases:
-       card padding, min-height and profile spacing
-       increase automatically.
-    */
-
-    const sizeRatio =
-        Math.max(
-            0.85,
-            Math.min(
-                2.0,
-                contentSize / 16
-            )
-        );
-
-
-    const cardPadding =
-        Math.round(
-            12 * sizeRatio
-        );
-
-
-    const cardGap =
-        Math.round(
-            8 * sizeRatio
-        );
-
-
-    const profilePadding =
-        Math.round(
-            14 * sizeRatio
-        );
-
-
-    const profileGap =
-        Math.round(
-            10 * sizeRatio
-        );
-
-
-    const cardMinHeight =
-        Math.round(
-            78 * sizeRatio
-        );
-
-
-    const profileMinHeight =
-        Math.round(
-            100 * sizeRatio
-        );
+    let cssRules = "";
 
 
     /* ========================================================
-       CSS
+       1. THEME COLOR
+       --------------------------------------------------------
+       IMPORTANT:
+       Only COLOR is changed.
+
+       No width
+       No height
+       No padding
+       No margin
+       No border-radius
+       No display
+       No position
+       No shape
+       No layout
        ======================================================== */
 
-    let cssRules = `
+    if (themeColor) {
 
-        /* ====================================================
-           THEME COLOR
-           ----------------------------------------------------
-           IMPORTANT:
-           No width / height / margin / padding / radius /
-           display / position / shape is changed here.
-           ==================================================== */
-
-        ${themeColor ? `
+        cssRules += `
 
             .topbar,
             .drawer-header,
@@ -159,6 +75,13 @@ function updateGlobalStyles() {
             }
 
 
+            /*
+             * DATA HEADER
+             *
+             * Only background-color.
+             * Existing design remains untouched.
+             */
+
             .header-box,
             .header-banner {
 
@@ -166,27 +89,17 @@ function updateGlobalStyles() {
                     ${themeColor} !important;
             }
 
-
-            /*
-             * Header design stays untouched.
-             * Only the background color is changed.
-             *
-             * Existing border-radius,
-             * width,
-             * margin,
-             * padding,
-             * shape etc. are NOT overridden.
-             */
-
-        ` : ""}
+        `;
+    }
 
 
+    /* ========================================================
+       2. BACKGROUND COLOR
+       ======================================================== */
 
-        /* ====================================================
-           BACKGROUND COLOR
-           ==================================================== */
+    if (bgColor) {
 
-        ${bgColor ? `
+        cssRules += `
 
             body {
 
@@ -204,17 +117,28 @@ function updateGlobalStyles() {
                     transparent !important;
             }
 
-        ` : ""}
+        `;
+    }
 
 
+    /* ========================================================
+       3. GLOBAL TEXT COLOR
+       --------------------------------------------------------
+       Color Formatter is protected.
 
-        /* ====================================================
-           GLOBAL NORMAL TEXT COLOR
-           ----------------------------------------------------
-           Formatter-generated text is intentionally excluded.
-           ==================================================== */
+       We do NOT use:
+           body * { color: ... }
 
-        ${textColor ? `
+       because that would destroy formatter colors.
+       ======================================================== */
+
+    if (textColor) {
+
+        cssRules += `
+
+            /*
+             * Normal application text
+             */
 
             body {
 
@@ -224,30 +148,16 @@ function updateGlobalStyles() {
 
 
             /*
-             * Common application text
+             * Common UI text
              */
-
-            h1,
-            h2,
-            h3,
-            h4,
-            h5,
-            h6,
-
-            p,
-            span,
-            label,
-            div,
-            button,
-            a,
-            li,
-
-            input,
-            textarea,
-            select,
 
             .menu-text,
             .drawer-section-title,
+
+            #appTitle,
+
+            .topbar span,
+            .topbar h2,
 
             .category-card h3,
             .subcategory-card h3,
@@ -259,38 +169,43 @@ function updateGlobalStyles() {
             .info-label,
             .info-value,
 
-            .data-profile,
             .profile-name,
-            .profile-info,
             .profile-label,
             .profile-value {
 
                 color:
-                    ${textColor};
+                    ${textColor} !important;
             }
 
 
             /*
-             * Toolbar / header text that normally follows
-             * the global text setting.
+             * DATA HEADER
+             *
+             * Header design is untouched.
+             *
+             * Only its text color is changed.
+             *
+             * IMPORTANT:
+             * Formatter elements are excluded below.
              */
 
-            #appTitle,
-            .topbar span,
-            .topbar h2 {
+            .header-box h2,
+            .header-box h3,
+            .header-banner span,
+            .header-banner h2 {
 
                 color:
-                    ${textColor};
+                    ${textColor} !important;
             }
 
 
             /*
-             * ------------------------------------------------
+             * ==================================================
              * COLOR FORMATTER PROTECTION
-             * ------------------------------------------------
+             * ==================================================
              *
-             * Elements carrying formatter attributes/classes
-             * retain their own color.
+             * These elements are allowed to keep their own
+             * Firebase formatter color.
              */
 
             [data-color-text],
@@ -298,8 +213,8 @@ function updateGlobalStyles() {
             [data-formatted],
             .color-formatted,
             .formatted-text,
-
             .formatter-text,
+
             .gradient-text,
             .animated-gradient,
             .aurora-text,
@@ -318,317 +233,18 @@ function updateGlobalStyles() {
 
 
             /*
-             * Inline color generated by formatter
+             * If formatter puts color directly on an element,
+             * don't override that inline color.
              */
 
-            [style*="color:"],
-            [style*="background-image:"],
+            [style*="color:"] {
 
-            [class*="gradient"],
-            [class*="rainbow"],
-            [class*="aurora"],
-            [class*="fire"],
-            [class*="ocean"],
-            [class*="sunset"],
-            [class*="glow"] {
-
-                /*
-                 * Do not force global color here.
-                 * Formatter CSS gets priority.
-                 */
-
+                color:
+                    revert !important;
             }
 
-        ` : ""}
-
-
-
-        /* ====================================================
-           UI FONT SIZE
-           ==================================================== */
-
-        ${uiFontSize ? `
-
-            .menu-text,
-            .drawer-section-title,
-
-            .category-card h3,
-            .subcategory-card h3 {
-
-                font-size:
-                    ${uiFontSize}px !important;
-
-                line-height:
-                    1.4 !important;
-            }
-
-        ` : ""}
-
-
-
-        /* ====================================================
-           CONTENT FONT SIZE
-           ----------------------------------------------------
-           DATA CARD
-           ==================================================== */
-
-        ${contentFontSize ? `
-
-            /*
-             * Main data-card text
-             */
-
-            .data-card-name {
-
-                font-size:
-                    ${contentSize}px !important;
-
-                line-height:
-                    1.4 !important;
-
-                overflow-wrap:
-                    anywhere;
-            }
-
-
-            .data-card-detail {
-
-                font-size:
-                    ${Math.max(
-                        12,
-                        Math.round(contentSize * 0.88)
-                    )}px !important;
-
-                line-height:
-                    1.55 !important;
-
-                overflow-wrap:
-                    anywhere;
-            }
-
-
-            /*
-             * Data Card itself grows with the font.
-             */
-
-            .data-card {
-
-                min-height:
-                    ${cardMinHeight}px !important;
-
-                padding:
-                    ${cardPadding}px !important;
-
-                box-sizing:
-                    border-box;
-
-                height:
-                    auto !important;
-
-                overflow:
-                    visible !important;
-            }
-
-
-            /*
-             * Common possible inner containers.
-             */
-
-            .data-card-content,
-            .data-card-info,
-            .data-card-body {
-
-                min-height:
-                    auto !important;
-
-                height:
-                    auto !important;
-
-                padding-bottom:
-                    ${cardGap}px !important;
-
-                box-sizing:
-                    border-box;
-            }
-
-
-
-            /* =================================================
-               DATA PROFILE
-               ================================================= */
-
-            .details-info-box {
-
-                font-size:
-                    ${contentSize}px !important;
-
-                line-height:
-                    1.55 !important;
-
-                padding:
-                    ${profilePadding}px !important;
-
-                margin-bottom:
-                    ${profileGap}px !important;
-
-                min-height:
-                    ${profileMinHeight}px !important;
-
-                height:
-                    auto !important;
-
-                box-sizing:
-                    border-box;
-
-                overflow:
-                    visible !important;
-
-                overflow-wrap:
-                    anywhere;
-            }
-
-
-            .info-label {
-
-                font-size:
-                    ${Math.max(
-                        12,
-                        Math.round(contentSize * 0.82)
-                    )}px !important;
-
-                line-height:
-                    1.4 !important;
-
-                overflow-wrap:
-                    anywhere;
-            }
-
-
-            .info-value {
-
-                font-size:
-                    ${contentSize}px !important;
-
-                line-height:
-                    1.55 !important;
-
-                overflow-wrap:
-                    anywhere;
-
-                white-space:
-                    normal !important;
-            }
-
-
-            /*
-             * Data Profile common containers
-             */
-
-            .data-profile,
-            .profile-info,
-            .profile-details,
-            .profile-content {
-
-                height:
-                    auto !important;
-
-                min-height:
-                    ${profileMinHeight}px !important;
-
-                box-sizing:
-                    border-box;
-
-                overflow:
-                    visible !important;
-            }
-
-
-            .profile-name {
-
-                font-size:
-                    ${Math.round(
-                        contentSize * 1.15
-                    )}px !important;
-
-                line-height:
-                    1.4 !important;
-
-                overflow-wrap:
-                    anywhere;
-            }
-
-
-            .profile-label {
-
-                font-size:
-                    ${Math.max(
-                        12,
-                        Math.round(contentSize * 0.82)
-                    )}px !important;
-
-                line-height:
-                    1.4 !important;
-            }
-
-
-            .profile-value {
-
-                font-size:
-                    ${contentSize}px !important;
-
-                line-height:
-                    1.55 !important;
-
-                overflow-wrap:
-                    anywhere;
-
-                white-space:
-                    normal !important;
-            }
-
-
-
-            /* =================================================
-               GENERAL SAFETY
-               -------------------------------------------------
-               Prevent large text from being clipped.
-               ================================================= */
-
-            .data-card *,
-            .data-profile *,
-            .details-info-box *,
-            .profile-info *,
-            .profile-details * {
-
-                max-width:
-                    100%;
-
-                box-sizing:
-                    border-box;
-            }
-
-
-            .data-card-name,
-            .data-card-detail,
-            .info-label,
-            .info-value,
-            .profile-name,
-            .profile-label,
-            .profile-value {
-
-                white-space:
-                    normal !important;
-
-                word-break:
-                    normal;
-
-                overflow-wrap:
-                    anywhere;
-            }
-
-        ` : ""}
-
-    `;
+        `;
+    }
 
 
     styleTag.innerHTML =
@@ -650,7 +266,9 @@ function updateGlobalStyles() {
 
 
 /* ============================================================
-   2. LANGUAGE TRANSLATION SYSTEM
+   TRANSLATION DICTIONARY
+   ------------------------------------------------------------
+   Add more UI words here whenever required.
    ============================================================ */
 
 const APP_TRANSLATIONS = {
@@ -663,6 +281,8 @@ const APP_TRANSLATIONS = {
     "স্থায়ী ঠিকানা:": "Permanent Address:",
     "ই-মেইল:": "Email:",
     "ইমেইল:": "Email:",
+    "ঠিকানা:": "Address:",
+    "ফোন:": "Phone:",
 
     "Mobile:": "মোবাইল:",
     "Phone:": "টেলিফোন:",
@@ -670,13 +290,14 @@ const APP_TRANSLATIONS = {
     "Name:": "নাম:",
     "Current Office:": "বর্তমান কর্মস্থল:",
     "Permanent Address:": "স্থায়ী ঠিকানা:",
-    "Email:": "ই-মেইল:"
+    "Email:": "ই-মেইল:",
+    "Address:": "ঠিকানা:"
 };
 
 
 
 /* ============================================================
-   TEXT TRANSLATION
+   TRANSLATE ONE TEXT
    ============================================================ */
 
 function translateText(text, lang) {
@@ -690,20 +311,17 @@ function translateText(text, lang) {
         String(text);
 
 
-    /*
-     * English
-     */
+    Object.keys(APP_TRANSLATIONS)
+        .forEach(key => {
 
-    if (lang === "en") {
+            const translation =
+                APP_TRANSLATIONS[key];
 
-        Object.keys(APP_TRANSLATIONS)
-            .forEach(key => {
 
-                const value =
-                    APP_TRANSLATIONS[key];
+            if (lang === "en") {
 
                 /*
-                 * Only Bengali source words
+                 * Bengali -> English
                  */
 
                 if (
@@ -712,34 +330,26 @@ function translateText(text, lang) {
 
                     result =
                         result.split(key)
-                            .join(value);
+                            .join(translation);
                 }
-            });
-    }
 
+            } else {
 
-    /*
-     * Bengali
-     */
-
-    else {
-
-        Object.keys(APP_TRANSLATIONS)
-            .forEach(key => {
-
-                const value =
-                    APP_TRANSLATIONS[key];
+                /*
+                 * English -> Bengali
+                 */
 
                 if (
-                    /^[A-Za-z\s:]+$/.test(key)
+                    !/[\u0980-\u09FF]/.test(key)
                 ) {
 
                     result =
                         result.split(key)
-                            .join(value);
+                            .join(translation);
                 }
-            });
-    }
+            }
+
+        });
 
 
     return result;
@@ -748,49 +358,104 @@ function translateText(text, lang) {
 
 
 /* ============================================================
-   APPLY LANGUAGE
+   CHECK FORMATTER ELEMENT
+   ============================================================ */
+
+function isFormatterElement(el) {
+
+    if (!el || !el.matches) {
+        return false;
+    }
+
+
+    return el.matches(
+        `
+        [data-color-text],
+        [data-format-color],
+        [data-formatted],
+        .color-formatted,
+        .formatted-text,
+        .formatter-text,
+        .gradient-text,
+        .animated-gradient,
+        .aurora-text,
+        .fire-text,
+        .ocean-text,
+        .purple-text,
+        .sunset-text,
+        .green-text,
+        .rainbow-text,
+        .shadow-text,
+        .glow-text
+        `
+    );
+}
+
+
+
+/* ============================================================
+   LANGUAGE TRANSLATION
+   ------------------------------------------------------------
+   VERY IMPORTANT:
+   We change TEXT NODES only.
+
+   We NEVER use:
+       element.innerHTML = ...
+
+   Therefore:
+       - Data Header design stays intact
+       - CSS stays intact
+       - icons stay intact
+       - images stay intact
+       - formatter HTML stays intact
    ============================================================ */
 
 function applyLanguageTranslation(lang) {
 
-    /*
-     * IMPORTANT:
-     * Formatter elements are skipped.
-     * Their original HTML / formatting code remains untouched.
-     */
+    if (!document.body) {
+        return;
+    }
 
-    const elements =
-        document.querySelectorAll(
-            "body *"
+
+    const walker =
+        document.createTreeWalker(
+            document.body,
+            NodeFilter.SHOW_TEXT
         );
 
 
-    elements.forEach(el => {
+    const textNodes = [];
+
+
+    let node;
+
+
+    while (
+        node =
+            walker.nextNode()
+    ) {
+
+        textNodes.push(node);
+    }
+
+
+    textNodes.forEach(textNode => {
+
+        const parent =
+            textNode.parentElement;
+
+
+        if (!parent) {
+            return;
+        }
+
 
         /*
-         * Skip formatter elements
+         * Never touch Color Formatter elements.
          */
 
         if (
-            el.matches(
-                "[data-color-text]," +
-                "[data-format-color]," +
-                "[data-formatted]," +
-                ".color-formatted," +
-                ".formatted-text," +
-                ".formatter-text," +
-                ".gradient-text," +
-                ".animated-gradient," +
-                ".aurora-text," +
-                ".fire-text," +
-                ".ocean-text," +
-                ".purple-text," +
-                ".sunset-text," +
-                ".green-text," +
-                ".rainbow-text," +
-                ".shadow-text," +
-                ".glow-text"
-            )
+            isFormatterElement(parent)
         ) {
 
             return;
@@ -798,97 +463,94 @@ function applyLanguageTranslation(lang) {
 
 
         /*
-         * Only process elements whose direct text belongs
-         * to this element.
+         * Never translate script/style.
          */
 
-        Array.from(
-            el.childNodes
-        ).forEach(node => {
-
-            if (
-                node.nodeType !==
-                Node.TEXT_NODE
-            ) {
-
-                return;
-            }
+        const tag =
+            parent.tagName
+                ? parent.tagName.toLowerCase()
+                : "";
 
 
-            const oldText =
-                node.nodeValue;
+        if (
+            tag === "script" ||
+            tag === "style" ||
+            tag === "noscript"
+        ) {
+
+            return;
+        }
 
 
-            const newText =
-                translateText(
-                    oldText,
-                    lang
-                );
+        const oldText =
+            textNode.nodeValue;
 
 
-            if (
-                oldText !== newText
-            ) {
+        const newText =
+            translateText(
+                oldText,
+                lang
+            );
 
-                node.nodeValue =
-                    newText;
-            }
 
-        });
+        if (
+            oldText !== newText
+        ) {
+
+            textNode.nodeValue =
+                newText;
+        }
 
     });
 
 
     /*
-     * Data card details
+     * After translation, re-apply global styles.
+     * This does NOT modify the Data Header layout.
      */
 
-    document
-        .querySelectorAll(
-            ".data-card-detail"
-        )
-        .forEach(el => {
+    const styleTag =
+        document.getElementById(
+            "dynamic-custom-app-styles"
+        );
 
-            if (
-                el.closest(
-                    "[data-color-text]"
-                )
-            ) {
-                return;
-            }
 
-            /*
-             * Direct text nodes are already handled above.
-             * This block intentionally does not use innerHTML,
-             * preventing formatter HTML from being destroyed.
-             */
+    if (
+        styleTag &&
+        !styleTag.isConnected
+    ) {
 
-        });
+        document.head.appendChild(
+            styleTag
+        );
+    }
 }
 
 
 
 /* ============================================================
-   3. SETTINGS EVENT LISTENER
+   SETTINGS EVENT LISTENER
    ============================================================ */
 
 export function setupCustomSettingsListener() {
 
 
-    /* --------------------------------------------------------
-       CHANGE EVENTS
-       -------------------------------------------------------- */
+    /* ========================================================
+       CHANGE
+       ======================================================== */
 
     document.addEventListener(
         "change",
-        (e) => {
+        function (e) {
 
             if (!e.target) {
                 return;
             }
 
 
-            /* Theme Color */
+            /* -----------------------------------------------
+               THEME COLOR
+               ----------------------------------------------- */
 
             if (
                 e.target.id ===
@@ -901,10 +563,14 @@ export function setupCustomSettingsListener() {
                 );
 
                 updateGlobalStyles();
+
+                return;
             }
 
 
-            /* Background Color */
+            /* -----------------------------------------------
+               BACKGROUND COLOR
+               ----------------------------------------------- */
 
             if (
                 e.target.id ===
@@ -917,10 +583,14 @@ export function setupCustomSettingsListener() {
                 );
 
                 updateGlobalStyles();
+
+                return;
             }
 
 
-            /* Text Color */
+            /* -----------------------------------------------
+               TEXT COLOR
+               ----------------------------------------------- */
 
             if (
                 e.target.id ===
@@ -933,10 +603,14 @@ export function setupCustomSettingsListener() {
                 );
 
                 updateGlobalStyles();
+
+                return;
             }
 
 
-            /* Language */
+            /* -----------------------------------------------
+               LANGUAGE
+               ----------------------------------------------- */
 
             if (
                 e.target.name ===
@@ -951,12 +625,17 @@ export function setupCustomSettingsListener() {
                     e.target.value
                 );
 
+
+                applyLanguageTranslation(
+                    e.target.value
+                );
+
+
                 updateGlobalStyles();
 
 
                 /*
-                 * Refresh current application view
-                 * if available.
+                 * Refresh current view if available.
                  */
 
                 if (
@@ -966,55 +645,7 @@ export function setupCustomSettingsListener() {
 
                     refreshCurrentView();
                 }
-            }
 
-        }
-    );
-
-
-
-    /* --------------------------------------------------------
-       INPUT EVENTS
-       -------------------------------------------------------- */
-
-    document.addEventListener(
-        "input",
-        (e) => {
-
-            if (!e.target.id) {
-                return;
-            }
-
-
-            /* UI Font Size */
-
-            if (
-                e.target.id ===
-                "fontSizeRange"
-            ) {
-
-                localStorage.setItem(
-                    "app_ui_font_size",
-                    e.target.value
-                );
-
-                updateGlobalStyles();
-            }
-
-
-            /* Content Font Size */
-
-            if (
-                e.target.id ===
-                "contentFontSizeRange"
-            ) {
-
-                localStorage.setItem(
-                    "app_content_font_size",
-                    e.target.value
-                );
-
-                updateGlobalStyles();
             }
 
         }
@@ -1024,87 +655,16 @@ export function setupCustomSettingsListener() {
 
 
 /* ============================================================
-   4. DOM OBSERVER
-   ============================================================ */
-
-let customSettingsObserver = null;
-
-let customSettingsUpdating = false;
-
-
-function observeDOMChanges() {
-
-    if (
-        customSettingsObserver
-    ) {
-
-        return;
-    }
-
-
-    customSettingsObserver =
-        new MutationObserver(
-            () => {
-
-                /*
-                 * Prevent recursive observer loop.
-                 */
-
-                if (
-                    customSettingsUpdating
-                ) {
-
-                    return;
-                }
-
-
-                customSettingsUpdating =
-                    true;
-
-
-                requestAnimationFrame(
-                    () => {
-
-                        updateGlobalStyles();
-
-                        customSettingsUpdating =
-                            false;
-                    }
-                );
-
-            }
-        );
-
-
-    if (
-        document.body
-    ) {
-
-        customSettingsObserver.observe(
-            document.body,
-            {
-                childList: true,
-                subtree: true
-            }
-        );
-    }
-}
-
-
-
-/* ============================================================
-   5. INITIALIZE
+   INITIAL LOAD
    ============================================================ */
 
 window.addEventListener(
     "DOMContentLoaded",
-    () => {
+    function () {
 
         updateGlobalStyles();
 
         setupCustomSettingsListener();
-
-        observeDOMChanges();
 
     }
 );
