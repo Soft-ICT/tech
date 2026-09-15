@@ -1124,25 +1124,35 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
     function hasFirebaseFormatting(element) {
         if (!element || element.nodeType !== 1) return false;
 
-        if (element.classList &&
-            element.classList.contains("firebase-formatted-text")) {
+        if (
+            element.classList &&
+            element.classList.contains("firebase-formatted-text")
+        ) {
             return true;
         }
 
-        if (element.querySelector &&
-            element.querySelector(".firebase-formatted-text")) {
+        /*
+         * Only determine whether THIS ELEMENT itself contains
+         * raw formatter syntax. Do not reject a parent merely
+         * because one of its children is formatted.
+         */
+        const ownText = Array.from(element.childNodes || [])
+            .filter(node => node.nodeType === Node.TEXT_NODE)
+            .map(node => node.nodeValue || "")
+            .join(" ");
+
+        if (!ownText) return false;
+
+        if (/\[(#[a-zA-Z0-9_]+)\][\s\S]*?\[\/\1\]/.test(ownText)) {
             return true;
         }
 
-        const text = element.textContent || "";
-        if (/\[(#[a-zA-Z0-9_]+)\][\s\S]*?\[\/\1\]/.test(text)) {
-            return true;
-        }
-
-        return getCodes(text).length > 0;
+        return getCodes(ownText).length > 0;
     }
 
+
     function applySavedAppTextColor(root) {
+
         const savedColor =
             localStorage.getItem("app_text_color");
 
@@ -1155,6 +1165,7 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
             "h1","h2","h3","h4","h5","h6",
             "p","span","a","label","li",
             "b","strong","td","th","small","em",
+            "div",
             "[data-category]",
             "[data-subcategory]",
             "[data-content]",
@@ -1172,56 +1183,108 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
         let elements = [];
 
         try {
-            if (root.matches &&
-                selectors.some(s => {
-                    try { return root.matches(s); }
-                    catch (e) { return false; }
-                })) {
+
+            if (
+                root.matches &&
+                selectors.some(selector => {
+                    try {
+                        return root.matches(selector);
+                    } catch (e) {
+                        return false;
+                    }
+                })
+            ) {
                 elements.push(root);
             }
 
             elements = elements.concat(
                 Array.from(
-                    root.querySelectorAll(selectors.join(","))
+                    root.querySelectorAll(
+                        selectors.join(",")
+                    )
                 )
             );
+
         } catch (e) {
-            console.warn("Saved text color:", e);
+            console.warn(
+                "Saved text color:",
+                e
+            );
         }
 
+
         Array.from(new Set(elements)).forEach(element => {
+
+            if (!element) return;
+
+            /*
+             * Toolbar is ALWAYS protected.
+             */
             if (isExcluded(element)) return;
 
+
             /*
-             * Explicit Firebase formatting gets its own color.
-             * Do not overwrite formatted spans.
+             * Never recolor the actual Firebase formatted span.
+             * Its explicit formatter color/style must win.
              */
-            if (element.classList &&
-                element.classList.contains("firebase-formatted-text")) {
+            if (
+                element.classList &&
+                element.classList.contains(
+                    "firebase-formatted-text"
+                )
+            ) {
                 return;
             }
 
+
             /*
-             * If this element contains an explicitly formatted
-             * child, leave the element alone so the formatted
-             * portion remains untouched.
+             * Do NOT skip an element merely because it contains
+             * a formatted child.
+             *
+             * Example:
+             *   "জুয়েল রানা [#red]O+[/#red]"
+             *
+             * The parent gets the global color, while the child
+             * formatted span keeps red because its inline style
+             * uses !important.
              */
-            if (element.querySelector &&
-                element.querySelector(".firebase-formatted-text")) {
+
+
+            /*
+             * If this element itself still contains raw formatter
+             * syntax, let formatElement() process it first.
+             */
+            if (hasFirebaseFormatting(element)) {
                 return;
             }
 
+
             /*
-             * Inline Firebase codes still present: formatter will
-             * process them; do not set a global color first.
+             * Explicitly ignore form controls whose own UI color
+             * should not be changed by the global text setting.
              */
-            if (hasFirebaseFormatting(element)) return;
+            const tag =
+                element.tagName
+                    ? element.tagName.toLowerCase()
+                    : "";
+
+            if (
+                tag === "input" ||
+                tag === "textarea" ||
+                tag === "select" ||
+                tag === "option" ||
+                tag === "button"
+            ) {
+                return;
+            }
+
 
             element.style.setProperty(
                 "color",
                 savedColor,
                 "important"
             );
+
         });
     }
 
@@ -1365,6 +1428,13 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
         applySavedAppTextColor(root);
 
         cleanToolbarCodes();
+
+        /*
+         * Final pass: formatted spans are now in their final DOM
+         * position, so all normal text around them receives the
+         * saved Settings color without touching the toolbar.
+         */
+        applySavedAppTextColor(root);
 
     }
 
