@@ -180,17 +180,15 @@ function showCustomDeleteModal(onConfirm) {
     });
 }
 
-// অ্যাডভান্সড সেটিংস মেনু মোডাল (থিম, ব্যাকগ্রাউন্ড, টেক্সট কালার, ফন্ট সাইজ ও ল্যাঙ্গুয়েজ)
+// অ্যাডভান্সড সেটিংস মেনু মোডাল (থিম, ব্যাকগ্রাউন্ড, টেক্সট কালার ও ল্যাঙ্গুয়েজ)
 function initSettingsModal() {
     const existingModal = document.getElementById('settingsModal');
     if (existingModal) existingModal.remove();
 
-    // বর্তমান মান লোকালস্টورেজ থেকে লোড করা
+    // বর্তমান মান লোকালস্টোরেজ থেকে লোড করা
     const themeColor = localStorage.getItem('app_theme_color') || '#ff0000';
     const bgColor = localStorage.getItem('app_bg_color') || '#3f51b5';
     const textColor = localStorage.getItem('app_text_color') || '#ffffff';
-    const fontSize = localStorage.getItem('app_font_size') || '16';
-    const contentFontSize = localStorage.getItem('app_content_font_size') || '16';
     const language = localStorage.getItem('app_language') || 'bn';
 
     const modalHTML = `
@@ -212,7 +210,7 @@ function initSettingsModal() {
                     </div>
 
                     <!-- Background Color -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                    <div class="setting-item" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px;">
                         <label style="font-size: 15px; font-weight: 600; color: #333;">Background Color</label>
                         <input type="color" id="bgColorInput" value="${bgColor}" style="width: 40px; height: 40px; border: none; border-radius: 50%; cursor: pointer; background: none;">
                     </div>
@@ -221,32 +219,6 @@ function initSettingsModal() {
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px;">
                         <label style="font-size: 15px; font-weight: 600; color: #333;">Text Color</label>
                         <input type="color" id="textColorInput" value="${textColor}" style="width: 40px; height: 40px; border: none; border-radius: 50%; cursor: pointer; background: none;">
-                    </div>
-
-                    <!-- Font Size -->
-                    <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: 600; color: #333;">
-                            <span>Font Size</span>
-                            <span id="fontSizeVal" style="background: #f44336; color: #fff; padding: 2px 8px; border-radius: 12px; font-size: 12px;">${fontSize}</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: #666;">
-                            <span>10</span>
-                            <input type="range" id="fontSizeRange" min="10" max="30" value="${fontSize}" style="flex: 1; accent-color: #f44336; cursor: pointer;">
-                            <span>30</span>
-                        </div>
-                    </div>
-
-                    <!-- Content Font Size -->
-                    <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: 600; color: #333;">
-                            <span>Content Font Size</span>
-                            <span id="contentFontSizeVal" style="background: #f44336; color: #fff; padding: 2px 8px; border-radius: 12px; font-size: 12px;">${contentFontSize}</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: #666;">
-                            <span>10</span>
-                            <input type="range" id="contentFontSizeRange" min="10" max="30" value="${contentFontSize}" style="flex: 1; accent-color: #f44336; cursor: pointer;">
-                            <span>30</span>
-                        </div>
                     </div>
 
                     <!-- Apps Data View Mode (Language) -->
@@ -266,8 +238,8 @@ function initSettingsModal() {
 
                 <!-- Action Buttons -->
                 <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
-                    <button id="resetSettingsBtn" style="width: 100%; padding: 12px; border: none; background: #2196F3; color: #fff; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer;">Reset Settings</button>
-                    <button id="clearDataBtn" style="width: 100%; padding: 12px; border: none; background: #2196F3; color: #fff; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer;">Clear Apps Data</button>
+                    <button id="resetSettingsBtn" style="width: 100%; background: #2196F3; color: #fff; border: none; padding: 12px; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer;">Reset Settings</button>
+                    <button id="clearDataBtn" style="width: 100%; background: #2196F3; color: #fff; border: none; padding: 12px; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer;">Clear Apps Data</button>
                 </div>
             </div>
         </div>
@@ -276,19 +248,6 @@ function initSettingsModal() {
     document.body.insertAdjacentHTML('beforeend', modalHTML);
 
     const modal = document.getElementById('settingsModal');
-    
-    // স্লাইডারের লাইভ ভ্যালু আপডেট করার লজিক
-    const fontSizeRange = document.getElementById('fontSizeRange');
-    const fontSizeVal = document.getElementById('fontSizeVal');
-    fontSizeRange.addEventListener('input', (e) => {
-        fontSizeVal.textContent = e.target.value;
-    });
-
-    const contentFontSizeRange = document.getElementById('contentFontSizeRange');
-    const contentFontSizeVal = document.getElementById('contentFontSizeVal');
-    contentFontSizeRange.addEventListener('input', (e) => {
-        contentFontSizeVal.textContent = e.target.value;
-    });
 
     // ক্লোজ বাটন
     document.getElementById('settingsCloseBtn').addEventListener('click', () => modal.remove());
@@ -299,8 +258,7 @@ function initSettingsModal() {
         localStorage.removeItem('app_theme_color');
         localStorage.removeItem('app_bg_color');
         localStorage.removeItem('app_text_color');
-        localStorage.removeItem('app_font_size');
-        localStorage.removeItem('app_content_font_size');
+        localStorage.removeItem('app_bg_image');
         localStorage.removeItem('app_language');
         alert("সেটিংস রিসেট করা হয়েছে!");
         modal.remove();
@@ -316,6 +274,11 @@ function initSettingsModal() {
             window.location.reload();
         });
     });
+
+    // ব্যাকগ্রাউন্ড ইমেজ আপলোড গ্যালারি ইউআই ইনিট করা
+    if (typeof window.createBackgroundImageUI === 'function') {
+        window.createBackgroundImageUI();
+    }
 }
 
 function handleDrawerAction(action) {
