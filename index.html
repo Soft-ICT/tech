@@ -2053,6 +2053,20 @@
     <!-- আপনার অন্যান্য স্ক্রিপ্টের নিচে এটি যুক্ত করুন -->
 <script type="module" src="js/custom-settings.js"></script>
     
+<!-- গুগল ট্রান্সলেটের মূল লাইব্রেরি ফাইল -->
+<script type="text/javascript">
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+      pageLanguage: 'bn',
+      includedLanguages: 'en,bn',
+      autoDisplay: false
+    }, 'google_translate_element');
+  }
+</script>
+<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+<!-- ব্যাকগ্রাউন্ডে ট্রান্সলেট এলিমেন্ট ধরে রাখার জন্য একটি ছোট ডিভ (এটি অপশনাল কিন্তু কাজের সুবিধার জন্য রাখা ভালো) -->
+<div id="google_translate_element" style="display:none;"></div>
     
     
 
