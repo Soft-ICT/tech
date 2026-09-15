@@ -161,7 +161,6 @@ body {
     opacity: 1;
 }
 
-/* Header with App Matching Blue/Dark Gradient */
 .drawer-header {
     position: relative;
     background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 50%, #084298 100%);
@@ -242,7 +241,6 @@ body {
     transform: scale(1.08);
 }
 
-/* Body & Menu Items */
 .drawer-body {
     padding: 14px 12px;
     flex: 1;
@@ -317,7 +315,6 @@ body:not(.dark-mode) .app-drawer {
     justify-content: center;
 }
 
-/* Footer */
 .drawer-footer {
     padding: 14px;
     text-align: center;
@@ -329,7 +326,6 @@ body:not(.dark-mode) .app-drawer {
 body:not(.dark-mode) .drawer-footer {
     border-top-color: #e2e8f0;
 }
-
 
 /* ==========================================
    GET VERIFY BUTTON & ANIMATION
@@ -661,6 +657,27 @@ body:not(.dark-mode) .drawer-footer {
     box-shadow: var(--shadow-md);
 }
 
+/* ==========================================
+   DYNAMIC CARD BACKGROUND (IMAGE VS COLOR)
+========================================== */
+.category-card,
+.subcategory-card,
+.data-card-item,
+.details-container-card {
+    background-color: var(--card-bg) !important;
+    transition: background-color 0.3s ease;
+}
+
+body.has-bg-image .category-card,
+body.has-bg-image .subcategory-card,
+body.has-bg-image .data-card-item,
+body.has-bg-image .details-container-card {
+    background-color: rgba(255, 255, 255, 0.82) !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
 .details-header-section {
     text-align: center;
     margin-bottom: 24px;
@@ -953,4 +970,3 @@ body:not(.dark-mode) .drawer-footer {
     .data-card-name { font-size: 16px; }
     .data-card-detail { font-size: 12px; }
 }
-
