@@ -141,9 +141,41 @@ export function initDrawer() {
             closeDrawer();
         });
     });
+
+    // অ্যাপ লোড হওয়ার সাথে সাথে সেভ করা কালারগুলো এপ্লাই করা
+    applySavedThemeStyles();
 }
 
-// প্রথম ছবির স্টাইলে কাস্টম কনফার্মেশন মোডাল (পপ-আপ মেসেজ)
+// গ্লোবাল স্টাইল এবং টেক্সট কালার একসাথে এপ্লাই করার ফাংশন
+function applySavedThemeStyles() {
+    const bgColor = localStorage.getItem('app_bg_color');
+    const textColor = localStorage.getItem('app_text_color');
+    const themeColor = localStorage.getItem('app_theme_color');
+
+    if (bgColor) {
+        document.body.style.backgroundColor = bgColor;
+    }
+
+    if (textColor) {
+        // অ্যাপের সব হেডিং, প্যারাগ্রাফ এবং সাধারণ লেখার কালার একসাথে পরিবর্তন করবে
+        const allTextElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, label, li');
+        allTextElements.forEach(el => {
+            // ড্রয়ার বা মোডালের ভেতরের টেক্সট যাতে নষ্ট না হয়, তাই সেগুলোর বাইরে মেইন অ্যাপের টেক্সট টার্গেট করা
+            if (!el.closest('#appDrawer') && !el.closest('#settingsModal') && !el.closest('#customDeleteModal')) {
+                el.style.color = textColor;
+            }
+        });
+    }
+
+    if (themeColor) {
+        const headerElements = document.querySelectorAll('.app-header, header');
+        headerElements.forEach(el => {
+            el.style.backgroundColor = themeColor;
+        });
+    }
+}
+
+// প্রথম ছবির স্টাইলে কাস্টম কনফার্মেশন মোডাল
 function showCustomDeleteModal(onConfirm) {
     const existingModal = document.getElementById('customDeleteModal');
     if (existingModal) existingModal.remove();
@@ -157,7 +189,7 @@ function showCustomDeleteModal(onConfirm) {
                 <h3 style="margin: 0 0 15px 0; font-size: 20px; font-weight: 700; color: #111;">নিশ্চিতকরণ</h3>
                 
                 <p style="margin: 0 0 25px 0; font-size: 15px; color: #444; line-height: 1.5;">
-                    আপনি কি নিশ্চিত সমস্ত ডাটা ও লগইন তথ্য মুছে ফেলতে চান? (এর ফলে অ্যাপটি একদম প্রথম ইন্সটলের অবস্থার মতো হয়ে যাবে এবং পুনরায় পাসওয়ার্ড দিয়ে প্রবেশ করতে হবে।)
+                    আপনি কি নিশ্চিত সমস্ত ডাটা ও লগইন তথ্য মুছে ফেলতে চান?
                 </p>
                 
                 <div style="display: flex; justify-content: flex-end; gap: 10px;">
@@ -180,12 +212,11 @@ function showCustomDeleteModal(onConfirm) {
     });
 }
 
-// অ্যাডভান্সড সেটিংস মেনু মোডাল (আইকন দূরে সরিয়ে দেওয়া হয়েছে)
+// সেটিংস মেনু মোডাল
 function initSettingsModal() {
     const existingModal = document.getElementById('settingsModal');
     if (existingModal) existingModal.remove();
 
-    // বর্তমান মান লোকালস্টোরেজ থেকে লোড করা
     const themeColor = localStorage.getItem('app_theme_color') || '#ff0000';
     const bgColor = localStorage.getItem('app_bg_color') || '#3f51b5';
     const textColor = localStorage.getItem('app_text_color') || '#ffffff';
@@ -196,14 +227,12 @@ function initSettingsModal() {
         <div id="settingsModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 99999; padding: 20px;">
             <div style="background: #fff; width: 100%; max-width: 420px; border-radius: 20px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; font-family: inherit; max-height: 90vh; overflow-y: auto;">
                 
-                <!-- ক্লোজ বাটন -->
                 <button id="settingsCloseBtn" style="position: absolute; top: 18px; right: 18px; background: none; border: none; font-size: 20px; cursor: pointer; color: #333; z-index: 2;">✕</button>
                 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-right: 35px;">
                     <h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #111;">
                         ⚙️ Setting
                     </h3>
-                    <!-- ডার্ক/লাইট মোড টগল আইকন (ক্লোজ বাটন থেকে দূরে সরিয়ে মার্জিন দেওয়া হয়েছে) -->
                     <button id="darkModeToggleBtn" type="button" title="Dark/Light Mode" style="background: none; border: 1px solid #ddd; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center;">
                         ${isDarkMode ? '🌞' : '🌙'}
                     </button>
@@ -257,7 +286,34 @@ function initSettingsModal() {
 
     const modal = document.getElementById('settingsModal');
 
-    // ডার্ক মোড টগল বাটন ফাংশনালিটি
+    // লাইভ ব্যাকগ্রাউন্ড কালার পরিবর্তন ও সেভ করা
+    const bgColorInput = document.getElementById('bgColorInput');
+    bgColorInput.addEventListener('input', (e) => {
+        const selectedColor = e.target.value;
+        localStorage.setItem('app_bg_color', selectedColor);
+        document.body.style.backgroundColor = selectedColor;
+    });
+
+    // লাইভ টেক্সট কালার পরিবর্তন এবং একসাথে সব টেক্সটে এপ্লাই ও সেভ করা
+    const textColorInput = document.getElementById('textColorInput');
+    textColorInput.addEventListener('input', (e) => {
+        const selectedColor = e.target.value;
+        localStorage.setItem('app_text_color', selectedColor);
+        
+        const allTextElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, label, li');
+        allTextElements.forEach(el => {
+            if (!el.closest('#appDrawer') && !el.closest('#settingsModal') && !el.closest('#customDeleteModal')) {
+                el.style.color = selectedColor;
+            }
+        });
+    });
+
+    const themeColorInput = document.getElementById('themeColorInput');
+    themeColorInput.addEventListener('input', (e) => {
+        const selectedColor = e.target.value;
+        localStorage.setItem('app_theme_color', selectedColor);
+    });
+
     const darkModeToggleBtn = document.getElementById('darkModeToggleBtn');
     darkModeToggleBtn.addEventListener('click', () => {
         const currentDarkState = localStorage.getItem('app_dark_mode') === 'true';
@@ -273,11 +329,18 @@ function initSettingsModal() {
         }
     });
 
-    // ক্লোজ বাটন
-    document.getElementById('settingsCloseBtn').addEventListener('click', () => modal.remove());
-    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+    document.getElementById('settingsCloseBtn').addEventListener('click', () => {
+        modal.remove();
+        window.location.reload();
+    });
 
-    // Reset Settings বাটন ক্লিক করলে ডিফল্ট মান ফিরিয়ে আনা
+    modal.addEventListener('click', (e) => { 
+        if (e.target === modal) {
+            modal.remove();
+            window.location.reload();
+        } 
+    });
+
     document.getElementById('resetSettingsBtn').addEventListener('click', () => {
         localStorage.removeItem('app_theme_color');
         localStorage.removeItem('app_bg_color');
@@ -290,7 +353,6 @@ function initSettingsModal() {
         window.location.reload();
     });
 
-    // Clear Apps Data বাটন ক্লিক করলে ডাটা ও লগইন ক্লিয়ার করা
     document.getElementById('clearDataBtn').addEventListener('click', () => {
         modal.remove();
         showCustomDeleteModal(() => {
@@ -299,11 +361,6 @@ function initSettingsModal() {
             window.location.reload();
         });
     });
-
-    // ব্যাকগ্রাউন্ড ইমেজ আপলোড গ্যালারি ইউআই ইনিট করা
-    if (typeof window.createBackgroundImageUI === 'function') {
-        window.createBackgroundImageUI();
-    }
 }
 
 function handleDrawerAction(action) {
