@@ -180,7 +180,7 @@ function showCustomDeleteModal(onConfirm) {
     });
 }
 
-// অ্যাডভান্সড সেটিংস মেনু মোডাল (থিম, ব্যাকগ্রাউন্ড, টেক্সট কালার ও ল্যাঙ্গুয়েজ)
+// অ্যাডভান্সড সেটিংস মেনু মোডাল (থিম, ব্যাকগ্রাউন্ড, টেক্সট কালার, ডার্ক মোড ও ল্যাঙ্গুয়েজ)
 function initSettingsModal() {
     const existingModal = document.getElementById('settingsModal');
     if (existingModal) existingModal.remove();
@@ -190,6 +190,7 @@ function initSettingsModal() {
     const bgColor = localStorage.getItem('app_bg_color') || '#3f51b5';
     const textColor = localStorage.getItem('app_text_color') || '#ffffff';
     const language = localStorage.getItem('app_language') || 'bn';
+    const isDarkMode = localStorage.getItem('app_dark_mode') === 'true';
 
     const modalHTML = `
         <div id="settingsModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 99999; padding: 20px;">
@@ -197,9 +198,15 @@ function initSettingsModal() {
                 
                 <button id="settingsCloseBtn" style="position: absolute; top: 18px; right: 18px; background: none; border: none; font-size: 20px; cursor: pointer; color: #333;">✕</button>
                 
-                <h3 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 700; color: #111;">
-                    ⚙️ Setting
-                </h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #111;">
+                        ⚙️ Setting
+                    </h3>
+                    <!-- ডার্ক/লাইট মোড টগল আইকন -->
+                    <button id="darkModeToggleBtn" type="button" title="Dark/Light Mode" style="background: none; border: 1px solid #ddd; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center;">
+                        ${isDarkMode ? '🌞' : '🌙'}
+                    </button>
+                </div>
                 
                 <div style="display: flex; flex-direction: column; gap: 16px;">
                     
@@ -249,6 +256,22 @@ function initSettingsModal() {
 
     const modal = document.getElementById('settingsModal');
 
+    // ডার্ক মোড টগল বাটন ফাংশনালিটি
+    const darkModeToggleBtn = document.getElementById('darkModeToggleBtn');
+    darkModeToggleBtn.addEventListener('click', () => {
+        const currentDarkState = localStorage.getItem('app_dark_mode') === 'true';
+        const newDarkState = !currentDarkState;
+        localStorage.setItem('app_dark_mode', newDarkState);
+        
+        if (newDarkState) {
+            document.body.classList.add('dark-mode');
+            darkModeToggleBtn.innerHTML = '🌞';
+        } else {
+            document.body.classList.remove('dark-mode');
+            darkModeToggleBtn.innerHTML = '🌙';
+        }
+    });
+
     // ক্লোজ বাটন
     document.getElementById('settingsCloseBtn').addEventListener('click', () => modal.remove());
     modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
@@ -260,6 +283,7 @@ function initSettingsModal() {
         localStorage.removeItem('app_text_color');
         localStorage.removeItem('app_bg_image');
         localStorage.removeItem('app_language');
+        localStorage.removeItem('app_dark_mode');
         alert("সেটিংস রিসেট করা হয়েছে!");
         modal.remove();
         window.location.reload();
