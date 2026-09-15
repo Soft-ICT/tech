@@ -156,7 +156,7 @@ function showCustomDeleteModal(onConfirm) {
                 <button id="modalCloseBtn" style="position: absolute; top: 18px; right: 18px; background: none; border: none; font-size: 20px; cursor: pointer; color: #333;">✕</button>
                 
                 <!-- শিরোনাম -->
-                <h3 style="margin: 0 0 15px 0; font-size: 20px; font-weight: 700; color: #111;">সতর্কীকরণ</h3>
+                <h3 style="margin: 0 0 15px 0; font-size: 20px; font-weight: 700; color: #f44336;">সতর্কীকরণ❗</h3>
                 
                 <!-- মেসেজ -->
                 <p style="margin: 0 0 25px 0; font-size: 15px; color: #444; line-height: 1.5;">
