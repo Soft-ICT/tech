@@ -672,7 +672,7 @@ body.has-bg-image .category-card,
 body.has-bg-image .subcategory-card,
 body.has-bg-image .data-card-item,
 body.has-bg-image .details-container-card {
-    background-color: rgba(255, 255, 255, 0.82) !important;
+    background-color: rgba(255, 255, 255, 0.62) !important;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.4);
