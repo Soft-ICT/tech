@@ -17,42 +17,6 @@ function applyCustomSettings() {
 }
 
 /* ============================================================
-   REMOVE FONT SIZE OPTIONS (AGGRESSIVE REMOVAL)
-   ============================================================ */
-function removeFontSizeSettings() {
-  // ১. আইডি দিয়ে রিমুভ করার চেষ্টা
-  const ids = ["fontSizeRange", "contentFontSizeRange"];
-  ids.forEach(function (id) {
-    const input = document.getElementById(id);
-    if (input) {
-      const parent = input.closest("div, li, tr, section");
-      if (parent) parent.remove();
-      else input.remove();
-    }
-  });
-
-  // ২. লেখা বা লেবেল ধরে সম্পূর্ণ রো রিমুভ করা
-  document.querySelectorAll("*").forEach(function (el) {
-    // সরাসরি চাইল্ড টেক্সট চেক করা
-    if (el.children.length === 0 || el.tagName === "LABEL" || el.tagName === "SPAN" || el.tagName === "P" || el.tagName === "H3") {
-      const text = el.textContent ? el.textContent.trim() : "";
-      if (
-        text.includes("Font Size") ||
-        text.includes("Content Font Size")
-      ) {
-        // এর সবচেয়ে কাছের সেটিং কন্টেইনার বা প্যারেন্ট ব্লক রিমুভ করা
-        const container = el.closest(".setting-item, .settings-item, .setting-row, .form-group, .setting-option, div, li");
-        if (container && container !== document.body && container !== document.documentElement) {
-          container.remove();
-        } else {
-          el.remove();
-        }
-      }
-    }
-  });
-}
-
-/* ============================================================
    THEME COLOR
    ============================================================ */
 function applyThemeColor() {
@@ -84,7 +48,7 @@ function applyBackground() {
     document.body.style.setProperty("background-size", "cover", "important");
     document.body.style.setProperty("background-position", "center center", "important");
     document.body.style.setProperty("background-repeat", "no-repeat", "important");
-    // ফিক্সড সাইজ যাতে স্ক্রল করলে উঠানামা না করে
+    // ইমেজ ফিক্সড থাকবে, স্ক্রল করলে নড়াচড়া বা উঠানামা করবে না
     document.body.style.setProperty("background-attachment", "fixed", "important");
 
     if (color) {
@@ -277,14 +241,10 @@ export function setupCustomSettingsListener() {
 }
 
 window.addEventListener("DOMContentLoaded", function () {
-  removeFontSizeSettings();
   createBackgroundImageUI();
   applyCustomSettings();
   setupCustomSettingsListener();
 
-  // একাধিকবার চেক করা যাতে UI রেন্ডার হওয়ার সাথে সাথে রিমুভ হয়ে যায়
-  setTimeout(removeFontSizeSettings, 300);
-  setTimeout(removeFontSizeSettings, 1000);
   setTimeout(createBackgroundImageUI, 500);
 });
 
