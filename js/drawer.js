@@ -143,7 +143,7 @@ export function initDrawer() {
     });
 }
 
-// কাস্টম কনফার্মেশন মোডাল দেখানোর ফাংশন (স্ক্রিনশটের স্টাইল অনুযায়ী)
+// স্ক্রিনশটের স্টাইল অনুযায়ী কাস্টম কনফার্মেশন মোডাল
 function showCustomDeleteModal(onConfirm) {
     const existingModal = document.getElementById('customDeleteModal');
     if (existingModal) existingModal.remove();
@@ -156,11 +156,11 @@ function showCustomDeleteModal(onConfirm) {
                 <button id="modalCloseBtn" style="position: absolute; top: 18px; right: 18px; background: none; border: none; font-size: 20px; cursor: pointer; color: #333;">✕</button>
                 
                 <!-- শিরোনাম -->
-                <h3 style="margin: 0 0 15px 0; font-size: 20px; font-weight: 700; color: #111;">নিশ্চিতকরণ</h3>
+                <h3 style="margin: 0 0 15px 0; font-size: 20px; font-weight: 700; color: #111;">সতর্কীকরণ</h3>
                 
                 <!-- মেসেজ -->
                 <p style="margin: 0 0 25px 0; font-size: 15px; color: #444; line-height: 1.5;">
-                    আপনি কি নিশ্চিত আপনার ডিভাইসের সমস্ত অ্যাপ ডাটা মুছে ফেলতে চান? (ফায়ারবেসের মূল ডাটা অপরিবর্তিত থাকবে এবং পরবর্তীতে নতুন করে অটোমেটিক ডাটা ডাউনলোড হয়ে যাবে)
+                    আপনি কি নিশ্চিত সমস্ত ডাটা ও লগইন তথ্য মুছে ফেলতে চান? (এর ফলে অ্যাপটি একদম প্রথম ইন্সটলের অবস্থার মতো হয়ে যাবে এবং পুনরায় পাসওয়ার্ড দিয়ে প্রবেশ করতে হবে।)
                 </p>
                 
                 <!-- বাটনগুলো -->
@@ -214,8 +214,13 @@ function handleDrawerAction(action) {
             break;
         case 'delete-db':
             showCustomDeleteModal(() => {
-                localStorage.removeItem("police_phonebook_data");
-                localStorage.removeItem("police_pb_favorites");
+                // অ্যাপের সমস্ত লোকাল ডাটা, ফেভারিট এবং লগইন/পাসওয়ার্ড সংক্রান্ত তথ্য সম্পূর্ণ মুছে ফেলা হবে
+                localStorage.clear();
+                
+                // অথবা যদি আপনার অ্যাপে লোকালস্টোরেজ ছাড়াও কুকি বা সেশনস্টোরেজ থাকে, তাও ক্লিয়ার করে দিতে পারেন:
+                sessionStorage.clear();
+
+                // পেজ রিলোড করলে অ্যাপটি একদম প্রথম বারের মতো পাসওয়ার্ড বা লগইন স্ক্রিন চাইবে
                 window.location.reload();
             });
             break;
