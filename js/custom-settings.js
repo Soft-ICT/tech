@@ -2,27 +2,35 @@
 
 "use strict";
 
+
 /* ============================================================
-   CUSTOM SETTINGS - ALL IN ONE
+   CUSTOM SETTINGS
    ============================================================
+
    ✓ Theme Color
    ✓ Background Color
    ✓ Gallery Background Image
+   ✓ Fixed Background Image
    ✓ Global Text Color
-   ✓ Category / Sub-category
+   ✓ Category
+   ✓ Sub-category
    ✓ Toolbar
    ✓ Data Card
    ✓ Data Profile
-   ✓ Notice / Modal
+   ✓ Notices
+   ✓ Modal
    ✓ color-formatter protection
    ✓ Google Translate
    ✓ Dynamic Firebase content support
-   ✗ Font Size removed completely
+
+   ✗ Font Size
+   ✗ Content Font Size
+
    ============================================================ */
 
 
 /* ============================================================
-   STORAGE
+   STORAGE KEYS
    ============================================================ */
 
 const CS_THEME =
@@ -42,7 +50,7 @@ const CS_LANGUAGE =
 
 
 /* ============================================================
-   APPLY ALL
+   APPLY ALL SETTINGS
    ============================================================ */
 
 function applyCustomSettings() {
@@ -53,7 +61,101 @@ function applyCustomSettings() {
 
     applyGlobalTextColor();
 
-    applySavedLanguage();
+}
+
+
+/* ============================================================
+   REMOVE FONT SIZE OPTIONS FROM SETTINGS UI
+   ============================================================ */
+
+function removeFontSizeSettings() {
+
+    const ids = [
+        "fontSizeRange",
+        "contentFontSizeRange"
+    ];
+
+
+    ids.forEach(function (id) {
+
+        const input =
+            document.getElementById(id);
+
+
+        if (!input) {
+            return;
+        }
+
+
+        /*
+         * পুরো setting container remove
+         */
+        const parent =
+            input.closest(
+                ".setting-item, " +
+                ".settings-item, " +
+                ".setting-row, " +
+                ".form-group, " +
+                ".setting-option"
+            );
+
+
+        if (parent) {
+
+            parent.remove();
+
+        } else {
+
+            input.remove();
+
+        }
+
+    });
+
+
+    /*
+     * Font Size-এর label / heading remove
+     */
+    document
+        .querySelectorAll(
+            "label, span, div, p, h3, h4"
+        )
+        .forEach(function (el) {
+
+            const text =
+                el.textContent
+                    ? el.textContent.trim()
+                    : "";
+
+
+            if (
+                text === "Font Size" ||
+                text === "Content Font Size"
+            ) {
+
+                const parent =
+                    el.closest(
+                        ".setting-item, " +
+                        ".settings-item, " +
+                        ".setting-row, " +
+                        ".form-group, " +
+                        ".setting-option"
+                    );
+
+
+                if (parent) {
+
+                    parent.remove();
+
+                } else {
+
+                    el.remove();
+
+                }
+
+            }
+
+        });
 
 }
 
@@ -65,49 +167,67 @@ function applyCustomSettings() {
 function applyThemeColor() {
 
     const color =
-        localStorage.getItem(CS_THEME);
+        localStorage.getItem(
+            CS_THEME
+        );
 
-    if (!color) return;
+
+    if (!color) {
+        return;
+    }
 
 
+    /*
+     * Main CSS variable
+     */
     document.documentElement.style.setProperty(
         "--primary-color",
         color
     );
 
 
-    const elements =
+    /*
+     * Topbar / Toolbar / Drawer Header
+     */
+    const toolbarElements =
         document.querySelectorAll(
             ".topbar, .drawer-header, .sub-toolbar"
         );
 
 
-    elements.forEach(function (el) {
+    toolbarElements.forEach(
+        function (el) {
 
-        el.style.setProperty(
-            "background-color",
-            color,
-            "important"
-        );
+            el.style.setProperty(
+                "background-color",
+                color,
+                "important"
+            );
 
-    });
+        }
+    );
 
 
+    /*
+     * Data Header / Banner
+     */
     const headers =
         document.querySelectorAll(
             ".header-box, .header-banner"
         );
 
 
-    headers.forEach(function (el) {
+    headers.forEach(
+        function (el) {
 
-        el.style.setProperty(
-            "background-color",
-            color,
-            "important"
-        );
+            el.style.setProperty(
+                "background-color",
+                color,
+                "important"
+            );
 
-    });
+        }
+    );
 
 }
 
@@ -119,15 +239,23 @@ function applyThemeColor() {
 function applyBackground() {
 
     const image =
-        localStorage.getItem(CS_BG_IMAGE);
+        localStorage.getItem(
+            CS_BG_IMAGE
+        );
+
 
     const color =
-        localStorage.getItem(CS_BG);
+        localStorage.getItem(
+            CS_BG
+        );
 
 
     /*
-     * Gallery image has priority
+     * --------------------------------------------------------
+     * IMAGE BACKGROUND
+     * --------------------------------------------------------
      */
+
     if (image) {
 
         document.body.style.setProperty(
@@ -136,23 +264,72 @@ function applyBackground() {
             "important"
         );
 
+
         document.body.style.setProperty(
             "background-size",
             "cover",
             "important"
         );
 
+
         document.body.style.setProperty(
             "background-position",
-            "center",
+            "center center",
             "important"
         );
+
 
         document.body.style.setProperty(
             "background-repeat",
             "no-repeat",
             "important"
         );
+
+
+        /*
+         * IMPORTANT:
+         * Image fixed থাকবে
+         */
+        document.body.style.setProperty(
+            "background-attachment",
+            "fixed",
+            "important"
+        );
+
+
+        /*
+         * Background color থাকলেও image দেখা যাবে
+         */
+        if (color) {
+
+            document.body.style.setProperty(
+                "background-color",
+                color,
+                "important"
+            );
+
+        }
+
+
+    /*
+     * --------------------------------------------------------
+     * COLOR BACKGROUND
+     * --------------------------------------------------------
+     */
+
+    } else if (color) {
+
+        document.body.style.setProperty(
+            "background-color",
+            color,
+            "important"
+        );
+
+
+        document.body.style.removeProperty(
+            "background-image"
+        );
+
 
         document.body.style.setProperty(
             "background-attachment",
@@ -160,23 +337,12 @@ function applyBackground() {
             "important"
         );
 
-    } else if (color) {
-
-        document.body.style.setProperty(
-            "background-color",
-            color,
-            "important"
-        );
-
-        document.body.style.removeProperty(
-            "background-image"
-        );
-
     }
 
 
     /*
-     * Dashboard
+     * Dashboard transparent রাখা হচ্ছে
+     * যাতে BODY background image দেখা যায়।
      */
     const dashboard =
         document.getElementById(
@@ -184,45 +350,12 @@ function applyBackground() {
         );
 
 
-    if (!dashboard) return;
-
-
-    if (image) {
+    if (dashboard) {
 
         dashboard.style.setProperty(
-            "background-image",
-            'url("' + image + '")',
+            "background",
+            "transparent",
             "important"
-        );
-
-        dashboard.style.setProperty(
-            "background-size",
-            "cover",
-            "important"
-        );
-
-        dashboard.style.setProperty(
-            "background-position",
-            "center",
-            "important"
-        );
-
-        dashboard.style.setProperty(
-            "background-repeat",
-            "no-repeat",
-            "important"
-        );
-
-    } else if (color) {
-
-        dashboard.style.setProperty(
-            "background-color",
-            color,
-            "important"
-        );
-
-        dashboard.style.removeProperty(
-            "background-image"
         );
 
     }
@@ -236,60 +369,95 @@ function applyBackground() {
 
 function isColorFormatterElement(el) {
 
-    if (!el) return false;
-
-
-    /*
-     * Recommended marker
-     */
-    if (
-        el.hasAttribute("data-color-text") ||
-        el.hasAttribute("data-formatter-color") ||
-        el.hasAttribute("data-colored")
-    ) {
-        return true;
+    if (!el) {
+        return false;
     }
 
 
     /*
-     * Formatter classes
+     * Explicit formatter markers
      */
-    const cls =
+    if (
+        el.hasAttribute(
+            "data-color-text"
+        ) ||
+        el.hasAttribute(
+            "data-formatter-color"
+        ) ||
+        el.hasAttribute(
+            "data-colored"
+        )
+    ) {
+
+        return true;
+
+    }
+
+
+    /*
+     * Formatter class detection
+     */
+    const className =
         typeof el.className === "string"
             ? el.className
             : "";
 
 
     if (
-        cls.includes("gradient") ||
-        cls.includes("rainbow") ||
-        cls.includes("aurora") ||
-        cls.includes("fire") ||
-        cls.includes("ocean") ||
-        cls.includes("glow") ||
-        cls.includes("shadow") ||
-        cls.includes("formatter") ||
-        cls.includes("formatted")
+        className.includes(
+            "formatter"
+        ) ||
+        className.includes(
+            "formatted"
+        ) ||
+        className.includes(
+            "gradient"
+        ) ||
+        className.includes(
+            "rainbow"
+        ) ||
+        className.includes(
+            "aurora"
+        ) ||
+        className.includes(
+            "fire"
+        ) ||
+        className.includes(
+            "ocean"
+        ) ||
+        className.includes(
+            "glow"
+        ) ||
+        className.includes(
+            "shadow"
+        )
     ) {
+
         return true;
+
     }
 
 
     /*
-     * Existing inline color
+     * Existing inline color protect
      *
-     * color-formatter.js সাধারণত inline color
-     * ব্যবহার করলে সেটি protect করা হবে।
+     * color-formatter.js যদি inline color দেয়,
+     * তাহলে সেটি override করা হবে না।
      */
     if (
         el.style &&
-        el.style.getPropertyValue("color")
+        el.style.getPropertyValue(
+            "color"
+        )
     ) {
+
         return true;
+
     }
 
 
     return false;
+
 }
 
 
@@ -300,9 +468,14 @@ function isColorFormatterElement(el) {
 function applyGlobalTextColor() {
 
     const color =
-        localStorage.getItem(CS_TEXT);
+        localStorage.getItem(
+            CS_TEXT
+        );
 
-    if (!color) return;
+
+    if (!color) {
+        return;
+    }
 
 
     /*
@@ -315,7 +488,7 @@ function applyGlobalTextColor() {
 
 
     /*
-     * গুরুত্বপূর্ণ text/container
+     * Main containers
      */
     const selectors = [
 
@@ -337,33 +510,21 @@ function applyGlobalTextColor() {
 
         /* Category */
         ".category-card",
-        ".category-card h1",
-        ".category-card h2",
-        ".category-card h3",
-        ".category-card h4",
-        ".category-card p",
-        ".category-card span",
 
         /* Sub-category */
         ".subcategory-card",
-        ".subcategory-card h1",
-        ".subcategory-card h2",
-        ".subcategory-card h3",
-        ".subcategory-card h4",
-        ".subcategory-card p",
-        ".subcategory-card span",
 
         /* Header */
         ".header-box",
         ".header-banner",
 
-        /* Data card */
+        /* Data Card */
         ".data-card",
         ".data-card-name",
         ".data-card-detail",
         ".data-card-info",
 
-        /* Data profile */
+        /* Data Profile */
         ".data-profile",
         ".details-info-box",
         ".info-label",
@@ -376,7 +537,7 @@ function applyGlobalTextColor() {
         /* Modal */
         ".modal",
 
-        /* General */
+        /* Common */
         "h1",
         "h2",
         "h3",
@@ -394,27 +555,62 @@ function applyGlobalTextColor() {
         .querySelectorAll(
             selectors.join(",")
         )
-        .forEach(function (el) {
+        .forEach(
+            function (el) {
 
-            if (
-                isColorFormatterElement(el)
-            ) {
-                return;
+                if (
+                    isColorFormatterElement(el)
+                ) {
+
+                    return;
+
+                }
+
+
+                const tag =
+                    el.tagName
+                        ? el.tagName.toLowerCase()
+                        : "";
+
+
+                /*
+                 * Image / SVG / input-এর color
+                 * পরিবর্তন করা হবে না।
+                 */
+                if (
+                    tag === "img" ||
+                    tag === "svg" ||
+                    tag === "path" ||
+                    tag === "input"
+                ) {
+
+                    return;
+
+                }
+
+
+                el.style.setProperty(
+                    "color",
+                    color,
+                    "important"
+                );
+
             }
-
-
-            el.style.setProperty(
-                "color",
-                color,
-                "important"
-            );
-
-        });
+        );
 
 
     /*
-     * Data Card / Profile-এর ভিতরের
-     * সমস্ত text element
+     * --------------------------------------------------------
+     * DATA CARD
+     * DATA PROFILE
+     * CATEGORY
+     * SUB-CATEGORY
+     * TOOLBAR
+     * DRAWER
+     * MODAL
+     * --------------------------------------------------------
+     *
+     * ভিতরের nested text-ও color হবে।
      */
     document
         .querySelectorAll(
@@ -431,69 +627,77 @@ function applyGlobalTextColor() {
             .modal *
             `
         )
-        .forEach(function (el) {
+        .forEach(
+            function (el) {
 
-            /*
-             * Formatter-এর নিজের color থাকলে
-             * touch করা হবে না।
-             */
-            if (
-                isColorFormatterElement(el)
-            ) {
-                return;
+                /*
+                 * Formatter-এর নিজস্ব color থাকলে বাদ।
+                 */
+                if (
+                    isColorFormatterElement(el)
+                ) {
+
+                    return;
+
+                }
+
+
+                const tag =
+                    el.tagName
+                        ? el.tagName.toLowerCase()
+                        : "";
+
+
+                if (
+                    tag === "img" ||
+                    tag === "svg" ||
+                    tag === "path" ||
+                    tag === "input" ||
+                    tag === "button"
+                ) {
+
+                    return;
+
+                }
+
+
+                el.style.setProperty(
+                    "color",
+                    color,
+                    "important"
+                );
+
             }
-
-
-            /*
-             * Icon/image-এ text color দেওয়ার দরকার নেই
-             */
-            const tag =
-                el.tagName
-                    ? el.tagName.toLowerCase()
-                    : "";
-
-
-            if (
-                tag === "img" ||
-                tag === "svg" ||
-                tag === "path" ||
-                tag === "input"
-            ) {
-                return;
-            }
-
-
-            el.style.setProperty(
-                "color",
-                color,
-                "important"
-            );
-
-        });
+        );
 
 }
 
 
 /* ============================================================
-   GALLERY UI AUTO CREATE
+   GALLERY UI
+   ------------------------------------------------------------
+   কোনো লেখা থাকবে না।
+   শুধু Image icon.
    ============================================================ */
 
 function createBackgroundImageUI() {
 
     /*
-     * আগে থেকেই থাকলে আবার তৈরি করবে না
+     * Already created
      */
     if (
         document.getElementById(
-            "bgImageInput"
+            "customBackgroundImageBox"
         )
     ) {
+
         return;
+
     }
 
 
     /*
-     * Settings-এর ভিতরে Background Color খোঁজা
+     * Background color input
      */
     const bgColorInput =
         document.getElementById(
@@ -502,42 +706,62 @@ function createBackgroundImageUI() {
 
 
     if (!bgColorInput) {
+
         return;
+
     }
 
 
-    /*
-     * Background color-এর parent
-     */
-    let parent =
+    const parent =
         bgColorInput.parentElement;
 
 
     if (!parent) {
+
         return;
+
     }
 
 
     /*
-     * Container
+     * Main box
      */
     const box =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
 
     box.id =
         "customBackgroundImageBox";
 
 
+    box.style.display =
+        "flex";
+
+
+    box.style.alignItems =
+        "center";
+
+
+    box.style.gap =
+        "8px";
+
+
     box.style.marginTop =
-        "10px";
+        "8px";
 
 
     /*
-     * Gallery button
+     * --------------------------------------------------------
+     * GALLERY BUTTON
+     * --------------------------------------------------------
      */
+
     const chooseButton =
-        document.createElement("button");
+        document.createElement(
+            "button"
+        );
 
 
     chooseButton.type =
@@ -548,27 +772,61 @@ function createBackgroundImageUI() {
         "chooseBgImageBtn";
 
 
-    chooseButton.textContent =
-        "🖼️ Gallery থেকে ছবি নির্বাচন";
+    /*
+     * শুধু icon
+     */
+    chooseButton.innerHTML =
+        "🖼️";
+
+
+    chooseButton.title =
+        "Background Image";
+
+
+    chooseButton.setAttribute(
+        "aria-label",
+        "Background Image"
+    );
 
 
     chooseButton.style.width =
-        "100%";
+        "42px";
 
 
-    chooseButton.style.marginTop =
-        "8px";
+    chooseButton.style.height =
+        "42px";
 
 
     chooseButton.style.padding =
-        "10px";
+        "0";
+
+
+    chooseButton.style.fontSize =
+        "20px";
+
+
+    chooseButton.style.display =
+        "flex";
+
+
+    chooseButton.style.alignItems =
+        "center";
+
+
+    chooseButton.style.justifyContent =
+        "center";
 
 
     /*
-     * Hidden file input
+     * --------------------------------------------------------
+     * HIDDEN FILE INPUT
+     * --------------------------------------------------------
      */
+
     const input =
-        document.createElement("input");
+        document.createElement(
+            "input"
+        );
 
 
     input.type =
@@ -588,10 +846,15 @@ function createBackgroundImageUI() {
 
 
     /*
-     * Remove button
+     * --------------------------------------------------------
+     * REMOVE BUTTON
+     * --------------------------------------------------------
      */
+
     const removeButton =
-        document.createElement("button");
+        document.createElement(
+            "button"
+        );
 
 
     removeButton.type =
@@ -602,73 +865,78 @@ function createBackgroundImageUI() {
         "removeBgImageBtn";
 
 
-    removeButton.textContent =
-        "🗑️ Background ছবি সরান";
+    /*
+     * শুধু icon
+     */
+    removeButton.innerHTML =
+        "🗑️";
+
+
+    removeButton.title =
+        "Remove Background Image";
+
+
+    removeButton.setAttribute(
+        "aria-label",
+        "Remove Background Image"
+    );
 
 
     removeButton.style.width =
-        "100%";
+        "42px";
 
 
-    removeButton.style.marginTop =
-        "6px";
+    removeButton.style.height =
+        "42px";
 
 
     removeButton.style.padding =
-        "10px";
+        "0";
 
 
-    /*
-     * Preview
-     */
-    const preview =
-        document.createElement("div");
+    removeButton.style.fontSize =
+        "20px";
 
 
-    preview.id =
-        "bgImagePreview";
+    removeButton.style.display =
+        "flex";
 
 
-    preview.style.marginTop =
-        "8px";
-
-
-    preview.style.textAlign =
+    removeButton.style.alignItems =
         "center";
 
 
+    removeButton.style.justifyContent =
+        "center";
+
+
+    /*
+     * Add
+     */
     box.appendChild(
         chooseButton
     );
+
 
     box.appendChild(
         input
     );
 
+
     box.appendChild(
         removeButton
     );
 
-    box.appendChild(
-        preview
-    );
 
-
-    /*
-     * Background color input-এর parent-এর শেষে
-     */
     parent.appendChild(
         box
     );
-
-
-    updateBackgroundPreview();
 
 }
 
 
 /* ============================================================
-   BACKGROUND IMAGE PICKER
+   OPEN PHONE GALLERY
    ============================================================ */
 
 function openGallery() {
@@ -680,24 +948,30 @@ function openGallery() {
 
 
     if (input) {
+
         input.click();
+
     }
 
 }
 
 
 /* ============================================================
-   SAVE GALLERY IMAGE
+   SAVE BACKGROUND IMAGE
    ============================================================ */
 
 function saveBackgroundImage(file) {
 
-    if (!file) return;
+    if (!file) {
+        return;
+    }
 
 
     if (
         !file.type ||
-        !file.type.startsWith("image/")
+        !file.type.startsWith(
+            "image/"
+        )
     ) {
 
         alert(
@@ -705,15 +979,10 @@ function saveBackgroundImage(file) {
         );
 
         return;
+
     }
 
 
-    /*
-     * বড় ছবি localStorage-এ রাখলে
-     * browser quota সমস্যা হতে পারে।
-     *
-     * তাই image resize/compress করা হচ্ছে।
-     */
     const reader =
         new FileReader();
 
@@ -721,27 +990,28 @@ function saveBackgroundImage(file) {
     reader.onload =
         function (event) {
 
-            const img =
+            const image =
                 new Image();
 
 
-            img.onload =
+            image.onload =
                 function () {
 
+                    /*
+                     * Large image resize
+                     */
                     const maxSize =
                         1600;
 
 
                     let width =
-                        img.width;
+                        image.width;
+
 
                     let height =
-                        img.height;
+                        image.height;
 
 
-                    /*
-                     * বড় image resize
-                     */
                     if (
                         width > maxSize ||
                         height > maxSize
@@ -787,6 +1057,7 @@ function saveBackgroundImage(file) {
                     canvas.width =
                         width;
 
+
                     canvas.height =
                         height;
 
@@ -798,7 +1069,7 @@ function saveBackgroundImage(file) {
 
 
                     ctx.drawImage(
-                        img,
+                        image,
                         0,
                         0,
                         width,
@@ -807,7 +1078,7 @@ function saveBackgroundImage(file) {
 
 
                     /*
-                     * compressed image
+                     * JPEG compressed image
                      */
                     const data =
                         canvas.toDataURL(
@@ -824,23 +1095,19 @@ function saveBackgroundImage(file) {
                         );
 
 
-                        /*
-                         * Background color থাকলেও
-                         * image priority পাবে।
-                         */
                         applyBackground();
-
-                        updateBackgroundPreview();
 
 
                     } catch (error) {
 
-                        alert(
-                            "ছবিটি সংরক্ষণ করা যায়নি। অন্য একটি ছোট ছবি চেষ্টা করুন।"
+                        console.warn(
+                            "Background image save failed:",
+                            error
                         );
 
-                        console.warn(
-                            error
+
+                        alert(
+                            "ছবিটি সংরক্ষণ করা যায়নি। ছোট ছবি নির্বাচন করুন।"
                         );
 
                     }
@@ -848,13 +1115,15 @@ function saveBackgroundImage(file) {
                 };
 
 
-            img.src =
+            image.src =
                 event.target.result;
 
         };
 
 
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(
+        file
+    );
 
 }
 
@@ -870,9 +1139,6 @@ function removeBackgroundImage() {
     );
 
 
-    /*
-     * File input reset
-     */
     const input =
         document.getElementById(
             "bgImageInput"
@@ -880,76 +1146,14 @@ function removeBackgroundImage() {
 
 
     if (input) {
-        input.value = "";
+
+        input.value =
+            "";
+
     }
 
 
     applyBackground();
-
-    updateBackgroundPreview();
-
-}
-
-
-/* ============================================================
-   BACKGROUND PREVIEW
-   ============================================================ */
-
-function updateBackgroundPreview() {
-
-    const preview =
-        document.getElementById(
-            "bgImagePreview"
-        );
-
-
-    if (!preview) return;
-
-
-    const image =
-        localStorage.getItem(
-            CS_BG_IMAGE
-        );
-
-
-    if (!image) {
-
-        preview.innerHTML = "";
-
-        return;
-    }
-
-
-    preview.innerHTML = "";
-
-
-    const img =
-        document.createElement("img");
-
-
-    img.src =
-        image;
-
-
-    img.style.width =
-        "100%";
-
-
-    img.style.maxHeight =
-        "120px";
-
-
-    img.style.objectFit =
-        "cover";
-
-
-    img.style.borderRadius =
-        "8px";
-
-
-    preview.appendChild(
-        img
-    );
 
 }
 
@@ -961,6 +1165,7 @@ function updateBackgroundPreview() {
 let googleTranslateStarted =
     false;
 
+
 let googleTranslateReady =
     false;
 
@@ -970,7 +1175,9 @@ function loadGoogleTranslate() {
     if (
         googleTranslateStarted
     ) {
+
         return;
+
     }
 
 
@@ -979,7 +1186,7 @@ function loadGoogleTranslate() {
 
 
     /*
-     * Hidden container
+     * Hidden Google Translate container
      */
     let box =
         document.getElementById(
@@ -994,6 +1201,7 @@ function loadGoogleTranslate() {
                 "div"
             );
 
+
         box.id =
             "google_translate_element";
 
@@ -1001,23 +1209,30 @@ function loadGoogleTranslate() {
         box.style.position =
             "fixed";
 
+
         box.style.left =
             "-99999px";
+
 
         box.style.top =
             "0";
 
+
         box.style.width =
             "1px";
+
 
         box.style.height =
             "1px";
 
+
         box.style.overflow =
             "hidden";
 
+
         box.style.opacity =
             "0";
+
 
         box.style.pointerEvents =
             "none";
@@ -1045,10 +1260,16 @@ function loadGoogleTranslate() {
 
                     new google.translate.TranslateElement(
                         {
-                            pageLanguage: "bn",
-                            includedLanguages: "bn,en",
-                            autoDisplay: false
+                            pageLanguage:
+                                "bn",
+
+                            includedLanguages:
+                                "bn,en",
+
+                            autoDisplay:
+                                false
                         },
+
                         "google_translate_element"
                     );
 
@@ -1058,11 +1279,7 @@ function loadGoogleTranslate() {
 
 
                     setTimeout(
-                        function () {
-
-                            applyGoogleLanguage();
-
-                        },
+                        applyGoogleLanguage,
                         500
                     );
 
@@ -1071,7 +1288,7 @@ function loadGoogleTranslate() {
             } catch (error) {
 
                 console.warn(
-                    "Google Translate error:",
+                    "Google Translate initialization failed:",
                     error
                 );
 
@@ -1081,7 +1298,7 @@ function loadGoogleTranslate() {
 
 
     /*
-     * Script
+     * Load Google script
      */
     const script =
         document.createElement(
@@ -1110,7 +1327,7 @@ function loadGoogleTranslate() {
 
 function applyGoogleLanguage() {
 
-    const lang =
+    const language =
         localStorage.getItem(
             CS_LANGUAGE
         ) || "bn";
@@ -1124,7 +1341,9 @@ function applyGoogleLanguage() {
 
     if (!select) {
 
-        if (lang === "en") {
+        if (
+            language === "en"
+        ) {
 
             setTimeout(
                 applyGoogleLanguage,
@@ -1134,11 +1353,12 @@ function applyGoogleLanguage() {
         }
 
         return;
+
     }
 
 
     const target =
-        lang === "en"
+        language === "en"
             ? "en"
             : "bn";
 
@@ -1152,7 +1372,9 @@ function applyGoogleLanguage() {
 
 
         select.dispatchEvent(
-            new Event("change")
+            new Event(
+                "change"
+            )
         );
 
     }
@@ -1164,25 +1386,39 @@ function applyGoogleLanguage() {
    LANGUAGE
    ============================================================ */
 
-function applySavedLanguage() {
+function applyLanguage(language) {
 
-    const lang =
-        localStorage.getItem(
-            CS_LANGUAGE
-        );
+    if (!language) {
+
+        language =
+            "bn";
+
+    }
 
 
-    if (!lang) return;
+    localStorage.setItem(
+        CS_LANGUAGE,
+        language
+    );
 
 
-    /*
-     * English
-     */
-    if (lang === "en") {
+    if (
+        language === "en"
+    ) {
 
         loadGoogleTranslate();
 
 
+        setTimeout(
+            applyGoogleLanguage,
+            1000
+        );
+
+    } else {
+
+        /*
+         * বাংলা
+         */
         if (
             googleTranslateReady
         ) {
@@ -1192,61 +1428,16 @@ function applySavedLanguage() {
                 300
             );
 
+        } else if (
+            typeof refreshCurrentView ===
+            "function"
+        ) {
+
+            refreshCurrentView();
+
         }
 
     }
-
-}
-
-
-/* ============================================================
-   DYNAMIC CONTENT OBSERVER
-   ============================================================ */
-
-function setupDynamicSettingsObserver() {
-
-    if (
-        !window.MutationObserver
-    ) {
-        return;
-    }
-
-
-    let timer = null;
-
-
-    const observer =
-        new MutationObserver(
-            function () {
-
-                clearTimeout(timer);
-
-
-                timer =
-                    setTimeout(
-                        function () {
-
-                            applyThemeColor();
-
-                            applyBackground();
-
-                            applyGlobalTextColor();
-
-                        },
-                        100
-                    );
-
-            }
-        );
-
-
-    observer.observe(
-        document.body,
-        {
-            childList: true,
-            subtree: true
-        }
-    );
 
 }
 
@@ -1259,8 +1450,11 @@ export function setupCustomSettingsListener() {
 
 
     /*
-     * CHANGE
+     * --------------------------------------------------------
+     * CHANGE EVENT
+     * --------------------------------------------------------
      */
+
     document.addEventListener(
         "change",
         function (e) {
@@ -1270,9 +1464,9 @@ export function setupCustomSettingsListener() {
             }
 
 
-            /* ----------------------------
-               Theme
-               ---------------------------- */
+            /*
+             * Theme Color
+             */
             if (
                 e.target.id ===
                 "themeColorInput"
@@ -1289,9 +1483,9 @@ export function setupCustomSettingsListener() {
             }
 
 
-            /* ----------------------------
-               Background Color
-               ---------------------------- */
+            /*
+             * Background Color
+             */
             if (
                 e.target.id ===
                 "bgColorInput"
@@ -1303,20 +1497,14 @@ export function setupCustomSettingsListener() {
                 );
 
 
-                /*
-                 * Color নির্বাচন করলে
-                 * পুরনো image remove করা হবে না।
-                 *
-                 * Image থাকলে image priority পাবে।
-                 */
                 applyBackground();
 
             }
 
 
-            /* ----------------------------
-               Text Color
-               ---------------------------- */
+            /*
+             * Text Color
+             */
             if (
                 e.target.id ===
                 "textColorInput"
@@ -1333,9 +1521,9 @@ export function setupCustomSettingsListener() {
             }
 
 
-            /* ----------------------------
-               Gallery Image
-               ---------------------------- */
+            /*
+             * Gallery Image
+             */
             if (
                 e.target.id ===
                 "bgImageInput"
@@ -1353,9 +1541,9 @@ export function setupCustomSettingsListener() {
             }
 
 
-            /* ----------------------------
-               Language
-               ---------------------------- */
+            /*
+             * Language
+             */
             if (
                 e.target.name ===
                 "appLang" ||
@@ -1363,68 +1551,9 @@ export function setupCustomSettingsListener() {
                 "languageSelect"
             ) {
 
-                const lang =
-                    e.target.value;
-
-
-                localStorage.setItem(
-                    CS_LANGUAGE,
-                    lang
+                applyLanguage(
+                    e.target.value
                 );
-
-
-                if (
-                    lang === "en"
-                ) {
-
-                    loadGoogleTranslate();
-
-
-                    setTimeout(
-                        function () {
-
-                            applyGoogleLanguage();
-
-                        },
-                        1000
-                    );
-
-                } else {
-
-                    /*
-                     * Google Translate থেকে
-                     * বাংলা restore
-                     */
-                    if (
-                        googleTranslateReady
-                    ) {
-
-                        setTimeout(
-                            function () {
-
-                                applyGoogleLanguage();
-
-                            },
-                            300
-                        );
-
-                    } else {
-
-                        /*
-                         * App-এর নিজের বাংলা
-                         */
-                        if (
-                            typeof refreshCurrentView ===
-                            "function"
-                        ) {
-
-                            refreshCurrentView();
-
-                        }
-
-                    }
-
-                }
 
             }
 
@@ -1433,8 +1562,11 @@ export function setupCustomSettingsListener() {
 
 
     /*
-     * Gallery button
+     * --------------------------------------------------------
+     * GALLERY BUTTON
+     * --------------------------------------------------------
      */
+
     document.addEventListener(
         "click",
         function (e) {
@@ -1463,32 +1595,69 @@ export function setupCustomSettingsListener() {
         }
     );
 
+}
 
-    /*
-     * Settings UI যদি পরে render হয়,
-     * তখন Gallery UI তৈরি হবে।
-     */
-    const uiTimer =
-        setInterval(
+
+/* ============================================================
+   DYNAMIC CONTENT OBSERVER
+   ============================================================ */
+
+function setupDynamicSettingsObserver() {
+
+    if (
+        !window.MutationObserver
+    ) {
+
+        return;
+
+    }
+
+
+    let timer =
+        null;
+
+
+    const observer =
+        new MutationObserver(
             function () {
 
-                if (
-                    document.getElementById(
-                        "bgColorInput"
-                    )
-                ) {
+                clearTimeout(
+                    timer
+                );
 
-                    createBackgroundImageUI();
 
-                    clearInterval(
-                        uiTimer
+                timer =
+                    setTimeout(
+                        function () {
+
+                            /*
+                             * New Firebase content
+                             */
+                            applyThemeColor();
+
+                            applyBackground();
+
+                            applyGlobalTextColor();
+
+                            /*
+                             * Font settings নেই
+                             */
+
+                        },
+                        100
                     );
 
-                }
-
-            },
-            300
+            }
         );
+
+
+    observer.observe(
+        document.body,
+        {
+            childList: true,
+            subtree: true
+        }
+    );
 
 }
 
@@ -1502,15 +1671,9 @@ window.addEventListener(
     function () {
 
         /*
-         * প্রথমে settings
+         * প্রথমেই Font Size UI remove
          */
-        applyCustomSettings();
-
-
-        /*
-         * Listeners
-         */
-        setupCustomSettingsListener();
+        removeFontSizeSettings();
 
 
         /*
@@ -1520,24 +1683,38 @@ window.addEventListener(
 
 
         /*
-         * Firebase / dynamic content
+         * Apply settings
+         */
+        applyCustomSettings();
+
+
+        /*
+         * Event listeners
+         */
+        setupCustomSettingsListener();
+
+
+        /*
+         * Dynamic Firebase content
          */
         setupDynamicSettingsObserver();
 
 
         /*
-         * কিছু delay-এর পর আবার apply
+         * Re-check after app UI render
          */
         setTimeout(
             function () {
+
+                removeFontSizeSettings();
+
+                createBackgroundImageUI();
 
                 applyThemeColor();
 
                 applyBackground();
 
                 applyGlobalTextColor();
-
-                createBackgroundImageUI();
 
             },
             500
@@ -1546,6 +1723,10 @@ window.addEventListener(
 
         setTimeout(
             function () {
+
+                removeFontSizeSettings();
+
+                createBackgroundImageUI();
 
                 applyThemeColor();
 
@@ -1556,6 +1737,33 @@ window.addEventListener(
             },
             1500
         );
+
+
+        /*
+         * Saved language
+         */
+        const language =
+            localStorage.getItem(
+                CS_LANGUAGE
+            );
+
+
+        if (
+            language === "en"
+        ) {
+
+            setTimeout(
+                function () {
+
+                    applyLanguage(
+                        "en"
+                    );
+
+                },
+                1000
+            );
+
+        }
 
     }
 );
@@ -1568,14 +1776,18 @@ window.addEventListener(
 window.applyCustomSettings =
     applyCustomSettings;
 
+
 window.applyThemeColor =
     applyThemeColor;
+
 
 window.applyBackground =
     applyBackground;
 
+
 window.applyGlobalTextColor =
     applyGlobalTextColor;
+
 
 window.removeBackgroundImage =
     removeBackgroundImage;
