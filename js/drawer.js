@@ -245,10 +245,6 @@ function applySavedThemeStyles() {
     }
 
 
-    /*
-     * Formatter চালানোর পর saved global color আবার
-     * unformatted content-এ প্রয়োগ হবে।
-     */
     setTimeout(applySavedTextColor, 0);
     setTimeout(applySavedTextColor, 100);
     setTimeout(applySavedTextColor, 500);
@@ -315,10 +311,6 @@ function applySavedTextColor() {
 
     if (!color) return;
 
-
-    /*
-     * color-formatter.js থাকলে তার safe function ব্যবহার করি।
-     */
     if (
         window.firebaseTextFormatter &&
         typeof window.firebaseTextFormatter.applySavedTextColor ===
@@ -330,10 +322,6 @@ function applySavedTextColor() {
         return;
     }
 
-
-    /*
-     * Fallback.
-     */
     const selectors = [
         "h1","h2","h3","h4","h5","h6",
         "p","span","a","label","li",
@@ -371,6 +359,88 @@ function applySavedTextColor() {
             color,
             "important"
         );
+    });
+}
+
+
+/* ============================================================
+   CUSTOM ALERT / MODAL (দ্বিতীয় ছবির স্টাইলে মেসেজ দেখানোর জন্য)
+============================================================ */
+
+function showCustomAlert(titleText, messageText, onOk = null) {
+    const existing = document.getElementById("customAlertModal");
+    if (existing) existing.remove();
+
+    const modalHTML = `
+        <div id="customAlertModal"
+             style="
+                position:fixed;top:0;left:0;width:100%;height:100%;
+                background:rgba(0,0,0,.5);
+                display:flex;align-items:center;
+                justify-content:center;z-index:99999;padding:20px;
+             ">
+
+            <div style="
+                background:#fff;width:100%;max-width:380px;
+                border-radius:20px;padding:24px;
+                box-shadow:0 10px 25px rgba(0,0,0,.2);
+                position:relative;font-family:inherit;
+            ">
+
+                <button id="alertCloseBtn"
+                        style="
+                            position:absolute;top:18px;right:18px;
+                            background:none;border:none;font-size:20px;
+                            cursor:pointer;color:#333;
+                        ">
+                    ✕
+                </button>
+
+                <h3 style="
+                    margin:0 0 15px 0;font-size:20px;
+                    font-weight:700;color:#111;
+                ">
+                    ${titleText}
+                </h3>
+
+                <p style="
+                    margin:0 0 25px 0;font-size:15px;
+                    color:#444;line-height:1.5;
+                ">
+                    ${messageText}
+                </p>
+
+                <div style="
+                    display:flex;justify-content:flex-end;gap:10px;
+                ">
+                    <button id="alertOkBtn"
+                            style="
+                                padding:8px 22px;border:none;
+                                background:#ff4d4d;color:#fff;
+                                border-radius:8px;font-size:14px;
+                                font-weight:600;cursor:pointer;
+                            ">
+                        ঠিক আছে
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML("beforeend", modalHTML);
+
+    const modal = document.getElementById("customAlertModal");
+
+    const closeModal = () => {
+        modal.remove();
+        if (typeof onOk === "function") onOk();
+    };
+
+    document.getElementById("alertCloseBtn").addEventListener("click", closeModal);
+    document.getElementById("alertOkBtn").addEventListener("click", closeModal);
+    modal.addEventListener("click", e => {
+        if (e.target === modal) closeModal();
     });
 }
 
@@ -761,10 +831,6 @@ function initSettingsModal() {
 
             applySavedTextColor();
 
-            /*
-             * Formatter-এর explicit Firebase colors আবার
-             * নিশ্চিত করি।
-             */
             if (
                 typeof window.applyFirebaseTextColors ===
                 "function"
@@ -875,10 +941,10 @@ function initSettingsModal() {
             localStorage.removeItem("app_language");
             localStorage.removeItem("app_dark_mode");
 
-            alert("সেটিংস রিসেট করা হয়েছে!");
-
             modal.remove();
-            window.location.reload();
+            showCustomAlert("নিশ্চিতকরণ", "সেটিংস সফলভাবে রিসেট করা হয়েছে!", () => {
+                window.location.reload();
+            });
         });
 
 
@@ -999,9 +1065,7 @@ function handleDrawerAction(action) {
 
             } else {
 
-                alert(
-                    "Sharing not supported on this browser."
-                );
+                showCustomAlert("সতর্কতা", "এই ব্রাউজারে শেয়ার অপশনটি সমর্থিত নয়।");
 
             }
 
@@ -1025,10 +1089,6 @@ function bootSavedTheme() {
 
     applySavedThemeStyles();
 
-    /*
-     * Splash screen যদি পরে তৈরি হয়,
-     * আবার apply করা হবে।
-     */
     setTimeout(
         applySavedThemeStyles,
         0
