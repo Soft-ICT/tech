@@ -25,15 +25,10 @@ function updateGlobalStyles() {
                 background-color: ${themeColor} !important;
             }
             
-            /* ২. ডাটা হেডার বা ব্যানার: এটি পুরো পেজে ছড়াবে না, শুধু নিজস্ব বক্সে সীমাবদ্ধ থেকে ভেতরের ব্যাকগ্রাউন্ড ও টেক্সট কালার বদলাবে */
+            /* ২. ডাটা হেডার বা ব্যানার: নিজস্ব বর্ডার-রেডিয়াস ও শেপ ঠিক রেখে শুধু কালার পরিবর্তন হবে */
             .header-box, .header-banner {
                 background-color: ${themeColor} !important;
-                display: block !important;
-                width: auto !important;
-                max-width: 100% !important;
-                margin: 10px 15px !important;
-                border-radius: 8px !important;
-                box-sizing: border-box !important;
+                /* ফিক্সড উইডথ বা মার্জিন ওভাররাইড রিমুভ করা হলো যাতে অরিজিনাল ডিজাইন নষ্ট না হয় */
             }
             .header-box h2, .header-box h3, .header-banner span, .header-banner h2 {
                 color: #ffffff !important;
@@ -50,7 +45,7 @@ function updateGlobalStyles() {
             }
         ` : ''}
 
-        /* ৪. টেক্সট কালার (কার্ডের লেআউট অক্ষুণ্ণ রেখে নির্দিষ্ট UI এলিমেন্টে) */
+        /* ৪. টেক্সট কালার (কার্ডের লেআউট ও ডিজাইন অক্ষুণ্ণ রেখে নির্দিষ্ট UI এলিমেন্টে) */
         ${textColor ? `
             .category-card h3, .subcategory-card h3, 
             .menu-text, .drawer-section-title, 
