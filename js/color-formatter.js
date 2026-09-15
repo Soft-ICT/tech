@@ -1115,6 +1115,117 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
 
 
     /* ============================================================
+       GLOBAL APP TEXT COLOR INTEGRATION
+       - Saved app_text_color applies only when no Firebase
+         formatting is present.
+       - Explicit Firebase formatting always wins.
+    ============================================================ */
+
+    function hasFirebaseFormatting(element) {
+        if (!element || element.nodeType !== 1) return false;
+
+        if (element.classList &&
+            element.classList.contains("firebase-formatted-text")) {
+            return true;
+        }
+
+        if (element.querySelector &&
+            element.querySelector(".firebase-formatted-text")) {
+            return true;
+        }
+
+        const text = element.textContent || "";
+        if (/\[(#[a-zA-Z0-9_]+)\][\s\S]*?\[\/\1\]/.test(text)) {
+            return true;
+        }
+
+        return getCodes(text).length > 0;
+    }
+
+    function applySavedAppTextColor(root) {
+        const savedColor =
+            localStorage.getItem("app_text_color");
+
+        if (!savedColor) return;
+
+        root = root || document.body;
+        if (!root) return;
+
+        const selectors = [
+            "h1","h2","h3","h4","h5","h6",
+            "p","span","a","label","li",
+            "b","strong","td","th","small","em",
+            "[data-category]",
+            "[data-subcategory]",
+            "[data-content]",
+            "[data-profile]",
+            "[data-data]",
+            "[data-color-text]",
+            "[class*='card']",
+            "[class*='profile']",
+            "[class*='category']",
+            "[class*='subcategory']",
+            "[class*='data']",
+            "[class*='notice']"
+        ];
+
+        let elements = [];
+
+        try {
+            if (root.matches &&
+                selectors.some(s => {
+                    try { return root.matches(s); }
+                    catch (e) { return false; }
+                })) {
+                elements.push(root);
+            }
+
+            elements = elements.concat(
+                Array.from(
+                    root.querySelectorAll(selectors.join(","))
+                )
+            );
+        } catch (e) {
+            console.warn("Saved text color:", e);
+        }
+
+        Array.from(new Set(elements)).forEach(element => {
+            if (isExcluded(element)) return;
+
+            /*
+             * Explicit Firebase formatting gets its own color.
+             * Do not overwrite formatted spans.
+             */
+            if (element.classList &&
+                element.classList.contains("firebase-formatted-text")) {
+                return;
+            }
+
+            /*
+             * If this element contains an explicitly formatted
+             * child, leave the element alone so the formatted
+             * portion remains untouched.
+             */
+            if (element.querySelector &&
+                element.querySelector(".firebase-formatted-text")) {
+                return;
+            }
+
+            /*
+             * Inline Firebase codes still present: formatter will
+             * process them; do not set a global color first.
+             */
+            if (hasFirebaseFormatting(element)) return;
+
+            element.style.setProperty(
+                "color",
+                savedColor,
+                "important"
+            );
+        });
+    }
+
+    /* ============================================================
        APPLY
     ============================================================ */
 
@@ -1247,6 +1358,11 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
             }
         );
 
+        /*
+         * Apply Settings text color only to content that does not
+         * have an explicit Firebase formatter style.
+         */
+        applySavedAppTextColor(root);
 
         cleanToolbarCodes();
 
@@ -1474,6 +1590,9 @@ ${TOOLBAR_SELECTOR}.firebase-toolbar-clean-ready {
 
         apply:
             applyFirebaseTextColors,
+
+        applySavedTextColor:
+            applySavedAppTextColor,
 
         clean:
             function(text) {
