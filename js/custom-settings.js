@@ -2,7 +2,7 @@
 
 "use strict";
 
-// নিরাপদ এবং নিখুঁত গ্লোবাল CSS স্টাইল ট্যাগ আপডেট করার ফাংশন
+// নিখুঁত এবং নিরাপদ গ্লোবাল CSS স্টাইল ট্যাগ আপডেট করার ফাংশন
 function updateGlobalStyles() {
     const themeColor = localStorage.getItem('app_theme_color');
     const bgColor = localStorage.getItem('app_bg_color');
@@ -19,21 +19,28 @@ function updateGlobalStyles() {
     }
 
     let cssRules = `
-        /* ১. থিম কালার (টপবার, হেডার এবং ব্যানার) */
+        /* ১. টপবার এবং ড্রয়ার হেডার */
         ${themeColor ? `
             .topbar, .drawer-header, .sub-toolbar {
                 background-color: ${themeColor} !important;
             }
-            /* হেডারের ডিজাইন ও শেপ ঠিক রেখে শুধু ব্যাকগ্রাউন্ড ও টেক্সট কালার সেট করা */
+            
+            /* ২. ডাটা হেডার বা ব্যানার: এটি পুরো পেজে ছড়াবে না, শুধু নিজস্ব বক্সে সীমাবদ্ধ থেকে ভেতরের ব্যাকগ্রাউন্ড ও টেক্সট কালার বদলাবে */
             .header-box, .header-banner {
                 background-color: ${themeColor} !important;
+                display: block !important;
+                width: auto !important;
+                max-width: 100% !important;
+                margin: 10px 15px !important;
+                border-radius: 8px !important;
+                box-sizing: border-box !important;
             }
             .header-box h2, .header-box h3, .header-banner span, .header-banner h2 {
                 color: #ffffff !important;
             }
         ` : ''}
 
-        /* ২. ব্যাকগ্রাউন্ড কালার (শুধু মূল বডি বা কন্টেইনার) */
+        /* ৩. মূল ব্যাকগ্রাউন্ড কালার */
         ${bgColor ? `
             body {
                 background-color: ${bgColor} !important;
@@ -43,7 +50,7 @@ function updateGlobalStyles() {
             }
         ` : ''}
 
-        /* ৩. টেক্সট কালার (নির্দিষ্ট UI এবং হেডার এলিমেন্টের জন্য, কার্ডের লেআউট অক্ষুণ্ণ রেখে) */
+        /* ৪. টেক্সট কালার (কার্ডের লেআউট অক্ষুণ্ণ রেখে নির্দিষ্ট UI এলিমেন্টে) */
         ${textColor ? `
             .category-card h3, .subcategory-card h3, 
             .menu-text, .drawer-section-title, 
@@ -52,14 +59,14 @@ function updateGlobalStyles() {
             }
         ` : ''}
 
-        /* ৪. UI ফন্ট সাইজ (ড্রয়ার, ক্যাটাগরি, সাব-ক্যাটাগরি) */
+        /* ৫. UI ফন্ট সাইজ (ড্রয়ার, ক্যাটাগরি, সাব-ক্যাটাগরি) */
         ${uiFontSize ? `
             .menu-text, .category-card h3, .subcategory-card h3, .drawer-section-title {
                 font-size: ${uiFontSize}px !important;
             }
         ` : ''}
 
-        /* ৫. কন্টেন্ট ফন্ট সাইজ (ডাটা কার্ড এবং ডাটা প্রোফাইল) */
+        /* ৬. কন্টেন্ট ফন্ট সাইজ (ডাটা কার্ড এবং ডাটা প্রোফাইল) */
         ${contentFontSize ? `
             .data-card-name, .data-card-detail, .details-info-box, .info-label, .info-value {
                 font-size: ${contentFontSize}px !important;
@@ -148,4 +155,3 @@ window.addEventListener('DOMContentLoaded', () => {
     setupCustomSettingsListener();
     observeDOMChanges();
 });
-
