@@ -1,4 +1,4 @@
-// js/drawer.js[span_2](start_span)[span_2](end_span)
+// js/drawer.js
 
 export function initDrawer() {
     const drawerHTML = `
@@ -143,6 +143,58 @@ export function initDrawer() {
     });
 }
 
+// কাস্টম কনফার্মেশন মোডাল দেখানোর ফাংশন (স্ক্রিনশটের স্টাইল অনুযায়ী)
+function showCustomDeleteModal(onConfirm) {
+    const existingModal = document.getElementById('customDeleteModal');
+    if (existingModal) existingModal.remove();
+
+    const modalHTML = `
+        <div id="customDeleteModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 99999; padding: 20px;">
+            <div style="background: #fff; width: 100%; max-width: 380px; border-radius: 20px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; font-family: inherit; animation: scaleUp 0.2s ease;">
+                
+                <!-- ক্লোজ বাটন -->
+                <button id="modalCloseBtn" style="position: absolute; top: 18px; right: 18px; background: none; border: none; font-size: 20px; cursor: pointer; color: #333;">✕</button>
+                
+                <!-- শিরোনাম -->
+                <h3 style="margin: 0 0 15px 0; font-size: 20px; font-weight: 700; color: #111;">নিশ্চিতকরণ</h3>
+                
+                <!-- মেসেজ -->
+                <p style="margin: 0 0 25px 0; font-size: 15px; color: #444; line-height: 1.5;">
+                    আপনি কি নিশ্চিত আপনার ডিভাইসের সমস্ত অ্যাপ ডাটা মুছে ফেলতে চান? (ফায়ারবেসের মূল ডাটা অপরিবর্তিত থাকবে এবং পরবর্তীতে নতুন করে অটোমেটিক ডাটা ডাউনলোড হয়ে যাবে)
+                </p>
+                
+                <!-- বাটনগুলো -->
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button id="modalCancelBtn" style="padding: 8px 18px; border: 1px solid #ccc; background: #fff; color: #333; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">বাতিল</button>
+                    <button id="modalConfirmBtn" style="padding: 8px 18px; border: none; background: #f44336; color: #fff; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">হ্যাঁ, মুছুন</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    const modal = document.getElementById('customDeleteModal');
+    const closeBtn = document.getElementById('modalCloseBtn');
+    const cancelBtn = document.getElementById('modalCancelBtn');
+    const confirmBtn = document.getElementById('modalConfirmBtn');
+
+    function closeModal() {
+        modal.remove();
+    }
+
+    closeBtn.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+
+    confirmBtn.addEventListener('click', () => {
+        closeModal();
+        onConfirm();
+    });
+}
+
 function handleDrawerAction(action) {
     switch (action) {
         case 'home':
@@ -161,11 +213,11 @@ function handleDrawerAction(action) {
             }
             break;
         case 'delete-db':
-            if (confirm("আপনি কি আপনার ডিভাইস থেকে অ্যাপের লোকাল ডাটা মুছে ফেলতে চান? (ফায়ারবেসের মূল ডাটা অপরিবর্তিত থাকবে এবং পরবর্তীতে নতুন করে অটোমেটিক ডাটা ডাউনলোড হয়ে যাবে)")) {
+            showCustomDeleteModal(() => {
                 localStorage.removeItem("police_phonebook_data");
                 localStorage.removeItem("police_pb_favorites");
                 window.location.reload();
-            }
+            });
             break;
         case 'notice-box':
             console.log('Notice Box clicked');
