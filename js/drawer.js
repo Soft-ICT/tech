@@ -1,4 +1,4 @@
-// js/drawer.js
+// js/drawer.js[span_2](start_span)[span_2](end_span)
 
 export function initDrawer() {
     const drawerHTML = `
@@ -158,6 +158,13 @@ function handleDrawerAction(action) {
         case 'favorite':
             if (typeof renderFavoriteView === 'function') {
                 renderFavoriteView(true);
+            }
+            break;
+        case 'delete-db':
+            if (confirm("আপনি কি আপনার ডিভাইস থেকে অ্যাপের লোকাল ডাটা মুছে ফেলতে চান? (ফায়ারবেসের মূল ডাটা অপরিবর্তিত থাকবে এবং পরবর্তীতে নতুন করে অটোমেটিক ডাটা ডাউনলোড হয়ে যাবে)")) {
+                localStorage.removeItem("police_phonebook_data");
+                localStorage.removeItem("police_pb_favorites");
+                window.location.reload();
             }
             break;
         case 'notice-box':
