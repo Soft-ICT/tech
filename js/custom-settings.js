@@ -24,16 +24,16 @@ function updateGlobalStyles() {
             .topbar, .drawer-header, .sub-toolbar {
                 background-color: ${themeColor} !important;
             }
+            /* হেডারের ডিজাইন ও শেপ ঠিক রেখে শুধু ব্যাকগ্রাউন্ড ও টেক্সট কালার সেট করা */
             .header-box, .header-banner {
                 background-color: ${themeColor} !important;
-                color: #ffffff !important;
             }
-            .header-banner span {
+            .header-box h2, .header-box h3, .header-banner span, .header-banner h2 {
                 color: #ffffff !important;
             }
         ` : ''}
 
-        /* ২. ব্যাকগ্রাউন্ড কালার (শুধু মূল কন্টেইনারে এপ্লাই হবে, কার্ডের বডি নষ্ট হবে না) */
+        /* ২. ব্যাকগ্রাউন্ড কালার (শুধু মূল বডি বা কন্টেইনার) */
         ${bgColor ? `
             body {
                 background-color: ${bgColor} !important;
@@ -43,7 +43,7 @@ function updateGlobalStyles() {
             }
         ` : ''}
 
-        /* ৩. টেক্সট কালার (এটি শুধুমাত্র নির্দিষ্ট টেক্সট ক্লাসগুলোতে কাজ করবে, কার্ডের লেআউট নষ্ট করবে না) */
+        /* ৩. টেক্সট কালার (নির্দিষ্ট UI এবং হেডার এলিমেন্টের জন্য, কার্ডের লেআউট অক্ষুণ্ণ রেখে) */
         ${textColor ? `
             .category-card h3, .subcategory-card h3, 
             .menu-text, .drawer-section-title, 
@@ -59,7 +59,7 @@ function updateGlobalStyles() {
             }
         ` : ''}
 
-        /* ৫. কন্টেন্ট ফন্ট সাইজ (ডাটা কার্ডের ভেতরের লেখা ও প্রোফাইল) */
+        /* ৫. কন্টেন্ট ফন্ট সাইজ (ডাটা কার্ড এবং ডাটা প্রোফাইল) */
         ${contentFontSize ? `
             .data-card-name, .data-card-detail, .details-info-box, .info-label, .info-value {
                 font-size: ${contentFontSize}px !important;
