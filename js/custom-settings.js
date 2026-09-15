@@ -2,669 +2,136 @@
 
 "use strict";
 
+// অ্যাপ লোড হওয়ার সাথে সাথে এবং পরিবর্তন করলে সেটিংস অ্যাপ্লাই করার ফাংশন
+function applyCustomSettings() {
+    const themeColor = localStorage.getItem('app_theme_color');
+    const bgColor = localStorage.getItem('app_bg_color');
+    const textColor = localStorage.getItem('app_text_color');
+    const uiFontSize = localStorage.getItem('app_ui_font_size'); 
+    const contentFontSize = localStorage.getItem('app_content_font_size'); 
+    const appLanguage = localStorage.getItem('app_language');
 
-/* ============================================================
-   GLOBAL STYLE UPDATE
-   ============================================================ */
-
-function updateGlobalStyles() {
-
-    const themeColor =
-        localStorage.getItem("app_theme_color");
-
-    const bgColor =
-        localStorage.getItem("app_bg_color");
-
-    const textColor =
-        localStorage.getItem("app_text_color");
-
-    const appLanguage =
-        localStorage.getItem("app_language");
-
-
-    let styleTag =
-        document.getElementById(
-            "dynamic-custom-app-styles"
-        );
-
-
-    if (!styleTag) {
-
-        styleTag =
-            document.createElement("style");
-
-        styleTag.id =
-            "dynamic-custom-app-styles";
-
-        document.head.appendChild(
-            styleTag
-        );
-    }
-
-
-    let cssRules = "";
-
-
-    /* ========================================================
-       1. THEME COLOR
-       --------------------------------------------------------
-       IMPORTANT:
-       Only COLOR is changed.
-
-       No width
-       No height
-       No padding
-       No margin
-       No border-radius
-       No display
-       No position
-       No shape
-       No layout
-       ======================================================== */
-
+    // ১. থিম কালার (টপবার, হেডার, ড্রয়ার হেডার এবং ডাটা হেডার বা ব্যানার একসাথে পরিবর্তন হবে)
     if (themeColor) {
-
-        cssRules += `
-
-            .topbar,
-            .drawer-header,
-            .sub-toolbar {
-
-                background-color:
-                    ${themeColor} !important;
-            }
-
-
-            /*
-             * DATA HEADER
-             *
-             * Only background-color.
-             * Existing design remains untouched.
-             */
-
-            .header-box,
-            .header-banner {
-
-                background-color:
-                    ${themeColor} !important;
-            }
-
-        `;
-    }
-
-
-    /* ========================================================
-       2. BACKGROUND COLOR
-       ======================================================== */
-
-    if (bgColor) {
-
-        cssRules += `
-
-            body {
-
-                background-color:
-                    ${bgColor} !important;
-            }
-
-
-            #mainDashboardView,
-            #categoryDetailsView,
-            #dataDetailsView,
-            .all-search-container {
-
-                background-color:
-                    transparent !important;
-            }
-
-        `;
-    }
-
-
-    /* ========================================================
-       3. GLOBAL TEXT COLOR
-       --------------------------------------------------------
-       Color Formatter is protected.
-
-       We do NOT use:
-           body * { color: ... }
-
-       because that would destroy formatter colors.
-       ======================================================== */
-
-    if (textColor) {
-
-        cssRules += `
-
-            /*
-             * Normal application text
-             */
-
-            body {
-
-                color:
-                    ${textColor};
-            }
-
-
-            /*
-             * Common UI text
-             */
-
-            .menu-text,
-            .drawer-section-title,
-
-            #appTitle,
-
-            .topbar span,
-            .topbar h2,
-
-            .category-card h3,
-            .subcategory-card h3,
-
-            .data-card-name,
-            .data-card-detail,
-
-            .details-info-box,
-            .info-label,
-            .info-value,
-
-            .profile-name,
-            .profile-label,
-            .profile-value {
-
-                color:
-                    ${textColor} !important;
-            }
-
-
-            /*
-             * DATA HEADER
-             *
-             * Header design is untouched.
-             *
-             * Only its text color is changed.
-             *
-             * IMPORTANT:
-             * Formatter elements are excluded below.
-             */
-
-            .header-box h2,
-            .header-box h3,
-            .header-banner span,
-            .header-banner h2 {
-
-                color:
-                    ${textColor} !important;
-            }
-
-
-            /*
-             * ==================================================
-             * COLOR FORMATTER PROTECTION
-             * ==================================================
-             *
-             * These elements are allowed to keep their own
-             * Firebase formatter color.
-             */
-
-            [data-color-text],
-            [data-format-color],
-            [data-formatted],
-            .color-formatted,
-            .formatted-text,
-            .formatter-text,
-
-            .gradient-text,
-            .animated-gradient,
-            .aurora-text,
-            .fire-text,
-            .ocean-text,
-            .purple-text,
-            .sunset-text,
-            .green-text,
-            .rainbow-text,
-            .shadow-text,
-            .glow-text {
-
-                color:
-                    revert !important;
-            }
-
-
-            /*
-             * If formatter puts color directly on an element,
-             * don't override that inline color.
-             */
-
-            [style*="color:"] {
-
-                color:
-                    revert !important;
-            }
-
-        `;
-    }
-
-
-    styleTag.innerHTML =
-        cssRules;
-
-
-    /* ========================================================
-       LANGUAGE
-       ======================================================== */
-
-    if (appLanguage) {
-
-        applyLanguageTranslation(
-            appLanguage
-        );
-    }
-}
-
-
-
-/* ============================================================
-   TRANSLATION DICTIONARY
-   ------------------------------------------------------------
-   Add more UI words here whenever required.
-   ============================================================ */
-
-const APP_TRANSLATIONS = {
-
-    "মোবাইল:": "Mobile:",
-    "টেলিফোন:": "Phone:",
-    "পদবী:": "Designation:",
-    "নাম:": "Name:",
-    "বর্তমান কর্মস্থল:": "Current Office:",
-    "স্থায়ী ঠিকানা:": "Permanent Address:",
-    "ই-মেইল:": "Email:",
-    "ইমেইল:": "Email:",
-    "ঠিকানা:": "Address:",
-    "ফোন:": "Phone:",
-
-    "Mobile:": "মোবাইল:",
-    "Phone:": "টেলিফোন:",
-    "Designation:": "পদবী:",
-    "Name:": "নাম:",
-    "Current Office:": "বর্তমান কর্মস্থল:",
-    "Permanent Address:": "স্থায়ী ঠিকানা:",
-    "Email:": "ই-মেইল:",
-    "Address:": "ঠিকানা:"
-};
-
-
-
-/* ============================================================
-   TRANSLATE ONE TEXT
-   ============================================================ */
-
-function translateText(text, lang) {
-
-    if (!text) {
-        return text;
-    }
-
-
-    let result =
-        String(text);
-
-
-    Object.keys(APP_TRANSLATIONS)
-        .forEach(key => {
-
-            const translation =
-                APP_TRANSLATIONS[key];
-
-
-            if (lang === "en") {
-
-                /*
-                 * Bengali -> English
-                 */
-
-                if (
-                    /[\u0980-\u09FF]/.test(key)
-                ) {
-
-                    result =
-                        result.split(key)
-                            .join(translation);
-                }
-
-            } else {
-
-                /*
-                 * English -> Bengali
-                 */
-
-                if (
-                    !/[\u0980-\u09FF]/.test(key)
-                ) {
-
-                    result =
-                        result.split(key)
-                            .join(translation);
-                }
-            }
-
+        document.documentElement.style.setProperty('--primary-color', themeColor);
+        
+        // টপবার এবং ড্রয়ার হেডার
+        const headersAndToolbars = document.querySelectorAll('.topbar, .drawer-header, .sub-toolbar');
+        headersAndToolbars.forEach(el => {
+            el.style.backgroundColor = themeColor;
         });
 
-
-    return result;
-}
-
-
-
-/* ============================================================
-   CHECK FORMATTER ELEMENT
-   ============================================================ */
-
-function isFormatterElement(el) {
-
-    if (!el || !el.matches) {
-        return false;
+        // ক্যাটাগরি ডিটেইলস পেজের ডাটা হেডার বা ব্যানার (.header-box এবং .header-banner)
+        const dataHeaders = document.querySelectorAll('.header-box, .header-banner');
+        dataHeaders.forEach(el => {
+            el.style.backgroundColor = themeColor;
+            el.style.color = "#ffffff"; // থিম কালার দিলে টেক্সট যাতে স্পষ্ট দেখা যায়
+        });
     }
 
+    // ২. ব্যাকগ্রাউন্ড কালার
+    if (bgColor) {
+        document.body.style.backgroundColor = bgColor;
+        const mainDashboard = document.getElementById('mainDashboardView');
+        if (mainDashboard) mainDashboard.style.backgroundColor = bgColor;
+    }
 
-    return el.matches(
-        `
-        [data-color-text],
-        [data-format-color],
-        [data-formatted],
-        .color-formatted,
-        .formatted-text,
-        .formatter-text,
-        .gradient-text,
-        .animated-gradient,
-        .aurora-text,
-        .fire-text,
-        .ocean-text,
-        .purple-text,
-        .sunset-text,
-        .green-text,
-        .rainbow-text,
-        .shadow-text,
-        .glow-text
-        `
-    );
+    // ৩. টেক্সট কালার (সারা অ্যাপের মেইন টেক্সট এবং কার্ডের ভেতরের টেক্সট কালার ফোর্সিং)
+    if (textColor) {
+        document.body.style.color = textColor;
+        const textElements = document.querySelectorAll('.data-card-name, .data-card-detail, .category-card h3, .subcategory-card h3, .info-value, .info-label');
+        textElements.forEach(el => {
+            el.style.color = textColor;
+        });
+    }
+
+    // ৪. UI ফন্ট সাইজ (ড্রয়ার, ক্যাটাগরি, সাব-ক্যাটাগরি)
+    if (uiFontSize) {
+        const uiElements = document.querySelectorAll('.menu-text, .category-card h3, .subcategory-card h3, .drawer-section-title');
+        uiElements.forEach(el => {
+            el.style.fontSize = uiFontSize + 'px';
+        });
+    }
+
+    // ৫. কন্টেন্ট ফন্ট সাইজ (ডাটা কার্ড এবং ডাটা প্রোফাইল)
+    if (contentFontSize) {
+        const contentElements = document.querySelectorAll('.data-card-info, .details-info-box, .data-card-name');
+        contentElements.forEach(el => {
+            el.style.fontSize = contentFontSize + 'px';
+        });
+    }
+
+    // ৬. ভাষা বা ল্যাঙ্গুয়েজ মোড হ্যান্ডেল করার লজিক
+    if (appLanguage) {
+        applyLanguageTranslation(appLanguage);
+    }
 }
 
-
-
-/* ============================================================
-   LANGUAGE TRANSLATION
-   ------------------------------------------------------------
-   VERY IMPORTANT:
-   We change TEXT NODES only.
-
-   We NEVER use:
-       element.innerHTML = ...
-
-   Therefore:
-       - Data Header design stays intact
-       - CSS stays intact
-       - icons stay intact
-       - images stay intact
-       - formatter HTML stays intact
-   ============================================================ */
-
+// ল্যাঙ্গুয়েজ চেঞ্জ করার কার্যকরী ফাংশন (বাংলা / ইংরেজি লেবেল পরিবর্তন)
 function applyLanguageTranslation(lang) {
-
-    if (!document.body) {
-        return;
+    // আপনি চাইলে এখানে স্ট্যাটিক লেবেল বা UI টেক্সট পরিবর্তন করতে পারেন
+    if (lang === 'en') {
+        // ইংরেজির জন্য লেবেল পরিবর্তন লজিক
+        document.querySelectorAll('.data-card-detail').forEach(el => {
+            if (el.textContent.includes('মোবাইল:')) el.innerHTML = el.innerHTML.replace('মোবাইল:', 'Mobile:');
+            if (el.textContent.includes('টেলিফোন:')) el.innerHTML = el.innerHTML.replace('টেলিফোন:', 'Phone:');
+            if (el.textContent.includes('পদবী:')) el.innerHTML = el.innerHTML.replace('পদবী:', 'Designation:');
+        });
+    } else {
+        // বাংলার জন্য লেবেল পরিবর্তন লজিক
+        document.querySelectorAll('.data-card-detail').forEach(el => {
+            if (el.textContent.includes('Mobile:')) el.innerHTML = el.innerHTML.replace('Mobile:', 'মোবাইল:');
+            if (el.textContent.includes('Phone:')) el.innerHTML = el.innerHTML.replace('Phone:', 'টেলিফোন:');
+            if (el.textContent.includes('Designation:')) el.innerHTML = el.innerHTML.replace('Designation:', 'পদবী:');
+        });
     }
+}
 
+// সেটিংসের ইভেন্ট লিসেনার এবং লাইভ আপডেট সেটআপ
+export function setupCustomSettingsListener() {
+    document.addEventListener('change', (e) => {
+        if (!e.target) return;
 
-    const walker =
-        document.createTreeWalker(
-            document.body,
-            NodeFilter.SHOW_TEXT
-        );
-
-
-    const textNodes = [];
-
-
-    let node;
-
-
-    while (
-        node =
-            walker.nextNode()
-    ) {
-
-        textNodes.push(node);
-    }
-
-
-    textNodes.forEach(textNode => {
-
-        const parent =
-            textNode.parentElement;
-
-
-        if (!parent) {
-            return;
+        if (e.target.id === 'themeColorInput') {
+            localStorage.setItem('app_theme_color', e.target.value);
+            applyCustomSettings();
         }
-
-
-        /*
-         * Never touch Color Formatter elements.
-         */
-
-        if (
-            isFormatterElement(parent)
-        ) {
-
-            return;
+        if (e.target.id === 'bgColorInput') {
+            localStorage.setItem('app_bg_color', e.target.value);
+            applyCustomSettings();
         }
-
-
-        /*
-         * Never translate script/style.
-         */
-
-        const tag =
-            parent.tagName
-                ? parent.tagName.toLowerCase()
-                : "";
-
-
-        if (
-            tag === "script" ||
-            tag === "style" ||
-            tag === "noscript"
-        ) {
-
-            return;
+        if (e.target.id === 'textColorInput') {
+            localStorage.setItem('app_text_color', e.target.value);
+            applyCustomSettings();
         }
-
-
-        const oldText =
-            textNode.nodeValue;
-
-
-        const newText =
-            translateText(
-                oldText,
-                lang
-            );
-
-
-        if (
-            oldText !== newText
-        ) {
-
-            textNode.nodeValue =
-                newText;
+        // ল্যাঙ্গুয়েজ রেডিও বাটন বা সিলেক্ট হ্যান্ডেল করা
+        if (e.target.name === 'appLang' || e.target.id === 'languageSelect') {
+            const langVal = e.target.value;
+            localStorage.setItem('app_language', langVal);
+            applyCustomSettings();
+            // রেন্ডার রিফ্রেশ করার জন্য 
+            if (typeof refreshCurrentView === 'function') {
+                refreshCurrentView();
+            }
         }
-
     });
 
+    document.addEventListener('input', (e) => {
+        if (!e.target) return;
 
-    /*
-     * After translation, re-apply global styles.
-     * This does NOT modify the Data Header layout.
-     */
-
-    const styleTag =
-        document.getElementById(
-            "dynamic-custom-app-styles"
-        );
-
-
-    if (
-        styleTag &&
-        !styleTag.isConnected
-    ) {
-
-        document.head.appendChild(
-            styleTag
-        );
-    }
-}
-
-
-
-/* ============================================================
-   SETTINGS EVENT LISTENER
-   ============================================================ */
-
-export function setupCustomSettingsListener() {
-
-
-    /* ========================================================
-       CHANGE
-       ======================================================== */
-
-    document.addEventListener(
-        "change",
-        function (e) {
-
-            if (!e.target) {
-                return;
-            }
-
-
-            /* -----------------------------------------------
-               THEME COLOR
-               ----------------------------------------------- */
-
-            if (
-                e.target.id ===
-                "themeColorInput"
-            ) {
-
-                localStorage.setItem(
-                    "app_theme_color",
-                    e.target.value
-                );
-
-                updateGlobalStyles();
-
-                return;
-            }
-
-
-            /* -----------------------------------------------
-               BACKGROUND COLOR
-               ----------------------------------------------- */
-
-            if (
-                e.target.id ===
-                "bgColorInput"
-            ) {
-
-                localStorage.setItem(
-                    "app_bg_color",
-                    e.target.value
-                );
-
-                updateGlobalStyles();
-
-                return;
-            }
-
-
-            /* -----------------------------------------------
-               TEXT COLOR
-               ----------------------------------------------- */
-
-            if (
-                e.target.id ===
-                "textColorInput"
-            ) {
-
-                localStorage.setItem(
-                    "app_text_color",
-                    e.target.value
-                );
-
-                updateGlobalStyles();
-
-                return;
-            }
-
-
-            /* -----------------------------------------------
-               LANGUAGE
-               ----------------------------------------------- */
-
-            if (
-                e.target.name ===
-                    "appLang" ||
-
-                e.target.id ===
-                    "languageSelect"
-            ) {
-
-                localStorage.setItem(
-                    "app_language",
-                    e.target.value
-                );
-
-
-                applyLanguageTranslation(
-                    e.target.value
-                );
-
-
-                updateGlobalStyles();
-
-
-                /*
-                 * Refresh current view if available.
-                 */
-
-                if (
-                    typeof refreshCurrentView ===
-                    "function"
-                ) {
-
-                    refreshCurrentView();
-                }
-
-            }
-
+        if (e.target.id === 'fontSizeRange') {
+            localStorage.setItem('app_ui_font_size', e.target.value);
+            applyCustomSettings();
         }
-    );
+        if (e.target.id === 'contentFontSizeRange') {
+            localStorage.setItem('app_content_font_size', e.target.value);
+            applyCustomSettings();
+        }
+    });
 }
 
-
-
-/* ============================================================
-   INITIAL LOAD
-   ============================================================ */
-
-window.addEventListener(
-    "DOMContentLoaded",
-    function () {
-
-        updateGlobalStyles();
-
-        setupCustomSettingsListener();
-
-    }
-);
+// পেজ লোড হওয়ার সাথে সাথে সেটিংস কল করা
+window.addEventListener('DOMContentLoaded', () => {
+    applyCustomSettings();
+    setupCustomSettingsListener();
+});
