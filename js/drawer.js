@@ -143,7 +143,7 @@ export function initDrawer() {
     });
 }
 
-// কাস্টম কনফার্মেশন মোডাল (ডাটা ডিলিট)
+// প্রথম ছবির স্টাইলে কাস্টম কনফার্মেশন মোডাল (পপ-আপ মেসেজ)
 function showCustomDeleteModal(onConfirm) {
     const existingModal = document.getElementById('customDeleteModal');
     if (existingModal) existingModal.remove();
@@ -154,7 +154,7 @@ function showCustomDeleteModal(onConfirm) {
                 
                 <button id="modalCloseBtn" style="position: absolute; top: 18px; right: 18px; background: none; border: none; font-size: 20px; cursor: pointer; color: #333;">✕</button>
                 
-                <h3 style="margin: 0 0 15px 0; font-size: 20px; font-weight: 700; color: #f44336;">সতর্কীকরণ❗</h3>
+                <h3 style="margin: 0 0 15px 0; font-size: 20px; font-weight: 700; color: #111;">নিশ্চিতকরণ</h3>
                 
                 <p style="margin: 0 0 25px 0; font-size: 15px; color: #444; line-height: 1.5;">
                     আপনি কি নিশ্চিত সমস্ত ডাটা ও লগইন তথ্য মুছে ফেলতে চান? (এর ফলে অ্যাপটি একদম প্রথম ইন্সটলের অবস্থার মতো হয়ে যাবে এবং পুনরায় পাসওয়ার্ড দিয়ে প্রবেশ করতে হবে।)
@@ -162,7 +162,7 @@ function showCustomDeleteModal(onConfirm) {
                 
                 <div style="display: flex; justify-content: flex-end; gap: 10px;">
                     <button id="modalCancelBtn" style="padding: 8px 18px; border: 1px solid #ccc; background: #fff; color: #333; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">বাতিল</button>
-                    <button id="modalConfirmBtn" style="padding: 8px 18px; border: none; background: #f44336; color: #fff; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">হ্যাঁ, মুছুন</button>
+                    <button id="modalConfirmBtn" style="padding: 8px 18px; border: none; background: #ff4d4d; color: #fff; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">হ্যাঁ, মুছুন</button>
                 </div>
             </div>
         </div>
@@ -180,7 +180,7 @@ function showCustomDeleteModal(onConfirm) {
     });
 }
 
-// অ্যাডভান্সড সেটিংস মেনু মোডাল (থিম, ব্যাকগ্রাউন্ড, টেক্সট কালার, ডার্ক মোড ও ল্যাঙ্গুয়েজ)
+// অ্যাডভান্সড সেটিংস মেনু মোডাল (আইকন দূরে সরিয়ে দেওয়া হয়েছে)
 function initSettingsModal() {
     const existingModal = document.getElementById('settingsModal');
     if (existingModal) existingModal.remove();
@@ -196,13 +196,14 @@ function initSettingsModal() {
         <div id="settingsModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 99999; padding: 20px;">
             <div style="background: #fff; width: 100%; max-width: 420px; border-radius: 20px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; font-family: inherit; max-height: 90vh; overflow-y: auto;">
                 
-                <button id="settingsCloseBtn" style="position: absolute; top: 18px; right: 18px; background: none; border: none; font-size: 20px; cursor: pointer; color: #333;">✕</button>
+                <!-- ক্লোজ বাটন -->
+                <button id="settingsCloseBtn" style="position: absolute; top: 18px; right: 18px; background: none; border: none; font-size: 20px; cursor: pointer; color: #333; z-index: 2;">✕</button>
                 
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-right: 35px;">
                     <h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #111;">
                         ⚙️ Setting
                     </h3>
-                    <!-- ডার্ক/লাইট মোড টগল আইকন -->
+                    <!-- ডার্ক/লাইট মোড টগল আইকন (ক্লোজ বাটন থেকে দূরে সরিয়ে মার্জিন দেওয়া হয়েছে) -->
                     <button id="darkModeToggleBtn" type="button" title="Dark/Light Mode" style="background: none; border: 1px solid #ddd; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center;">
                         ${isDarkMode ? '🌞' : '🌙'}
                     </button>
