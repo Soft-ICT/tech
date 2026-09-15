@@ -910,6 +910,26 @@ body.has-bg-image .details-container-card {
     font-weight: 600;
 }
 
+/* ==========================================
+   TOPBAR, SEARCH & NOTICE TRANSPARENCY 
+========================================== */
+
+/* যখন ব্যাকগ্রাউন্ডে ইমেজ থাকবে, তখন এগুলো হালকা ট্রান্সপারেন্ট ও গ্লাস ইফেক্ট হবে */
+body.has-bg-image .topbar,
+body.has-bg-image .sub-toolbar,
+body.has-bg-image .search-box,
+body.has-bg-image .header-search-box,
+body.has-bg-image .header-banner {
+    background-color: rgba(255, 255, 255, 0.65) !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* ডার্ক মোড বা টেক্সট ভিজিবিলিটির জন্য ব্যাকগ্রাউন্ড কালার প্রয়োজন অনুযায়ী অ্যাডজাস্ট করতে পারেন */
+
+
 .toast {
     position: fixed;
     bottom: 20px;
