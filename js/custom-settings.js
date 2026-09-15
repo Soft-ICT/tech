@@ -4,7 +4,6 @@
 
 // নিখুঁত এবং নিরাপদ গ্লোবাল CSS স্টাইল ট্যাগ আপডেট করার ফাংশন
 function updateGlobalStyles() {
-    const themeColor = localStorage.getItem('app_theme_color');
     const bgColor = localStorage.getItem('app_bg_color');
     const textColor = localStorage.getItem('app_text_color');
     const uiFontSize = localStorage.getItem('app_ui_font_size'); 
@@ -19,22 +18,7 @@ function updateGlobalStyles() {
     }
 
     let cssRules = `
-        /* ১. টপবার এবং ড্রয়ার হেডার */
-        ${themeColor ? `
-            .topbar, .drawer-header, .sub-toolbar {
-                background-color: ${themeColor} !important;
-            }
-            
-            /* ২. হেডারের অরিজিনাল ডিজাইন, বর্ডার-রেডিয়াস ও শেপ শতভাগ ঠিক রেখে শুধু ব্যাকগ্রাউন্ড ও টেক্সট কালার পরিবর্তন */
-            .header-box, .header-banner {
-                background-color: ${themeColor} !important;
-            }
-            .header-box h2, .header-box h3, .header-banner span, .header-banner h2 {
-                color: #ffffff !important;
-            }
-        ` : ''}
-
-        /* ৩. মূল ব্যাকগ্রাউন্ড কালার (শুধু বডিতে এপ্লাই হবে, কার্ড বা হেডারে প্রভাব ফেলবে না) */
+        /* ১. মূল ব্যাকগ্রাউন্ড কালার (শুধু বডিতে এপ্লাই হবে, কার্ড বা হেডারে প্রভাব ফেলবে না) */
         ${bgColor ? `
             body {
                 background-color: ${bgColor} !important;
@@ -44,7 +28,7 @@ function updateGlobalStyles() {
             }
         ` : ''}
 
-        /* ৪. টেক্সট কালার (নির্দিষ্ট UI এলিমেন্টে, কার্ডের ডিজাইন নষ্ট না করে) */
+        /* ২. টেক্সট কালার (নির্দিষ্ট UI এলিমেন্টে, কার্ডের ডিজাইন নষ্ট না করে) */
         ${textColor ? `
             .category-card h3, .subcategory-card h3, 
             .menu-text, .drawer-section-title, 
@@ -53,14 +37,14 @@ function updateGlobalStyles() {
             }
         ` : ''}
 
-        /* ৫. UI ফন্ট সাইজ (ড্রয়ার, ক্যাটাগরি, সাব-ক্যাটাগরি) */
+        /* ৩. UI ফন্ট সাইজ (ড্রয়ার, ক্যাটাগরি, সাব-ক্যাটাগরি) */
         ${uiFontSize ? `
             .menu-text, .category-card h3, .subcategory-card h3, .drawer-section-title {
                 font-size: ${uiFontSize}px !important;
             }
         ` : ''}
 
-        /* ৬. কন্টেন্ট ফন্ট সাইজ (ডাটা কার্ড এবং ডাটা প্রোফাইল) */
+        /* ৪. কন্টেন্ট ফন্ট সাইজ (ডাটা কার্ড এবং ডাটা প্রোফাইল) */
         ${contentFontSize ? `
             .data-card-name, .data-card-detail, .details-info-box, .info-label, .info-value {
                 font-size: ${contentFontSize}px !important;
@@ -97,10 +81,6 @@ export function setupCustomSettingsListener() {
     document.addEventListener('change', (e) => {
         if (!e.target) return;
 
-        if (e.target.id === 'themeColorInput') {
-            localStorage.setItem('app_theme_color', e.target.value);
-            updateGlobalStyles();
-        }
         if (e.target.id === 'bgColorInput') {
             localStorage.setItem('app_bg_color', e.target.value);
             updateGlobalStyles();
