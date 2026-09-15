@@ -928,53 +928,36 @@ body.has-bg-image .header-banner {
 }
 
 /* ==========================================
-   🎯 আল্টিমেট ফিক্স: স্লাইডিং ও পপ-আপ ট্রান্সপারেন্সি
+   🎯 হেডার ব্যানার ও নোটিশ লাল অংশ ফিক্স
 ========================================== */
 
-/* স্লাইডিং নোটিশের ভেতরের সবকিছু ট্রান্সপারেন্ট করার জন্য */
-body.has-bg-image .header-box,
-body.has-bg-image .header-box *,
+/* ব্যানার এবং এর ভেতরের লেবেল বা আইকনের নিজস্ব সলিড কালার রিমোভ করা */
 body.has-bg-image .header-banner,
-body.has-bg-image .header-banner * {
+body.has-bg-image .header-banner *,
+body.has-bg-image .header-box,
+body.has-bg-image .header-box * {
     background: transparent !important;
     background-color: transparent !important;
 }
 
-/* স্লাইডিং নোটিশের মূল কন্টেইনার গ্লাস ইফেক্ট */
-body.has-bg-image .header-box,
-body.has-bg-image .header-banner {
+/* মূল ব্যানার কন্টেইনারে গ্লাস ইফেক্ট অ্যাপ্লাই করা */
+body.has-bg-image .header-banner,
+body.has-bg-image .header-box {
     background-color: rgba(255, 255, 255, 0.62) !important;
     backdrop-filter: blur(8px) !important;
     -webkit-backdrop-filter: blur(8px) !important;
     border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05) !important;
 }
 
-/* পপ-আপ ডায়লগ বা মডালের ভেতরের মূল কন্টেন্ট ট্রান্সপারেন্ট ও গ্লাস ইফেক্ট */
-body.has-bg-image .modal,
-body.has-bg-image .modal-dialog {
-    background: rgba(0, 0, 0, 0.4) !important;
-    backdrop-filter: blur(4px) !important;
-    -webkit-backdrop-filter: blur(4px) !important;
+/* যদি বাম পাশের লাল অংশের আলাদা কোনো ক্লাস বা ট্যাগ থাকে (যেমন: .notice-icon, .badge ইত্যাদি) */
+body.has-bg-image .header-banner > div:first-child,
+body.has-bg-image .header-banner span[style*="background"],
+body.has-bg-image .header-banner .icon {
+    background-color: rgba(255, 255, 255, 0.3) !important;
+    color: var(--text-main) !important;
 }
 
-body.has-bg-image .modal-content,
-body.has-bg-image .modal-content * {
-    background-color: transparent !important;
-}
-
-body.has-bg-image .modal-content {
-    background-color: rgba(255, 255, 255, 0.82) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.5) !important;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25) !important;
-}
-
-/* ডার্ক মোডের জন্য পপ-আপ ফিক্স */
-body.has-bg-image.dark-mode .modal-content {
-    background-color: rgba(30, 41, 59, 0.88) !important;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
-}
 
 
 
