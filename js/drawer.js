@@ -143,27 +143,23 @@ export function initDrawer() {
     });
 }
 
-// স্ক্রিনশটের স্টাইল অনুযায়ী কাস্টম কনফার্মেশন মোডাল (ডাটা ডিলিট)
+// কাস্টম কনফার্মেশন মোডাল (ডাটা ডিলিট)
 function showCustomDeleteModal(onConfirm) {
     const existingModal = document.getElementById('customDeleteModal');
     if (existingModal) existingModal.remove();
 
     const modalHTML = `
         <div id="customDeleteModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 99999; padding: 20px;">
-            <div style="background: #fff; width: 100%; max-width: 380px; border-radius: 20px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; font-family: inherit; animation: scaleUp 0.2s ease;">
+            <div style="background: #fff; width: 100%; max-width: 380px; border-radius: 20px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; font-family: inherit;">
                 
-                <!-- ক্লোজ বাটন -->
                 <button id="modalCloseBtn" style="position: absolute; top: 18px; right: 18px; background: none; border: none; font-size: 20px; cursor: pointer; color: #333;">✕</button>
                 
-                <!-- শিরোনাম -->
                 <h3 style="margin: 0 0 15px 0; font-size: 20px; font-weight: 700; color: #f44336;">সতর্কীকরণ❗</h3>
                 
-                <!-- মেসেজ -->
                 <p style="margin: 0 0 25px 0; font-size: 15px; color: #444; line-height: 1.5;">
                     আপনি কি নিশ্চিত সমস্ত ডাটা ও লগইন তথ্য মুছে ফেলতে চান? (এর ফলে অ্যাপটি একদম প্রথম ইন্সটলের অবস্থার মতো হয়ে যাবে এবং পুনরায় পাসওয়ার্ড দিয়ে প্রবেশ করতে হবে।)
                 </p>
                 
-                <!-- বাটনগুলো -->
                 <div style="display: flex; justify-content: flex-end; gap: 10px;">
                     <button id="modalCancelBtn" style="padding: 8px 18px; border: 1px solid #ccc; background: #fff; color: #333; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">বাতিল</button>
                     <button id="modalConfirmBtn" style="padding: 8px 18px; border: none; background: #f44336; color: #fff; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">হ্যাঁ, মুছুন</button>
@@ -175,75 +171,103 @@ function showCustomDeleteModal(onConfirm) {
     document.body.insertAdjacentHTML('beforeend', modalHTML);
 
     const modal = document.getElementById('customDeleteModal');
-    const closeBtn = document.getElementById('modalCloseBtn');
-    const cancelBtn = document.getElementById('modalCancelBtn');
-    const confirmBtn = document.getElementById('modalConfirmBtn');
-
-    function closeModal() {
+    document.getElementById('modalCloseBtn').addEventListener('click', () => modal.remove());
+    document.getElementById('modalCancelBtn').addEventListener('click', () => modal.remove());
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+    document.getElementById('modalConfirmBtn').addEventListener('click', () => {
         modal.remove();
-    }
-
-    closeBtn.addEventListener('click', closeModal);
-    cancelBtn.addEventListener('click', closeModal);
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) closeModal();
-    });
-
-    confirmBtn.addEventListener('click', () => {
-        closeModal();
         onConfirm();
     });
 }
 
-// নতুন: সেটিংস মেনু মোডাল (থিম কালার, ডে/নাইট মোড ও ভাষা পরিবর্তন)
+// অ্যাডভান্সড সেটিংস মেনু মোডাল (থিম, ব্যাকগ্রাউন্ড, টেক্সট কালার, ফন্ট সাইজ ও ল্যাঙ্গুয়েজ)
 function initSettingsModal() {
     const existingModal = document.getElementById('settingsModal');
     if (existingModal) existingModal.remove();
 
-    const currentTheme = localStorage.getItem('app_theme_color') || '#1a73e8';
-    const currentMode = localStorage.getItem('app_dark_mode') === 'true' ? 'checked' : '';
-    const currentLang = localStorage.getItem('app_language') || 'bn';
+    // বর্তমান মান লোকালস্টورেজ থেকে লোড করা
+    const themeColor = localStorage.getItem('app_theme_color') || '#ff0000';
+    const bgColor = localStorage.getItem('app_bg_color') || '#3f51b5';
+    const textColor = localStorage.getItem('app_text_color') || '#ffffff';
+    const fontSize = localStorage.getItem('app_font_size') || '16';
+    const contentFontSize = localStorage.getItem('app_content_font_size') || '16';
+    const language = localStorage.getItem('app_language') || 'bn';
 
     const modalHTML = `
         <div id="settingsModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 99999; padding: 20px;">
-            <div style="background: #fff; width: 100%; max-width: 400px; border-radius: 20px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; font-family: inherit;">
+            <div style="background: #fff; width: 100%; max-width: 420px; border-radius: 20px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; font-family: inherit; max-height: 90vh; overflow-y: auto;">
                 
                 <button id="settingsCloseBtn" style="position: absolute; top: 18px; right: 18px; background: none; border: none; font-size: 20px; cursor: pointer; color: #333;">✕</button>
                 
                 <h3 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 700; color: #111;">
-                    ⚙️ সেটিং মেনু (Settings)
+                    ⚙️ Setting
                 </h3>
                 
-                <div style="display: flex; flex-direction: column; gap: 20px;">
+                <div style="display: flex; flex-direction: column; gap: 16px;">
                     
-                    <!-- থিম কালার চেঞ্জ -->
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <label style="font-size: 15px; font-weight: 600; color: #333;">থিম কালার (Theme Color):</label>
-                        <input type="color" id="themeColorInput" value="${currentTheme}" style="width: 45px; height: 35px; border: none; border-radius: 8px; cursor: pointer; background: none;">
+                    <!-- Theme Color -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                        <label style="font-size: 15px; font-weight: 600; color: #333;">Theme</label>
+                        <input type="color" id="themeColorInput" value="${themeColor}" style="width: 40px; height: 40px; border: none; border-radius: 50%; cursor: pointer; background: none;">
                     </div>
 
-                    <!-- ডে/নাইট মোড -->
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <label style="font-size: 15px; font-weight: 600; color: #333;">নাইট মোড (Dark Mode):</label>
-                        <label style="position: relative; display: inline-block; width: 50px; height: 26px;">
-                            <input type="checkbox" id="darkModeToggle" ${currentMode} style="opacity: 0; width: 0; height: 0;">
-                            <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;" id="sliderSpan"></span>
-                        </label>
+                    <!-- Background Color -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                        <label style="font-size: 15px; font-weight: 600; color: #333;">Background Color</label>
+                        <input type="color" id="bgColorInput" value="${bgColor}" style="width: 40px; height: 40px; border: none; border-radius: 50%; cursor: pointer; background: none;">
                     </div>
 
-                    <!-- ইংলিশ ও বাংলা ভার্সন -->
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <label style="font-size: 15px; font-weight: 600; color: #333;">ভাষা (Language):</label>
-                        <select id="languageSelect" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; background: #fff; cursor: pointer;">
-                            <option value="bn" ${currentLang === 'bn' ? 'selected' : ''}>বাংলা (Bengali)</option>
-                            <option value="en" ${currentLang === 'en' ? 'selected' : ''}>English</option>
-                        </select>
+                    <!-- Text Color -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                        <label style="font-size: 15px; font-weight: 600; color: #333;">Text Color</label>
+                        <input type="color" id="textColorInput" value="${textColor}" style="width: 40px; height: 40px; border: none; border-radius: 50%; cursor: pointer; background: none;">
+                    </div>
+
+                    <!-- Font Size -->
+                    <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: 600; color: #333;">
+                            <span>Font Size</span>
+                            <span id="fontSizeVal" style="background: #f44336; color: #fff; padding: 2px 8px; border-radius: 12px; font-size: 12px;">${fontSize}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: #666;">
+                            <span>10</span>
+                            <input type="range" id="fontSizeRange" min="10" max="30" value="${fontSize}" style="flex: 1; accent-color: #f44336; cursor: pointer;">
+                            <span>30</span>
+                        </div>
+                    </div>
+
+                    <!-- Content Font Size -->
+                    <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: 600; color: #333;">
+                            <span>Content Font Size</span>
+                            <span id="contentFontSizeVal" style="background: #f44336; color: #fff; padding: 2px 8px; border-radius: 12px; font-size: 12px;">${contentFontSize}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: #666;">
+                            <span>10</span>
+                            <input type="range" id="contentFontSizeRange" min="10" max="30" value="${contentFontSize}" style="flex: 1; accent-color: #f44336; cursor: pointer;">
+                            <span>30</span>
+                        </div>
+                    </div>
+
+                    <!-- Apps Data View Mode (Language) -->
+                    <div style="display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                        <label style="font-size: 15px; font-weight: 600; color: #333; text-align: center;">Apps Data View Mode</label>
+                        <div style="display: flex; justify-content: space-around; align-items: center;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 500;">
+                                <input type="radio" name="appLang" value="en" ${language === 'en' ? 'checked' : ''} style="cursor: pointer;"> English 🇬🇧
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 500;">
+                                <input type="radio" name="appLang" value="bn" ${language === 'bn' ? 'checked' : ''} style="cursor: pointer;"> Bangla 🇧🇩
+                            </label>
+                        </div>
                     </div>
 
                 </div>
 
-                <div style="margin-top: 30px;">
-                    <button id="settingsSaveBtn" style="width: 100%; padding: 10px; border: none; background: #1a73e8; color: #fff; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer;">সংরক্ষণ করুন (Save)</button>
+                <!-- Action Buttons -->
+                <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+                    <button id="resetSettingsBtn" style="width: 100%; padding: 12px; border: none; background: #2196F3; color: #fff; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer;">Reset Settings</button>
+                    <button id="clearDataBtn" style="width: 100%; padding: 12px; border: none; background: #2196F3; color: #fff; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer;">Clear Apps Data</button>
                 </div>
             </div>
         </div>
@@ -251,42 +275,46 @@ function initSettingsModal() {
 
     document.body.insertAdjacentHTML('beforeend', modalHTML);
 
-    const toggleStyle = document.createElement('style');
-    toggleStyle.innerHTML = `
-        #darkModeToggle:checked + #sliderSpan { background-color: #1a73e8; }
-        #darkModeToggle:checked + #sliderSpan:before { transform: translateX(24px); }
-        #sliderSpan:before {
-            position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%;
-        }
-    `;
-    document.head.appendChild(toggleStyle);
-
     const modal = document.getElementById('settingsModal');
-    const closeBtn = document.getElementById('settingsCloseBtn');
-    const saveBtn = document.getElementById('settingsSaveBtn');
-
-    function closeModal() {
-        modal.remove();
-        toggleStyle.remove();
-    }
-
-    closeBtn.addEventListener('click', closeModal);
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) closeModal();
+    
+    // স্লাইডারের লাইভ ভ্যালু আপডেট করার লজিক
+    const fontSizeRange = document.getElementById('fontSizeRange');
+    const fontSizeVal = document.getElementById('fontSizeVal');
+    fontSizeRange.addEventListener('input', (e) => {
+        fontSizeVal.textContent = e.target.value;
     });
 
-    saveBtn.addEventListener('click', () => {
-        const selectedColor = document.getElementById('themeColorInput').value;
-        const isDarkMode = document.getElementById('darkModeToggle').checked;
-        const selectedLang = document.getElementById('languageSelect').value;
+    const contentFontSizeRange = document.getElementById('contentFontSizeRange');
+    const contentFontSizeVal = document.getElementById('contentFontSizeVal');
+    contentFontSizeRange.addEventListener('input', (e) => {
+        contentFontSizeVal.textContent = e.target.value;
+    });
 
-        localStorage.setItem('app_theme_color', selectedColor);
-        localStorage.setItem('app_dark_mode', isDarkMode);
-        localStorage.setItem('app_language', selectedLang);
+    // ক্লোজ বাটন
+    document.getElementById('settingsCloseBtn').addEventListener('click', () => modal.remove());
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
 
-        alert("সেটিংস সফলভাবে সংরক্ষিত হয়েছে!");
-        closeModal();
+    // Reset Settings বাটন ক্লিক করলে ডিফল্ট মান ফিরিয়ে আনা
+    document.getElementById('resetSettingsBtn').addEventListener('click', () => {
+        localStorage.removeItem('app_theme_color');
+        localStorage.removeItem('app_bg_color');
+        localStorage.removeItem('app_text_color');
+        localStorage.removeItem('app_font_size');
+        localStorage.removeItem('app_content_font_size');
+        localStorage.removeItem('app_language');
+        alert("সেটিংস রিসেট করা হয়েছে!");
+        modal.remove();
         window.location.reload();
+    });
+
+    // Clear Apps Data বাটন ক্লিক করলে ডাটা ও লগইন ক্লিয়ার করা
+    document.getElementById('clearDataBtn').addEventListener('click', () => {
+        modal.remove();
+        showCustomDeleteModal(() => {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.reload();
+        });
     });
 }
 
@@ -307,7 +335,7 @@ function handleDrawerAction(action) {
                 renderFavoriteView(true);
             }
             break;
-        case 'settings': // <--- সেটিংস মেনু হ্যান্ডলার যুক্ত করা হলো
+        case 'settings':
             initSettingsModal();
             break;
         case 'delete-db':
