@@ -143,7 +143,7 @@ export function initDrawer() {
     });
 }
 
-// স্ক্রিনশটের স্টাইল অনুযায়ী কাস্টম কনফার্মেশন মোডাল
+// স্ক্রিনশটের স্টাইল অনুযায়ী কাস্টম কনফার্মেশন মোডাল (ডাটা ডিলিট)
 function showCustomDeleteModal(onConfirm) {
     const existingModal = document.getElementById('customDeleteModal');
     if (existingModal) existingModal.remove();
@@ -195,6 +195,101 @@ function showCustomDeleteModal(onConfirm) {
     });
 }
 
+// নতুন: সেটিংস মেনু মোডাল (থিম কালার, ডে/নাইট মোড ও ভাষা পরিবর্তন)
+function initSettingsModal() {
+    const existingModal = document.getElementById('settingsModal');
+    if (existingModal) existingModal.remove();
+
+    const currentTheme = localStorage.getItem('app_theme_color') || '#1a73e8';
+    const currentMode = localStorage.getItem('app_dark_mode') === 'true' ? 'checked' : '';
+    const currentLang = localStorage.getItem('app_language') || 'bn';
+
+    const modalHTML = `
+        <div id="settingsModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 99999; padding: 20px;">
+            <div style="background: #fff; width: 100%; max-width: 400px; border-radius: 20px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; font-family: inherit;">
+                
+                <button id="settingsCloseBtn" style="position: absolute; top: 18px; right: 18px; background: none; border: none; font-size: 20px; cursor: pointer; color: #333;">✕</button>
+                
+                <h3 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 700; color: #111;">
+                    ⚙️ সেটিং মেনু (Settings)
+                </h3>
+                
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    
+                    <!-- থিম কালার চেঞ্জ -->
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <label style="font-size: 15px; font-weight: 600; color: #333;">থিম কালার (Theme Color):</label>
+                        <input type="color" id="themeColorInput" value="${currentTheme}" style="width: 45px; height: 35px; border: none; border-radius: 8px; cursor: pointer; background: none;">
+                    </div>
+
+                    <!-- ডে/নাইট মোড -->
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <label style="font-size: 15px; font-weight: 600; color: #333;">নাইট মোড (Dark Mode):</label>
+                        <label style="position: relative; display: inline-block; width: 50px; height: 26px;">
+                            <input type="checkbox" id="darkModeToggle" ${currentMode} style="opacity: 0; width: 0; height: 0;">
+                            <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;" id="sliderSpan"></span>
+                        </label>
+                    </div>
+
+                    <!-- ইংলিশ ও বাংলা ভার্সন -->
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <label style="font-size: 15px; font-weight: 600; color: #333;">ভাষা (Language):</label>
+                        <select id="languageSelect" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; background: #fff; cursor: pointer;">
+                            <option value="bn" ${currentLang === 'bn' ? 'selected' : ''}>বাংলা (Bengali)</option>
+                            <option value="en" ${currentLang === 'en' ? 'selected' : ''}>English</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <button id="settingsSaveBtn" style="width: 100%; padding: 10px; border: none; background: #1a73e8; color: #fff; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer;">সংরক্ষণ করুন (Save)</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    const toggleStyle = document.createElement('style');
+    toggleStyle.innerHTML = `
+        #darkModeToggle:checked + #sliderSpan { background-color: #1a73e8; }
+        #darkModeToggle:checked + #sliderSpan:before { transform: translateX(24px); }
+        #sliderSpan:before {
+            position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%;
+        }
+    `;
+    document.head.appendChild(toggleStyle);
+
+    const modal = document.getElementById('settingsModal');
+    const closeBtn = document.getElementById('settingsCloseBtn');
+    const saveBtn = document.getElementById('settingsSaveBtn');
+
+    function closeModal() {
+        modal.remove();
+        toggleStyle.remove();
+    }
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+
+    saveBtn.addEventListener('click', () => {
+        const selectedColor = document.getElementById('themeColorInput').value;
+        const isDarkMode = document.getElementById('darkModeToggle').checked;
+        const selectedLang = document.getElementById('languageSelect').value;
+
+        localStorage.setItem('app_theme_color', selectedColor);
+        localStorage.setItem('app_dark_mode', isDarkMode);
+        localStorage.setItem('app_language', selectedLang);
+
+        alert("সেটিংস সফলভাবে সংরক্ষিত হয়েছে!");
+        closeModal();
+        window.location.reload();
+    });
+}
+
 function handleDrawerAction(action) {
     switch (action) {
         case 'home':
@@ -212,15 +307,13 @@ function handleDrawerAction(action) {
                 renderFavoriteView(true);
             }
             break;
+        case 'settings': // <--- সেটিংস মেনু হ্যান্ডলার যুক্ত করা হলো
+            initSettingsModal();
+            break;
         case 'delete-db':
             showCustomDeleteModal(() => {
-                // অ্যাপের সমস্ত লোকাল ডাটা, ফেভারিট এবং লগইন/পাসওয়ার্ড সংক্রান্ত তথ্য সম্পূর্ণ মুছে ফেলা হবে
                 localStorage.clear();
-                
-                // অথবা যদি আপনার অ্যাপে লোকালস্টোরেজ ছাড়াও কুকি বা সেশনস্টোরেজ থাকে, তাও ক্লিয়ার করে দিতে পারেন:
                 sessionStorage.clear();
-
-                // পেজ রিলোড করলে অ্যাপটি একদম প্রথম বারের মতো পাসওয়ার্ড বা লগইন স্ক্রিন চাইবে
                 window.location.reload();
             });
             break;
