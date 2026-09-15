@@ -927,41 +927,6 @@ body.has-bg-image .header-banner {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
-/* ==========================================
-   🎯 হেডার ব্যানার ও নোটিশ লাল অংশ ফিক্স
-========================================== */
-
-/* ব্যানার এবং এর ভেতরের লেবেল বা আইকনের নিজস্ব সলিড কালার রিমোভ করা */
-body.has-bg-image .header-banner,
-body.has-bg-image .header-banner *,
-body.has-bg-image .header-box,
-body.has-bg-image .header-box * {
-    background: transparent !important;
-    background-color: transparent !important;
-}
-
-/* মূল ব্যানার কন্টেইনারে গ্লাস ইফেক্ট অ্যাপ্লাই করা */
-body.has-bg-image .header-banner,
-body.has-bg-image .header-box {
-    background-color: rgba(255, 255, 255, 0.62) !important;
-    backdrop-filter: blur(8px) !important;
-    -webkit-backdrop-filter: blur(8px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.4) !important;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05) !important;
-}
-
-/* যদি বাম পাশের লাল অংশের আলাদা কোনো ক্লাস বা ট্যাগ থাকে (যেমন: .notice-icon, .badge ইত্যাদি) */
-body.has-bg-image .header-banner > div:first-child,
-body.has-bg-image .header-banner span[style*="background"],
-body.has-bg-image .header-banner .icon {
-    background-color: rgba(255, 255, 255, 0.3) !important;
-    color: var(--text-main) !important;
-}
-
-
-
-
-
 
 /* ডার্ক মোড বা টেক্সট ভিজিবিলিটির জন্য ব্যাকগ্রাউন্ড কালার প্রয়োজন অনুযায়ী অ্যাডজাস্ট করতে পারেন */
 
