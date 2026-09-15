@@ -2,8 +2,8 @@
 
 "use strict";
 
-// অ্যাপ লোড হওয়ার সাথে সাথে এবং পরিবর্তন করলে সেটিংস অ্যাপ্লাই করার ফাংশন
-function applyCustomSettings() {
+// ডাইনামিক গ্লোবাল CSS স্টাইল ট্যাগ তৈরি বা আপডেট করার ফাংশন (স্থায়ী সমাধানের জন্য)
+function updateGlobalStyles() {
     const themeColor = localStorage.getItem('app_theme_color');
     const bgColor = localStorage.getItem('app_bg_color');
     const textColor = localStorage.getItem('app_text_color');
@@ -11,70 +11,68 @@ function applyCustomSettings() {
     const contentFontSize = localStorage.getItem('app_content_font_size'); 
     const appLanguage = localStorage.getItem('app_language');
 
-    // ১. থিম কালার (টপবার, হেডার, ড্রয়ার হেডার এবং মার্কিং করা ডাটা হেডার সহ সমস্ত ব্যানার)
-    if (themeColor) {
-        document.documentElement.style.setProperty('--primary-color', themeColor);
-        
-        // টপবার, ড্রয়ার হেডার, সাব-টুলবার
-        const toolbars = document.querySelectorAll('.topbar, .drawer-header, .sub-toolbar');
-        toolbars.forEach(el => {
-            el.style.setProperty('background-color', themeColor, 'important');
-        });
-
-        // মার্কিং করা ডাটা হেডার বা ব্যানার (.header-box, .header-banner ইত্যাদি)
-        const markedHeaders = document.querySelectorAll('.header-box, .header-banner, .header-banner span');
-        markedHeaders.forEach(el => {
-            el.style.setProperty('background-color', themeColor, 'important');
-            el.style.setProperty('color', '#ffffff', 'important'); // ব্যাকগ্রাউন্ড কালার গাঢ় হলে টেক্সট সাদা দেখাবে
-        });
+    // একটি ইউনিক আইডি দিয়ে স্টাইল ট্যাগ তৈরি করা যাতে বারবার ডুপ্লিকেট না হয়
+    let styleTag = document.getElementById('dynamic-custom-app-styles');
+    if (!styleTag) {
+        styleTag = document.createElement('style');
+        styleTag.id = 'dynamic-custom-app-styles';
+        document.head.appendChild(styleTag);
     }
 
-    // ২. ব্যাকগ্রাউন্ড কালার
-    if (bgColor) {
-        document.body.style.backgroundColor = bgColor;
-        const views = document.querySelectorAll('#mainDashboardView, #categoryDetailsView, #dataDetailsView, .all-search-container');
-        views.forEach(v => v.style.backgroundColor = bgColor);
-    }
+    // গ্লোবাল CSS রুলস তৈরি যা পুরো অ্যাপে স্থায়ীভাবে কাজ করবে
+    let cssRules = `
+        /* ১. থিম কালার (টপবার, হেডার, ড্রয়ার হেডার এবং মার্কিং করা হেডার) */
+        ${themeColor ? `
+            .topbar, .drawer-header, .sub-toolbar {
+                background-color: ${themeColor} !important;
+            }
+            .header-box, .header-banner, .header-banner span {
+                background-color: ${themeColor} !important;
+                color: #ffffff !important;
+            }
+        ` : ''}
 
-    // ৩. টেক্সট কালার (color-formatter.js এর কোড বাদে পুরো অ্যাপের সমস্ত টেক্সট কালার পরিবর্তন)
-    if (textColor) {
-        document.body.style.color = textColor;
+        /* ২. ব্যাকগ্রাউন্ড কালার */
+        ${bgColor ? `
+            body, #mainDashboardView, #categoryDetailsView, #dataDetailsView, .all-search-container {
+                background-color: ${bgColor} !important;
+            }
+        ` : ''}
 
-        // সমস্ত টেক্সট কন্টেইনার এবং এলিমেন্টগুলোর কালার ফোর্সিং (যেগুলো কালার-ফরমেটার দ্বারা বিশেষভাবে রঙিন নয়)
-        const allTextElements = document.querySelectorAll(`
-            .category-card h3, .subcategory-card h3, 
+        /* ৩. টেক্সট কালার (color-formatter এর কালার বাদে সব টেক্সটে এপ্লাই হবে) */
+        ${textColor ? `
+            body, .category-card h3, .subcategory-card h3, 
             .data-card-name, .data-card-detail, 
             .details-info-box, .info-label, .info-value, 
             .menu-text, .drawer-section-title, 
             #appTitle, .topbar span, .topbar h2,
-            .header-banner span
-        `);
-
-        allTextElements.forEach(el => {
-            // যদি এলিমেন্টটিতে color-formatter বা কাস্টম স্টাইল না থাকে তবেই টেক্সট কালার বসবে
-            if (!el.hasAttribute('data-custom-colored')) {
-                el.style.setProperty('color', textColor, 'important');
+            .header-banner span, p, span, div {
+                color: ${textColor} !important;
             }
-        });
-    }
+            /* মার্কিং করা হেডারের টেক্সট থিম কালার দিলে সবসময় সাদা থাকবে */
+            .header-box, .header-banner, .header-banner span {
+                color: #ffffff !important;
+            }
+        ` : ''}
 
-    // ৪. UI ফন্ট সাইজ (ড্রয়ার, ক্যাটাগরি, সাব-ক্যাটাগরি)
-    if (uiFontSize) {
-        const uiElements = document.querySelectorAll('.menu-text, .category-card h3, .subcategory-card h3, .drawer-section-title');
-        uiElements.forEach(el => {
-            el.style.fontSize = uiFontSize + 'px';
-        });
-    }
+        /* ৪. UI ফন্ট সাইজ (ড্রয়ার, ক্যাটাগরি, সাব-ক্যাটাগরি) */
+        ${uiFontSize ? `
+            .menu-text, .category-card h3, .subcategory-card h3, .drawer-section-title {
+                font-size: ${uiFontSize}px !important;
+            }
+        ` : ''}
 
-    // ৫. কন্টেন্ট ফন্ট সাইজ (ডাটা কার্ড এবং ডাটা প্রোফাইল)
-    if (contentFontSize) {
-        const contentElements = document.querySelectorAll('.data-card-info, .details-info-box, .data-card-name');
-        contentElements.forEach(el => {
-            el.style.fontSize = contentFontSize + 'px';
-        });
-    }
+        /* ৫. কন্টেন্ট ফন্ট সাইজ (ডাটা কার্ড এবং ডাটা প্রোফাইল) */
+        ${contentFontSize ? `
+            .data-card-info, .details-info-box, .data-card-name, .data-card-detail {
+                font-size: ${contentFontSize}px !important;
+            }
+        ` : ''}
+    `;
 
-    // ৬. ভাষা বা ল্যাঙ্গুয়েজ মোড হ্যান্ডেল করার লজিক
+    styleTag.innerHTML = cssRules;
+
+    // ভাষা পরিবর্তনের হ্যান্ডেল
     if (appLanguage) {
         applyLanguageTranslation(appLanguage);
     }
@@ -104,19 +102,19 @@ export function setupCustomSettingsListener() {
 
         if (e.target.id === 'themeColorInput') {
             localStorage.setItem('app_theme_color', e.target.value);
-            applyCustomSettings();
+            updateGlobalStyles();
         }
         if (e.target.id === 'bgColorInput') {
             localStorage.setItem('app_bg_color', e.target.value);
-            applyCustomSettings();
+            updateGlobalStyles();
         }
         if (e.target.id === 'textColorInput') {
             localStorage.setItem('app_text_color', e.target.value);
-            applyCustomSettings();
+            updateGlobalStyles();
         }
         if (e.target.name === 'appLang' || e.target.id === 'languageSelect') {
             localStorage.setItem('app_language', e.target.value);
-            applyCustomSettings();
+            updateGlobalStyles();
             if (typeof refreshCurrentView === 'function') {
                 refreshCurrentView();
             }
@@ -128,17 +126,31 @@ export function setupCustomSettingsListener() {
 
         if (e.target.id === 'fontSizeRange') {
             localStorage.setItem('app_ui_font_size', e.target.value);
-            applyCustomSettings();
+            updateGlobalStyles();
         }
         if (e.target.id === 'contentFontSizeRange') {
             localStorage.setItem('app_content_font_size', e.target.value);
-            applyCustomSettings();
+            updateGlobalStyles();
         }
     });
 }
 
-// পেজ লোড হওয়ার সাথে সাথে সেটিংস কল করা
+// MutationObserver ব্যবহার করে অ্যাপের যেকোনো জায়গায় নতুন কন্টেন্ট বা ভিউ লোড হলে সাথে সাথে স্টাইল বজায় রাখা
+function observeDOMChanges() {
+    const observer = new MutationObserver((mutations) => {
+        // পেজে নতুন এলিমেন্ট যোগ হলেই গ্লোবাল স্টাইল রি-এপ্লাই হবে, ফলে আর সাময়িক পরিবর্তন হয়ে মুছে যাবে না
+        updateGlobalStyles();
+    });
+
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+}
+
+// পেজ লোড হওয়ার সাথে সাথে সেটিংস কল করা এবং অবজারভার চালু করা
 window.addEventListener('DOMContentLoaded', () => {
-    applyCustomSettings();
+    updateGlobalStyles();
     setupCustomSettingsListener();
+    observeDOMChanges();
 });
