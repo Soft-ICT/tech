@@ -710,7 +710,6 @@ function closeAllSearchUI() {
     renderCategories(document.getElementById("searchInput")?.value.trim().toLowerCase());
 }
 
-// সার্বজনীন ফ্লেক্সিবল ম্যাচিং ফাংশন (ইংরেজি ও বাংলা উভয়ের জন্য)
 function isMatch(sourceText, query) {
     if (!sourceText || !query) return false;
     const text = String(sourceText).toLowerCase();
@@ -1465,7 +1464,10 @@ function renderCategoryDetails(searchVal = "") {
             isMatch(d.name, filterText) ||
             isMatch(d.mobile, filterText) ||
             isMatch(d.phone, filterText) ||
-            isMatch(d.designation, filterText)
+            isMatch(d.designation, filterText) ||
+            isMatch(d.email, filterText) ||
+            isMatch(d.currentOffice, filterText) ||
+            isMatch(d.permanentAddress, filterText)
         );
     }
 
@@ -1491,7 +1493,10 @@ function renderCategoryDetails(searchVal = "") {
                 isMatch(d.name, filterText) ||
                 isMatch(d.mobile, filterText) ||
                 isMatch(d.phone, filterText) ||
-                isMatch(d.designation, filterText)
+                isMatch(d.designation, filterText) ||
+                isMatch(d.email, filterText) ||
+                isMatch(d.currentOffice, filterText) ||
+                isMatch(d.permanentAddress, filterText)
             );
         }
 
