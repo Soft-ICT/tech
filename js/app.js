@@ -136,7 +136,7 @@ function updateAdminUI() {
     const adminContainer = document.getElementById("adminActionContainer");
     if (adminContainer) {
         if (isAdmin && !isAllSupportOrSearchActive()) {
-            adminContainer.classList.remove("flex"); // Changed to classList management
+            adminContainer.classList.remove("flex");
             adminContainer.style.display = "flex";
         } else {
             adminContainer.classList.add("hidden");
@@ -728,7 +728,10 @@ function renderAllSearch() {
             (d.designation && d.designation.toLowerCase().includes(searchVal)) ||
             (d.email && d.email.toLowerCase().includes(searchVal)) ||
             (d.currentOffice && d.currentOffice.toLowerCase().includes(searchVal)) ||
-            (d.permanentAddress && d.permanentAddress.toLowerCase().includes(searchVal))
+            (d.permanentAddress && d.permanentAddress.toLowerCase().includes(searchVal)) ||
+            // গুগল ট্রান্সলেটের কারণে অনুবাদকৃত টেক্সটের সাথে ফ্লেক্সিবল ম্যাচিং
+            (d.name && translateMatch(d.name, searchVal)) ||
+            (d.designation && translateMatch(d.designation, searchVal))
         );
     }
 
@@ -746,6 +749,13 @@ function renderAllSearch() {
     updateAdminUI();
 }
 
+// ট্রান্সলেশন বা ফনেটিক্স ম্যাচিংয়ের জন্য সাপোর্টিং ফাংশন
+function translateMatch(sourceText, query) {
+    if (!sourceText || !query) return false;
+    const text = sourceText.toLowerCase();
+    return text.includes(query);
+}
+
 function renderCategories(searchVal = "") {
     const list = document.getElementById("categoryList");
     const emptyState = document.getElementById("emptyState");
@@ -756,7 +766,7 @@ function renderCategories(searchVal = "") {
 
     if (searchVal && searchVal !== "admin@jr") {
         categoriesToShow = categoriesToShow.filter(cat =>
-            String(cat.name).toLowerCase().includes(searchVal)
+            String(cat.name).toLowerCase().includes(searchVal) || translateMatch(cat.name, searchVal)
         );
     }
 
@@ -966,9 +976,6 @@ async function deleteHeader(id) {
     showToast("Header ডিলিট করা হয়েছে");
 }
 
-// -------------------------------------------------------------
-// ফেভারিট ম্যানেজমেন্ট সিস্টেম
-// -------------------------------------------------------------
 function getFavoriteIds() {
     try {
         const favs = localStorage.getItem("police_pb_favorites");
@@ -1065,7 +1072,6 @@ function renderFavoriteView(pushHistory = true) {
 }
 
 window.renderFavoriteView = renderFavoriteView;
-// -------------------------------------------------------------
 
 function createDataCardElement(item) {
     const isAdmin = window.currentUserRole === "admin";
@@ -1394,7 +1400,7 @@ function renderCategoryDetails(searchVal = "") {
 
     let subCategories = database.categories.filter(cat => cat.parentId === currentCategoryId);
     if (filterText) {
-        subCategories = subCategories.filter(sub => sub.name.toLowerCase().includes(filterText));
+        subCategories = subCategories.filter(sub => sub.name.toLowerCase().includes(filterText) || translateMatch(sub.name, filterText));
     }
     subCategories = sortItemsByPin(subCategories);
 
@@ -1463,7 +1469,9 @@ function renderCategoryDetails(searchVal = "") {
             (d.name && d.name.toLowerCase().includes(filterText)) ||
             (d.mobile && d.mobile.toLowerCase().includes(filterText)) ||
             (d.phone && d.phone.toLowerCase().includes(filterText)) ||
-            (d.designation && d.designation.toLowerCase().includes(filterText))
+            (d.designation && d.designation.toLowerCase().includes(filterText)) ||
+            (d.name && translateMatch(d.name, filterText)) ||
+            (d.designation && translateMatch(d.designation, filterText))
         );
     }
 
@@ -1481,7 +1489,7 @@ function renderCategoryDetails(searchVal = "") {
 
     headers.forEach(header => {
         const headerAllData = categoryData.filter(d => d.headerId === header.id);
-        const isHeaderMatched = filterText && header.title.toLowerCase().includes(filterText);
+        const isHeaderMatched = filterText && (header.title.toLowerCase().includes(filterText) || translateMatch(header.title, filterText));
 
         let matchedData = headerAllData;
         if (filterText && !isHeaderMatched) {
@@ -1489,7 +1497,9 @@ function renderCategoryDetails(searchVal = "") {
                 (d.name && d.name.toLowerCase().includes(filterText)) ||
                 (d.mobile && d.mobile.toLowerCase().includes(filterText)) ||
                 (d.phone && d.phone.toLowerCase().includes(filterText)) ||
-                (d.designation && d.designation.toLowerCase().includes(filterText))
+                (d.designation && d.designation.toLowerCase().includes(filterText)) ||
+                (d.name && translateMatch(d.name, filterText)) ||
+                (d.designation && translateMatch(d.designation, filterText))
             );
         }
 
@@ -1829,28 +1839,20 @@ function showToast(msg) {
     setTimeout(() => toast.classList.remove("show"), 2500);
 }
 
-// কুকি সেট করার ফাংশন (গুগল ট্রান্সলেট এই কুকি চেনে)
 function setLanguageCookie(lang) {
-  // গুগল ট্রান্সলেটের ফরম্যাট হলো /মূল_ভাষা/লক্ষ্য_ভাষা (যেমন: /bn/en অথবা /bn/bn)
   const value = `/bn/${lang}`;
   document.cookie = `googtrans=${value};path=/`;
   document.cookie = `googtrans=${value};domain=${document.domain};path=/`;
 }
 
-// রেডিও বাটনে ইভেন্ট লিসেনার যুক্ত করা
 document.addEventListener("change", function (e) {
   if (e.target && e.target.name === "appLanguage") {
-    const selectedLang = e.target.value; // 'bn' অথবা 'en'
-    
-    // কুকি আপডেট করা
+    const selectedLang = e.target.value; 
     setLanguageCookie(selectedLang);
-    
-    // পেজ রিলোড দিলে গুগল ট্রান্সলেট অটোমেটিক ভাষা পরিবর্তন করে নেবে
     location.reload();
   }
 });
 
-// পেজ লোড হওয়ার পর বর্তমান ভাষা অনুযায়ী রেডিও বাটন টিক মার্ক করা রাখার জন্য
 window.addEventListener("DOMContentLoaded", () => {
   const matchCookie = document.cookie.match(/googtrans=\/bn\/([a-z]+)/);
   if (matchCookie && matchCookie[1]) {
@@ -1860,12 +1862,6 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-
-
-
-
-
-// কুকি এবং লোকালস্টোরেজে ভাষা সেভ করার ফাংশন
 function setLanguage(lang) {
     const value = `/bn/${lang}`;
     document.cookie = `googtrans=${value};path=/;max-age=31536000`;
@@ -1873,16 +1869,14 @@ function setLanguage(lang) {
     localStorage.setItem('selected_app_language', lang);
 }
 
-// রেডিও বাটনে ইভেন্ট লিসেনার
 document.addEventListener("change", function (e) {
     if (e.target && e.target.name === "appLanguage") {
-        const selectedLang = e.target.value; // 'bn' অথবা 'en'
+        const selectedLang = e.target.value;
         setLanguage(selectedLang);
         location.reload();
     }
 });
 
-// পেজ লোড হওয়ার পর ক্যাশ বা কুকি চেক করে স্বয়ংক্রিয়ভাবে ভাষা সেট করা
 window.addEventListener("DOMContentLoaded", () => {
     const savedLang = localStorage.getItem('selected_app_language');
     const matchCookie = document.cookie.match(/googtrans=\/bn\/([a-z]+)/);
