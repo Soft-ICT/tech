@@ -110,8 +110,7 @@ export function initDrawer() {
     `;
 
     const existingDrawer = document.getElementById("appDrawer");
-    const existingOverlay =
-        document.getElementById("appDrawerOverlay");
+    const existingOverlay = document.getElementById("appDrawerOverlay");
 
     if (existingDrawer) existingDrawer.remove();
     if (existingOverlay) existingOverlay.remove();
@@ -119,12 +118,9 @@ export function initDrawer() {
     document.body.insertAdjacentHTML("beforeend", drawerHTML);
 
     const drawer = document.getElementById("appDrawer");
-    const overlay =
-        document.getElementById("appDrawerOverlay");
-    const navToggleBtn =
-        document.getElementById("navToggleBtn");
-    const closeDrawerBtn =
-        document.getElementById("closeDrawerBtn");
+    const overlay = document.getElementById("appDrawerOverlay");
+    const navToggleBtn = document.getElementById("navToggleBtn");
+    const closeDrawerBtn = document.getElementById("closeDrawerBtn");
 
     function openDrawer() {
         drawer.classList.add("open");
@@ -142,24 +138,13 @@ export function initDrawer() {
         navToggleBtn.addEventListener("click", e => {
             e.stopPropagation();
 
-            const menuIcon =
-                document.getElementById("menuIcon");
-            const backIcon =
-                document.getElementById("backIcon");
-            const searchBox =
-                document.getElementById("searchBox");
+            const menuIcon = document.getElementById("menuIcon");
+            const backIcon = document.getElementById("backIcon");
+            const searchBox = document.getElementById("searchBox");
 
-            const isMenuVisible =
-                menuIcon &&
-                !menuIcon.classList.contains("hidden");
-
-            const isBackVisible =
-                backIcon &&
-                !backIcon.classList.contains("hidden");
-
-            const isSearchOpen =
-                searchBox &&
-                !searchBox.classList.contains("hidden");
+            const isMenuVisible = menuIcon && !menuIcon.classList.contains("hidden");
+            const isBackVisible = backIcon && !backIcon.classList.contains("hidden");
+            const isSearchOpen = searchBox && !searchBox.classList.contains("hidden");
 
             if (isSearchOpen || isBackVisible || !isMenuVisible) {
                 return;
@@ -178,9 +163,7 @@ export function initDrawer() {
 
     drawer.querySelectorAll(".drawer-menu-list li").forEach(item => {
         item.addEventListener("click", () => {
-            handleDrawerAction(
-                item.getAttribute("data-action")
-            );
+            handleDrawerAction(item.getAttribute("data-action"));
             closeDrawer();
         });
     });
@@ -194,61 +177,28 @@ export function initDrawer() {
 ============================================================ */
 
 function applySavedThemeStyles() {
+    const bgColor = localStorage.getItem("app_bg_color");
+    const textColor = localStorage.getItem("app_text_color");
+    const themeColor = localStorage.getItem("app_theme_color");
+    const bgImage = localStorage.getItem("app_bg_image");
 
-    const bgColor =
-        localStorage.getItem("app_bg_color");
+    applyBackgroundToElement(document.body, bgColor, bgImage);
 
-    const textColor =
-        localStorage.getItem("app_text_color");
-
-    const themeColor =
-        localStorage.getItem("app_theme_color");
-
-    const bgImage =
-        localStorage.getItem("app_bg_image");
-
-
-    applyBackgroundToElement(
-        document.body,
-        bgColor,
-        bgImage
-    );
-
-
-    const splash =
-        document.getElementById("splash-screen");
-
+    const splash = document.getElementById("splash-screen");
     if (splash) {
-        applyBackgroundToElement(
-            splash,
-            bgColor,
-            bgImage
-        );
+        applyBackgroundToElement(splash, bgColor, bgImage);
     }
-
 
     if (themeColor) {
-        document.querySelectorAll(
-            ".app-header, header"
-        ).forEach(el => {
-            el.style.setProperty(
-                "background-color",
-                themeColor,
-                "important"
-            );
+        document.querySelectorAll(".app-header, header").forEach(el => {
+            el.style.setProperty("background-color", themeColor, "important");
         });
     }
-
 
     if (textColor) {
         applySavedTextColor();
     }
 
-
-    /*
-     * Formatter চালানোর পর saved global color আবার
-     * unformatted content-এ প্রয়োগ হবে।
-     */
     setTimeout(applySavedTextColor, 0);
     setTimeout(applySavedTextColor, 100);
     setTimeout(applySavedTextColor, 500);
@@ -259,45 +209,18 @@ function applySavedThemeStyles() {
    BACKGROUND HELPER
 ============================================================ */
 
-function applyBackgroundToElement(
-    element,
-    color,
-    image
-) {
+function applyBackgroundToElement(element, color, image) {
     if (!element) return;
 
     if (color) {
-        element.style.setProperty(
-            "background-color",
-            color,
-            "important"
-        );
+        element.style.setProperty("background-color", color, "important");
     }
 
     if (image) {
-        element.style.setProperty(
-            "background-image",
-            `url("${image}")`,
-            "important"
-        );
-
-        element.style.setProperty(
-            "background-size",
-            "cover",
-            "important"
-        );
-
-        element.style.setProperty(
-            "background-position",
-            "center center",
-            "important"
-        );
-
-        element.style.setProperty(
-            "background-repeat",
-            "no-repeat",
-            "important"
-        );
+        element.style.setProperty("background-image", `url("${image}")`, "important");
+        element.style.setProperty("background-size", "cover", "important");
+        element.style.setProperty("background-position", "center center", "important");
+        element.style.setProperty("background-repeat", "no-repeat", "important");
     } else {
         element.style.removeProperty("background-image");
     }
@@ -309,31 +232,17 @@ function applyBackgroundToElement(
 ============================================================ */
 
 function applySavedTextColor() {
-
-    const color =
-        localStorage.getItem("app_text_color");
-
+    const color = localStorage.getItem("app_text_color");
     if (!color) return;
 
-
-    /*
-     * color-formatter.js থাকলে তার safe function ব্যবহার করি।
-     */
     if (
         window.firebaseTextFormatter &&
-        typeof window.firebaseTextFormatter.applySavedTextColor ===
-        "function"
+        typeof window.firebaseTextFormatter.applySavedTextColor === "function"
     ) {
-        window.firebaseTextFormatter.applySavedTextColor(
-            document.body
-        );
+        window.firebaseTextFormatter.applySavedTextColor(document.body);
         return;
     }
 
-
-    /*
-     * Fallback.
-     */
     const selectors = [
         "h1","h2","h3","h4","h5","h6",
         "p","span","a","label","li",
@@ -352,10 +261,7 @@ function applySavedTextColor() {
         "[class*='notice']"
     ];
 
-    document.querySelectorAll(
-        selectors.join(",")
-    ).forEach(el => {
-
+    document.querySelectorAll(selectors.join(",")).forEach(el => {
         if (
             el.closest("#appDrawer") ||
             el.closest("#settingsModal") ||
@@ -366,11 +272,7 @@ function applySavedTextColor() {
             return;
         }
 
-        el.style.setProperty(
-            "color",
-            color,
-            "important"
-        );
+        el.style.setProperty("color", color, "important");
     });
 }
 
@@ -380,10 +282,7 @@ function applySavedTextColor() {
 ============================================================ */
 
 function showCustomDeleteModal(onConfirm) {
-
-    const existing =
-        document.getElementById("customDeleteModal");
-
+    const existing = document.getElementById("customDeleteModal");
     if (existing) existing.remove();
 
     const modalHTML = `
@@ -411,26 +310,15 @@ function showCustomDeleteModal(onConfirm) {
                     ✕
                 </button>
 
-                <h3 style="
-                    margin:0 0 15px 0;font-size:20px;
-                    font-weight:700;color:#111;
-                ">
+                <h3 style="margin:0 0 15px 0;font-size:20px;font-weight:700;color:#111;">
                     নিশ্চিতকরণ
                 </h3>
 
-                <p style="
-                    margin:0 0 25px 0;font-size:15px;
-                    color:#444;line-height:1.5;
-                ">
-                    আপনি কি নিশ্চিত সমস্ত ডাটা ও লগইন তথ্য মুছে
-                    ফেলতে চান? (এর ফলে অ্যাপটি একদম প্রথম
-                    ইন্সটলের অবস্থার মতো হয়ে যাবে এবং পুনরায়
-                    পাসওয়ার্ড দিয়ে প্রবেশ করতে হবে।)
+                <p style="margin:0 0 25px 0;font-size:15px;color:#444;line-height:1.5;">
+                    আপনি কি নিশ্চিত সমস্ত ডাটা ও লগইন তথ্য মুছে ফেলতে চান? (এর ফলে অ্যাপটি একদম প্রথম ইন্সটলের অবস্থার মতো হয়ে যাবে এবং পুনরায় পাসওয়ার্ড দিয়ে প্রবেশ করতে হবে।)
                 </p>
 
-                <div style="
-                    display:flex;justify-content:flex-end;gap:10px;
-                ">
+                <div style="display:flex;justify-content:flex-end;gap:10px;">
                     <button id="modalCancelBtn"
                             style="
                                 padding:8px 18px;border:1px solid #ccc;
@@ -455,29 +343,21 @@ function showCustomDeleteModal(onConfirm) {
         </div>
     `;
 
-    document.body.insertAdjacentHTML(
-        "beforeend",
-        modalHTML
-    );
+    document.body.insertAdjacentHTML("beforeend", modalHTML);
 
-    const modal =
-        document.getElementById("customDeleteModal");
+    const modal = document.getElementById("customDeleteModal");
 
-    document.getElementById("modalCloseBtn")
-        .addEventListener("click", () => modal.remove());
-
-    document.getElementById("modalCancelBtn")
-        .addEventListener("click", () => modal.remove());
+    document.getElementById("modalCloseBtn").addEventListener("click", () => modal.remove());
+    document.getElementById("modalCancelBtn").addEventListener("click", () => modal.remove());
 
     modal.addEventListener("click", e => {
         if (e.target === modal) modal.remove();
     });
 
-    document.getElementById("modalConfirmBtn")
-        .addEventListener("click", () => {
-            modal.remove();
-            onConfirm();
-        });
+    document.getElementById("modalConfirmBtn").addEventListener("click", () => {
+        modal.remove();
+        onConfirm();
+    });
 }
 
 
@@ -486,32 +366,14 @@ function showCustomDeleteModal(onConfirm) {
 ============================================================ */
 
 function initSettingsModal() {
-
-    const existing =
-        document.getElementById("settingsModal");
-
+    const existing = document.getElementById("settingsModal");
     if (existing) existing.remove();
 
-
-    const themeColor =
-        localStorage.getItem("app_theme_color") ||
-        "#ff0000";
-
-    const bgColor =
-        localStorage.getItem("app_bg_color") ||
-        "#3f51b5";
-
-    const textColor =
-        localStorage.getItem("app_text_color") ||
-        "#ffffff";
-
-    const language =
-        localStorage.getItem("app_language") ||
-        "bn";
-
-    const isDarkMode =
-        localStorage.getItem("app_dark_mode") === "true";
-
+    const themeColor = localStorage.getItem("app_theme_color") || "#ff0000";
+    const bgColor = localStorage.getItem("app_bg_color") || "#3f51b5";
+    const textColor = localStorage.getItem("app_text_color") || "#ffffff";
+    const language = localStorage.getItem("app_language") || "bn";
+    const isDarkMode = localStorage.getItem("app_dark_mode") === "true";
 
     const modalHTML = `
         <div id="settingsModal"
@@ -544,10 +406,7 @@ function initSettingsModal() {
                     align-items:center;margin-bottom:20px;
                     padding-right:35px;
                 ">
-                    <h3 style="
-                        margin:0;font-size:20px;
-                        font-weight:700;color:#111;
-                    ">
+                    <h3 style="margin:0;font-size:20px;font-weight:700;color:#111;">
                         ⚙️ Setting
                     </h3>
 
@@ -565,121 +424,39 @@ function initSettingsModal() {
                     </button>
                 </div>
 
-                <div style="
-                    display:flex;flex-direction:column;gap:16px;
-                ">
+                <div style="display:flex;flex-direction:column;gap:16px;">
 
-                    <div style="
-                        display:flex;justify-content:space-between;
-                        align-items:center;border-bottom:1px solid #eee;
-                        padding-bottom:10px;
-                    ">
-                        <label style="
-                            font-size:15px;font-weight:600;color:#333;
-                        ">
-                            Theme
-                        </label>
-
-                        <input type="color"
-                               id="themeColorInput"
-                               value="${themeColor}"
-                               style="
-                                    width:40px;height:40px;border:none;
-                                    border-radius:50%;cursor:pointer;
-                                    background:none;
-                               ">
+                    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee;padding-bottom:10px;">
+                        <label style="font-size:15px;font-weight:600;color:#333;">Theme</label>
+                        <input type="color" id="themeColorInput" value="${themeColor}" style="width:40px;height:40px;border:none;border-radius:50%;cursor:pointer;background:none;">
                     </div>
 
-                    <div style="
-                        display:flex;justify-content:space-between;
-                        align-items:center;border-bottom:1px solid #eee;
-                        padding-bottom:10px;
-                    ">
-                        <label style="
-                            font-size:15px;font-weight:600;color:#333;
-                        ">
-                            Background Color
-                        </label>
-
-                        <input type="color"
-                               id="bgColorInput"
-                               value="${bgColor}"
-                               style="
-                                    width:40px;height:40px;border:none;
-                                    border-radius:50%;cursor:pointer;
-                                    background:none;
-                               ">
+                    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee;padding-bottom:10px;">
+                        <label style="font-size:15px;font-weight:600;color:#333;">Background Color</label>
+                        <input type="color" id="bgColorInput" value="${bgColor}" style="width:40px;height:40px;border:none;border-radius:50%;cursor:pointer;background:none;">
                     </div>
 
-                    <div style="
-                        display:flex;justify-content:space-between;
-                        align-items:center;border-bottom:1px solid #eee;
-                        padding-bottom:10px;
-                    ">
-                        <label style="
-                            font-size:15px;font-weight:600;color:#333;
-                        ">
-                            Text Color
-                        </label>
-
-                        <input type="color"
-                               id="textColorInput"
-                               value="${textColor}"
-                               style="
-                                    width:40px;height:40px;border:none;
-                                    border-radius:50%;cursor:pointer;
-                                    background:none;
-                               ">
+                    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee;padding-bottom:10px;">
+                        <label style="font-size:15px;font-weight:600;color:#333;">Text Color</label>
+                        <input type="color" id="textColorInput" value="${textColor}" style="width:40px;height:40px;border:none;border-radius:50%;cursor:pointer;background:none;">
                     </div>
 
-                    <div style="
-                        display:flex;flex-direction:column;gap:10px;
-                        border-bottom:1px solid #eee;padding-bottom:10px;
-                    ">
-                        <label style="
-                            font-size:15px;font-weight:600;
-                            color:#333;text-align:center;
-                        ">
-                            Apps Data View Mode
-                        </label>
-
-                        <div style="
-                            display:flex;justify-content:space-around;
-                            align-items:center;
-                        ">
-                            <label style="
-                                display:flex;align-items:center;gap:8px;
-                                cursor:pointer;font-size:14px;
-                                font-weight:500;
-                            ">
-                                <input type="radio"
-                                       name="appLang"
-                                       value="en"
-                                       ${language === "en" ? "checked" : ""}
-                                       style="cursor:pointer;">
+                    <div style="display:flex;flex-direction:column;gap:10px;border-bottom:1px solid #eee;padding-bottom:10px;">
+                        <label style="font-size:15px;font-weight:600;color:#333;text-align:center;">Apps Data View Mode</label>
+                        <div style="display:flex;justify-content:space-around;align-items:center;">
+                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;font-weight:500;">
+                                <input type="radio" name="appLang" value="en" ${language === "en" ? "checked" : ""} style="cursor:pointer;">
                                 English 🇬🇧
                             </label>
-
-                            <label style="
-                                display:flex;align-items:center;gap:8px;
-                                cursor:pointer;font-size:14px;
-                                font-weight:500;
-                            ">
-                                <input type="radio"
-                                       name="appLang"
-                                       value="bn"
-                                       ${language === "bn" ? "checked" : ""}
-                                       style="cursor:pointer;">
+                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;font-weight:500;">
+                                <input type="radio" name="appLang" value="bn" ${language === "bn" ? "checked" : ""} style="cursor:pointer;">
                                 Bangla 🇧🇩
                             </label>
                         </div>
                     </div>
                 </div>
 
-                <div style="
-                    margin-top:20px;display:flex;
-                    flex-direction:column;gap:10px;
-                ">
+                <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px;">
                     <button id="resetSettingsBtn"
                             style="
                                 width:100%;background:#2196F3;color:#fff;
@@ -703,155 +480,68 @@ function initSettingsModal() {
         </div>
     `;
 
-    document.body.insertAdjacentHTML(
-        "beforeend",
-        modalHTML
-    );
+    document.body.insertAdjacentHTML("beforeend", modalHTML);
 
-    const modal =
-        document.getElementById("settingsModal");
+    const modal = document.getElementById("settingsModal");
 
+    // ভাষা পরিবর্তন হ্যান্ডলার (Google Translate Cookie সেট করা)
+    modal.addEventListener("change", e => {
+        if (e.target && e.target.name === "appLang") {
+            const selectedLang = e.target.value; // 'en' অথবা 'bn'
+            const value = `/bn/${selectedLang}`;
+            
+            document.cookie = `googtrans=${value};path=/;max-age=31536000`;
+            document.cookie = `googtrans=${value};domain=${document.domain};path=/;max-age=31536000`;
+            localStorage.setItem("app_language", selectedLang);
 
-    /* ============================================================
-       BACKGROUND COLOR
-    ============================================================ */
+            setTimeout(() => {
+                modal.remove();
+                window.location.reload();
+            }, 200);
+        }
+    });
 
-    document.getElementById("bgColorInput")
-        .addEventListener("input", e => {
+    document.getElementById("bgColorInput").addEventListener("input", e => {
+        const color = e.target.value;
+        localStorage.setItem("app_bg_color", color);
+        applyBackgroundToElement(document.body, color, localStorage.getItem("app_bg_image"));
+        const splash = document.getElementById("splash-screen");
+        if (splash) {
+            applyBackgroundToElement(splash, color, localStorage.getItem("app_bg_image"));
+        }
+    });
 
-            const color = e.target.value;
+    document.getElementById("textColorInput").addEventListener("input", e => {
+        const color = e.target.value;
+        localStorage.setItem("app_text_color", color);
+        applySavedTextColor();
+        if (typeof window.applyFirebaseTextColors === "function") {
+            window.applyFirebaseTextColors(document.body);
+        }
+        setTimeout(applySavedTextColor, 0);
+        setTimeout(applySavedTextColor, 100);
+    });
 
-            localStorage.setItem(
-                "app_bg_color",
-                color
-            );
-
-            applyBackgroundToElement(
-                document.body,
-                color,
-                localStorage.getItem("app_bg_image")
-            );
-
-            const splash =
-                document.getElementById("splash-screen");
-
-            if (splash) {
-                applyBackgroundToElement(
-                    splash,
-                    color,
-                    localStorage.getItem("app_bg_image")
-                );
-            }
+    document.getElementById("themeColorInput").addEventListener("input", e => {
+        const color = e.target.value;
+        localStorage.setItem("app_theme_color", color);
+        document.querySelectorAll(".app-header, header").forEach(el => {
+            el.style.setProperty("background-color", color, "important");
         });
+    });
 
+    document.getElementById("darkModeToggleBtn").addEventListener("click", () => {
+        const state = localStorage.getItem("app_dark_mode") === "true";
+        const newState = !state;
+        localStorage.setItem("app_dark_mode", newState);
+        document.body.classList.toggle("dark-mode", newState);
+        document.getElementById("darkModeToggleBtn").innerHTML = newState ? "🌞" : "🌙";
+    });
 
-    /* ============================================================
-       TEXT COLOR
-    ============================================================ */
-
-    document.getElementById("textColorInput")
-        .addEventListener("input", e => {
-
-            const color = e.target.value;
-
-            localStorage.setItem(
-                "app_text_color",
-                color
-            );
-
-            applySavedTextColor();
-
-            /*
-             * Formatter-এর explicit Firebase colors আবার
-             * নিশ্চিত করি।
-             */
-            if (
-                typeof window.applyFirebaseTextColors ===
-                "function"
-            ) {
-                window.applyFirebaseTextColors(
-                    document.body
-                );
-            }
-
-            setTimeout(
-                applySavedTextColor,
-                0
-            );
-
-            setTimeout(
-                applySavedTextColor,
-                100
-            );
-        });
-
-
-    /* ============================================================
-       THEME COLOR
-    ============================================================ */
-
-    document.getElementById("themeColorInput")
-        .addEventListener("input", e => {
-
-            const color = e.target.value;
-
-            localStorage.setItem(
-                "app_theme_color",
-                color
-            );
-
-            document.querySelectorAll(
-                ".app-header, header"
-            ).forEach(el => {
-                el.style.setProperty(
-                    "background-color",
-                    color,
-                    "important"
-                );
-            });
-        });
-
-
-    /* ============================================================
-       DARK MODE
-    ============================================================ */
-
-    document.getElementById("darkModeToggleBtn")
-        .addEventListener("click", () => {
-
-            const state =
-                localStorage.getItem(
-                    "app_dark_mode"
-                ) === "true";
-
-            const newState = !state;
-
-            localStorage.setItem(
-                "app_dark_mode",
-                newState
-            );
-
-            document.body.classList.toggle(
-                "dark-mode",
-                newState
-            );
-
-            document.getElementById(
-                "darkModeToggleBtn"
-            ).innerHTML =
-                newState ? "🌞" : "🌙";
-        });
-
-
-    /* ============================================================
-       CLOSE
-    ============================================================ */
-
-    document.getElementById("settingsCloseBtn")
-        .addEventListener("click", () => {
-            modal.remove();
-            window.location.reload();
-        });
+    document.getElementById("settingsCloseBtn").addEventListener("click", () => {
+        modal.remove();
+        window.location.reload();
+    });
 
     modal.addEventListener("click", e => {
         if (e.target === modal) {
@@ -860,51 +550,33 @@ function initSettingsModal() {
         }
     });
 
+    // রিসেট সেটিংস (কুকি সহ মুছে ফেলা)
+    document.getElementById("resetSettingsBtn").addEventListener("click", () => {
+        localStorage.removeItem("app_theme_color");
+        localStorage.removeItem("app_bg_color");
+        localStorage.removeItem("app_text_color");
+        localStorage.removeItem("app_bg_image");
+        localStorage.removeItem("app_language");
+        localStorage.removeItem("app_dark_mode");
 
-    /* ============================================================
-       RESET
-    ============================================================ */
+        document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=" + document.domain + "; path=/;";
 
-    document.getElementById("resetSettingsBtn")
-        .addEventListener("click", () => {
+        alert("সেটিংস রিসেট করা হয়েছে!");
+        modal.remove();
+        window.location.reload();
+    });
 
-            localStorage.removeItem("app_theme_color");
-            localStorage.removeItem("app_bg_color");
-            localStorage.removeItem("app_text_color");
-            localStorage.removeItem("app_bg_image");
-            localStorage.removeItem("app_language");
-            localStorage.removeItem("app_dark_mode");
-
-            alert("সেটিংস রিসেট করা হয়েছে!");
-
-            modal.remove();
+    document.getElementById("clearDataBtn").addEventListener("click", () => {
+        modal.remove();
+        showCustomDeleteModal(() => {
+            localStorage.clear();
+            sessionStorage.clear();
             window.location.reload();
         });
+    });
 
-
-    /* ============================================================
-       CLEAR DATA
-    ============================================================ */
-
-    document.getElementById("clearDataBtn")
-        .addEventListener("click", () => {
-
-            modal.remove();
-
-            showCustomDeleteModal(() => {
-
-                localStorage.clear();
-                sessionStorage.clear();
-
-                window.location.reload();
-            });
-        });
-
-
-    if (
-        typeof window.createBackgroundImageUI ===
-        "function"
-    ) {
+    if (typeof window.createBackgroundImageUI === "function") {
         window.createBackgroundImageUI();
     }
 }
@@ -915,104 +587,47 @@ function initSettingsModal() {
 ============================================================ */
 
 function handleDrawerAction(action) {
-
     switch (action) {
-
         case "home":
-
-            if (
-                typeof showMainDashboardView ===
-                "function"
-            ) {
-                history.pushState(
-                    { page: "home" },
-                    ""
-                );
-
+            if (typeof showMainDashboardView === "function") {
+                history.pushState({ page: "home" }, "");
                 showMainDashboardView();
             }
-
             break;
-
-
         case "search":
-
-            const allSearchBtn =
-                document.getElementById(
-                    "allSearchBtn"
-                );
-
-            if (allSearchBtn) {
-                allSearchBtn.click();
-            }
-
+            const allSearchBtn = document.getElementById("allSearchBtn");
+            if (allSearchBtn) allSearchBtn.click();
             break;
-
-
         case "favorite":
-
-            if (
-                typeof renderFavoriteView ===
-                "function"
-            ) {
+            if (typeof renderFavoriteView === "function") {
                 renderFavoriteView(true);
             }
-
             break;
-
-
         case "settings":
-
             initSettingsModal();
-
             break;
-
-
         case "delete-db":
-
             showCustomDeleteModal(() => {
-
                 localStorage.clear();
                 sessionStorage.clear();
-
                 window.location.reload();
             });
-
             break;
-
-
         case "notice-box":
-
             console.log("Notice Box clicked");
-
             break;
-
-
         case "share":
-
             if (navigator.share) {
-
                 navigator.share({
                     title: "Police Phonebook",
                     url: window.location.href
                 }).catch(console.error);
-
             } else {
-
-                alert(
-                    "Sharing not supported on this browser."
-                );
-
+                alert("Sharing not supported on this browser.");
             }
-
             break;
-
-
         default:
-
-            console.log(
-                action + " clicked"
-            );
+            console.log(action + " clicked");
     }
 }
 
@@ -1022,32 +637,23 @@ function handleDrawerAction(action) {
 ============================================================ */
 
 function bootSavedTheme() {
-
     applySavedThemeStyles();
-
-    /*
-     * Splash screen যদি পরে তৈরি হয়,
-     * আবার apply করা হবে।
-     */
-    setTimeout(
-        applySavedThemeStyles,
-        0
-    );
-
-    setTimeout(
-        applySavedThemeStyles,
-        100
-    );
-
-    setTimeout(
-        applySavedThemeStyles,
-        500
-    );
+    setTimeout(applySavedThemeStyles, 0);
+    setTimeout(applySavedThemeStyles, 100);
+    setTimeout(applySavedThemeStyles, 500);
 }
 
 bootSavedTheme();
+document.addEventListener("DOMContentLoaded", bootSavedTheme);
 
-document.addEventListener(
-    "DOMContentLoaded",
-    bootSavedTheme
-);
+// পেজ লোড হওয়ার পর ক্যাশ বা কুকি চেক করে ভাষা বজায় রাখা
+(function () {
+    const savedLang = localStorage.getItem('app_language');
+    const matchCookie = document.cookie.match(/googtrans=\/bn\/([a-z]+)/);
+    
+    if (savedLang && (!matchCookie || matchCookie[1] !== savedLang)) {
+        const value = `/bn/${savedLang}`;
+        document.cookie = `googtrans=${value};path=/;max-age=31536000`;
+        document.cookie = `googtrans=${value};domain=${document.domain};path=/;max-age=31536000`;
+    }
+})();
