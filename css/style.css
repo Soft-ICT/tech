@@ -946,6 +946,23 @@ body {
 .goog-te-gadget {
     display: none !important;
 }
+/* Google Translate Banner & Top Shift Fix */
+.goog-te-banner-frame.skiptranslate {
+    display: none !important;
+}
+body {
+    top: 0px !important;
+}
+.goog-tooltip {
+    display: none !important;
+}
+.goog-tooltip:hover {
+    display: none !important;
+}
+.goog-text-highlight {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
 
 
 
