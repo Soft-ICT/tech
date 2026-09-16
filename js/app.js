@@ -173,6 +173,7 @@ function updateAdminUI() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+    initOfflineLanguageSystem();
     setupEvents();
     initTheme();
     updateAdminUI();
@@ -710,12 +711,7 @@ function closeAllSearchUI() {
     renderCategories(document.getElementById("searchInput")?.value.trim().toLowerCase());
 }
 
-function isMatch(sourceText, query) {
-    if (!sourceText || !query) return false;
-    const text = String(sourceText).toLowerCase();
-    const q = String(query).toLowerCase();
-    return text.includes(q);
-}
+// সার্বজনীন ফ্লেক্সিবল ম্যাচিং ফাংশনটি নিচের BILINGUAL/OFFLINE SEARCH অংশে সংজ্ঞায়িত করা হয়েছে।
 
 function renderAllSearch() {
     const container = document.getElementById("allSearchContainer");
@@ -728,15 +724,7 @@ function renderAllSearch() {
     let allData = database.data || [];
 
     if (searchVal && searchVal !== "admin@jr") {
-        allData = allData.filter(d =>
-            isMatch(d.name, searchVal) ||
-            isMatch(d.mobile, searchVal) ||
-            isMatch(d.phone, searchVal) ||
-            isMatch(d.designation, searchVal) ||
-            isMatch(d.email, searchVal) ||
-            isMatch(d.currentOffice, searchVal) ||
-            isMatch(d.permanentAddress, searchVal)
-        );
+        allData = allData.filter(d => isDataMatch(d, searchVal));
     }
 
     allData = sortContactData(allData);
@@ -1037,13 +1025,7 @@ function renderFavoriteView(pushHistory = true) {
     let favData = (database.data || []).filter(d => favIds.includes(d.id));
 
     if (searchVal && searchVal !== "admin@jr") {
-        favData = favData.filter(d =>
-            isMatch(d.name, searchVal) ||
-            isMatch(d.mobile, searchVal) ||
-            isMatch(d.phone, searchVal) ||
-            isMatch(d.designation, searchVal) ||
-            isMatch(d.email, searchVal)
-        );
+        favData = favData.filter(d => isDataMatch(d, searchVal));
     }
 
     if (favData.length === 0) {
@@ -1460,12 +1442,7 @@ function renderCategoryDetails(searchVal = "") {
 
     let noHeaderData = categoryData.filter(d => !d.headerId);
     if (filterText) {
-        noHeaderData = noHeaderData.filter(d =>
-            isMatch(d.name, filterText) ||
-            isMatch(d.mobile, filterText) ||
-            isMatch(d.phone, filterText) ||
-            isMatch(d.designation, filterText)
-        );
+        noHeaderData = noHeaderData.filter(d => isDataMatch(d, filterText));
     }
 
     if (noHeaderData.length > 0) {
@@ -1486,12 +1463,7 @@ function renderCategoryDetails(searchVal = "") {
 
         let matchedData = headerAllData;
         if (filterText && !isHeaderMatched) {
-            matchedData = headerAllData.filter(d =>
-                isMatch(d.name, filterText) ||
-                isMatch(d.mobile, filterText) ||
-                isMatch(d.phone, filterText) ||
-                isMatch(d.designation, filterText)
-            );
+            matchedData = headerAllData.filter(d => isDataMatch(d, filterText));
         }
 
         if (!filterText || isHeaderMatched || matchedData.length > 0) {
@@ -1830,56 +1802,394 @@ function showToast(msg) {
     setTimeout(() => toast.classList.remove("show"), 2500);
 }
 
-function setLanguageCookie(lang) {
-  const value = `/bn/${lang}`;
-  document.cookie = `googtrans=${value};path=/`;
-  document.cookie = `googtrans=${value};domain=${document.domain};path=/`;
+/* ============================================================
+   BILINGUAL / OFFLINE LANGUAGE + SEARCH SUPPORT
+   ------------------------------------------------------------
+   - English search works even when database values are Bengali.
+   - English mode works without Google Translate/internet for
+     the built-in application UI.
+   - Google Translate can still be used online for text that is
+     not covered by the local dictionary.
+   - Firebase data is NEVER modified by this translator.
+   ============================================================ */
+
+const APP_LANGUAGE_KEY = "selected_app_language";
+
+const OFFLINE_TRANSLATIONS = {
+    "Police Phonebook": "Police Phonebook",
+    "নাম পাওয়া যায়নি": "Name not found",
+    "মোবাইল নেই": "Mobile unavailable",
+    "টেলিফোন নেই": "Telephone unavailable",
+    "পদবী নেই": "Designation unavailable",
+    "ইমেইল নেই": "Email unavailable",
+    "মোবাইল": "Mobile",
+    "টেলিফোন": "Telephone",
+    "পদবী": "Designation",
+    "ইমেইল": "Email",
+    "বর্তমান অফিস": "Current Office",
+    "স্থায়ী ঠিকানা": "Permanent Address",
+    "স্থায়ী ঠিকানা": "Permanent Address",
+    "অ্যাডমিন তথ্য": "Admin Information",
+    "Header ছাড়া": "Without Header",
+    "Header ছাড়া": "Without Header",
+    "কোনো তথ্য পাওয়া যায়নি": "No information found",
+    "কোনো ফেভারিট নাম্বার নেই": "No favorite numbers",
+    "হার্ট আইকনে ক্লিক করে ফেভারিটে যুক্ত করুন।": "Tap the heart icon to add a favorite.",
+    "নতুন Category": "New Category",
+    "নতুন Sub-Category": "New Sub-Category",
+    "Category এডিট করুন": "Edit Category",
+    "Data এডিট করুন": "Edit Data",
+    "Data যোগ করুন": "Add Data",
+    "Header সেভ করা হয়েছে": "Header saved",
+    "ডাটা সেভ হয়েছে": "Data saved",
+    "ডাটা ডিলিট করা হয়েছে": "Data deleted",
+    "ডাটা সফলভাবে মুভ করা হয়েছে!": "Data moved successfully!",
+    "পিন করা হয়েছে": "Pinned",
+    "আনপিন করা হয়েছে": "Unpinned",
+    "হেডার পিন করা হয়েছে": "Header pinned",
+    "হেডার আনপিন করা হয়েছে": "Header unpinned",
+    "সেভ করা হয়েছে": "Saved",
+    "ডিলিট করা হয়েছে": "Deleted",
+    "Header ডিলিট করা হয়েছে": "Header deleted",
+    "পিন": "Pin",
+    "আনপিন": "Unpin",
+    "এডিট": "Edit",
+    "ডিলিট": "Delete",
+    "মুভ": "Move",
+    "ফেভারিট": "Favorite",
+    "ফেভারিটে যোগ করা হয়েছে": "Added to favorites",
+    "ফেভারিট থেকে সরানো হয়েছে": "Removed from favorites",
+    "নিশ্চিতকরণ": "Confirmation",
+    "হ্যাঁ, মুছুন": "Yes, Delete",
+    "বাতিল": "Cancel",
+    "লোড হচ্ছে...": "Loading...",
+    "কোনো নতুন ভেরিফিকেশন রিকোয়েস্ট নেই": "No new verification requests",
+    "ডাটা লোড করতে সমস্যা হয়েছে": "Could not load data",
+    "অ্যাডমিন লগইন সফল হয়েছে!": "Admin login successful!",
+    "লগআউট করা হয়েছে": "Logged out",
+    "লগইন করার জন্য ইন্টারনেট সংযোগ আবশ্যক!": "Internet connection is required for admin login!",
+    "ইমেইল এবং পাসওয়ার্ড দিন": "Enter email and password",
+    "শুধুমাত্র Admin পরিবর্তন সেভ করতে পারবেন": "Only Admin can save changes",
+    "অফলাইনে সেভ হয়েছে! ইন্টারনেট এলে ডাটাবেজে যুক্ত হবে।": "Saved offline. It will sync when internet is available.",
+    "ক্লাউডে সিঙ্ক করতে সমস্যা হয়েছে": "Cloud sync failed",
+    "ইন্টারনেট সংযোগ নেই!": "No internet connection!",
+    "🟢 অনলাইন মোডে আছেন ": "🟢 You are online ",
+    "স্লাইডিং নোটিশ সফলভাবে সেভ হয়েছে!": "Sliding notice saved successfully!",
+    "নোটিফিকেশন প্যানেল ওপেন করা হয়েছে": "Notification panel opened",
+    "শুধুমাত্র অ্যাডমিন নোটিশ প্রকাশ করতে পারবেন": "Only Admin can publish notices",
+    "শিরোনাম এবং বিস্তারিত উভয়ই পূরণ করুন": "Please fill in both title and details",
+    "নাম প্রদান করুন": "Enter a name",
+    "মোবাইল নাম্বার অবশ্যই ১১ ডিজিটের হতে হবে!": "Mobile number must contain 11 digits!",
+    "মোবাইল, টেলিফোন অথবা ইমেইল এড্রেস ফাঁকা রাখা যাবে না!": "Mobile, telephone or email cannot all be empty",
+    "ক্যাটাগরি সিলেক্ট করা নেই": "No category selected",
+    "হেডার নাম লিখুন": "Enter header name",
+    "Category Name লিখুন": "Enter Category Name",
+    "আপনি কি নিশ্চিত এই Category মুছে ফেলতে চান?": "Are you sure you want to delete this Category?",
+    "এই Header ডিলিট করতে চান? ডাটাগুলো সরানো হবে না।": "Delete this Header? The data will not be removed.",
+    "আপনি কি এই Data মুছে ফেলতে চান?": "Are you sure you want to delete this Data?",
+    "আপনি কি এই রিকোয়েস্টটি ডিলিট করতে চান?": "Do you want to delete this request?",
+    "রিকোয়েস্ট ডিলিট করা হয়েছে": "Request deleted",
+    "অ্যাপ্রুভ করতে ব্যর্থ হয়েছে": "Approval failed",
+    "রিকোয়েস্ট পাঠাতে ব্যর্থ হয়েছে": "Failed to send request",
+    "দয়া করে নাম এবং পদবী পূরণ করুন": "Please enter name and designation",
+    "রিকোয়েস্ট সফলভাবে পাঠানো হয়েছে!": "Request sent successfully!",
+    "অ্যাডমিন অপশন অন করা হয়েছে": "Admin option enabled",
+    "সার্চ": "Search",
+    "ফোনবুক": "Phonebook",
+    "Favorite Numbers": "Favorite Numbers",
+    "নাইট মোড অন করা হয়েছে": "Night mode enabled",
+    "ডে মোড অন করা হয়েছে": "Day mode enabled"
+};
+
+/*
+ * English -> Bengali search aliases.
+ * These are intentionally used only for SEARCH matching; Firebase
+ * records remain exactly as they are.
+ */
+const OFFLINE_SEARCH_ALIASES = {
+    "constable": ["কনস্টেবল", "কনস্টেবল"],
+    "female constable": ["মহিলা কনস্টেবল", "ফিমেল কনস্টেবল"],
+    "driver constable": ["ড্রাইভার কনস্টেবল"],
+    "inspector": ["ইন্সপেক্টর", "ইন্সপেক্টর"],
+    "assistant superintendent": ["সহকারী সুপারিনটেনডেন্ট", "সহকারী সুপারিনটেন্ডেন্ট"],
+    "superintendent": ["সুপারিনটেনডেন্ট", "সুপারিনটেন্ডেন্ট"],
+    "commandant": ["কমান্ড্যান্ট", "কমান্ডেন্ট"],
+    "additional commandant": ["অতিরিক্ত কমান্ড্যান্ট"],
+    "deputy commandant": ["ডেপুটি কমান্ড্যান্ট"],
+    "assistant commandant": ["সহকারী কমান্ড্যান্ট"],
+    "si": ["এসআই", "সাব-ইন্সপেক্টর", "উপ-পরিদর্শক"],
+    "sub inspector": ["সাব-ইন্সপেক্টর", "এসআই", "উপ-পরিদর্শক"],
+    "asi": ["এএসআই", "সহকারী উপ-পরিদর্শক"],
+    "sergeant": ["সার্জেন্ট"],
+    "driver": ["ড্রাইভার", "চালক"],
+    "office": ["অফিস", "কার্যালয়", "কার্যালয়"],
+    "current office": ["বর্তমান অফিস", "বর্তমান কার্যালয়", "বর্তমান কার্যালয়"],
+    "permanent address": ["স্থায়ী ঠিকানা", "স্থায়ী ঠিকানা"],
+    "address": ["ঠিকানা"],
+    "mobile": ["মোবাইল", "মোবাইল নম্বর", "মোবাইল নাম্বার"],
+    "phone": ["ফোন", "টেলিফোন"],
+    "telephone": ["টেলিফোন", "ফোন"],
+    "email": ["ইমেইল", "ই-মেইল"],
+    "name": ["নাম"],
+    "designation": ["পদবী", "পদবি"],
+    "police": ["পুলিশ"],
+    "phonebook": ["ফোনবুক", "ফোন বুক"],
+    "favorite": ["ফেভারিট"],
+    "header": ["হেডার"],
+    "category": ["ক্যাটাগরি", "বিভাগ"],
+    "sub category": ["সাব-ক্যাটাগরি", "সাব ক্যাটাগরি"],
+    "admin": ["অ্যাডমিন", "এডমিন"],
+    "verified": ["ভেরিফাইড", "অনুমোদিত"],
+    "verification": ["ভেরিফিকেশন", "যাচাই"],
+    "notice": ["নোটিশ", "বিজ্ঞপ্তি"],
+    "notification": ["নোটিফিকেশন", "বিজ্ঞপ্তি"]
+};
+
+/* Common Bengali names/words -> simple Latin aliases for offline search. */
+const BENGALI_LATIN_ALIASES = {
+    "জুয়েল": "jewel",
+    "জুয়েল": "jewel",
+    "রানা": "rana",
+    "রহমান": "rahman",
+    "হোসেন": "hossain",
+    "হোসাইন": "hossain",
+    "আহমেদ": "ahmed",
+    "আলী": "ali",
+    "আলম": "alam",
+    "ইসলাম": "islam",
+    "খান": "khan",
+    "মিয়া": "mia",
+    "মিয়া": "mia",
+    "চৌধুরী": "chowdhury",
+    "সাহা": "saha",
+    "দাস": "das",
+    "সরকার": "sarkar"
+};
+
+function getCurrentLanguage() {
+    return localStorage.getItem(APP_LANGUAGE_KEY) || "bn";
 }
 
-document.addEventListener("change", function (e) {
-  if (e.target && e.target.name === "appLanguage") {
-    const selectedLang = e.target.value; 
-    setLanguageCookie(selectedLang);
-    location.reload();
-  }
-});
-
-window.addEventListener("DOMContentLoaded", () => {
-  const matchCookie = document.cookie.match(/googtrans=\/bn\/([a-z]+)/);
-  if (matchCookie && matchCookie[1]) {
-    const currentLang = matchCookie[1];
-    const radio = document.getElementById(currentLang === "en" ? "langEn" : "langBn");
-    if (radio) radio.checked = true;
-  }
-});
-
-function setLanguage(lang) {
+function setLanguageCookie(lang) {
     const value = `/bn/${lang}`;
     document.cookie = `googtrans=${value};path=/;max-age=31536000`;
     document.cookie = `googtrans=${value};domain=${document.domain};path=/;max-age=31536000`;
-    localStorage.setItem('selected_app_language', lang);
 }
 
-document.addEventListener("change", function (e)  {
-    if (e.target && e.target.name === "appLanguage") {
-        const selectedLang = e.target.value;
-        setLanguage(selectedLang);
+function setLanguage(lang) {
+    lang = lang === "en" ? "en" : "bn";
+    localStorage.setItem(APP_LANGUAGE_KEY, lang);
+    setLanguageCookie(lang);
+
+    /*
+     * Never depend on Google Translate for the language switch itself.
+     * The local language state is immediately available offline.
+     */
+    applyOfflineLanguage();
+
+    /*
+     * Reloading is still useful online because the Google Translate
+     * script, if present in home.html, will apply to the whole page.
+     * Offline it is deliberately avoided.
+     */
+    if (navigator.onLine) {
         location.reload();
+    } else {
+        showToast(lang === "en"
+            ? "English mode enabled (offline)"
+            : "বাংলা মোড চালু হয়েছে (অফলাইন)");
     }
-});
+}
 
-window.addEventListener("DOMContentLoaded", () => {
-    const savedLang = localStorage.getItem('selected_app_language');
-    const matchCookie = document.cookie.match(/googtrans=\/bn\/([a-z]+)/);
-    
-    let currentLang = matchCookie ? matchCookie[1] : (savedLang || 'bn');
-    
-    if (savedLang && (!matchCookie || matchCookie[1] !== savedLang)) {
-        setLanguage(savedLang);
+function replaceKnownTranslations(text) {
+    let result = String(text || "");
+    const keys = Object.keys(OFFLINE_TRANSLATIONS)
+        .filter(k => k.length > 0)
+        .sort((a, b) => b.length - a.length);
+
+    for (const key of keys) {
+        const translated = OFFLINE_TRANSLATIONS[key];
+        if (translated && translated !== key) {
+            result = result.split(key).join(translated);
+        }
+    }
+    return result;
+}
+
+function applyOfflineLanguage(root = document.body) {
+    if (!root) return;
+
+    const lang = getCurrentLanguage();
+    if (lang !== "en") return;
+
+    /*
+     * Text nodes only. This avoids changing HTML structure and avoids
+     * breaking event handlers/classes/icons.
+     */
+    const walker = document.createTreeWalker(
+        root,
+        NodeFilter.SHOW_TEXT,
+        {
+            acceptNode(node) {
+                if (!node.nodeValue || !node.nodeValue.trim()) {
+                    return NodeFilter.FILTER_REJECT;
+                }
+
+                const parent = node.parentElement;
+                if (!parent) return NodeFilter.FILTER_REJECT;
+
+                const tag = parent.tagName;
+                if (["SCRIPT", "STYLE", "NOSCRIPT", "TEXTAREA"].includes(tag)) {
+                    return NodeFilter.FILTER_REJECT;
+                }
+
+                return NodeFilter.FILTER_ACCEPT;
+            }
+        }
+    );
+
+    const nodes = [];
+    let node;
+    while ((node = walker.nextNode())) nodes.push(node);
+
+    nodes.forEach(textNode => {
+        const oldText = textNode.nodeValue;
+        const newText = replaceKnownTranslations(oldText);
+        if (newText !== oldText) textNode.nodeValue = newText;
+    });
+
+    /*
+     * Translate only known UI attributes. User-entered values are not
+     * touched unless they exactly match one of the fixed UI strings.
+     */
+    root.querySelectorAll?.("[placeholder], [title], [aria-label]").forEach(el => {
+        ["placeholder", "title", "aria-label"].forEach(attr => {
+            if (!el.hasAttribute(attr)) return;
+            const oldValue = el.getAttribute(attr);
+            const newValue = replaceKnownTranslations(oldValue);
+            if (newValue !== oldValue) el.setAttribute(attr, newValue);
+        });
+    });
+}
+
+function getSearchVariants(query) {
+    const q = String(query || "").trim().toLowerCase();
+    if (!q) return [];
+
+    const variants = new Set([q]);
+
+    Object.entries(OFFLINE_SEARCH_ALIASES).forEach(([english, bengaliList]) => {
+        if (english === q || english.includes(q) || q.includes(english)) {
+            bengaliList.forEach(v => variants.add(String(v).toLowerCase()));
+        }
+        bengaliList.forEach(v => {
+            if (String(v).toLowerCase() === q) variants.add(english);
+        });
+    });
+
+    return [...variants];
+}
+
+function bengaliToSearchLatin(text) {
+    let result = String(text || "").toLowerCase();
+
+    Object.entries(BENGALI_LATIN_ALIASES)
+        .sort((a, b) => b[0].length - a[0].length)
+        .forEach(([bn, en]) => {
+            result = result.split(bn).join(en);
+        });
+
+    return result;
+}
+
+/* Universal matching: Bengali, English aliases and cached local data. */
+function isMatch(sourceText, query) {
+    if (sourceText === null || sourceText === undefined ||
+        query === null || query === undefined) {
+        return false;
     }
 
-    const radio = document.getElementById(currentLang === "en" ? "langEn" : "langBn");
-    if (radio) {
-        radio.checked = true;
+    const source = String(sourceText).trim();
+    const q = String(query).trim().toLowerCase();
+
+    if (!source || !q) return false;
+
+    const sourceLower = source.toLowerCase();
+    const sourceLatin = bengaliToSearchLatin(sourceLower);
+    const variants = getSearchVariants(q);
+
+    return variants.some(v =>
+        sourceLower.includes(v) ||
+        sourceLatin.includes(v)
+    );
+}
+
+/*
+ * Returns all searchable fields of a data item, including category/header
+ * names. This is important when the user searches in English while the
+ * Firebase record itself is stored in Bengali.
+ */
+function getDataSearchText(item) {
+    if (!item) return "";
+
+    const category = (database.categories || []).find(c => c.id === item.categoryId);
+    const header = (database.headers || []).find(h => h.id === item.headerId);
+
+    return [
+        item.name,
+        item.mobile,
+        item.phone,
+        item.designation,
+        item.email,
+        item.currentOffice,
+        item.permanentAddress,
+        item.adminInfo,
+        item.enName,
+        item.enDesignation,
+        item.enCurrentOffice,
+        item.enPermanentAddress,
+        category?.name,
+        header?.title
+    ].filter(Boolean).join(" ");
+}
+
+function isDataMatch(item, query) {
+    if (!query) return true;
+    return isMatch(getDataSearchText(item), query);
+}
+
+function initOfflineLanguageSystem() {
+    const savedLang = getCurrentLanguage();
+
+    /* Keep the radio state correct even when there is no internet. */
+    const radio = document.getElementById(savedLang === "en" ? "langEn" : "langBn");
+    if (radio) radio.checked = true;
+
+    document.querySelectorAll('input[name="appLanguage"]').forEach(input => {
+        input.addEventListener("change", () => {
+            setLanguage(input.value);
+        });
+    });
+
+    /*
+     * A small observer handles UI text generated later by render functions.
+     * It is local-only and does not contact any translation service.
+     */
+    if (savedLang === "en" && document.body) {
+        applyOfflineLanguage();
+
+        if (!window.__offlineLanguageObserver) {
+            window.__offlineLanguageObserver = new MutationObserver(() => {
+                if (getCurrentLanguage() === "en") {
+                    applyOfflineLanguage();
+                }
+            });
+
+            window.__offlineLanguageObserver.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+        }
     }
-});
+}
+
