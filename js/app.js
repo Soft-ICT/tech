@@ -46,7 +46,7 @@ let editingItem = null;
 let movingDataId = null;
 let isAllSearchActive = false;
 let isSearchMode = false;
-let isFavoriteActive = false; // ফেভারিট ভিউ ট্র্যাক করার জন্য
+let isFavoriteActive = false;
 
 window.currentUserRole = "guest";
 let isDeviceVerified = false;
@@ -710,6 +710,14 @@ function closeAllSearchUI() {
     renderCategories(document.getElementById("searchInput")?.value.trim().toLowerCase());
 }
 
+// সার্বজনীন ফ্লেক্সিবল ম্যাচিং ফাংশন (ইংরেজি ও বাংলা উভয়ের জন্য)
+function isMatch(sourceText, query) {
+    if (!sourceText || !query) return false;
+    const text = String(sourceText).toLowerCase();
+    const q = String(query).toLowerCase();
+    return text.includes(q);
+}
+
 function renderAllSearch() {
     const container = document.getElementById("allSearchContainer");
     if (!container) return;
@@ -722,16 +730,13 @@ function renderAllSearch() {
 
     if (searchVal && searchVal !== "admin@jr") {
         allData = allData.filter(d =>
-            (d.name && d.name.toLowerCase().includes(searchVal)) ||
-            (d.mobile && d.mobile.toLowerCase().includes(searchVal)) ||
-            (d.phone && d.phone.toLowerCase().includes(searchVal)) ||
-            (d.designation && d.designation.toLowerCase().includes(searchVal)) ||
-            (d.email && d.email.toLowerCase().includes(searchVal)) ||
-            (d.currentOffice && d.currentOffice.toLowerCase().includes(searchVal)) ||
-            (d.permanentAddress && d.permanentAddress.toLowerCase().includes(searchVal)) ||
-            // গুগল ট্রান্সলেটের কারণে অনুবাদকৃত টেক্সটের সাথে ফ্লেক্সিবল ম্যাচিং
-            (d.name && translateMatch(d.name, searchVal)) ||
-            (d.designation && translateMatch(d.designation, searchVal))
+            isMatch(d.name, searchVal) ||
+            isMatch(d.mobile, searchVal) ||
+            isMatch(d.phone, searchVal) ||
+            isMatch(d.designation, searchVal) ||
+            isMatch(d.email, searchVal) ||
+            isMatch(d.currentOffice, searchVal) ||
+            isMatch(d.permanentAddress, searchVal)
         );
     }
 
@@ -749,13 +754,6 @@ function renderAllSearch() {
     updateAdminUI();
 }
 
-// ট্রান্সলেশন বা ফনেটিক্স ম্যাচিংয়ের জন্য সাপোর্টিং ফাংশন
-function translateMatch(sourceText, query) {
-    if (!sourceText || !query) return false;
-    const text = sourceText.toLowerCase();
-    return text.includes(query);
-}
-
 function renderCategories(searchVal = "") {
     const list = document.getElementById("categoryList");
     const emptyState = document.getElementById("emptyState");
@@ -765,9 +763,7 @@ function renderCategories(searchVal = "") {
     let categoriesToShow = database.categories.filter(cat => !cat.parentId);
 
     if (searchVal && searchVal !== "admin@jr") {
-        categoriesToShow = categoriesToShow.filter(cat =>
-            String(cat.name).toLowerCase().includes(searchVal) || translateMatch(cat.name, searchVal)
-        );
+        categoriesToShow = categoriesToShow.filter(cat => isMatch(cat.name, searchVal));
     }
 
     categoriesToShow = sortItemsByPin(categoriesToShow);
@@ -1043,11 +1039,11 @@ function renderFavoriteView(pushHistory = true) {
 
     if (searchVal && searchVal !== "admin@jr") {
         favData = favData.filter(d =>
-            (d.name && d.name.toLowerCase().includes(searchVal)) ||
-            (d.mobile && d.mobile.toLowerCase().includes(searchVal)) ||
-            (d.phone && d.phone.toLowerCase().includes(searchVal)) ||
-            (d.designation && d.designation.toLowerCase().includes(searchVal)) ||
-            (d.email && d.email.toLowerCase().includes(searchVal))
+            isMatch(d.name, searchVal) ||
+            isMatch(d.mobile, searchVal) ||
+            isMatch(d.phone, searchVal) ||
+            isMatch(d.designation, searchVal) ||
+            isMatch(d.email, searchVal)
         );
     }
 
@@ -1400,7 +1396,7 @@ function renderCategoryDetails(searchVal = "") {
 
     let subCategories = database.categories.filter(cat => cat.parentId === currentCategoryId);
     if (filterText) {
-        subCategories = subCategories.filter(sub => sub.name.toLowerCase().includes(filterText) || translateMatch(sub.name, filterText));
+        subCategories = subCategories.filter(sub => isMatch(sub.name, filterText));
     }
     subCategories = sortItemsByPin(subCategories);
 
@@ -1466,12 +1462,10 @@ function renderCategoryDetails(searchVal = "") {
     let noHeaderData = categoryData.filter(d => !d.headerId);
     if (filterText) {
         noHeaderData = noHeaderData.filter(d =>
-            (d.name && d.name.toLowerCase().includes(filterText)) ||
-            (d.mobile && d.mobile.toLowerCase().includes(filterText)) ||
-            (d.phone && d.phone.toLowerCase().includes(filterText)) ||
-            (d.designation && d.designation.toLowerCase().includes(filterText)) ||
-            (d.name && translateMatch(d.name, filterText)) ||
-            (d.designation && translateMatch(d.designation, filterText))
+            isMatch(d.name, filterText) ||
+            isMatch(d.mobile, filterText) ||
+            isMatch(d.phone, filterText) ||
+            isMatch(d.designation, filterText)
         );
     }
 
@@ -1489,17 +1483,15 @@ function renderCategoryDetails(searchVal = "") {
 
     headers.forEach(header => {
         const headerAllData = categoryData.filter(d => d.headerId === header.id);
-        const isHeaderMatched = filterText && (header.title.toLowerCase().includes(filterText) || translateMatch(header.title, filterText));
+        const isHeaderMatched = filterText && isMatch(header.title, filterText);
 
         let matchedData = headerAllData;
         if (filterText && !isHeaderMatched) {
             matchedData = headerAllData.filter(d =>
-                (d.name && d.name.toLowerCase().includes(filterText)) ||
-                (d.mobile && d.mobile.toLowerCase().includes(filterText)) ||
-                (d.phone && d.phone.toLowerCase().includes(filterText)) ||
-                (d.designation && d.designation.toLowerCase().includes(filterText)) ||
-                (d.name && translateMatch(d.name, filterText)) ||
-                (d.designation && translateMatch(d.designation, filterText))
+                isMatch(d.name, filterText) ||
+                isMatch(d.mobile, filterText) ||
+                isMatch(d.phone, filterText) ||
+                isMatch(d.designation, filterText)
             );
         }
 
