@@ -26,6 +26,24 @@
     <link rel="stylesheet" href="css/style.css?v=6">
 
     <style>
+        /* Google Translate Banner & Top Shift Fix */
+        .goog-te-banner-frame.skiptranslate {
+            display: none !important;
+        }
+        body {
+            top: 0px !important;
+        }
+        .goog-tooltip {
+            display: none !important;
+        }
+        .goog-tooltip:hover {
+            display: none !important;
+        }
+        .goog-text-highlight {
+            background-color: transparent !important;
+            box-shadow: none !important;
+        }
+
         body.app-locked {
             overflow: hidden !important;
         }
@@ -345,11 +363,24 @@
     new google.translate.TranslateElement({
       pageLanguage: 'bn',
       includedLanguages: 'en,bn',
-      autoDisplay: false
+      autoDisplay: false,
+      layout: google.translate.TranslateElement.InlineLayout.SIMPLE
     }, 'google_translate_element');
   }
 </script>
 <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+<script type="text/javascript">
+  // লোকালস্টোরেজ থেকে ভাষা রিড করে কুকি জোরপূর্বক সেট করা যাতে ট্রান্সলেশন স্থায়ী থাকে
+  (function() {
+    const savedLang = localStorage.getItem('app_language');
+    if (savedLang) {
+      const value = `/bn/${savedLang}`;
+      document.cookie = `googtrans=${value};path=/;max-age=31536000`;
+      document.cookie = `googtrans=${value};domain=${document.domain};path=/;max-age=31536000`;
+    }
+  })();
+</script>
 
 <div id="splash-screen">
     <div class="siren-glow-red"></div>
