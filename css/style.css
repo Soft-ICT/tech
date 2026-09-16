@@ -914,7 +914,6 @@ body.has-bg-image .details-container-card {
    TOPBAR, SEARCH & NOTICE TRANSPARENCY 
 ========================================== */
 
-/* যখন ব্যাকগ্রাউন্ডে ইমেজ থাকবে, তখন এগুলো হালকা ট্রান্সপারেন্ট ও গ্লাস ইফেক্ট হবে */
 body.has-bg-image .topbar,
 body.has-bg-image .sub-toolbar,
 body.has-bg-image .search-box,
@@ -927,44 +926,39 @@ body.has-bg-image .header-banner {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
-
-/* ডার্ক মোড বা টেক্সট ভিজিবিলিটির জন্য ব্যাকগ্রাউন্ড কালার প্রয়োজন অনুযায়ী অ্যাডজাস্ট করতে পারেন */
-
-/* গুগল ট্রান্সলেটের ওপরের ডিফল্ট ব্যানার এবং বডি পুশ হওয়া পুরোপুরি বন্ধ করতে */
-.goog-te-banner-frame.skiptranslate {
+/* ==========================================
+   GOOGLE TRANSLATE BANNER & FRAME REMOVER FIX
+========================================== */
+.goog-te-banner-frame, 
+.goog-te-banner-frame.skiptranslate, 
+iframe.goog-te-banner-frame,
+.goog-te-gadget {
     display: none !important;
     visibility: hidden !important;
     height: 0 !important;
     width: 0 !important;
     position: absolute !important;
     top: -999px !important;
+    pointer-events: none !important;
 }
+
 body {
     top: 0px !important;
     position: static !important;
 }
-.goog-te-gadget {
-    display: none !important;
-}
-/* Google Translate Banner & Top Shift Fix */
-.goog-te-banner-frame.skiptranslate {
-    display: none !important;
-}
-body {
-    top: 0px !important;
-}
+
 .goog-tooltip {
     display: none !important;
 }
+
 .goog-tooltip:hover {
     display: none !important;
 }
+
 .goog-text-highlight {
     background-color: transparent !important;
     box-shadow: none !important;
 }
-
-
 
 .toast {
     position: fixed;
