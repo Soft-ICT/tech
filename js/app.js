@@ -1464,10 +1464,7 @@ function renderCategoryDetails(searchVal = "") {
             isMatch(d.name, filterText) ||
             isMatch(d.mobile, filterText) ||
             isMatch(d.phone, filterText) ||
-            isMatch(d.designation, filterText) ||
-            isMatch(d.email, filterText) ||
-            isMatch(d.currentOffice, filterText) ||
-            isMatch(d.permanentAddress, filterText)
+            isMatch(d.designation, filterText)
         );
     }
 
@@ -1493,10 +1490,7 @@ function renderCategoryDetails(searchVal = "") {
                 isMatch(d.name, filterText) ||
                 isMatch(d.mobile, filterText) ||
                 isMatch(d.phone, filterText) ||
-                isMatch(d.designation, filterText) ||
-                isMatch(d.email, filterText) ||
-                isMatch(d.currentOffice, filterText) ||
-                isMatch(d.permanentAddress, filterText)
+                isMatch(d.designation, filterText)
             );
         }
 
@@ -1866,7 +1860,7 @@ function setLanguage(lang) {
     localStorage.setItem('selected_app_language', lang);
 }
 
-document.addEventListener("change", function (e) {
+document.addEventListener("change", function (e)  {
     if (e.target && e.target.name === "appLanguage") {
         const selectedLang = e.target.value;
         setLanguage(selectedLang);
