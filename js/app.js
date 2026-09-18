@@ -711,8 +711,6 @@ function closeAllSearchUI() {
     renderCategories(document.getElementById("searchInput")?.value.trim().toLowerCase());
 }
 
-// সার্বজনীন ফ্লেক্সিবল ম্যাচিং ফাংশনটি নিচের BILINGUAL/OFFLINE SEARCH অংশে সংজ্ঞায়িত করা হয়েছে।
-
 function renderAllSearch() {
     const container = document.getElementById("allSearchContainer");
     if (!container) return;
@@ -1801,25 +1799,9 @@ function showToast(msg) {
     toast.classList.add("show");
     setTimeout(() => toast.classList.remove("show"), 2500);
 }
-/* ============================================================
-   BILINGUAL / OFFLINE LANGUAGE + SEARCH SUPPORT - FIXED
-   ------------------------------------------------------------
-   • English/Bangla language selection is stored in localStorage.
-   • English mode works after reopening the app while OFFLINE.
-   • No Google Translate/network request is required.
-   • Firebase data is never modified by the language system.
-   • Search works in Bangla and English against the same offline cache.
-   • English searches can match Bengali names, designations, offices,
-     categories and headers through aliases + offline transliteration.
-   ============================================================ */
 
 const APP_LANGUAGE_KEY = "selected_app_language";
 
-/*
- * Offline UI translations.
- * Keep the Bengali source text as the key.  Firebase records are NOT
- * translated here; this table is only for visible application labels.
- */
 const OFFLINE_TRANSLATIONS = {
     "Police Phonebook": "Police Phonebook",
     "নাম পাওয়া যায়নি": "Name not found",
@@ -1956,10 +1938,6 @@ const OFFLINE_TRANSLATIONS = {
     "নাম": "Name"
 };
 
-/*
- * English -> Bengali search aliases.
- * These are search-only and never alter Firebase records.
- */
 const OFFLINE_SEARCH_ALIASES = {
     "constable": ["কনস্টেবল", "কন্সটেবল"],
     "female constable": ["মহিলা কনস্টেবল", "ফিমেল কনস্টেবল", "নারী কনস্টেবল"],
@@ -1999,11 +1977,6 @@ const OFFLINE_SEARCH_ALIASES = {
     "notification": ["নোটিফিকেশন", "বিজ্ঞপ্তি"]
 };
 
-/*
- * Common Bengali -> Latin aliases.
- * This is only an additional search index.  It is deliberately
- * separate from the stored data so offline search remains reversible.
- */
 const BENGALI_LATIN_ALIASES = {
     "জুয়েল": "jewel",
     "জুয়েল": "jewel",
@@ -2036,11 +2009,6 @@ const BENGALI_LATIN_ALIASES = {
     "মোছা": "mosammat"
 };
 
-/*
- * A lightweight offline Bengali transliterator.
- * It is not used for displaying text; it only creates extra search
- * variants so English/Latin queries can find Bengali records offline.
- */
 const BN_TRANSLIT_CONSONANTS = {
     "ক":"k","খ":"kh","গ":"g","ঘ":"gh","ঙ":"ng",
     "চ":"ch","ছ":"chh","জ":"j","ঝ":"jh","ঞ":"n",
@@ -2093,11 +2061,6 @@ function bengaliToSearchLatin(text) {
         }
 
         if (ch === "্") {
-            /*
-             * Virama: remove the implicit vowel from the previous
-             * consonant by simply continuing.  The consonant was
-             * already written without forcing an extra vowel.
-             */
             continue;
         }
 
@@ -2110,10 +2073,6 @@ function bengaliToSearchLatin(text) {
             const consonant = BN_TRANSLIT_CONSONANTS[ch];
             const next = chars[i + 1];
 
-            /*
-             * Do not append the inherent "a" when a vowel sign or
-             * virama follows.  Otherwise use a light inherent-a model.
-             */
             result += consonant;
             if (next !== "্" && !BN_TRANSLIT_VOWELS[next]) {
                 result += "a";
@@ -2135,10 +2094,6 @@ function getCurrentLanguage() {
     return localStorage.getItem(APP_LANGUAGE_KEY) === "en" ? "en" : "bn";
 }
 
-/*
- * Kept only for compatibility with any older code that may have
- * expected the Google-Translate cookie.  No Google service is used.
- */
 function setLanguageCookie(lang) {
     try {
         const value = `/bn/${lang === "en" ? "en" : "bn"}`;
@@ -2148,12 +2103,6 @@ function setLanguageCookie(lang) {
 
 function setLanguage(lang) {
     const selected = lang === "en" ? "en" : "bn";
-
-    /*
-     * Save the language FIRST.  This is the important offline fix:
-     * the setting exists before reload, so the next offline startup
-     * does not fall back to Bengali.
-     */
     localStorage.setItem(APP_LANGUAGE_KEY, selected);
     setLanguageCookie(selected);
 
@@ -2204,10 +2153,6 @@ function applyOfflineLanguage(root = document.body) {
                     return NodeFilter.FILTER_REJECT;
                 }
 
-                /*
-                 * Never touch the search input's value or Firebase
-                 * data stored in form controls.
-                 */
                 if (
                     parent.closest?.(
                         "input, textarea, select, option, script, style"
@@ -2253,12 +2198,6 @@ function applyOfflineLanguage(root = document.body) {
     });
 }
 
-/*
- * Search aliases are expanded in BOTH directions.
- * Example:
- *   "constable" -> "কনস্টেবল"
- *   "কনস্টেবল" -> "constable"
- */
 function getSearchVariants(query) {
     const q = normalizeSearchText(query);
     if (!q) return [];
@@ -2316,11 +2255,6 @@ function getSearchVariants(query) {
             );
         });
 
-    /*
-     * If the query is Bengali, add its Latin form.
-     * If the query is Latin, keep it unchanged and compare it against
-     * the Latin index generated from Bengali records.
-     */
     const qLatin = bengaliToSearchLatin(q);
 
     if (qLatin && qLatin !== q) {
@@ -2359,9 +2293,6 @@ function isMatch(sourceText, query) {
     const sourceIndex = buildSearchIndex(source);
     const variants = getSearchVariants(q);
 
-    /*
-     * Direct phrase match.
-     */
     if (
         variants.some(
             v => v && sourceIndex.includes(normalizeSearchText(v))
@@ -2370,11 +2301,6 @@ function isMatch(sourceText, query) {
         return true;
     }
 
-    /*
-     * Multi-word search.
-     * Every meaningful query word must occur in either the original
-     * Bengali text or its offline Latin search index.
-     */
     const words = q
         .split(/\s+/)
         .filter(word => word.length > 1);
@@ -2401,10 +2327,6 @@ function getDataSearchText(item) {
     const header = (database.headers || [])
         .find(h => h.id === item.headerId);
 
-    /*
-     * Include every existing field, including optional English fields
-     * if they are already present in the user's Firebase data.
-     */
     return [
         item.name,
         item.mobile,
@@ -2438,11 +2360,6 @@ function isDataMatch(item, query) {
     return isMatch(getDataSearchText(item), query);
 }
 
-/*
- * Apply the selected language after every view refresh as well.
- * MutationObserver handles newly-created DOM, while this handles the
- * exact moment a view has finished rendering.
- */
 function scheduleOfflineLanguageApply() {
     if (getCurrentLanguage() !== "en") return;
 
@@ -2477,10 +2394,6 @@ function initOfflineLanguageSystem() {
 
     syncLanguageRadios();
 
-    /*
-     * Delegated listener means the settings UI can be created later
-     * without losing the language-change event.
-     */
     if (!window.__offlineLanguageChangeBound) {
         window.__offlineLanguageChangeBound = true;
 
@@ -2526,7 +2439,3 @@ function initOfflineLanguageSystem() {
         scheduleOfflineLanguageApply();
     }
 }
-
-/* ============================================================
-   END OF BILINGUAL / OFFLINE LANGUAGE + SEARCH SUPPORT
-   ============================================================ */
