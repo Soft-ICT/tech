@@ -46,6 +46,7 @@ let editingItem = null;
 let movingDataId = null;
 let isAllSearchActive = false;
 let isSearchMode = false;
+let isFavoriteActive = false;
 
 window.currentUserRole = "guest";
 let isDeviceVerified = false;
@@ -66,7 +67,7 @@ function checkDeviceVerificationStatus() {
     onValue(approvedRef, (snapshot) => {
         if (snapshot.exists() && snapshot.val().status === "approved") {
             isDeviceVerified = true;
-            if (!currentCategoryId && !currentDataId && !isAllSearchActive) {
+            if (!currentCategoryId && !currentDataId && !isAllSearchActive && !isFavoriteActive) {
                 document.getElementById("verifiedBadge")?.classList.remove("hidden");
             }
         } else {
@@ -115,7 +116,7 @@ watchAuth((user, role) => {
 });
 
 function isAllSupportOrSearchActive() {
-    return isAllSearchActive || currentCategoryId !== null || currentDataId !== null;
+    return isAllSearchActive || currentCategoryId !== null || currentDataId !== null || isFavoriteActive;
 }
 
 function updateAdminUI() {
@@ -135,7 +136,7 @@ function updateAdminUI() {
     const adminContainer = document.getElementById("adminActionContainer");
     if (adminContainer) {
         if (isAdmin && !isAllSupportOrSearchActive()) {
-            adminContainer.classList.remove("hidden");
+            adminContainer.classList.remove("flex");
             adminContainer.style.display = "flex";
         } else {
             adminContainer.classList.add("hidden");
@@ -145,7 +146,7 @@ function updateAdminUI() {
 
     document.querySelectorAll(".admin-only").forEach(el => {
         if (isAdmin) {
-            if (el.id === "addCategoryBtn" && isAllSearchActive) {
+            if (el.id === "addCategoryBtn" && (isAllSearchActive || isFavoriteActive)) {
                 el.classList.add("hidden");
             } else {
                 el.classList.remove("hidden");
@@ -172,6 +173,7 @@ function updateAdminUI() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+    initOfflineLanguageSystem();
     setupEvents();
     initTheme();
     updateAdminUI();
@@ -225,7 +227,7 @@ function closeHeaderSearch() {
         if (searchBtn) searchBtn.classList.remove("hidden");
         if (input) input.value = "";
         
-        if (!currentCategoryId && !currentDataId && !isAllSearchActive) {
+        if (!currentCategoryId && !currentDataId && !isAllSearchActive && !isFavoriteActive) {
             setNavState(false);
         }
         handleSearch();
@@ -237,16 +239,24 @@ function handlePopState(event) {
     const state = event.state;
 
     if (!state || state.page === "home") {
+        isFavoriteActive = false;
         closeAllSearchUI();
         showMainDashboardView(false);
     } else if (state.page === "allSearch") {
+        isFavoriteActive = false;
         if (!isAllSearchActive) {
             activateAllSearchUI();
         }
+    } else if (state.page === "favorite") {
+        isFavoriteActive = true;
+        closeAllSearchUI();
+        renderFavoriteView(false);
     } else if (state.page === "category") {
+        isFavoriteActive = false;
         closeAllSearchUI();
         showCategoryView(state.categoryId, false);
     } else if (state.page === "data") {
+        isFavoriteActive = false;
         closeAllSearchUI();
         showDataPage(state.dataId, false);
     }
@@ -408,18 +418,22 @@ function sortContactData(items) {
 function setupEvents() {
     document.getElementById("themeBtn")?.addEventListener("click", toggleTheme);
 
-    document.getElementById("navToggleBtn")?.addEventListener("click", () => {
+    document.getElementById("navToggleBtn")?.addEventListener("click", (e) => {
         const searchBox = document.getElementById("searchBox");
         const isSearchOpen = searchBox && !searchBox.classList.contains("hidden");
 
         if (isSearchOpen) {
+            e.stopImmediatePropagation();
+            e.preventDefault();
             closeHeaderSearch();
-        } else if (currentCategoryId || currentDataId || isAllSearchActive) {
-            history.back();
-        } else {
-            showToast("মেনু! সেবাটি দ্রুত কার্যকর করা হবে");
+            return;
         }
-    });
+
+        if (currentCategoryId || currentDataId || isAllSearchActive || isFavoriteActive) {
+            history.back();
+            return;
+        }
+    }, true);
 
     document.getElementById("searchBtn")?.addEventListener("click", () => {
         openHeaderSearch();
@@ -651,6 +665,8 @@ function handleSearch() {
 
     if (isAllSearchActive) {
         renderAllSearch();
+    } else if (isFavoriteActive) {
+        renderFavoriteView(false);
     } else if (currentCategoryId) {
         renderCategoryDetails(searchVal);
     } else {
@@ -660,6 +676,7 @@ function handleSearch() {
 
 function activateAllSearchUI() {
     isAllSearchActive = true;
+    isFavoriteActive = false;
     const container = document.getElementById("allSearchContainer");
     const list = document.getElementById("categoryList");
     const emptyState = document.getElementById("emptyState");
@@ -694,6 +711,8 @@ function closeAllSearchUI() {
     renderCategories(document.getElementById("searchInput")?.value.trim().toLowerCase());
 }
 
+// সার্বজনীন ফ্লেক্সিবল ম্যাচিং ফাংশনটি নিচের BILINGUAL/OFFLINE SEARCH অংশে সংজ্ঞায়িত করা হয়েছে।
+
 function renderAllSearch() {
     const container = document.getElementById("allSearchContainer");
     if (!container) return;
@@ -705,15 +724,7 @@ function renderAllSearch() {
     let allData = database.data || [];
 
     if (searchVal && searchVal !== "admin@jr") {
-        allData = allData.filter(d =>
-            (d.name && d.name.toLowerCase().includes(searchVal)) ||
-            (d.mobile && d.mobile.toLowerCase().includes(searchVal)) ||
-            (d.phone && d.phone.toLowerCase().includes(searchVal)) ||
-            (d.designation && d.designation.toLowerCase().includes(searchVal)) ||
-            (d.email && d.email.toLowerCase().includes(searchVal)) ||
-            (d.currentOffice && d.currentOffice.toLowerCase().includes(searchVal)) ||
-            (d.permanentAddress && d.permanentAddress.toLowerCase().includes(searchVal))
-        );
+        allData = allData.filter(d => isDataMatch(d, searchVal));
     }
 
     allData = sortContactData(allData);
@@ -739,9 +750,7 @@ function renderCategories(searchVal = "") {
     let categoriesToShow = database.categories.filter(cat => !cat.parentId);
 
     if (searchVal && searchVal !== "admin@jr") {
-        categoriesToShow = categoriesToShow.filter(cat =>
-            String(cat.name).toLowerCase().includes(searchVal)
-        );
+        categoriesToShow = categoriesToShow.filter(cat => isMatch(cat.name, searchVal));
     }
 
     categoriesToShow = sortItemsByPin(categoriesToShow);
@@ -950,6 +959,97 @@ async function deleteHeader(id) {
     showToast("Header ডিলিট করা হয়েছে");
 }
 
+function getFavoriteIds() {
+    try {
+        const favs = localStorage.getItem("police_pb_favorites");
+        return favs ? JSON.parse(favs) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function toggleFavorite(dataId, event) {
+    if (event) event.stopPropagation();
+    let favs = getFavoriteIds();
+    const index = favs.indexOf(dataId);
+    
+    if (index > -1) {
+        favs.splice(index, 1);
+        showToast("ফেভারিট থেকে সরানো হয়েছে");
+    } else {
+        favs.push(dataId);
+        showToast("ফেভারিটে যোগ করা হয়েছে");
+    }
+    
+    localStorage.setItem("police_pb_favorites", JSON.stringify(favs));
+    if (typeof refreshCurrentView === 'function') refreshCurrentView();
+}
+
+function isFavorite(dataId) {
+    return getFavoriteIds().includes(dataId);
+}
+
+function renderFavoriteView(pushHistory = true) {
+    if (pushHistory) history.pushState({ page: "favorite" }, "");
+    isFavoriteActive = true;
+    currentCategoryId = null;
+    currentDataId = null;
+    isAllSearchActive = false;
+
+    const appTitle = document.getElementById("appTitle");
+    if (appTitle) {
+        const titleText = appTitle.querySelector(".app-title-text") || appTitle;
+        titleText.textContent = "Favorite Numbers";
+    }
+
+    document.getElementById("verifiedBadge")?.classList.add("hidden");
+    setNavState(true);
+
+    const subToolbar = document.querySelector(".sub-toolbar") || document.getElementById("subToolbar") || document.getElementById("allSearchBtn");
+    if (subToolbar) subToolbar.classList.add("hidden");
+
+    document.getElementById("mainDashboardView")?.classList.remove("hidden");
+    document.getElementById("categoryDetailsView")?.classList.add("hidden");
+    document.getElementById("dataDetailsView")?.classList.add("hidden");
+    document.getElementById("allSearchContainer")?.classList.add("hidden");
+
+    const list = document.getElementById("categoryList");
+    const emptyState = document.getElementById("emptyState");
+    
+    if (list) list.innerHTML = "";
+    
+    const favIds = getFavoriteIds();
+    const rawVal = document.getElementById("searchInput")?.value.trim();
+    const searchVal = rawVal ? rawVal.toLowerCase() : "";
+
+    let favData = (database.data || []).filter(d => favIds.includes(d.id));
+
+    if (searchVal && searchVal !== "admin@jr") {
+        favData = favData.filter(d => isDataMatch(d, searchVal));
+    }
+
+    if (favData.length === 0) {
+        if (emptyState) {
+            emptyState.classList.remove("hidden");
+            emptyState.querySelector("h2").textContent = "কোনো ফেভারিট নাম্বার নেই";
+            emptyState.querySelector("p").textContent = "হার্ট আইকনে ক্লিক করে ফেভারিটে যুক্ত করুন।";
+        }
+        if (list) list.classList.add("hidden");
+        return;
+    }
+
+    if (emptyState) emptyState.classList.add("hidden");
+    if (list) {
+        list.classList.remove("hidden");
+        favData.forEach(item => {
+            list.appendChild(createDataCardElement(item));
+        });
+    }
+    updateAdminUI();
+}
+
+window.renderFavoriteView = renderFavoriteView;
+
 function createDataCardElement(item) {
     const isAdmin = window.currentUserRole === "admin";
     const dataEl = document.createElement("div");
@@ -966,16 +1066,24 @@ function createDataCardElement(item) {
         : `<div class="data-card-avatar">👤</div>`;
 
     const pinIcon = item.pinned ? "📌" : "📍";
+    const favIcon = isFavorite(item.id) ? "❤️" : "🤍";
+
+    const favButtonHtml = !isAdmin ? `<button class="btn-fav-item custom-action-btn" title="ফেভারিট">${favIcon}</button>` : "";
+
     const adminActions = isAdmin
         ? `
-            <div class="card-admin-actions" style="display:flex;gap:4px;">
+            <div class="card-admin-actions" style="display:flex;gap:4px; align-items:center;">
                 <button class="btn-pin-data custom-action-btn" title="পিন">${pinIcon}</button>
                 <button class="btn-move-data custom-action-btn" title="মুভ">📦</button>
                 <button class="btn-edit-data custom-action-btn" title="এডিট">✏️</button>
                 <button class="btn-del-data custom-action-btn" style="color:#ef4444" title="ডিলিট">🗑️</button>
             </div>
         `
-        : "";
+        : `
+            <div class="card-admin-actions" style="display:flex;gap:4px; align-items:center;">
+                ${favButtonHtml}
+            </div>
+        `;
 
     const dataPinMark = (isAdmin && item.pinned) ? "📌" : "";
 
@@ -992,10 +1100,15 @@ function createDataCardElement(item) {
 
     dataEl.addEventListener("click", () => openDataPage(item.id));
 
-    if (isAdmin) {
-        const actionGroup = dataEl.querySelector(".card-admin-actions");
-        if (actionGroup) actionGroup.addEventListener("click", e => e.stopPropagation());
+    const actionGroup = dataEl.querySelector(".card-admin-actions");
+    if (actionGroup) actionGroup.addEventListener("click", e => e.stopPropagation());
 
+    dataEl.querySelector(".btn-fav-item")?.addEventListener("click", e => {
+        e.stopPropagation();
+        toggleFavorite(item.id, e);
+    });
+
+    if (isAdmin) {
         dataEl.querySelector(".btn-pin-data")?.addEventListener("click", e => {
             e.stopPropagation();
             togglePinData(item.id);
@@ -1183,6 +1296,7 @@ function showCategoryView(id) {
 
     currentCategoryId = id;
     currentDataId = null;
+    isFavoriteActive = false;
 
     const appTitle = document.getElementById("appTitle");
     if (appTitle) {
@@ -1210,6 +1324,7 @@ function showCategoryView(id) {
 function showMainDashboardView() {
     currentCategoryId = null;
     currentDataId = null;
+    isFavoriteActive = false;
 
     const appTitle = document.getElementById("appTitle");
     if (appTitle) {
@@ -1245,6 +1360,8 @@ function refreshCurrentView() {
         showCategoryView(currentCategoryId);
     } else if (isAllSearchActive) {
         renderAllSearch();
+    } else if (isFavoriteActive) {
+        renderFavoriteView(false);
     } else {
         showMainDashboardView(false);
     }
@@ -1260,7 +1377,7 @@ function renderCategoryDetails(searchVal = "") {
 
     let subCategories = database.categories.filter(cat => cat.parentId === currentCategoryId);
     if (filterText) {
-        subCategories = subCategories.filter(sub => sub.name.toLowerCase().includes(filterText));
+        subCategories = subCategories.filter(sub => isMatch(sub.name, filterText));
     }
     subCategories = sortItemsByPin(subCategories);
 
@@ -1325,12 +1442,7 @@ function renderCategoryDetails(searchVal = "") {
 
     let noHeaderData = categoryData.filter(d => !d.headerId);
     if (filterText) {
-        noHeaderData = noHeaderData.filter(d =>
-            (d.name && d.name.toLowerCase().includes(filterText)) ||
-            (d.mobile && d.mobile.toLowerCase().includes(filterText)) ||
-            (d.phone && d.phone.toLowerCase().includes(filterText)) ||
-            (d.designation && d.designation.toLowerCase().includes(filterText))
-        );
+        noHeaderData = noHeaderData.filter(d => isDataMatch(d, filterText));
     }
 
     if (noHeaderData.length > 0) {
@@ -1347,16 +1459,11 @@ function renderCategoryDetails(searchVal = "") {
 
     headers.forEach(header => {
         const headerAllData = categoryData.filter(d => d.headerId === header.id);
-        const isHeaderMatched = filterText && header.title.toLowerCase().includes(filterText);
+        const isHeaderMatched = filterText && isMatch(header.title, filterText);
 
         let matchedData = headerAllData;
         if (filterText && !isHeaderMatched) {
-            matchedData = headerAllData.filter(d =>
-                (d.name && d.name.toLowerCase().includes(filterText)) ||
-                (d.mobile && d.mobile.toLowerCase().includes(filterText)) ||
-                (d.phone && d.phone.toLowerCase().includes(filterText)) ||
-                (d.designation && d.designation.toLowerCase().includes(filterText))
-            );
+            matchedData = headerAllData.filter(d => isDataMatch(d, filterText));
         }
 
         if (!filterText || isHeaderMatched || matchedData.length > 0) {
@@ -1421,6 +1528,7 @@ function showDataPage(dataId) {
     if (!item) return;
 
     currentDataId = dataId;
+    isFavoriteActive = false;
     document.getElementById("verifiedBadge")?.classList.add("hidden");
     setNavState(true);
 
@@ -1430,15 +1538,11 @@ function showDataPage(dataId) {
 
     updateAdminUI();
 
-    // অফলাইনে থাকলে Firebase request করা হবে না।
-    // Local cache-এর ডাটা দিয়েই সরাসরি details page দেখানো হবে।
     if (!navigator.onLine) {
         renderDataDetailsContent(item);
         return;
     }
 
-    // অনলাইন অবস্থাতেও Firebase response-এর জন্য অপেক্ষা না করে
-    // প্রথমে ডাটার details দেখানো হবে।
     renderDataDetailsContent(item);
 
     const devId = getDeviceId();
@@ -1449,11 +1553,9 @@ function showDataPage(dataId) {
             isDeviceVerified = true;
         }
 
-        // Verification status পাওয়ার পর UI প্রয়োজন হলে আপডেট হবে।
         renderDataDetailsContent(item);
 
     }).catch(() => {
-        // Firebase request ব্যর্থ হলেও local data দিয়ে details দেখাবে।
         renderDataDetailsContent(item);
     });
 }
@@ -1538,7 +1640,7 @@ function setupHoldToVerify(button) {
             clearHold();
             if (navigator.vibrate) navigator.vibrate(60);
             openModal("verifyModal");
-        }, 10000); // ১০ সেকেন্ড (১০,০০০ মিলিগ্রাম/মিলি সেকেন্ড)
+        }, 10000);
     };
 
     const clearHold = () => {
@@ -1557,7 +1659,6 @@ function setupHoldToVerify(button) {
     button.addEventListener("touchend", clearHold);
     button.addEventListener("touchcancel", clearHold);
 
-    // সাধারণ ক্লিক ইভেন্ট নিষ্ক্রিয় রাখা যাতে শুধু হোল্ড করলেই কাজ করে
     button.addEventListener("click", (e) => {
         e.preventDefault();
         showToast("⚠️ 'Get VIP' বাটনটি কমপক্ষে ১০ সেকেন্ড চেপে ধরে রাখুন!");
@@ -1701,204 +1802,703 @@ function showToast(msg) {
     setTimeout(() => toast.classList.remove("show"), 2500);
 }
 
-
 /* ============================================================
-   AI BENGALI -> ENGLISH OFFLINE TRANSLATION LAYER
+   BILINGUAL / OFFLINE LANGUAGE + SEARCH SUPPORT - FINAL
+   ------------------------------------------------------------
+   • Language selection is stored locally and does NOT depend on
+     Google Translate for the basic English/Bengali UI.
+   • English search can match Bengali Firebase records offline.
+   • Dynamic UI created later by render functions is translated too.
+   • Firebase data is never changed by the language engine.
+   • A page reload is used after changing language so switching
+     English <-> Bengali works reliably even without internet.
    ============================================================ */
 
-const AI_LANG_KEY = "selected_app_language";
-const AI_CACHE_KEY = "police_phonebook_ai_translation_cache_v2";
+const APP_LANGUAGE_KEY = "selected_app_language";
 
-function aiLang() {
-    return localStorage.getItem(AI_LANG_KEY) || "bn";
+const OFFLINE_TRANSLATIONS = {
+    "Police Phonebook": "Police Phonebook",
+    "নাম পাওয়া যায়নি": "Name not found",
+    "মোবাইল নেই": "Mobile unavailable",
+    "টেলিফোন নেই": "Telephone unavailable",
+    "পদবী নেই": "Designation unavailable",
+    "পদবি নেই": "Designation unavailable",
+    "ইমেইল নেই": "Email unavailable",
+    "মোবাইল": "Mobile",
+    "টেলিফোন": "Telephone",
+    "ফোন": "Phone",
+    "পদবী": "Designation",
+    "পদবি": "Designation",
+    "ইমেইল": "Email",
+    "ই-মেইল": "Email",
+    "বর্তমান ঠিকানা": "Current Office",
+    "বর্তমান অফিস": "Current Office",
+    "বর্তমান কার্যালয়": "Current Office",
+    "বর্তমান কার্যালয়": "Current Office",
+    "স্থায়ী ঠিকানা": "Permanent Address",
+    "স্থায়ী ঠিকানা": "Permanent Address",
+    "প্রশাসনিক তথ্য": "Administrative Information",
+    "অ্যাডমিন তথ্য": "Admin Information",
+    "Header ছাড়া": "Without Header",
+    "Header ছাড়া": "Without Header",
+    "হেডার ছাড়া": "Without Header",
+    "হেডার ছাড়া": "Without Header",
+    "কোনো তথ্য পাওয়া যায়নি": "No information found",
+    "কোনো তথ্য পাওয়া যায়নি": "No information found",
+    "কোনো ফেভারিট নাম্বার নেই": "No favorite numbers",
+    "হার্ট আইকনে ক্লিক করে ফেভারিটে যুক্ত করুন।": "Tap the heart icon to add a favorite.",
+    "নতুন Category": "New Category",
+    "নতুন Sub-Category": "New Sub-Category",
+    "Category এডিট করুন": "Edit Category",
+    "Data এডিট করুন": "Edit Data",
+    "Data যোগ করুন": "Add Data",
+    "Header সেভ করা হয়েছে": "Header saved",
+    "Header সেভ করা হয়েছে": "Header saved",
+    "ডাটা সেভ হয়েছে": "Data saved",
+    "ডাটা সেভ হয়েছে": "Data saved",
+    "ডাটা ডিলিট করা হয়েছে": "Data deleted",
+    "ডাটা ডিলিট করা হয়েছে": "Data deleted",
+    "ডাটা সফলভাবে মুভ করা হয়েছে!": "Data moved successfully!",
+    "ডাটা সফলভাবে মুভ করা হয়েছে!": "Data moved successfully!",
+    "পিন করা হয়েছে": "Pinned",
+    "পিন করা হয়েছে": "Pinned",
+    "আনপিন করা হয়েছে": "Unpinned",
+    "আনপিন করা হয়েছে": "Unpinned",
+    "হেডার পিন করা হয়েছে": "Header pinned",
+    "হেডার পিন করা হয়েছে": "Header pinned",
+    "হেডার আনপিন করা হয়েছে": "Header unpinned",
+    "হেডার আনপিন করা হয়েছে": "Header unpinned",
+    "সেভ করা হয়েছে": "Saved",
+    "সেভ করা হয়েছে": "Saved",
+    "ডিলিট করা হয়েছে": "Deleted",
+    "ডিলিট করা হয়েছে": "Deleted",
+    "Header ডিলিট করা হয়েছে": "Header deleted",
+    "Header ডিলিট করা হয়েছে": "Header deleted",
+    "পিন": "Pin",
+    "আনপিন": "Unpin",
+    "এডিট": "Edit",
+    "ডিলিট": "Delete",
+    "মুভ": "Move",
+    "ফেভারিট": "Favorite",
+    "ফেভারিটে যোগ করা হয়েছে": "Added to favorites",
+    "ফেভারিটে যোগ করা হয়েছে": "Added to favorites",
+    "ফেভারিট থেকে সরানো হয়েছে": "Removed from favorites",
+    "ফেভারিট থেকে সরানো হয়েছে": "Removed from favorites",
+    "নিশ্চিতকরণ": "Confirmation",
+    "হ্যাঁ, মুছুন": "Yes, Delete",
+    "বাতিল": "Cancel",
+    "লোড হচ্ছে...": "Loading...",
+    "কোনো নতুন ভেরিফিকেশন রিকোয়েস্ট নেই": "No new verification requests",
+    "কোনো নতুন ভেরিফিকেশন রিকোয়েস্ট নেই": "No new verification requests",
+    "ডাটা লোড করতে সমস্যা হয়েছে": "Could not load data",
+    "ডাটা লোড করতে সমস্যা হয়েছে": "Could not load data",
+    "অ্যাডমিন লগইন সফল হয়েছে!": "Admin login successful!",
+    "অ্যাডমিন লগইন সফল হয়েছে!": "Admin login successful!",
+    "লগআউট করা হয়েছে": "Logged out",
+    "লগআউট করা হয়েছে": "Logged out",
+    "লগইন করার জন্য ইন্টারনেট সংযোগ আবশ্যক!": "Internet connection is required for admin login!",
+    "ইমেইল এবং পাসওয়ার্ড দিন": "Enter email and password",
+    "ইমেইল এবং পাসওয়ার্ড দিন": "Enter email and password",
+    "শুধুমাত্র Admin পরিবর্তন সেভ করতে পারবেন": "Only Admin can save changes",
+    "অফলাইনে সেভ হয়েছে! ইন্টারনেট এলে ডাটাবেজে যুক্ত হবে।": "Saved offline. It will sync when internet is available.",
+    "অফলাইনে সেভ হয়েছে! ইন্টারনেট এলে ডাটাবেজে যুক্ত হবে।": "Saved offline. It will sync when internet is available.",
+    "ক্লাউডে সিঙ্ক করতে সমস্যা হয়েছে": "Cloud sync failed",
+    "ক্লাউডে সিঙ্ক করতে সমস্যা হয়েছে": "Cloud sync failed",
+    "ইন্টারনেট সংযোগ নেই!": "No internet connection!",
+    "🟢 অনলাইন মোডে আছেন ": "🟢 You are online ",
+    "স্লাইডিং নোটিশ সফলভাবে সেভ হয়েছে!": "Sliding notice saved successfully!",
+    "স্লাইডিং নোটিশ সফলভাবে সেভ হয়েছে!": "Sliding notice saved successfully!",
+    "নোটিফিকেশন প্যানেল ওপেন করা হয়েছে": "Notification panel opened",
+    "নোটিফিকেশন প্যানেল ওপেন করা হয়েছে": "Notification panel opened",
+    "শুধুমাত্র অ্যাডমিন নোটিশ প্রকাশ করতে পারবেন": "Only Admin can publish notices",
+    "শিরোনাম এবং বিস্তারিত উভয়ই পূরণ করুন": "Please fill in both title and details",
+    "শিরোনাম এবং বিস্তারিত উভয়ই পূরণ করুন": "Please fill in both title and details",
+    "নাম প্রদান করুন": "Enter a name",
+    "মোবাইল নাম্বার অবশ্যই ১১ ডিজিটের হতে হবে!": "Mobile number must contain 11 digits!",
+    "মোবাইল, টেলিফোন অথবা ইমেইল এড্রেস ফাঁকা রাখা যাবে না!": "Mobile, telephone or email cannot all be empty",
+    "ক্যাটাগরি সিলেক্ট করা নেই": "No category selected",
+    "হেডার নাম লিখুন": "Enter header name",
+    "Category Name লিখুন": "Enter Category Name",
+    "আপনি কি নিশ্চিত এই Category মুছে ফেলতে চান?": "Are you sure you want to delete this Category?",
+    "এই Header ডিলিট করতে চান? ডাটাগুলো সরানো হবে না।": "Delete this Header? The data will not be removed.",
+    "আপনি কি এই Data মুছে ফেলতে চান?": "Are you sure you want to delete this Data?",
+    "আপনি কি এই রিকোয়েস্টটি ডিলিট করতে চান?": "Do you want to delete this request?",
+    "আপনি কি এই রিকোয়েস্টটি ডিলিট করতে চান?": "Do you want to delete this request?",
+    "রিকোয়েস্ট ডিলিট করা হয়েছে": "Request deleted",
+    "রিকোয়েস্ট ডিলিট করা হয়েছে": "Request deleted",
+    "অ্যাপ্রুভ করতে ব্যর্থ হয়েছে": "Approval failed",
+    "অ্যাপ্রুভ করতে ব্যর্থ হয়েছে": "Approval failed",
+    "রিকোয়েস্ট পাঠাতে ব্যর্থ হয়েছে": "Failed to send request",
+    "রিকোয়েস্ট পাঠাতে ব্যর্থ হয়েছে": "Failed to send request",
+    "দয়া করে নাম এবং পদবী পূরণ করুন": "Please enter name and designation",
+    "দয়া করে নাম এবং পদবী পূরণ করুন": "Please enter name and designation",
+    "রিকোয়েস্ট সফলভাবে পাঠানো হয়েছে!": "Request sent successfully!",
+    "রিকোয়েস্ট সফলভাবে পাঠানো হয়েছে!": "Request sent successfully!",
+    "অ্যাডমিন অপশন অন করা হয়েছে": "Admin option enabled",
+    "অ্যাডমিন অপশন অন করা হয়েছে": "Admin option enabled",
+    "সার্চ": "Search",
+    "ফোনবুক": "Phonebook",
+    "নাইট মোড অন করা হয়েছে": "Night mode enabled",
+    "নাইট মোড অন করা হয়েছে": "Night mode enabled",
+    "ডে মোড অন করা হয়েছে": "Day mode enabled",
+    "ডে মোড অন করা হয়েছে": "Day mode enabled",
+    "শেয়ার কন্টাক্ট": "Share Contact",
+    "শেয়ার কন্টাক্ট": "Share Contact",
+    "Get VIP": "Get VIP",
+    "ভেরিফাইড": "Verified",
+    "অ্যাডমিন": "Admin",
+    "নাম": "Name"
+};
+
+/* English -> Bengali aliases used ONLY by the search engine. */
+const OFFLINE_SEARCH_ALIASES = {
+    "constable": ["কনস্টেবল"],
+    "female constable": ["মহিলা কনস্টেবল", "ফিমেল কনস্টেবল"],
+    "driver constable": ["ড্রাইভার কনস্টেবল"],
+    "inspector": ["ইন্সপেক্টর", "ইন্সপেক্টর"],
+    "assistant superintendent": ["সহকারী সুপারিনটেনডেন্ট", "সহকারী সুপারিনটেন্ডেন্ট"],
+    "superintendent": ["সুপারিনটেনডেন্ট", "সুপারিনটেন্ডেন্ট"],
+    "commandant": ["কমান্ড্যান্ট", "কমান্ডেন্ট"],
+    "additional commandant": ["অতিরিক্ত কমান্ড্যান্ট"],
+    "deputy commandant": ["ডেপুটি কমান্ড্যান্ট"],
+    "assistant commandant": ["সহকারী কমান্ড্যান্ট"],
+    "si": ["এসআই", "সাব-ইন্সপেক্টর", "উপ-পরিদর্শক"],
+    "sub inspector": ["সাব-ইন্সপেক্টর", "এসআই", "উপ-পরিদর্শক"],
+    "asi": ["এএসআই", "সহকারী উপ-পরিদর্শক"],
+    "sergeant": ["সার্জেন্ট"],
+    "driver": ["ড্রাইভার", "চালক"],
+    "office": ["অফিস", "কার্যালয়", "কার্যালয়"],
+    "current office": ["বর্তমান অফিস", "বর্তমান কার্যালয়", "বর্তমান কার্যালয়", "বর্তমান ঠিকানা"],
+    "permanent address": ["স্থায়ী ঠিকানা", "স্থায়ী ঠিকানা"],
+    "address": ["ঠিকানা", "ঠিকানা"],
+    "mobile": ["মোবাইল", "মোবাইল নম্বর", "মোবাইল নাম্বার"],
+    "phone": ["ফোন", "টেলিফোন"],
+    "telephone": ["টেলিফোন", "ফোন"],
+    "email": ["ইমেইল", "ই-মেইল"],
+    "name": ["নাম"],
+    "designation": ["পদবী", "পদবি"],
+    "police": ["পুলিশ"],
+    "phonebook": ["ফোনবুক", "ফোন বুক"],
+    "favorite": ["ফেভারিট"],
+    "header": ["হেডার"],
+    "category": ["ক্যাটাগরি", "বিভাগ"],
+    "sub category": ["সাব-ক্যাটাগরি", "সাব ক্যাটাগরি"],
+    "admin": ["অ্যাডমিন", "এডমিন"],
+    "verified": ["ভেরিফাইড", "অনুমোদিত"],
+    "verification": ["ভেরিফিকেশন", "যাচাই"],
+    "notice": ["নোটিশ", "বিজ্ঞপ্তি"],
+    "notification": ["নোটিফিকেশন", "বিজ্ঞপ্তি"]
+};
+
+/* Common Bengali name/word aliases. This also makes Latin-name searches
+   useful when the stored Firebase name is Bengali. */
+const BENGALI_LATIN_ALIASES = {
+    "জুয়েল": "jewel", "জুয়েল": "jewel", "রানা": "rana",
+    "রহমান": "rahman", "হোসেন": "hossain", "হোসাইন": "hossain",
+    "আহমেদ": "ahmed", "আলী": "ali", "আলম": "alam", "ইসলাম": "islam",
+    "খান": "khan", "মিয়া": "mia", "মিয়া": "mia", "চৌধুরী": "chowdhury",
+    "সাহা": "saha", "দাস": "das", "সরকার": "sarkar"
+};
+
+function getCurrentLanguage() {
+    return localStorage.getItem(APP_LANGUAGE_KEY) === "en" ? "en" : "bn";
 }
 
-function aiEnglish() {
-    return aiLang() === "en";
-}
+async function setLanguage(lang) {
+    lang = lang === "en" ? "en" : "bn";
+    localStorage.setItem(APP_LANGUAGE_KEY, lang);
 
-function aiCache() {
     try {
-        return JSON.parse(localStorage.getItem(AI_CACHE_KEY) || "{}");
-    } catch (_) {
-        return {};
+        document.documentElement.lang = lang === "en" ? "en" : "bn";
+    } catch (_) {}
+
+    /*
+     * English mode does not use Google Translate.
+     * When internet is available, prepare the local AI translation
+     * cache before reload. When offline, the already-cached English
+     * strings are kept and used immediately.
+     */
+    if (lang === "en" && navigator.onLine && typeof prepareEntireDatabaseForEnglish === "function") {
+        try {
+            await prepareEntireDatabaseForEnglish();
+        } catch (error) {
+            console.warn("AI translation preparation failed:", error);
+        }
+    }
+
+    location.reload();
+}
+
+function replaceKnownTranslations(text) {
+    let result = String(text ?? "");
+
+    const keys = Object.keys(OFFLINE_TRANSLATIONS)
+        .filter(k => k && k !== OFFLINE_TRANSLATIONS[k])
+        .sort((a, b) => b.length - a.length);
+
+    for (const key of keys) {
+        result = result.split(key).join(OFFLINE_TRANSLATIONS[key]);
+    }
+
+    /*
+     * Also replace cached Firebase Bengali -> English translations.
+     * This is deliberately synchronous so it works after reload and
+     * while completely offline.
+     */
+    try {
+        if (typeof loadAITranslationCache === "function") {
+            const cache = loadAITranslationCache();
+            Object.keys(cache)
+                .filter(k => k && cache[k] && k !== cache[k])
+                .sort((a, b) => b.length - a.length)
+                .forEach(key => {
+                    result = result.split(key).join(String(cache[key]));
+                });
+        }
+    } catch (_) {}
+
+    return result;
+}
+
+function applyOfflineLanguage(root = document.body) {
+    if (!root || getCurrentLanguage() !== "en") return;
+
+    const walker = document.createTreeWalker(
+        root,
+        NodeFilter.SHOW_TEXT,
+        {
+            acceptNode(node) {
+                if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+                const parent = node.parentElement;
+                if (!parent) return NodeFilter.FILTER_REJECT;
+                if (["SCRIPT", "STYLE", "NOSCRIPT", "TEXTAREA"].includes(parent.tagName)) {
+                    return NodeFilter.FILTER_REJECT;
+                }
+                return NodeFilter.FILTER_ACCEPT;
+            }
+        }
+    );
+
+    const nodes = [];
+    let node;
+    while ((node = walker.nextNode())) nodes.push(node);
+
+    nodes.forEach(textNode => {
+        const oldText = textNode.nodeValue;
+        const newText = replaceKnownTranslations(oldText);
+        if (newText !== oldText) textNode.nodeValue = newText;
+    });
+
+    root.querySelectorAll?.("[placeholder], [title], [aria-label]").forEach(el => {
+        ["placeholder", "title", "aria-label"].forEach(attr => {
+            if (!el.hasAttribute(attr)) return;
+            const oldValue = el.getAttribute(attr);
+            const newValue = replaceKnownTranslations(oldValue);
+            if (newValue !== oldValue) el.setAttribute(attr, newValue);
+        });
+    });
+}
+
+function getSearchVariants(query) {
+    const q = String(query || "").trim().toLowerCase();
+    if (!q) return [];
+
+    const variants = new Set([q]);
+    const compact = q.replace(/[\s_-]+/g, " ").trim();
+    variants.add(compact);
+
+    Object.entries(OFFLINE_SEARCH_ALIASES).forEach(([english, bengaliList]) => {
+        if (english === q || english.includes(q) || q.includes(english)) {
+            bengaliList.forEach(v => variants.add(String(v).toLowerCase()));
+        }
+        bengaliList.forEach(v => {
+            if (String(v).toLowerCase() === q) variants.add(english);
+        });
+    });
+
+    /* For multi-word English queries, also add aliases for each token. */
+    q.split(/\s+/).filter(Boolean).forEach(token => {
+        if (OFFLINE_SEARCH_ALIASES[token]) {
+            OFFLINE_SEARCH_ALIASES[token].forEach(v => variants.add(String(v).toLowerCase()));
+        }
+    });
+
+    return [...variants];
+}
+
+function bengaliToSearchLatin(text) {
+    let result = String(text || "").toLowerCase();
+    Object.entries(BENGALI_LATIN_ALIASES)
+        .sort((a, b) => b[0].length - a[0].length)
+        .forEach(([bn, en]) => {
+            result = result.split(bn).join(en);
+        });
+    return result;
+}
+
+function isMatch(sourceText, query) {
+    if (sourceText === null || sourceText === undefined || query === null || query === undefined) {
+        return false;
+    }
+
+    const source = String(sourceText).trim();
+    const q = String(query).trim().toLowerCase();
+    if (!source || !q) return false;
+
+    const sourceLower = source.toLowerCase();
+    const sourceLatin = bengaliToSearchLatin(sourceLower);
+    const variants = getSearchVariants(q);
+
+    let sourceEnglish = "";
+    try {
+        if (typeof getCachedAITranslation === "function") {
+            sourceEnglish = String(getCachedAITranslation(source) || "").toLowerCase();
+        }
+    } catch (_) {}
+
+    /* Direct phrase match first: Bengali, Latin aliases, or cached English. */
+    if (variants.some(v => v && (
+        sourceLower.includes(v) ||
+        sourceLatin.includes(v) ||
+        sourceEnglish.includes(v)
+    ))) {
+        return true;
+    }
+
+    /* Multi-word search: every meaningful word must be found.
+       This fixes searches such as "jewel rana" against Bengali data. */
+    const words = q.split(/\s+/).filter(w => w.length > 1);
+    if (words.length > 1) {
+        return words.every(word => {
+            const wordVariants = getSearchVariants(word);
+            return wordVariants.some(v =>
+                sourceLower.includes(v) ||
+                sourceLatin.includes(v) ||
+                sourceEnglish.includes(v)
+            );
+        });
+    }
+
+    return false;
+}
+
+function getDataSearchText(item) {
+    if (!item) return "";
+    const category = (database.categories || []).find(c => c.id === item.categoryId);
+    const header = (database.headers || []).find(h => h.id === item.headerId);
+
+    return [
+        item.name, item.mobile, item.phone, item.designation, item.email,
+        item.currentOffice, item.permanentAddress, item.adminInfo,
+        item.enName, item.enDesignation, item.enCurrentOffice,
+        item.enPermanentAddress, category?.name, header?.title
+    ].filter(v => v !== null && v !== undefined && String(v).trim() !== "").join(" ");
+}
+
+function isDataMatch(item, query) {
+    if (!query) return true;
+    return isMatch(getDataSearchText(item), query);
+}
+
+function initOfflineLanguageSystem() {
+    const savedLang = getCurrentLanguage();
+
+    try {
+        document.documentElement.lang = savedLang === "en" ? "en" : "bn";
+    } catch (_) {}
+
+    const radioEn = document.getElementById("langEn");
+    const radioBn = document.getElementById("langBn");
+    if (radioEn) radioEn.checked = savedLang === "en";
+    if (radioBn) radioBn.checked = savedLang !== "en";
+
+    document.querySelectorAll('input[name="appLanguage"]').forEach(input => {
+        /* Avoid duplicate listeners if this function is ever called again. */
+        if (input.dataset.offlineLangBound === "1") return;
+        input.dataset.offlineLangBound = "1";
+        input.addEventListener("change", () => setLanguage(input.value));
+    });
+
+    if (savedLang === "en") {
+        applyOfflineLanguage(document.body);
+
+        if (!window.__offlineLanguageObserver) {
+            let timer = null;
+            window.__offlineLanguageObserver = new MutationObserver(() => {
+                if (getCurrentLanguage() !== "en") return;
+                clearTimeout(timer);
+                timer = setTimeout(() => applyOfflineLanguage(document.body), 0);
+            });
+
+            window.__offlineLanguageObserver.observe(document.body, {
+                childList: true,
+                subtree: true,
+                characterData: true
+            });
+        }
     }
 }
 
-function saveAiCache(c) {
+
+
+/* ============================================================
+   LOCAL AI BENGALI -> ENGLISH TRANSLATION SYSTEM
+   ------------------------------------------------------------
+   • No Google Translate dependency.
+   • Translation runs in js/translation-worker.js.
+   • English strings are cached in localStorage.
+   • After the model/data are cached, English mode can work offline.
+   • Firebase Bengali data is never overwritten.
+   • Search checks original Bengali + cached English.
+   ============================================================ */
+
+const AI_LANGUAGE_KEY = "selected_app_language";
+const AI_TRANSLATION_CACHE_KEY = "police_phonebook_ai_translation_cache_v3";
+const AI_TRANSLATION_MODEL_VERSION = "nllb-200-distilled-600M-ben-eng-v1";
+
+let aiTranslationWorker = null;
+let aiTranslationRequestId = 0;
+const aiTranslationPending = new Map();
+let aiDatabasePreparationPromise = null;
+
+function getAILanguage() {
+    return localStorage.getItem(AI_LANGUAGE_KEY) === "en" ? "en" : "bn";
+}
+
+function isAIEnglishMode() {
+    return getAILanguage() === "en";
+}
+
+function loadAITranslationCache() {
     try {
-        localStorage.setItem(AI_CACHE_KEY, JSON.stringify(c));
-    } catch (_) {}
-}
-
-function aiCached(text) {
-    const key = String(text ?? "").trim();
-    return key ? (aiCache()[key] || "") : "";
-}
-
-function aiStore(text, translated) {
-    const key = String(text ?? "").trim();
-    const value = String(translated ?? "").trim();
-    if (!key || !value) return;
-    const c = aiCache();
-    c[key] = value;
-    saveAiCache(c);
-}
-
-let aiWorker = null;
-let aiReq = 0;
-const aiPending = new Map();
-
-function getAiWorker() {
-    if (aiWorker) return aiWorker;
-
-    aiWorker = new Worker("./js/translation-worker.js", {
-        type: "module"
-    });
-
-    aiWorker.onmessage = e => {
-        const d = e.data || {};
-        const p = aiPending.get(d.id);
-        if (!p) return;
-        aiPending.delete(d.id);
-
-        if (d.type === "result") {
-            aiStore(p.source, d.text || "");
-            p.resolve(d.text || p.source);
-        } else {
-            p.resolve(p.source);
+        const raw = localStorage.getItem(AI_TRANSLATION_CACHE_KEY);
+        if (!raw) return {};
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+            return parsed.entries && typeof parsed.entries === "object"
+                ? parsed.entries
+                : parsed;
         }
-    };
-
-    aiWorker.onerror = e => {
-        console.error("AI translation worker error:", e);
-        for (const p of aiPending.values()) p.resolve(p.source);
-        aiPending.clear();
-        try { aiWorker.terminate(); } catch (_) {}
-        aiWorker = null;
-    };
-
-    return aiWorker;
+    } catch (error) {
+        console.warn("AI translation cache read error:", error);
+    }
+    return {};
 }
 
-function aiTranslate(text) {
-    const source = String(text ?? "");
-    if (!source.trim() || !aiEnglish()) return Promise.resolve(source);
+function saveAITranslationCache(cache) {
+    try {
+        localStorage.setItem(
+            AI_TRANSLATION_CACHE_KEY,
+            JSON.stringify({
+                version: AI_TRANSLATION_MODEL_VERSION,
+                updatedAt: Date.now(),
+                entries: cache
+            })
+        );
+    } catch (error) {
+        console.warn("AI translation cache save error:", error);
+    }
+}
 
-    const cached = aiCached(source);
+function getAITranslationCacheKey(text) {
+    return String(text ?? "").trim();
+}
+
+function getCachedAITranslation(text) {
+    const key = getAITranslationCacheKey(text);
+    if (!key) return "";
+    return String(loadAITranslationCache()[key] || "").trim();
+}
+
+function setCachedAITranslation(text, translated) {
+    const key = getAITranslationCacheKey(text);
+    const value = String(translated ?? "").trim();
+    if (!key || !value || key === value) return;
+
+    const cache = loadAITranslationCache();
+    cache[key] = value;
+    saveAITranslationCache(cache);
+}
+
+function isProbablyNonTranslatable(text) {
+    const value = String(text ?? "").trim();
+    if (!value) return true;
+    if (/^https?:\/\//i.test(value)) return true;
+    if (/^[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}$/.test(value)) return true;
+    if (/^[+()\-\s\d]+$/.test(value)) return true;
+    if (!/[\u0980-\u09FF]/.test(value)) return true;
+    return false;
+}
+
+function getAITranslationWorker() {
+    if (aiTranslationWorker) return aiTranslationWorker;
+
+    aiTranslationWorker = new Worker(
+        "./js/translation-worker.js",
+        { type: "module" }
+    );
+
+    aiTranslationWorker.onmessage = (event) => {
+        const data = event.data || {};
+        const pending = aiTranslationPending.get(data.id);
+        if (!pending) return;
+
+        aiTranslationPending.delete(data.id);
+
+        if (data.type === "result") {
+            const translated = String(data.text || "").trim();
+            if (translated && translated !== pending.source) {
+                setCachedAITranslation(pending.source, translated);
+            }
+            pending.resolve(translated || pending.source);
+            return;
+        }
+
+        pending.resolve(pending.source);
+    };
+
+    aiTranslationWorker.onerror = (error) => {
+        console.error("AI translation worker error:", error);
+        for (const pending of aiTranslationPending.values()) {
+            pending.resolve(pending.source);
+        }
+        aiTranslationPending.clear();
+        try { aiTranslationWorker.terminate(); } catch (_) {}
+        aiTranslationWorker = null;
+    };
+
+    return aiTranslationWorker;
+}
+
+function aiTranslateText(text) {
+    const source = String(text ?? "").trim();
+
+    if (!source) return Promise.resolve("");
+    if (!isAIEnglishMode()) return Promise.resolve(source);
+
+    const cached = getCachedAITranslation(source);
     if (cached) return Promise.resolve(cached);
 
-    if (!navigator.onLine) return Promise.resolve(source);
+    if (isProbablyNonTranslatable(source)) {
+        return Promise.resolve(source);
+    }
 
-    return new Promise(resolve => {
-        const id = ++aiReq;
-        aiPending.set(id, { resolve, source });
+    if (!navigator.onLine) {
+        return Promise.resolve(source);
+    }
+
+    return new Promise((resolve) => {
+        const id = ++aiTranslationRequestId;
+        aiTranslationPending.set(id, { source, resolve });
 
         try {
-            getAiWorker().postMessage({
+            getAITranslationWorker().postMessage({
                 type: "translate",
                 id,
                 text: source
             });
-        } catch (_) {
-            aiPending.delete(id);
+        } catch (error) {
+            aiTranslationPending.delete(id);
+            console.warn("AI translation request failed:", error);
             resolve(source);
         }
     });
 }
 
-async function aiTranslateRecord(record) {
-    if (!record || !aiEnglish()) return record;
+async function prepareAITranslationStrings(strings) {
+    if (!isAIEnglishMode() || !navigator.onLine) return;
 
-    const out = { ...record };
-    for (const key of [
-        "name",
-        "designation",
-        "currentOffice",
-        "permanentAddress",
-        "adminInfo"
-    ]) {
-        if (out[key]) out[key] = await aiTranslate(out[key]);
+    const unique = [...new Set(
+        (Array.isArray(strings) ? strings : [])
+            .map(v => String(v ?? "").trim())
+            .filter(v => v && !isProbablyNonTranslatable(v))
+    )];
+
+    /* Small batches prevent the browser from receiving hundreds of
+       simultaneous worker requests. */
+    const BATCH_SIZE = 4;
+
+    for (let i = 0; i < unique.length; i += BATCH_SIZE) {
+        const batch = unique.slice(i, i + BATCH_SIZE);
+        await Promise.all(batch.map(v => aiTranslateText(v)));
     }
-    return out;
 }
 
-function aiSearchText(record) {
-    if (!record) return "";
+function collectDatabaseTranslationStrings() {
+    const strings = [];
 
-    const category =
-        (database.categories || []).find(
-            c => c.id === record.categoryId
-        );
+    const add = (value) => {
+        const v = String(value ?? "").trim();
+        if (v && !isProbablyNonTranslatable(v)) strings.push(v);
+    };
 
-    const header =
-        (database.headers || []).find(
-            h => h.id === record.headerId
-        );
-
-    return [
-        record.name,
-        record.mobile,
-        record.phone,
-        record.designation,
-        record.email,
-        record.currentOffice,
-        record.permanentAddress,
-        record.adminInfo,
-        record.enName,
-        record.enDesignation,
-        record.enCurrentOffice,
-        record.enPermanentAddress,
-        category?.name,
-        category?.enName,
-        header?.title,
-        header?.name,
-        header?.enTitle,
-        header?.enName
-    ].filter(Boolean).join(" ");
-}
-
-function aiIsMatch(record, query) {
-    if (!query) return true;
-
-    const q = String(query).trim().toLowerCase();
-    if (!q) return true;
-
-    const original = aiSearchText(record).toLowerCase();
-    if (original.includes(q)) return true;
-
-    const values = aiSearchText(record)
-        .split(/\s+/)
-        .map(v => aiCached(v))
-        .filter(Boolean);
-
-    if (values.join(" ").toLowerCase().includes(q)) return true;
-
-    const fields = [
-        record?.name,
-        record?.designation,
-        record?.currentOffice,
-        record?.permanentAddress,
-        record?.adminInfo
-    ];
-
-    return fields.some(v => {
-        const t = aiCached(v);
-        return t && t.toLowerCase().includes(q);
+    (database.categories || []).forEach(category => {
+        add(category?.name);
     });
+
+    (database.headers || []).forEach(header => {
+        add(header?.title);
+        add(header?.name);
+    });
+
+    (database.data || []).forEach(item => {
+        add(item?.name);
+        add(item?.designation);
+        add(item?.currentOffice);
+        add(item?.permanentAddress);
+        add(item?.adminInfo);
+        add(item?.enName);
+        add(item?.enDesignation);
+        add(item?.enCurrentOffice);
+        add(item?.enPermanentAddress);
+    });
+
+    return strings;
 }
 
-window.AITranslation = {
-    translateText: aiTranslate,
-    translateRecord: aiTranslateRecord,
-    isEnglish: aiEnglish,
-    searchMatch: aiIsMatch,
-    clearCache() {
-        localStorage.removeItem(AI_CACHE_KEY);
+async function prepareEntireDatabaseForEnglish() {
+    if (!isAIEnglishMode() || !navigator.onLine) return;
+
+    if (aiDatabasePreparationPromise) {
+        return aiDatabasePreparationPromise;
     }
+
+    aiDatabasePreparationPromise = (async () => {
+        try {
+            const strings = collectDatabaseTranslationStrings();
+            await prepareAITranslationStrings(strings);
+        } catch (error) {
+            console.warn("Database AI translation preparation error:", error);
+        } finally {
+            aiDatabasePreparationPromise = null;
+        }
+    })();
+
+    return aiDatabasePreparationPromise;
+}
+
+function getAITranslatedSync(text) {
+    if (!isAIEnglishMode()) return String(text ?? "");
+    return getCachedAITranslation(text) || String(text ?? "");
+}
+
+/* Public API for settings.js / other modules. */
+window.PolicePhonebookAI = {
+    translate: aiTranslateText,
+    prepare: prepareEntireDatabaseForEnglish,
+    getCached: getCachedAITranslation,
+    getLanguage: getAILanguage,
+    isEnglish: isAIEnglishMode
 };
 
-/* ============================================================
-   END AI TRANSLATION LAYER
-   ============================================================ */
+/* Prepare newly downloaded Firebase data whenever the app is online. */
+window.addEventListener("online", () => {
+    if (isAIEnglishMode()) {
+        setTimeout(() => prepareEntireDatabaseForEnglish(), 300);
+    }
+});
 
+/* If the user starts in English, begin filling the cache in the background. */
+if (isAIEnglishMode() && navigator.onLine) {
+    setTimeout(() => prepareEntireDatabaseForEnglish(), 500);
+}
