@@ -90,12 +90,7 @@ window.addEventListener('online', () => {
     loadDatabase();
 });
 
-window.addEventListener('offline', () => {
-    checkOnlineStatus();
-    if (getCurrentLanguage() === "en") {
-        setTimeout(() => applyOfflineLanguage(document.body), 100);
-    }
-});
+window.addEventListener('offline', checkOnlineStatus);
 
 watchAuth((user, role) => {
     const adminBtn = document.getElementById("adminLoginBtn");
@@ -734,7 +729,6 @@ function renderAllSearch() {
 
     if (allData.length === 0) {
         container.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--text-muted); font-size: 16px;">🔍 কোনো তথ্য পাওয়া যায়নি</div>`;
-        scheduleOfflineLanguageApply();
         return;
     }
 
@@ -743,7 +737,6 @@ function renderAllSearch() {
     });
 
     updateAdminUI();
-    scheduleOfflineLanguageApply();
 }
 
 function renderCategories(searchVal = "") {
@@ -764,7 +757,6 @@ function renderCategories(searchVal = "") {
     if (categoriesToShow.length === 0) {
         emptyState.classList.remove("hidden");
         list.classList.add("hidden");
-        scheduleOfflineLanguageApply();
         return;
     }
 
@@ -825,7 +817,6 @@ function renderCategories(searchVal = "") {
     });
 
     updateAdminUI();
-    scheduleOfflineLanguageApply();
 }
 
 function openCategoryModal(isSubCategory = false, editObj = null) {
@@ -1042,7 +1033,6 @@ function renderFavoriteView(pushHistory = true) {
             emptyState.querySelector("p").textContent = "হার্ট আইকনে ক্লিক করে ফেভারিটে যুক্ত করুন।";
         }
         if (list) list.classList.add("hidden");
-        scheduleOfflineLanguageApply();
         return;
     }
 
@@ -1054,7 +1044,6 @@ function renderFavoriteView(pushHistory = true) {
         });
     }
     updateAdminUI();
-    scheduleOfflineLanguageApply();
 }
 
 window.renderFavoriteView = renderFavoriteView;
@@ -1525,7 +1514,6 @@ function renderCategoryDetails(searchVal = "") {
     });
 
     updateAdminUI();
-    scheduleOfflineLanguageApply();
 }
 
 function openDataPage(dataId, pushHistory = true) {
@@ -1636,8 +1624,6 @@ function renderDataDetailsContent(item) {
             showToast("কন্টাক্ট কপি করা হয়েছে!");
         }
     });
-
-    scheduleOfflineLanguageApply();
 }
 
 function setupHoldToVerify(button) {
@@ -2117,6 +2103,7 @@ function setLanguageCookie(lang) {
 
 function setLanguage(lang) {
     const selected = lang === "en" ? "en" : "bn";
+
     localStorage.setItem(APP_LANGUAGE_KEY, selected);
     setLanguageCookie(selected);
 
