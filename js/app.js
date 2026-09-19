@@ -21,8 +21,32 @@ import {
 
 const DEFAULT_CATEGORY_IMAGE = "https://cdn-icons-png.flaticon.com/512/3541/3541850.png";
 
-// বর্তমান ভাষা ট্র্যাক করার গ্লোবাল ভেরিয়েবল (ডিফল্ট বাংলা 'bn')
+// ভাষা ট্র্যাক করার গ্লোবাল ভেরিয়েবল
 window.currentAppLang = localStorage.getItem("police_pb_lang") || "bn";
+
+// ভাষা পরিবর্তনের মূল নিরাপদ ফাংশন
+window.changeAppLanguage = function(lang) {
+    if (window.currentAppLang === lang) return;
+    
+    window.currentAppLang = lang;
+    localStorage.setItem("police_pb_lang", lang);
+    
+    const radioEl = document.querySelector(`input[name="appLangRadio"][value="${lang}"]`);
+    if (radioEl) radioEl.checked = true;
+
+    showToast(lang === 'en' ? "Language switched to English" : "ভাষা বাংলায় পরিবর্তন করা হয়েছে");
+    refreshCurrentView();
+};
+
+function getLocalizedField(item, fieldName) {
+    if (!item) return "";
+    const langSuffix = window.currentAppLang === 'en' ? 'En' : 'Bn';
+    const specificField = fieldName + langSuffix;
+    if (item[specificField] !== undefined && item[specificField] !== "") {
+        return item[specificField];
+    }
+    return item[fieldName] || "";
+}
 
 function escapeHTML(str) {
     return String(str || "").replace(
@@ -191,24 +215,6 @@ document.addEventListener("DOMContentLoaded", () => {
     history.replaceState({ page: "home" }, "");
     window.addEventListener("popstate", handlePopState);
 });
-
-// ডাইনামিক ভাষা পরিবর্তনের ফাংশন
-window.changeAppLanguage = function(lang) {
-    window.currentAppLang = lang;
-    localStorage.setItem("police_pb_lang", lang);
-    showToast(lang === 'en' ? "Language switched to English" : "ভাষা বাংলায় পরিবর্তন করা হয়েছে");
-    refreshCurrentView();
-};
-
-function getLocalizedField(item, fieldName) {
-    if (!item) return "";
-    const langSuffix = window.currentAppLang === 'en' ? 'En' : 'Bn';
-    const specificField = fieldName + langSuffix;
-    if (item[specificField] !== undefined && item[specificField] !== "") {
-        return item[specificField];
-    }
-    return item[fieldName] || "";
-}
 
 function setNavState(searchOrSubPageActive) {
     isSearchMode = searchOrSubPageActive;
@@ -440,6 +446,15 @@ function sortContactData(items) {
 
 function setupEvents() {
     document.getElementById("themeBtn")?.addEventListener("click", toggleTheme);
+
+    // রেডিও বাটনের পরিবর্তন ইভেন্ট হ্যান্ডলার যুক্ত করা হলো
+    document.querySelectorAll('input[name="appLangRadio"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                window.changeAppLanguage(e.target.value);
+            }
+        });
+    });
 
     document.getElementById("navToggleBtn")?.addEventListener("click", (e) => {
         const searchBox = document.getElementById("searchBox");
@@ -1637,7 +1652,9 @@ function showDataPage(dataId) {
         if (snapshot.exists() && snapshot.val().status === "approved") {
             isDeviceVerified = true;
         }
+
         renderDataDetailsContent(item);
+
     }).catch(() => {
         renderDataDetailsContent(item);
     });
