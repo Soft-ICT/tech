@@ -445,12 +445,12 @@ function initSettingsModal() {
                         <label style="font-size:15px;font-weight:600;color:#333;text-align:center;">Apps Data View Mode</label>
                         <div style="display:flex;justify-content:space-around;align-items:center;">
                             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;font-weight:500;">
-                                <input type="radio" name="appLang" value="en" ${language === "en" ? "checked" : ""} style="cursor:pointer;">
-                                English 🇬🇧
-                            </label>
-                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;font-weight:500;">
+                                                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;font-weight:500;">
                                 <input type="radio" name="appLang" value="bn" ${language === "bn" ? "checked" : ""} style="cursor:pointer;">
                                 Bangla 🇧🇩
+                            </label>
+                                <input type="radio" name="appLang" value="en" ${language === "en" ? "checked" : ""} style="cursor:pointer;">
+                                English 🇬🇧
                             </label>
                         </div>
                     </div>
