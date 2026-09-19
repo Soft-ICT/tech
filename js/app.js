@@ -21,6 +21,9 @@ import {
 
 const DEFAULT_CATEGORY_IMAGE = "https://cdn-icons-png.flaticon.com/512/3541/3541850.png";
 
+// বর্তমান ভাষা ট্র্যাক করার গ্লোবাল ভেরিয়েবল (ডিফল্ট বাংলা 'bn')
+window.currentAppLang = localStorage.getItem("police_pb_lang") || "bn";
+
 function escapeHTML(str) {
     return String(str || "").replace(
         /[&<>"']/g,
@@ -46,7 +49,7 @@ let editingItem = null;
 let movingDataId = null;
 let isAllSearchActive = false;
 let isSearchMode = false;
-let isFavoriteActive = false; // ফেভারিট ভিউ ট্র্যাক করার জন্য
+let isFavoriteActive = false;
 
 window.currentUserRole = "guest";
 let isDeviceVerified = false;
@@ -136,7 +139,6 @@ function updateAdminUI() {
     const adminContainer = document.getElementById("adminActionContainer");
     if (adminContainer) {
         if (isAdmin && !isAllSupportOrSearchActive()) {
-            adminContainer.classList.remove("flex"); // Changed to classList management
             adminContainer.style.display = "flex";
         } else {
             adminContainer.classList.add("hidden");
@@ -159,16 +161,10 @@ function updateAdminUI() {
     const loginForm = document.getElementById("loginFormContainer");
     const logoutContainer = document.getElementById("logoutContainer");
 
-    if (loginForm) {
-        loginForm.style.display = isAdmin ? "none" : "block";
-    }
-
+    if (loginForm) loginForm.style.display = isAdmin ? "none" : "block";
     if (logoutContainer) {
-        if (isAdmin) {
-            logoutContainer.classList.remove("hidden");
-        } else {
-            logoutContainer.classList.add("hidden");
-        }
+        if (isAdmin) logoutContainer.classList.remove("hidden");
+        else logoutContainer.classList.add("hidden");
     }
 }
 
@@ -177,14 +173,25 @@ document.addEventListener("DOMContentLoaded", () => {
     initTheme();
     updateAdminUI();
 
+    // রেডিও বাটনের সঠিক স্টেট সেট করা
+    const radioEl = document.querySelector(`input[name="appLangRadio"][value="${window.currentAppLang}"]`);
+    if (radioEl) radioEl.checked = true;
+
     checkDeviceVerificationStatus();
     loadLocalCache();
     checkOnlineStatus();
-    initNotificationSystem();
-
+    
     history.replaceState({ page: "home" }, "");
     window.addEventListener("popstate", handlePopState);
 });
+
+// ভাষা পরিবর্তনের মূল ফাংশন (ডাইনামিক টেক্সট হ্যান্ডেল করার জন্য)
+window.changeAppLanguage = function(lang) {
+    window.currentAppLang = lang;
+    localStorage.setItem("police_pb_lang", lang);
+    showToast(lang === 'en' ? "Language switched to English" : "ভাষা বাংলায় পরিবর্তন করা হয়েছে");
+    refreshCurrentView();
+};
 
 function setNavState(searchOrSubPageActive) {
     isSearchMode = searchOrSubPageActive;
@@ -240,12 +247,10 @@ function handlePopState(event) {
     if (!state || state.page === "home") {
         isFavoriteActive = false;
         closeAllSearchUI();
-        showMainDashboardView(false);
+        showMainDashboardView();
     } else if (state.page === "allSearch") {
         isFavoriteActive = false;
-        if (!isAllSearchActive) {
-            activateAllSearchUI();
-        }
+        if (!isAllSearchActive) activateAllSearchUI();
     } else if (state.page === "favorite") {
         isFavoriteActive = true;
         closeAllSearchUI();
@@ -325,51 +330,7 @@ async function saveDatabase() {
 
     set(ref(db, "webapp/public_data"), database).catch((error) => {
         console.error("Database background save error:", error);
-        showToast("ক্লাউডে সিঙ্ক করতে সমস্যা হয়েছে");
     });
-}
-
-function initNotificationSystem() {
-    const notificationBtn = document.getElementById("notificationBtn");
-    
-    if (notificationBtn) {
-        notificationBtn.addEventListener("click", () => {
-            showToast("নোটিফিকেশন প্যানেল ওপেন করা হয়েছে");
-        });
-    }
-
-    const publishSlidingBtn = document.getElementById("publishSlidingNoticeBtn");
-    if (publishSlidingBtn) {
-        publishSlidingBtn.addEventListener("click", async () => {
-            if (window.currentUserRole !== "admin") {
-                return showToast("শুধুমাত্র অ্যাডমিন নোটিশ প্রকাশ করতে পারবেন");
-            }
-
-            const title = document.getElementById("slidingTitleInput")?.value.trim();
-            const message = document.getElementById("slidingMessageInput")?.value.trim();
-
-            if (!title || !message) {
-                return showToast("শিরোনাম এবং বিস্তারিত উভয়ই পূরণ করুন");
-            }
-
-            try {
-                const noticesRef = ref(db, "webapp/notices");
-                await push(noticesRef, {
-                    type: "sliding",
-                    title: title,
-                    message: message,
-                    time: Date.now()
-                });
-                
-                showToast("✅ স্লাইডিং নোটিশ সফলভাবে সেভ হয়েছে!");
-                document.getElementById("slidingTitleInput").value = "";
-                document.getElementById("slidingMessageInput").value = "";
-            } catch (error) {
-                console.error("Notice save error:", error);
-                showToast("❌ নোটিশ সেভ করতে ব্যর্থ হয়েছে");
-            }
-        });
-    }
 }
 
 function generateId(prefix) {
@@ -380,18 +341,10 @@ function sortItemsByPin(items) {
     return items.sort((a, b) => {
         const pinA = a.isPinned || a.pinned ? 1 : 0;
         const pinB = b.isPinned || b.pinned ? 1 : 0;
-        
         if (pinA && !pinB) return -1;
         if (!pinA && pinB) return 1;
-
-        if (pinA && pinB) {
-            return (a.pinnedAt || a.pinnedOrder || 0) - (b.pinnedAt || b.pinnedOrder || 0);
-        }
-
-        const timeA = a.createdAt || 0;
-        const timeB = b.createdAt || 0;
-        
-        return timeA - timeB;
+        if (pinA && pinB) return (a.pinnedAt || a.pinnedOrder || 0) - (b.pinnedAt || b.pinnedOrder || 0);
+        return (a.createdAt || 0) - (b.createdAt || 0);
     });
 }
 
@@ -399,24 +352,29 @@ function sortContactData(items) {
     return items.sort((a, b) => {
         const pinA = a.isPinned || a.pinned ? 1 : 0;
         const pinB = b.isPinned || b.pinned ? 1 : 0;
-        
         if (pinA && !pinB) return -1;
         if (!pinA && pinB) return 1;
+        if (pinA && pinB) return (a.pinnedAt || a.pinnedOrder || 0) - (b.pinnedAt || b.pinnedOrder || 0);
 
-        if (pinA && pinB) {
-            return (a.pinnedAt || a.pinnedOrder || 0) - (b.pinnedAt || b.pinnedOrder || 0);
-        }
-
-        let nameA = String(a.name || "").trim();
-        let nameB = String(b.name || "").trim();
-
-        return nameA.localeCompare(nameB, 'bn', { numeric: true, sensitivity: 'base' });
+        let nameA = String(getLocalizedField(a, 'name') || "").trim();
+        let nameB = String(getLocalizedField(b, 'name') || "").trim();
+        return nameA.localeCompare(nameB, window.currentAppLang === 'en' ? 'en' : 'bn', { numeric: true, sensitivity: 'base' });
     });
+}
+
+// ডাইনামিক ফিল্ড সহায়ক ফাংশন (বাংলা ও ইংরেজি আলাদা প্রপার্টি যেমন nameEn, nameBn বা একই ফিল্ড হ্যান্ডেল করতে)
+function getLocalizedField(item, fieldName) {
+    if (!item) return "";
+    const langSuffix = window.currentAppLang === 'en' ? 'En' : 'Bn';
+    const specificField = fieldName + langSuffix;
+    if (item[specificField]) {
+        return item[specificField];
+    }
+    return item[fieldName] || "";
 }
 
 function setupEvents() {
     document.getElementById("themeBtn")?.addEventListener("click", toggleTheme);
-
     document.getElementById("navToggleBtn")?.addEventListener("click", (e) => {
         const searchBox = document.getElementById("searchBox");
         const isSearchOpen = searchBox && !searchBox.classList.contains("hidden");
@@ -434,62 +392,20 @@ function setupEvents() {
         }
     }, true);
 
-    document.getElementById("searchBtn")?.addEventListener("click", () => {
-        openHeaderSearch();
-    });
-
+    document.getElementById("searchBtn")?.addEventListener("click", openHeaderSearch);
     document.getElementById("searchInput")?.addEventListener("input", handleSearch);
-
     document.getElementById("allSearchBtn")?.addEventListener("click", () => {
         history.pushState({ page: "allSearch" }, "");
         activateAllSearchUI();
     });
 
     document.getElementById("adminLoginBtn")?.addEventListener("click", () => openModal("loginModal"));
-
-    setupAdminButtonLongPress();
-
-    document.getElementById("submitLoginBtn")?.addEventListener("click", async () => {
-        if (!navigator.onLine) {
-            return showToast("লগইন করার জন্য ইন্টারনেট সংযোগ আবশ্যক!");
-        }
-
-        const email = document.getElementById("loginEmail")?.value.trim();
-        const password = document.getElementById("loginPassword")?.value.trim();
-
-        if (!email || !password) {
-            return showToast("ইমেইল এবং পাসওয়ার্ড দিন");
-        }
-
-        const res = await loginAdmin(email, password);
-
-        if (res.success) {
-            showToast("অ্যাডমিন লগইন সফল হয়েছে!");
-            closeModal("loginModal");
-        } else {
-            showToast("লগইন ব্যর্থ হয়েছে: " + res.error);
-        }
-    });
-
-    document.getElementById("logoutBtn")?.addEventListener("click", async () => {
-        const result = await logoutAdmin();
-        if (result.success) {
-            closeModal("loginModal");
-            showToast("লগআউট করা হয়েছে");
-        }
-    });
-
-    document.getElementById("submitVerifyBtn")?.addEventListener("click", submitVerificationRequest);
-
     document.getElementById("addCategoryBtn")?.addEventListener("click", () => openCategoryModal(false));
     document.getElementById("emptyAddBtn")?.addEventListener("click", () => openCategoryModal(false));
     document.getElementById("addSubCategoryBtn")?.addEventListener("click", () => openCategoryModal(true));
     document.getElementById("saveCategoryBtn")?.addEventListener("click", saveCategory);
-
     document.getElementById("saveHeaderBtn")?.addEventListener("click", saveHeader);
     document.getElementById("saveDataBtn")?.addEventListener("click", saveData);
-    document.getElementById("confirmMoveBtn")?.addEventListener("click", confirmMoveData);
-
     document.getElementById("addHeaderBtn")?.addEventListener("click", () => openHeaderModal());
     document.getElementById("addDataBtn")?.addEventListener("click", () => openDataModal());
 
@@ -498,169 +414,9 @@ function setupEvents() {
     });
 }
 
-function setupAdminButtonLongPress() {
-    const adminLoginBtn = document.getElementById("adminLoginBtn");
-    if (!adminLoginBtn) return;
-
-    let adminHoldTimer = null;
-
-    const startAdminHold = (e) => {
-        if (window.currentUserRole !== "admin") return;
-        e.preventDefault();
-        adminLoginBtn.classList.add("holding");
-
-        adminHoldTimer = setTimeout(() => {
-            clearAdminHold();
-            if (navigator.vibrate) navigator.vibrate(60);
-            openAdminVerifyRequestsModal();
-        }, 600);
-    };
-
-    const clearAdminHold = () => {
-        if (adminHoldTimer) {
-            clearTimeout(adminHoldTimer);
-            adminHoldTimer = null;
-        }
-        adminLoginBtn.classList.remove("holding");
-    };
-
-    adminLoginBtn.addEventListener("mousedown", startAdminHold);
-    adminLoginBtn.addEventListener("touchstart", startAdminHold, { passive: false });
-    adminLoginBtn.addEventListener("mouseup", clearAdminHold);
-    adminLoginBtn.addEventListener("mouseleave", clearAdminHold);
-    adminLoginBtn.addEventListener("touchend", clearAdminHold);
-    adminLoginBtn.addEventListener("touchcancel", clearAdminHold);
-}
-
-function openAdminVerifyRequestsModal() {
-    if (window.currentUserRole !== "admin") return;
-    openModal("adminVerifyRequestsModal");
-    loadVerificationRequests();
-}
-
-async function loadVerificationRequests() {
-    const listContainer = document.getElementById("verifyRequestsList");
-    if (!listContainer) return;
-
-    listContainer.innerHTML = `<p style="text-align: center; color: var(--text-muted);">লোড হচ্ছে...</p>`;
-
-    try {
-        const reqRef = ref(db, "webapp/verification_requests");
-        const snapshot = await get(reqRef);
-
-        if (!snapshot.exists()) {
-            listContainer.innerHTML = `<p style="text-align: center; color: var(--text-muted);">কোনো নতুন ভেরিফিকেশন রিকোয়েস্ট নেই</p>`;
-            return;
-        }
-
-        listContainer.innerHTML = "";
-        const requests = snapshot.val();
-
-        Object.keys(requests).forEach(devId => {
-            const req = requests[devId];
-            const itemDiv = document.createElement("div");
-            itemDiv.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--border-color);";
-
-            itemDiv.innerHTML = `
-                <div>
-                    <strong>${escapeHTML(req.name)}</strong><br>
-                    <small style="color: var(--text-muted);">${escapeHTML(req.designation)}</small>
-                </div>
-                <div>
-                    <button class="btn-approve-req" style="background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Approve</button>
-                    <button class="btn-reject-req" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-left: 5px;">Delete</button>
-                </div>
-            `;
-
-            itemDiv.querySelector(".btn-approve-req").addEventListener("click", async () => {
-                await approveDevice(devId, req);
-            });
-
-            itemDiv.querySelector(".btn-reject-req").addEventListener("click", async () => {
-                await rejectDeviceRequest(devId);
-            });
-
-            listContainer.appendChild(itemDiv);
-        });
-
-    } catch (error) {
-        console.error("Error loading verification requests:", error);
-        listContainer.innerHTML = `<p style="text-align: center; color: #ef4444;">ডাটা লোড করতে সমস্যা হয়েছে</p>`;
-    }
-}
-
-async function approveDevice(devId, reqData) {
-    if (window.currentUserRole !== "admin") return;
-
-    try {
-        await set(ref(db, `webapp/approved_devices/${devId}`), {
-            status: "approved",
-            name: reqData.name,
-            designation: reqData.designation,
-            approvedAt: Date.now()
-        });
-
-        await remove(ref(db, `webapp/verification_requests/${devId}`));
-        showToast("✅ ডিভাইস সফলভাবে অ্যাপ্রুভ করা হয়েছে!");
-        loadVerificationRequests();
-    } catch (e) {
-        showToast("অ্যাপ্রুভ করতে ব্যর্থ হয়েছে");
-    }
-}
-
-async function rejectDeviceRequest(devId) {
-    if (window.currentUserRole !== "admin") return;
-
-    const isConfirmed = await customConfirm("আপনি কি এই রিকোয়েস্টটি ডিলিট করতে চান?");
-    if (!isConfirmed) return;
-
-    try {
-        await remove(ref(db, `webapp/verification_requests/${devId}`));
-        showToast("রিকোয়েস্ট ডিলিট করা হয়েছে");
-        loadVerificationRequests();
-    } catch (e) {
-        showToast("ডিলিট করতে ব্যর্থ হয়েছে");
-    }
-}
-
-async function submitVerificationRequest() {
-    const name = document.getElementById("applicantName")?.value.trim();
-    const desig = document.getElementById("applicantDesignation")?.value.trim();
-
-    if (!name || !desig) {
-        return showToast("দয়া করে নাম এবং পদবী পূরণ করুন");
-    }
-
-    const devId = getDeviceId();
-    try {
-        await set(ref(db, `webapp/verification_requests/${devId}`), {
-            deviceId: devId,
-            name: name,
-            designation: desig,
-            requestedAt: Date.now()
-        });
-        closeModal("verifyModal");
-        showToast("✅ রিকোয়েস্ট সফলভাবে পাঠানো হয়েছে!");
-    } catch (e) {
-        showToast("রিকোয়েস্ট পাঠাতে ব্যর্থ হয়েছে");
-    }
-}
-
 function handleSearch() {
     const rawVal = document.getElementById("searchInput")?.value.trim();
     const searchVal = rawVal ? rawVal.toLowerCase() : "";
-    const adminBtn = document.getElementById("adminLoginBtn");
-
-    if (searchVal === "admin@jr") {
-        if (adminBtn) {
-            adminBtn.classList.remove("hidden");
-            showToast("🔑 অ্যাডমিন অপশন অন করা হয়েছে");
-        }
-    } else {
-        if (window.currentUserRole !== "admin" && adminBtn) {
-            adminBtn.classList.add("hidden");
-        }
-    }
 
     if (isAllSearchActive) {
         renderAllSearch();
@@ -680,20 +436,11 @@ function activateAllSearchUI() {
     const list = document.getElementById("categoryList");
     const emptyState = document.getElementById("emptyState");
     const allSearchBtn = document.getElementById("allSearchBtn");
-    const adminContainer = document.getElementById("adminActionContainer");
 
     allSearchBtn?.classList.add("hidden");
     list?.classList.add("hidden");
     emptyState?.classList.add("hidden");
     container?.classList.remove("hidden");
-    
-    if (adminContainer) {
-        adminContainer.classList.add("hidden");
-        adminContainer.style.display = "none";
-    }
-
-    document.getElementById("verifiedBadge")?.classList.add("hidden");
-
     openHeaderSearch();
     renderAllSearch();
 }
@@ -705,8 +452,6 @@ function closeAllSearchUI() {
 
     allSearchBtn?.classList.remove("hidden");
     container?.classList.add("hidden");
-    updateAdminUI();
-    
     renderCategories(document.getElementById("searchInput")?.value.trim().toLowerCase());
 }
 
@@ -719,21 +464,16 @@ function renderAllSearch() {
     container.innerHTML = "";
 
     let allData = database.data || [];
-
-    if (searchVal && searchVal !== "admin@jr") {
-        allData = allData.filter(d =>
-            (d.name && d.name.toLowerCase().includes(searchVal)) ||
-            (d.mobile && d.mobile.toLowerCase().includes(searchVal)) ||
-            (d.phone && d.phone.toLowerCase().includes(searchVal)) ||
-            (d.designation && d.designation.toLowerCase().includes(searchVal)) ||
-            (d.email && d.email.toLowerCase().includes(searchVal)) ||
-            (d.currentOffice && d.currentOffice.toLowerCase().includes(searchVal)) ||
-            (d.permanentAddress && d.permanentAddress.toLowerCase().includes(searchVal))
-        );
+    if (searchVal) {
+        allData = allData.filter(d => {
+            const name = String(getLocalizedField(d, 'name')).toLowerCase();
+            const mobile = String(d.mobile || "").toLowerCase();
+            const desig = String(getLocalizedField(d, 'designation')).toLowerCase();
+            return name.includes(searchVal) || mobile.includes(searchVal) || desig.includes(searchVal);
+        });
     }
 
     allData = sortContactData(allData);
-
     if (allData.length === 0) {
         container.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--text-muted); font-size: 16px;">🔍 কোনো তথ্য পাওয়া যায়নি</div>`;
         return;
@@ -742,22 +482,16 @@ function renderAllSearch() {
     allData.forEach(item => {
         container.appendChild(createDataCardElement(item));
     });
-
-    updateAdminUI();
 }
 
 function renderCategories(searchVal = "") {
     const list = document.getElementById("categoryList");
     const emptyState = document.getElementById("emptyState");
-
     if (!list || !emptyState) return;
 
     let categoriesToShow = database.categories.filter(cat => !cat.parentId);
-
-    if (searchVal && searchVal !== "admin@jr") {
-        categoriesToShow = categoriesToShow.filter(cat =>
-            String(cat.name).toLowerCase().includes(searchVal)
-        );
+    if (searchVal) {
+        categoriesToShow = categoriesToShow.filter(cat => String(getLocalizedField(cat, 'name')).toLowerCase().includes(searchVal));
     }
 
     categoriesToShow = sortItemsByPin(categoriesToShow);
@@ -771,218 +505,105 @@ function renderCategories(searchVal = "") {
 
     emptyState.classList.add("hidden");
     list.classList.remove("hidden");
-
     const isAdmin = window.currentUserRole === "admin";
 
     categoriesToShow.forEach(category => {
         const card = document.createElement("div");
         card.className = "category-card";
-
-        const pinIcon = category.pinned ? "📌" : "📍";
+        const catName = escapeHTML(getLocalizedField(category, 'name'));
         const imgSrc = category.image ? escapeHTML(category.image) : DEFAULT_CATEGORY_IMAGE;
-        const imageHtml = `<img src="${imgSrc}" alt="${escapeHTML(category.name)}" class="cat-card-img" onerror="this.src='${DEFAULT_CATEGORY_IMAGE}'">`;
-
-        const adminActions = isAdmin
-            ? `
-                <div class="action-btn-group">
-                    <button class="btn-pin-cat custom-action-btn" title="পিন করুন">${pinIcon}</button>
-                    <button class="btn-edit-cat custom-action-btn">✏️</button>
-                    <button class="btn-del-cat custom-action-btn" style="color:#ef4444">🗑️</button>
-                </div>
-            `
-            : "";
-
-        const pinBadge = (isAdmin && category.pinned)
-            ? '<span class="pinned-badge">Pinned</span>'
-            : "";
 
         card.innerHTML = `
-            <div class="cat-click">
-                ${imageHtml}
-                <h3>${escapeHTML(category.name)} ${pinBadge}</h3>
+            <div class="cat-click" style="display:flex; align-items:center; width:100%;">
+                <img src="${imgSrc}" class="cat-card-img" onerror="this.src='${DEFAULT_CATEGORY_IMAGE}'">
+                <h3>${catName}</h3>
             </div>
-            ${adminActions}
         `;
-
         card.querySelector(".cat-click").addEventListener("click", () => openCategory(category.id));
-
-        if (isAdmin) {
-            card.querySelector(".btn-pin-cat")?.addEventListener("click", e => {
-                e.stopPropagation();
-                togglePinCategory(category.id);
-            });
-            card.querySelector(".btn-edit-cat")?.addEventListener("click", e => {
-                e.stopPropagation();
-                editCategory(category.id);
-            });
-            card.querySelector(".btn-del-cat")?.addEventListener("click", e => {
-                e.stopPropagation();
-                e.preventDefault();
-                deleteCategory(category.id);
-            });
-        }
-
         list.appendChild(card);
     });
-
-    updateAdminUI();
 }
 
 function openCategoryModal(isSubCategory = false, editObj = null) {
     if (window.currentUserRole !== "admin") return;
     editingItem = editObj;
-
-    const title = document.getElementById("categoryModalTitle");
-    const inputName = document.getElementById("categoryNameInput");
-    const inputImage = document.getElementById("categoryImageInput");
-
-    if (editObj) {
-        title.textContent = "Category এডিট করুন";
-        inputName.value = editObj.name || "";
-        if (inputImage) inputImage.value = editObj.image || "";
-    } else {
-        title.textContent = isSubCategory ? "নতুন Sub-Category" : "নতুন Category";
-        inputName.value = "";
-        if (inputImage) inputImage.value = "";
-    }
-
+    document.getElementById("categoryModalTitle").textContent = editObj ? "Category এডিট করুন" : (isSubCategory ? "নতুন Sub-Category" : "নতুন Category");
+    document.getElementById("categoryNameInput").value = editObj ? getLocalizedField(editObj, 'name') : "";
+    document.getElementById("categoryImageInput").value = editObj?.image || "";
     openModal("categoryModal");
 }
 
 async function saveCategory() {
     if (window.currentUserRole !== "admin") return;
-
-    const name = document.getElementById("categoryNameInput")?.value.trim();
+    const nameVal = document.getElementById("categoryNameInput")?.value.trim();
     const image = document.getElementById("categoryImageInput")?.value.trim() || "";
-
-    if (!name) return showToast("Category Name লিখুন");
+    if (!nameVal) return showToast("Category Name লিখুন");
 
     if (editingItem) {
-        editingItem.name = name;
+        if (window.currentAppLang === 'en') editingItem.nameEn = nameVal;
+        else editingItem.nameBn = nameVal;
         editingItem.image = image;
         editingItem = null;
     } else {
-        database.categories.push({
+        const newCat = {
             id: generateId("cat"),
-            name: name,
-            image: image,
             parentId: currentCategoryId ? currentCategoryId : null,
+            image: image,
             pinned: false,
-            pinnedAt: 0,
             createdAt: Date.now()
-        });
+        };
+        if (window.currentAppLang === 'en') newCat.nameEn = nameVal;
+        else newCat.nameBn = nameVal;
+        database.categories.push(newCat);
     }
-
     closeModal("categoryModal");
     await saveDatabase();
     showToast("সেভ করা হয়েছে");
 }
 
-async function togglePinCategory(id) {
-    const cat = database.categories.find(c => c.id === id);
-    if (cat) {
-        cat.pinned = !cat.pinned;
-        cat.pinnedAt = cat.pinned ? Date.now() : 0;
-        await saveDatabase();
-        showToast(cat.pinned ? "পিন করা হয়েছে" : "আনপিন করা হয়েছে");
-    }
-}
-
-function editCategory(id) {
-    const cat = database.categories.find(c => c.id === id);
-    if (cat) openCategoryModal(false, cat);
-}
-
-async function deleteCategory(id) {
-    const isConfirmed = await customConfirm("আপনি কি নিশ্চিত এই Category মুছে ফেলতে চান?");
-    if (!isConfirmed) return;
-
-    database.categories = database.categories.filter(c => c.id !== id && c.parentId !== id);
-    database.headers = database.headers.filter(h => h.categoryId !== id);
-    database.data = database.data.filter(d => d.categoryId !== id);
-
-    await saveDatabase();
-    showToast("ডিলিট করা হয়েছে");
-}
-
 function openHeaderModal(editObj = null) {
     if (window.currentUserRole !== "admin") return;
     editingItem = editObj;
-    const input = document.getElementById("headerNameInput");
-    if (input) input.value = editObj ? editObj.title : "";
+    document.getElementById("headerNameInput").value = editObj ? getLocalizedField(editObj, 'title') : "";
     openModal("headerModal");
 }
 
 async function saveHeader() {
     if (window.currentUserRole !== "admin") return;
-    const title = document.getElementById("headerNameInput")?.value.trim();
-
-    if (!title || !currentCategoryId) return showToast("হেডার নাম লিখুন");
+    const titleVal = document.getElementById("headerNameInput")?.value.trim();
+    if (!titleVal || !currentCategoryId) return showToast("হেডার নাম লিখুন");
 
     if (editingItem) {
-        editingItem.title = title;
+        if (window.currentAppLang === 'en') editingItem.titleEn = titleVal;
+        else editingItem.titleBn = titleVal;
         editingItem = null;
     } else {
-        database.headers.push({
+        const newHead = {
             id: generateId("header"),
             categoryId: currentCategoryId,
-            title: title,
             pinned: false,
-            pinnedAt: 0,
             createdAt: Date.now()
-        });
+        };
+        if (window.currentAppLang === 'en') newHead.titleEn = titleVal;
+        else newHead.titleBn = titleVal;
+        database.headers.push(newHead);
     }
-
     closeModal("headerModal");
     await saveDatabase();
     showToast("Header সেভ করা হয়েছে");
 }
 
-async function togglePinHeader(id) {
-    const header = database.headers.find(h => h.id === id);
-    if (header) {
-        header.pinned = !header.pinned;
-        header.pinnedAt = header.pinned ? Date.now() : 0;
-        await saveDatabase();
-        showToast(header.pinned ? "হেডার পিন করা হয়েছে" : "হেডার আনপিন করা হয়েছে");
-    }
-}
-
-function editHeader(id) {
-    const h = database.headers.find(item => item.id === id);
-    if (h) openHeaderModal(h);
-}
-
-async function deleteHeader(id) {
-    const isConfirmed = await customConfirm("এই Header ডিলিট করতে চান? ডাটাগুলো সরানো হবে না।");
-    if (!isConfirmed) return;
-
-    database.headers = database.headers.filter(h => h.id !== id);
-    database.data.forEach(d => {
-        if (d.headerId === id) d.headerId = null;
-    });
-
-    await saveDatabase();
-    showToast("Header ডিলিট করা হয়েছে");
-}
-
-// -------------------------------------------------------------
-// ফেভারিট ম্যানেজমেন্ট সিস্টেম
-// -------------------------------------------------------------
 function getFavoriteIds() {
     try {
         const favs = localStorage.getItem("police_pb_favorites");
         return favs ? JSON.parse(favs) : [];
-    } catch (e) {
-        return [];
-    }
+    } catch (e) { return []; }
 }
 
 function toggleFavorite(dataId, event) {
     if (event) event.stopPropagation();
     let favs = getFavoriteIds();
     const index = favs.indexOf(dataId);
-    
     if (index > -1) {
         favs.splice(index, 1);
         showToast("ফেভারিট থেকে সরানো হয়েছে");
@@ -990,14 +611,11 @@ function toggleFavorite(dataId, event) {
         favs.push(dataId);
         showToast("ফেভারিটে যোগ করা হয়েছে");
     }
-    
     localStorage.setItem("police_pb_favorites", JSON.stringify(favs));
-    if (typeof refreshCurrentView === 'function') refreshCurrentView();
+    refreshCurrentView();
 }
 
-function isFavorite(dataId) {
-    return getFavoriteIds().includes(dataId);
-}
+function isFavorite(dataId) { return getFavoriteIds().includes(dataId); }
 
 function renderFavoriteView(pushHistory = true) {
     if (pushHistory) history.pushState({ page: "favorite" }, "");
@@ -1006,179 +624,81 @@ function renderFavoriteView(pushHistory = true) {
     currentDataId = null;
     isAllSearchActive = false;
 
-    const appTitle = document.getElementById("appTitle");
-    if (appTitle) {
-        const titleText = appTitle.querySelector(".app-title-text") || appTitle;
-        titleText.textContent = "Favorite Numbers";
-    }
-
-    document.getElementById("verifiedBadge")?.classList.add("hidden");
-    setNavState(true);
-
-    const subToolbar = document.querySelector(".sub-toolbar") || document.getElementById("subToolbar") || document.getElementById("allSearchBtn");
-    if (subToolbar) subToolbar.classList.add("hidden");
-
     document.getElementById("mainDashboardView")?.classList.remove("hidden");
     document.getElementById("categoryDetailsView")?.classList.add("hidden");
     document.getElementById("dataDetailsView")?.classList.add("hidden");
     document.getElementById("allSearchContainer")?.classList.add("hidden");
 
     const list = document.getElementById("categoryList");
-    const emptyState = document.getElementById("emptyState");
-    
     if (list) list.innerHTML = "";
     
     const favIds = getFavoriteIds();
-    const rawVal = document.getElementById("searchInput")?.value.trim();
-    const searchVal = rawVal ? rawVal.toLowerCase() : "";
-
     let favData = (database.data || []).filter(d => favIds.includes(d.id));
-
-    if (searchVal && searchVal !== "admin@jr") {
-        favData = favData.filter(d =>
-            (d.name && d.name.toLowerCase().includes(searchVal)) ||
-            (d.mobile && d.mobile.toLowerCase().includes(searchVal)) ||
-            (d.phone && d.phone.toLowerCase().includes(searchVal)) ||
-            (d.designation && d.designation.toLowerCase().includes(searchVal)) ||
-            (d.email && d.email.toLowerCase().includes(searchVal))
-        );
-    }
+    favData = sortContactData(favData);
 
     if (favData.length === 0) {
-        if (emptyState) {
-            emptyState.classList.remove("hidden");
-            emptyState.querySelector("h2").textContent = "কোনো ফেভারিট নাম্বার নেই";
-            emptyState.querySelector("p").textContent = "হার্ট আইকনে ক্লিক করে ফেভারিটে যুক্ত করুন।";
-        }
-        if (list) list.classList.add("hidden");
+        document.getElementById("emptyState")?.classList.remove("hidden");
+        list?.classList.add("hidden");
         return;
     }
 
-    if (emptyState) emptyState.classList.add("hidden");
-    if (list) {
-        list.classList.remove("hidden");
-        favData.forEach(item => {
-            list.appendChild(createDataCardElement(item));
-        });
-    }
-    updateAdminUI();
+    document.getElementById("emptyState")?.classList.add("hidden");
+    list?.classList.remove("hidden");
+    favData.forEach(item => list.appendChild(createDataCardElement(item)));
 }
-
 window.renderFavoriteView = renderFavoriteView;
-// -------------------------------------------------------------
 
 function createDataCardElement(item) {
     const isAdmin = window.currentUserRole === "admin";
     const dataEl = document.createElement("div");
     dataEl.className = "data-card-item";
 
-    const name = escapeHTML(item.name || "নাম পাওয়া যায়নি");
+    const name = escapeHTML(getLocalizedField(item, 'name') || "নাম পাওয়া যায়নি");
     const mobile = escapeHTML(item.mobile || "মোবাইল নেই");
     const phone = escapeHTML(item.phone || "টেলিফোন নেই");
-    const designation = escapeHTML(item.designation || "পদবী নেই");
+    const designation = escapeHTML(getLocalizedField(item, 'designation') || "পদবী নেই");
     const photo = item.photo ? escapeHTML(item.photo) : null;
 
-    const avatarHtml = photo
-        ? `<img src="${photo}" alt="${name}" class="data-card-avatar" onerror="this.outerHTML='<div class=\\'data-card-avatar\\'>👤</div>'">`
-        : `<div class="data-card-avatar">👤</div>`;
-
-    const pinIcon = item.pinned ? "📌" : "📍";
+    const avatarHtml = photo ? `<img src="${photo}" class="data-card-avatar" onerror="this.outerHTML='<div class=\\'data-card-avatar\\'>👤</div>'">` : `<div class="data-card-avatar">👤</div>`;
     const favIcon = isFavorite(item.id) ? "❤️" : "🤍";
-
-    const favButtonHtml = !isAdmin ? `<button class="btn-fav-item custom-action-btn" title="ফেভারিট">${favIcon}</button>` : "";
-
-    const adminActions = isAdmin
-        ? `
-            <div class="card-admin-actions" style="display:flex;gap:4px; align-items:center;">
-                <button class="btn-pin-data custom-action-btn" title="পিন">${pinIcon}</button>
-                <button class="btn-move-data custom-action-btn" title="মুভ">📦</button>
-                <button class="btn-edit-data custom-action-btn" title="এডিট">✏️</button>
-                <button class="btn-del-data custom-action-btn" style="color:#ef4444" title="ডিলিট">🗑️</button>
-            </div>
-        `
-        : `
-            <div class="card-admin-actions" style="display:flex;gap:4px; align-items:center;">
-                ${favButtonHtml}
-            </div>
-        `;
-
-    const dataPinMark = (isAdmin && item.pinned) ? "📌" : "";
 
     dataEl.innerHTML = `
         ${avatarHtml}
         <div class="data-card-info">
-            <div class="data-card-name">${name} ${dataPinMark}</div>
-            <div class="data-card-detail">📱 মোবাইল: ${mobile}</div>
-            <div class="data-card-detail">☎️ টেলিফোন: ${phone}</div>
-            <div class="data-card-detail">💼 পদবী: ${designation}</div>
+            <div class="data-card-name">${name}</div>
+            <div class="data-card-detail">📱 ${mobile}</div>
+            <div class="data-card-detail">💼 ${designation}</div>
         </div>
-        ${adminActions}
+        <button class="btn-fav-item custom-action-btn" title="ফেভারিট">${favIcon}</button>
     `;
 
     dataEl.addEventListener("click", () => openDataPage(item.id));
-
-    const actionGroup = dataEl.querySelector(".card-admin-actions");
-    if (actionGroup) actionGroup.addEventListener("click", e => e.stopPropagation());
-
-    dataEl.querySelector(".btn-fav-item")?.addEventListener("click", e => {
-        e.stopPropagation();
-        toggleFavorite(item.id, e);
-    });
-
-    if (isAdmin) {
-        dataEl.querySelector(".btn-pin-data")?.addEventListener("click", e => {
-            e.stopPropagation();
-            togglePinData(item.id);
-        });
-        dataEl.querySelector(".btn-move-data")?.addEventListener("click", e => {
-            e.stopPropagation();
-            openMoveDataModal(item.id);
-        });
-        dataEl.querySelector(".btn-edit-data")?.addEventListener("click", e => {
-            e.stopPropagation();
-            editData(item.id);
-        });
-        dataEl.querySelector(".btn-del-data")?.addEventListener("click", e => {
-            e.stopPropagation();
-            e.preventDefault();
-            deleteData(item.id);
-        });
-    }
-
+    dataEl.querySelector(".btn-fav-item")?.addEventListener("click", e => toggleFavorite(item.id, e));
     return dataEl;
 }
 
 function openDataModal(editObj = null) {
     if (window.currentUserRole !== "admin") return;
     editingItem = editObj;
-
-    const title = document.getElementById("dataModalTitle");
-    if (title) title.textContent = editObj ? "Data এডিট করুন" : "Data যোগ করুন";
+    document.getElementById("dataModalTitle").textContent = editObj ? "Data এডিট করুন" : "Data যোগ করুন";
 
     document.getElementById("dataPhoto").value = editObj?.photo || "";
-    document.getElementById("dataName").value = editObj?.name || "";
+    document.getElementById("dataName").value = editObj ? getLocalizedField(editObj, 'name') : "";
     document.getElementById("dataMobile").value = editObj?.mobile || "";
     document.getElementById("dataPhone").value = editObj?.phone || "";
-    document.getElementById("dataDesignation").value = editObj?.designation || "";
+    document.getElementById("dataDesignation").value = editObj ? getLocalizedField(editObj, 'designation') : "";
     document.getElementById("dataEmail").value = editObj?.email || "";
-    document.getElementById("dataCurrentOffice").value = editObj?.currentOffice || "";
-    document.getElementById("dataPermanentAddress").value = editObj?.permanentAddress || "";
-    document.getElementById("dataAdminInfo").value = editObj?.adminInfo || "";
+    document.getElementById("dataCurrentOffice").value = editObj ? getLocalizedField(editObj, 'currentOffice') : "";
+    document.getElementById("dataPermanentAddress").value = editObj ? getLocalizedField(editObj, 'permanentAddress') : "";
+    document.getElementById("dataAdminInfo").value = editObj ? getLocalizedField(editObj, 'adminInfo') : "";
 
     const select = document.getElementById("dataHeaderSelect");
     if (select) {
         select.innerHTML = `<option value="">Header ছাড়া</option>`;
-        database.headers
-            .filter(h => h.categoryId === currentCategoryId)
-            .forEach(h => {
-                select.innerHTML += `
-                    <option value="${h.id}" ${editObj?.headerId === h.id ? "selected" : ""}>
-                        ${escapeHTML(h.title)}
-                    </option>
-                `;
-            });
+        database.headers.filter(h => h.categoryId === currentCategoryId).forEach(h => {
+            select.innerHTML += `<option value="${h.id}" ${editObj?.headerId === h.id ? "selected" : ""}>${escapeHTML(getLocalizedField(h, 'title'))}</option>`;
+        });
     }
-
     openModal("dataModal");
 }
 
@@ -1186,33 +706,29 @@ async function saveData() {
     if (window.currentUserRole !== "admin") return;
     if (!currentCategoryId && !editingItem) return showToast("ক্যাটাগরি সিলেক্ট করা নেই");
 
-    const name = document.getElementById("dataName")?.value.trim() || "";
+    const nameVal = document.getElementById("dataName")?.value.trim() || "";
     const mobile = document.getElementById("dataMobile")?.value.trim() || "";
-    const phone = document.getElementById("dataPhone")?.value.trim() || "";
-    const email = document.getElementById("dataEmail")?.value.trim() || "";
+    const desigVal = document.getElementById("dataDesignation")?.value.trim() || "";
+    const currentOfficeVal = document.getElementById("dataCurrentOffice")?.value.trim() || "";
+    const permanentAddressVal = document.getElementById("dataPermanentAddress")?.value.trim() || "";
+    const adminInfoVal = document.getElementById("dataAdminInfo")?.value.trim() || "";
 
-    if (!name) return showToast("নাম প্রদান করুন");
-
-    if (mobile.length !== 11) {
-        return showToast("মোবাইল নাম্বার অবশ্যই ১১ ডিজিটের হতে হবে!");
-    }
-
-    if (!mobile && !phone && !email) {
-        return showToast("মোবাইল, টেলিফোন অথবা ইমেইল এড্রেস ফাঁকা রাখা যাবে না!");
-    }
+    if (!nameVal) return showToast("নাম প্রদান করুন");
 
     const payload = {
         photo: document.getElementById("dataPhoto")?.value.trim() || "",
-        name: name,
         mobile: mobile,
-        phone: phone,
-        designation: document.getElementById("dataDesignation")?.value.trim() || "",
-        email: email,
-        currentOffice: document.getElementById("dataCurrentOffice")?.value.trim() || "",
-        permanentAddress: document.getElementById("dataPermanentAddress")?.value.trim() || "",
-        adminInfo: document.getElementById("dataAdminInfo")?.value.trim() || "",
+        phone: document.getElementById("dataPhone")?.value.trim() || "",
+        email: document.getElementById("dataEmail")?.value.trim() || "",
         headerId: document.getElementById("dataHeaderSelect")?.value || null
     };
+
+    const langSuffix = window.currentAppLang === 'en' ? 'En' : 'Bn';
+    payload['name' + langSuffix] = nameVal;
+    payload['designation' + langSuffix] = desigVal;
+    payload['currentOffice' + langSuffix] = currentOfficeVal;
+    payload['permanentAddress' + langSuffix] = permanentAddressVal;
+    payload['adminInfo' + langSuffix] = adminInfoVal;
 
     if (editingItem) {
         Object.assign(editingItem, payload);
@@ -1223,7 +739,6 @@ async function saveData() {
             categoryId: currentCategoryId,
             ...payload,
             pinned: false,
-            pinnedAt: 0,
             createdAt: Date.now()
         });
     }
@@ -1231,75 +746,6 @@ async function saveData() {
     closeModal("dataModal");
     await saveDatabase();
     showToast("ডাটা সেভ হয়েছে");
-}
-
-function editData(id) {
-    const item = database.data.find(d => d.id === id);
-    if (item) openDataModal(item);
-}
-
-async function deleteData(id) {
-    const isConfirmed = await customConfirm("আপনি কি এই Data মুছে ফেলতে চান?");
-    if (!isConfirmed) return;
-
-    database.data = database.data.filter(d => d.id !== id);
-    await saveDatabase();
-    showToast("ডাটা ডিলিট করা হয়েছে");
-}
-
-async function togglePinData(id) {
-    const item = database.data.find(d => d.id === id);
-    if (item) {
-        item.pinned = !item.pinned;
-        item.pinnedAt = item.pinned ? Date.now() : 0;
-        await saveDatabase();
-        showToast(item.pinned ? "ডাটা পিন করা হয়েছে" : "ডাটা আনপিন করা হয়েছে");
-    }
-}
-
-function openMoveDataModal(id) {
-    movingDataId = id;
-    const catSelect = document.getElementById("moveCategorySelect");
-
-    if (catSelect) {
-        catSelect.innerHTML = "";
-        database.categories.forEach(c => {
-            catSelect.innerHTML += `<option value="${c.id}">${escapeHTML(c.name)}</option>`;
-        });
-        catSelect.value = currentCategoryId;
-    }
-
-    updateMoveHeaderOptions();
-    catSelect?.addEventListener("change", updateMoveHeaderOptions);
-    openModal("moveDataModal");
-}
-
-function updateMoveHeaderOptions() {
-    const catId = document.getElementById("moveCategorySelect")?.value;
-    const headSelect = document.getElementById("moveHeaderSelect");
-
-    if (headSelect) {
-        headSelect.innerHTML = `<option value="">Header ছাড়া</option>`;
-        database.headers
-            .filter(h => h.categoryId === catId)
-            .forEach(h => {
-                headSelect.innerHTML += `<option value="${h.id}">${escapeHTML(h.title)}</option>`;
-            });
-    }
-}
-
-async function confirmMoveData() {
-    const catId = document.getElementById("moveCategorySelect")?.value;
-    const headId = document.getElementById("moveHeaderSelect")?.value || null;
-    const item = database.data.find(d => d.id === movingDataId);
-
-    if (item && catId) {
-        item.categoryId = catId;
-        item.headerId = headId;
-        closeModal("moveDataModal");
-        await saveDatabase();
-        showToast("ডাটা সফলভাবে মুভ করা হয়েছে!");
-    }
 }
 
 function openCategory(id, pushHistory = true) {
@@ -1315,27 +761,14 @@ function showCategoryView(id) {
     currentDataId = null;
     isFavoriteActive = false;
 
-    const appTitle = document.getElementById("appTitle");
-    if (appTitle) {
-        const titleText = appTitle.querySelector(".app-title-text") || appTitle;
-        titleText.textContent = category.name;
-    }
-
-    document.getElementById("verifiedBadge")?.classList.add("hidden");
-    setNavState(true);
-
-    const subToolbar = document.querySelector(".sub-toolbar") || document.getElementById("subToolbar") || document.getElementById("allSearchBtn");
-    if (subToolbar) subToolbar.classList.add("hidden");
+    const titleText = document.querySelector(".app-title-text");
+    if (titleText) titleText.textContent = getLocalizedField(category, 'name');
 
     document.getElementById("mainDashboardView")?.classList.add("hidden");
     document.getElementById("dataDetailsView")?.classList.add("hidden");
     document.getElementById("categoryDetailsView")?.classList.remove("hidden");
 
-    const detailsTitle = document.getElementById("detailsTitle");
-    if (detailsTitle) detailsTitle.style.display = "none";
-
-    updateAdminUI();
-    renderCategoryDetails(document.getElementById("searchInput")?.value.trim().toLowerCase());
+    renderCategoryDetails();
 }
 
 function showMainDashboardView() {
@@ -1343,206 +776,52 @@ function showMainDashboardView() {
     currentDataId = null;
     isFavoriteActive = false;
 
-    const appTitle = document.getElementById("appTitle");
-    if (appTitle) {
-        const titleText = appTitle.querySelector(".app-title-text") || appTitle;
-        titleText.textContent = "Police Phonebook";
-    }
-
-    const verifiedBadge = document.getElementById("verifiedBadge");
-    if (verifiedBadge && isDeviceVerified) verifiedBadge.classList.remove("hidden");
-
-    setNavState(false);
-
-    const subToolbar = document.querySelector(".sub-toolbar") || document.getElementById("subToolbar") || document.getElementById("allSearchBtn");
-    if (subToolbar) subToolbar.classList.remove("hidden");
+    const titleText = document.querySelector(".app-title-text");
+    if (titleText) titleText.textContent = "Police Phonebook";
 
     document.getElementById("categoryDetailsView")?.classList.add("hidden");
     document.getElementById("dataDetailsView")?.classList.add("hidden");
     document.getElementById("mainDashboardView")?.classList.remove("hidden");
 
-    updateAdminUI();
-
-    if (isAllSearchActive) {
-        renderAllSearch();
-    } else {
-        renderCategories(document.getElementById("searchInput")?.value.trim().toLowerCase());
-    }
+    if (isAllSearchActive) renderAllSearch();
+    else renderCategories();
 }
 
 function refreshCurrentView() {
-    if (currentDataId) {
-        showDataPage(currentDataId, false);
-    } else if (currentCategoryId) {
-        showCategoryView(currentCategoryId);
-    } else if (isAllSearchActive) {
-        renderAllSearch();
-    } else if (isFavoriteActive) {
-        renderFavoriteView(false);
-    } else {
-        showMainDashboardView(false);
-    }
+    if (currentDataId) showDataPage(currentDataId, false);
+    else if (currentCategoryId) showCategoryView(currentCategoryId);
+    else if (isAllSearchActive) renderAllSearch();
+    else if (isFavoriteActive) renderFavoriteView(false);
+    else showMainDashboardView();
 }
 
-function renderCategoryDetails(searchVal = "") {
+function renderCategoryDetails() {
     const container = document.getElementById("detailsContent");
     if (!container) return;
-
     container.innerHTML = "";
-    const isAdmin = window.currentUserRole === "admin";
-    const filterText = searchVal === "admin@jr" ? "" : searchVal;
-
-    let subCategories = database.categories.filter(cat => cat.parentId === currentCategoryId);
-    if (filterText) {
-        subCategories = subCategories.filter(sub => sub.name.toLowerCase().includes(filterText));
-    }
-    subCategories = sortItemsByPin(subCategories);
-
-    if (subCategories.length > 0) {
-        const subWrapper = document.createElement("div");
-        subWrapper.style.marginBottom = "20px";
-
-        subCategories.forEach(sub => {
-            const item = document.createElement("div");
-            item.className = "subcategory-card";
-
-            const pinIcon = sub.pinned ? "📌" : "📍";
-            const subImgSrc = sub.image ? escapeHTML(sub.image) : DEFAULT_CATEGORY_IMAGE;
-            const imageHtml = `<img src="${subImgSrc}" alt="${escapeHTML(sub.name)}" class="cat-card-img" onerror="this.src='${DEFAULT_CATEGORY_IMAGE}'">`;
-
-            const adminActions = isAdmin
-                ? `
-                    <div>
-                        <button class="btn-pin-sub custom-action-btn" title="পিন">${pinIcon}</button>
-                        <button class="btn-edit-sub custom-action-btn">✏️</button>
-                        <button class="btn-del-sub custom-action-btn" style="color:#ef4444">🗑️</button>
-                    </div>
-                `
-                : "";
-
-            const subPinBadge = (isAdmin && sub.pinned) ? '<span class="pinned-badge">Pinned</span>' : "";
-
-            item.innerHTML = `
-                <div class="sub-click">
-                    ${imageHtml}
-                    <h3>${escapeHTML(sub.name)} ${subPinBadge}</h3>
-                </div>
-                ${adminActions}
-            `;
-
-            item.querySelector(".sub-click").addEventListener("click", () => openCategory(sub.id));
-
-            if (isAdmin) {
-                item.querySelector(".btn-pin-sub")?.addEventListener("click", e => {
-                    e.stopPropagation();
-                    togglePinCategory(sub.id);
-                });
-                item.querySelector(".btn-edit-sub")?.addEventListener("click", e => {
-                    e.stopPropagation();
-                    editCategory(sub.id);
-                });
-                item.querySelector(".btn-del-sub")?.addEventListener("click", e => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    deleteCategory(sub.id);
-                });
-            }
-
-            subWrapper.appendChild(item);
-        });
-
-        container.appendChild(subWrapper);
-    }
 
     let categoryData = database.data.filter(d => d.categoryId === currentCategoryId);
     categoryData = sortContactData(categoryData);
 
     let noHeaderData = categoryData.filter(d => !d.headerId);
-    if (filterText) {
-        noHeaderData = noHeaderData.filter(d =>
-            (d.name && d.name.toLowerCase().includes(filterText)) ||
-            (d.mobile && d.mobile.toLowerCase().includes(filterText)) ||
-            (d.phone && d.phone.toLowerCase().includes(filterText)) ||
-            (d.designation && d.designation.toLowerCase().includes(filterText))
-        );
-    }
-
     if (noHeaderData.length > 0) {
         const noHeaderWrapper = document.createElement("div");
         noHeaderWrapper.style.marginBottom = "15px";
-        noHeaderData.forEach(item => {
-            noHeaderWrapper.appendChild(createDataCardElement(item));
-        });
+        noHeaderData.forEach(item => noHeaderWrapper.appendChild(createDataCardElement(item)));
         container.appendChild(noHeaderWrapper);
     }
 
     let headers = database.headers.filter(h => h.categoryId === currentCategoryId);
-    headers = sortItemsByPin(headers);
-
     headers.forEach(header => {
-        const headerAllData = categoryData.filter(d => d.headerId === header.id);
-        const isHeaderMatched = filterText && header.title.toLowerCase().includes(filterText);
-
-        let matchedData = headerAllData;
-        if (filterText && !isHeaderMatched) {
-            matchedData = headerAllData.filter(d =>
-                (d.name && d.name.toLowerCase().includes(filterText)) ||
-                (d.mobile && d.mobile.toLowerCase().includes(filterText)) ||
-                (d.phone && d.phone.toLowerCase().includes(filterText)) ||
-                (d.designation && d.designation.toLowerCase().includes(filterText))
-            );
-        }
-
-        if (!filterText || isHeaderMatched || matchedData.length > 0) {
-            const displayData = isHeaderMatched ? headerAllData : matchedData;
+        const headerData = categoryData.filter(d => d.headerId === header.id);
+        if (headerData.length > 0) {
             const headerBox = document.createElement("div");
             headerBox.className = "header-box";
-
-            const pinIcon = header.pinned ? "📌" : "📍";
-            const adminActions = isAdmin
-                ? `
-                    <div>
-                        <button class="btn-pin-head custom-action-btn" title="পিন">${pinIcon}</button>
-                        <button class="btn-edit-head custom-action-btn">✏️</button>
-                        <button class="btn-del-head custom-action-btn" style="color:#ef4444">🗑️</button>
-                    </div>
-                `
-                : "";
-
-            const headerPinMark = (isAdmin && header.pinned) ? "📌" : "";
-
-            headerBox.innerHTML = `
-                <div class="header-banner">
-                    <span>${escapeHTML(header.title)} ${headerPinMark}</span>
-                    ${adminActions}
-                </div>
-            `;
-
-            if (isAdmin) {
-                headerBox.querySelector(".btn-pin-head")?.addEventListener("click", e => {
-                    e.stopPropagation();
-                    togglePinHeader(header.id);
-                });
-                headerBox.querySelector(".btn-edit-head")?.addEventListener("click", e => {
-                    e.stopPropagation();
-                    editHeader(header.id);
-                });
-                headerBox.querySelector(".btn-del-head")?.addEventListener("click", e => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    deleteHeader(header.id);
-                });
-            }
-
-            displayData.forEach(item => {
-                headerBox.appendChild(createDataCardElement(item));
-            });
-
+            headerBox.innerHTML = `<div class="header-banner"><span>${escapeHTML(getLocalizedField(header, 'title'))}</span></div>`;
+            headerData.forEach(item => headerBox.appendChild(createDataCardElement(item)));
             container.appendChild(headerBox);
         }
     });
-
-    updateAdminUI();
 }
 
 function openDataPage(dataId, pushHistory = true) {
@@ -1556,60 +835,28 @@ function showDataPage(dataId) {
 
     currentDataId = dataId;
     isFavoriteActive = false;
-    document.getElementById("verifiedBadge")?.classList.add("hidden");
-    setNavState(true);
-
     document.getElementById("mainDashboardView")?.classList.add("hidden");
     document.getElementById("categoryDetailsView")?.classList.add("hidden");
     document.getElementById("dataDetailsView")?.classList.remove("hidden");
 
-    updateAdminUI();
-
-    if (!navigator.onLine) {
-        renderDataDetailsContent(item);
-        return;
-    }
-
     renderDataDetailsContent(item);
-
-    const devId = getDeviceId();
-    const approvedRef = ref(db, `webapp/approved_devices/${devId}`);
-
-    get(approvedRef).then((snapshot) => {
-        if (snapshot.exists() && snapshot.val().status === "approved") {
-            isDeviceVerified = true;
-        }
-
-        renderDataDetailsContent(item);
-
-    }).catch(() => {
-        renderDataDetailsContent(item);
-    });
 }
 
 function renderDataDetailsContent(item) {
     const container = document.getElementById("dataPageContent");
     if (!container) return;
 
-    const isAdmin = window.currentUserRole === "admin";
-    const name = escapeHTML(item.name || "নাম পাওয়া যায়নি");
-    const designation = escapeHTML(item.designation || "পদবী নেই");
+    const name = escapeHTML(getLocalizedField(item, 'name') || "নাম পাওয়া যায়নি");
+    const designation = escapeHTML(getLocalizedField(item, 'designation') || "পদবী নেই");
     const mobile = escapeHTML(item.mobile || "মোবাইল নেই");
     const phone = escapeHTML(item.phone || "টেলিফোন নেই");
     const email = escapeHTML(item.email || "ইমেইল নেই");
-    const currentOffice = escapeHTML(item.currentOffice || "");
-    const permanentAddress = escapeHTML(item.permanentAddress || "");
-    const adminInfo = escapeHTML(item.adminInfo || "");
+    const currentOffice = escapeHTML(getLocalizedField(item, 'currentOffice') || "");
+    const permanentAddress = escapeHTML(getLocalizedField(item, 'permanentAddress') || "");
+    const adminInfo = escapeHTML(getLocalizedField(item, 'adminInfo') || "");
     const photo = item.photo ? escapeHTML(item.photo) : null;
 
-    const avatarHtml = photo
-        ? `<img src="${photo}" alt="${name}" class="details-avatar-large" onerror="this.outerHTML='<div class=\\'details-avatar-large\\'>👤</div>'">`
-        : `<div class="details-avatar-large">👤</div>`;
-
-    const isAuthorized = isDeviceVerified || isAdmin;
-    const showAdminInfoBox = isAuthorized && adminInfo;
-    const showPermanentAddressBox = isAuthorized && permanentAddress;
-    const showVerifyBtnInDetails = (!isDeviceVerified && !isAdmin);
+    const avatarHtml = photo ? `<img src="${photo}" class="details-avatar-large" onerror="this.outerHTML='<div class=\\'details-avatar-large\\'>👤</div>'">` : `<div class="details-avatar-large">👤</div>`;
 
     container.innerHTML = `
         <div class="details-header-section">
@@ -1617,215 +864,25 @@ function renderDataDetailsContent(item) {
             <h2 style="font-size:22px;font-weight:700;">${name}</h2>
             <p style="color:var(--text-muted);font-size:15px;">${designation}</p>
         </div>
-
-        <div class="quick-action-grid">
-            <button id="btnMobileCall" class="action-btn-round btn-call-round">📱 মোবাইল</button>
-            <button id="btnPhoneCall" class="action-btn-round btn-phone-round">☎️ টেলিফোন</button>
-            <button id="btnEmailSend" class="action-btn-round btn-email-round">✉️ ইমেইল</button>
-            <button id="btnShareContact" class="action-btn-round btn-share-round">🔗 শেয়ার কন্টাক্ট</button>
-        </div>
-
         <div class="details-info-list">
             <div class="details-info-box"><div class="info-label">📱 মোবাইল</div><div class="info-value">${mobile}</div></div>
             <div class="details-info-box"><div class="info-label">☎️ টেলিফোন</div><div class="info-value">${phone}</div></div>
             <div class="details-info-box"><div class="info-label">💼 পদবী</div><div class="info-value">${designation}</div></div>
             <div class="details-info-box"><div class="info-label">✉️ ই-মেইল</div><div class="info-value">${email}</div></div>
             ${currentOffice ? `<div class="details-info-box"><div class="info-label">🏢 বর্তমান ঠিকানা</div><div class="info-value">${currentOffice}</div></div>` : ""}
-            ${showPermanentAddressBox ? `<div class="details-info-box"><div class="info-label">🏠 স্থায়ী ঠিকানা</div><div class="info-value">${permanentAddress}</div></div>` : ""}
-            ${showAdminInfoBox ? `<div class="details-info-box" style="border-left:4px solid #f59e0b;"><div class="info-label">📝 প্রশাসনিক তথ্য</div><div class="info-value">${adminInfo}</div></div>` : ""}
-            ${showVerifyBtnInDetails ? `<div style="text-align: right; margin-top: 5px;"><button class="btn-get-verify" id="detailsVerifyBtn">Get VIP</button></div>` : ""}
+            ${permanentAddress ? `<div class="details-info-box"><div class="info-label">🏠 স্থায়ী ঠিকানা</div><div class="info-value">${permanentAddress}</div></div>` : ""}
+            ${adminInfo ? `<div class="details-info-box" style="border-left:4px solid #f59e0b;"><div class="info-label">📝 প্রশাসনিক তথ্য</div><div class="info-value">${adminInfo}</div></div>` : ""}
         </div>
     `;
-
-    setupSmartCallAndWhatsApp(document.getElementById("btnMobileCall"), item.mobile, "মোবাইল");
-    setupSmartCallAndWhatsApp(document.getElementById("btnPhoneCall"), item.phone, "টেলিফোন");
-    setupEmailAction(document.getElementById("btnEmailSend"), item.email);
-
-    const detailsVerifyBtn = document.getElementById("detailsVerifyBtn");
-    if (detailsVerifyBtn) setupHoldToVerify(detailsVerifyBtn);
-
-    document.getElementById("btnShareContact")?.addEventListener("click", () => {
-        const shareText = `👤 নাম: ${item.name || ""}\n📱 মোবাইল: ${item.mobile || ""}\n☎️ টেলিফোন: ${item.phone || ""}\n✉️ ইমেইল: ${item.email || ""}\n💼 পদবী: ${item.designation || ""}`;
-        if (navigator.share) {
-            navigator.share({ title: item.name, text: shareText }).catch(() => {});
-        } else {
-            navigator.clipboard.writeText(shareText);
-            showToast("কন্টাক্ট কপি করা হয়েছে!");
-        }
-    });
 }
 
-function setupHoldToVerify(button) {
-    let holdTimer = null;
-
-    const startHold = (e) => {
-        e.preventDefault();
-        button.style.transform = "scale(0.95)";
-        button.style.opacity = "0.8";
-
-        holdTimer = setTimeout(() => {
-            clearHold();
-            if (navigator.vibrate) navigator.vibrate(60);
-            openModal("verifyModal");
-        }, 10000);
-    };
-
-    const clearHold = () => {
-        if (holdTimer) {
-            clearTimeout(holdTimer);
-            holdTimer = null;
-        }
-        button.style.transform = "scale(1)";
-        button.style.opacity = "1";
-    };
-
-    button.addEventListener("mousedown", startHold);
-    button.addEventListener("touchstart", startHold, { passive: false });
-    button.addEventListener("mouseup", clearHold);
-    button.addEventListener("mouseleave", clearHold);
-    button.addEventListener("touchend", clearHold);
-    button.addEventListener("touchcancel", clearHold);
-
-    button.addEventListener("click", (e) => {
-        e.preventDefault();
-        showToast("⚠️ 'Get VIP' বাটনটি কমপক্ষে ১০ সেকেন্ড চেপে ধরে রাখুন!");
-    });
-}
-
-function setupSmartCallAndWhatsApp(element, rawNumber, typeName) {
-    if (!element) return;
-
-    if (!rawNumber || rawNumber === "মোবাইল নেই" || rawNumber === "টেলিফোন নেই" || rawNumber.toLowerCase().includes("নেই")) {
-        element.addEventListener('click', (e) => {
-            e.preventDefault();
-            showToast(`⚠️ কোনো ${typeName} নাম্বার নেই!`);
-        });
-        return;
-    }
-
-    let pressTimer = null;
-    let isLongPress = false;
-
-    const startPress = () => {
-        isLongPress = false;
-        pressTimer = setTimeout(() => {
-            isLongPress = true;
-            if (navigator.vibrate) navigator.vibrate(60);
-            let cleanNumber = rawNumber.replace(/\D/g, '');
-            if (cleanNumber.length === 11 && cleanNumber.startsWith('0')) cleanNumber = '88' + cleanNumber;
-            if (cleanNumber) {
-                window.open(`https://wa.me/${cleanNumber}`, '_blank');
-            } else {
-                showToast(`⚠️ কোনো বৈধ ${typeName} নাম্বার নেই!`);
-            }
-        }, 600);
-    };
-
-    const cancelPress = () => {
-        if (pressTimer) {
-            clearTimeout(pressTimer);
-            pressTimer = null;
-        }
-    };
-
-    element.addEventListener('mousedown', startPress);
-    element.addEventListener('touchstart', startPress, { passive: true });
-    element.addEventListener('mouseup', cancelPress);
-    element.addEventListener('mouseleave', cancelPress);
-    element.addEventListener('touchend', cancelPress);
-    element.addEventListener('touchcancel', cancelPress);
-
-    element.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (!isLongPress) {
-            let cleanNumber = rawNumber.replace(/[^\d+]/g, '');
-            if (cleanNumber) {
-                const callLink = document.createElement('a');
-                callLink.href = `tel:${cleanNumber}`;
-                callLink.style.display = 'none';
-                document.body.appendChild(callLink);
-                callLink.click();
-                setTimeout(() => callLink.remove(), 1000);
-            } else {
-                showToast(`⚠️ কোনো বৈধ ${typeName} নাম্বার নেই!`);
-            }
-        }
-        isLongPress = false;
-    });
-}
-
-function setupEmailAction(element, rawEmail) {
-    if (!element) return;
-
-    if (!rawEmail || rawEmail === "ইমেইল নেই" || rawEmail.toLowerCase().includes("নেই")) {
-        element.addEventListener('click', (e) => {
-            e.preventDefault();
-            showToast("⚠️ কোনো ইমেইল অ্যাড্রেস নেই!");
-        });
-        return;
-    }
-
-    element.addEventListener('click', (e) => {
-        e.preventDefault();
-        window.location.href = `mailto:${rawEmail}`;
-    });
-}
-
-function openModal(id) {
-    document.getElementById(id)?.classList.remove("hidden");
-}
-
-function closeModal(id) {
-    document.getElementById(id)?.classList.add("hidden");
-}
-
-function customConfirm(message, title = "নিশ্চিতকরণ", confirmText = "হ্যাঁ, মুছুন") {
-    return new Promise((resolve) => {
-        const modal = document.getElementById("customConfirmModal");
-        const msgEl = document.getElementById("confirmModalMessage");
-        const titleEl = document.getElementById("confirmModalTitle");
-        const okBtn = document.getElementById("okConfirmBtn");
-        const cancelBtn = document.getElementById("cancelConfirmBtn");
-        const closeBtn = modal?.querySelector(".close-btn");
-
-        if (!modal) return resolve(false);
-
-        if (msgEl) msgEl.textContent = message;
-        if (titleEl) titleEl.textContent = title;
-        if (okBtn) okBtn.textContent = confirmText;
-
-        openModal("customConfirmModal");
-
-        const cleanup = () => {
-            okBtn?.removeEventListener("click", onOk);
-            cancelBtn?.removeEventListener("click", onCancel);
-            closeBtn?.removeEventListener("click", onCancel);
-        };
-
-        const onOk = () => {
-            closeModal("customConfirmModal");
-            cleanup();
-            resolve(true);
-        };
-
-        const onCancel = () => {
-            closeModal("customConfirmModal");
-            cleanup();
-            resolve(false);
-        };
-
-        okBtn?.addEventListener("click", onOk);
-        cancelBtn?.addEventListener("click", onCancel);
-        closeBtn?.addEventListener("click", onCancel);
-    });
-}
+function openModal(id) { document.getElementById(id)?.classList.remove("hidden"); }
+function closeModal(id) { document.getElementById(id)?.classList.add("hidden"); }
 
 function showToast(msg) {
     const toast = document.getElementById("toast");
     if (!toast) return;
-
     toast.textContent = msg;
     toast.classList.add("show");
     setTimeout(() => toast.classList.remove("show"), 2500);
 }
-
