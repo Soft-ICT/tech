@@ -933,7 +933,10 @@ body.has-bg-image .header-banner {
 .goog-te-banner-frame.skiptranslate, 
 iframe.goog-te-banner-frame,
 .goog-te-gadget,
-.skiptranslate {
+.skiptranslate,
+.goog-te-spinner-pos,
+#goog-gt-tt,
+.goog-te-balloon-frame {
     display: none !important;
     visibility: hidden !important;
     height: 0 !important;
