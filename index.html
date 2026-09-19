@@ -29,7 +29,11 @@
 
     <style>
         /* Google Translate Banner & Top Shift Fix */
-        .goog-te-banner-frame.skiptranslate {
+        .goog-te-banner-frame.skiptranslate,
+        .goog-te-spinner-pos,
+        #goog-gt-tt,
+        .goog-te-balloon-frame,
+        .goog-te-gadget-icon {
             display: none !important;
         }
         body {
@@ -381,6 +385,20 @@
       document.cookie = `googtrans=${value};path=/;max-age=31536000`;
       document.cookie = `googtrans=${value};domain=${document.domain};path=/;max-age=31536000`;
     }
+
+    // গুগল ট্রান্সলেটের ফ্লোটিং আইকন বা উইজেট ডায়নামিকলি রিমুভ করার স্ক্রিপ্ট
+    window.addEventListener('load', function() {
+        setInterval(function() {
+            const translateElements = document.querySelectorAll('.goog-te-banner-frame, .goog-te-balloon-frame, #goog-gt-tt, .goog-te-spinner-pos');
+            translateElements.forEach(el => el.remove());
+            
+            // ফ্লোটিং গ্যাজেট আইকন হাইড করা
+            const gadgetIcon = document.querySelector('.goog-te-gadget-icon');
+            if (gadgetIcon) {
+                gadgetIcon.style.display = 'none';
+            }
+        }, 300);
+    });
   })();
 </script>
 
