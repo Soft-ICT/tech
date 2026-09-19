@@ -418,7 +418,7 @@ function sortContactData(items) {
 function setupEvents() {
     document.getElementById("themeBtn")?.addEventListener("click", toggleTheme);
 
-    document.getElementById("navToggleBtn")?.addEventListener("click", (e) => {
+        document.getElementById("navToggleBtn")?.addEventListener("click", (e) => {
         const searchBox = document.getElementById("searchBox");
         const isSearchOpen = searchBox && !searchBox.classList.contains("hidden");
 
@@ -429,11 +429,12 @@ function setupEvents() {
             return;
         }
 
-        if (currentCategoryId || currentDataId || isAllSearchActive || isFavoriteActive) {
+        if (currentDataId || currentCategoryId || isAllSearchActive || isFavoriteActive) {
             history.back();
             return;
         }
     }, true);
+
 
     document.getElementById("searchBtn")?.addEventListener("click", () => {
         openHeaderSearch();
