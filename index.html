@@ -814,8 +814,8 @@
 
     <!-- ভাষা পরিবর্তনের রেডিও বাটন হেবারে যুক্ত করা হয়েছে -->
     <div id="langSwitchContainer" style="display: flex; align-items: center; gap: 8px; margin-right: 10px; font-size: 13px; font-weight: 600;">
-        <label style="cursor: pointer;"><input type="radio" name="appLangRadio" value="bn" checked onclick="changeAppLanguage('bn')"> বাং</label>
-        <label style="cursor: pointer;"><input type="radio" name="appLangRadio" value="en" onclick="changeAppLanguage('en')"> Eng</label>
+        <label style="cursor: pointer;"><input type="radio" name="appLangRadio" value="bn" checked> বাং</label>
+        <label style="cursor: pointer;"><input type="radio" name="appLangRadio" value="en"> Eng</label>
     </div>
 
 
@@ -2051,8 +2051,8 @@
 
     document.addEventListener("DOMContentLoaded", () => {
         initDrawer();
-        
-        // রেডিও বাটনের সঠিক স্টেট সেট করা
+
+        // সঠিক ভাষা সিলেক্ট করা রাখা
         const currentLang = localStorage.getItem("police_pb_lang") || "bn";
         const radioEl = document.querySelector(`input[name="appLangRadio"][value="${currentLang}"]`);
         if (radioEl) radioEl.checked = true;
