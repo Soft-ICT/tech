@@ -418,7 +418,7 @@ function sortContactData(items) {
 function setupEvents() {
     document.getElementById("themeBtn")?.addEventListener("click", toggleTheme);
 
-        document.getElementById("navToggleBtn")?.addEventListener("click", (e) => {
+    document.getElementById("navToggleBtn")?.addEventListener("click", (e) => {
         const searchBox = document.getElementById("searchBox");
         const isSearchOpen = searchBox && !searchBox.classList.contains("hidden");
 
@@ -429,12 +429,11 @@ function setupEvents() {
             return;
         }
 
-        if (currentDataId || currentCategoryId || isAllSearchActive || isFavoriteActive) {
+        if (currentCategoryId || currentDataId || isAllSearchActive || isFavoriteActive) {
             history.back();
             return;
         }
     }, true);
-
 
     document.getElementById("searchBtn")?.addEventListener("click", () => {
         openHeaderSearch();
@@ -1806,7 +1805,6 @@ const APP_LANGUAGE_KEY = "selected_app_language";
 const OFFLINE_TRANSLATIONS = {
     "Police Phonebook": "Police Phonebook",
     "নাম পাওয়া যায়নি": "Name not found",
-    "নাম পাওয়া যায়নি": "Name not found",
     "মোবাইল নেই": "Mobile unavailable",
     "টেলিফোন নেই": "Telephone unavailable",
     "পদবী নেই": "Designation unavailable",
@@ -1834,7 +1832,6 @@ const OFFLINE_TRANSLATIONS = {
     "কোনো তথ্য পাওয়া যায়নি": "No information found",
     "কোনো তথ্য পাওয়া যায়নি": "No information found",
     "কোনো ফেভারিট নাম্বার নেই": "No favorite numbers",
-    "কোনো ফেভারিট নম্বর নেই": "No favorite numbers",
     "হার্ট আইকনে ক্লিক করে ফেভারিটে যুক্ত করুন।": "Tap the heart icon to add a favorite.",
     "নতুন Category": "New Category",
     "নতুন Sub-Category": "New Sub-Category",
@@ -1885,7 +1882,7 @@ const OFFLINE_TRANSLATIONS = {
     "অ্যাডমিন লগইন সফল হয়েছে!": "Admin login successful!",
     "লগআউট করা হয়েছে": "Logged out",
     "লগআউট করা হয়েছে": "Logged out",
-    "লগইন করার জন্য ইন্টারনেট সংযোগ আবশ্যক!": "Internet is required for admin login!",
+    "লগইন করার জন্য ইন্টারনেট সংযোগ আবশ্যক!": "Internet connection is required for admin login!",
     "ইমেইল এবং পাসওয়ার্ড দিন": "Enter email and password",
     "ইমেইল এবং পাসওয়ার্ড দিন": "Enter email and password",
     "শুধুমাত্র Admin পরিবর্তন সেভ করতে পারবেন": "Only Admin can save changes",
@@ -1940,25 +1937,25 @@ const OFFLINE_TRANSLATIONS = {
 };
 
 const OFFLINE_SEARCH_ALIASES = {
-    "constable": ["কনস্টেবল", "কন্সটেবল"],
-    "female constable": ["মহিলা কনস্টেবল", "ফিমেল কনস্টেবল", "নারী কনস্টেবল"],
+    "constable": ["কনস্টেবল"],
+    "female constable": ["মহিলা কনস্টেবল", "ফিমেল কনস্টেবল"],
     "driver constable": ["ড্রাইভার কনস্টেবল"],
-    "inspector": ["ইন্সপেক্টর", "ইনস্পেক্টর"],
+    "inspector": ["ইন্সপেক্টর", "ইন্সপেক্টর"],
     "assistant superintendent": ["সহকারী সুপারিনটেনডেন্ট", "সহকারী সুপারিনটেন্ডেন্ট"],
     "superintendent": ["সুপারিনটেনডেন্ট", "সুপারিনটেন্ডেন্ট"],
-    "commandant": ["কমান্ড্যান্ট", "কমান্ডেন্ট", "কমান্ড্যান্ট"],
-    "additional commandant": ["অতিরিক্ত কমান্ড্যান্ট", "অতিরিক্ত কমান্ডেন্ট"],
-    "deputy commandant": ["ডেপুটি কমান্ড্যান্ট", "ডেপুটি কমান্ডেন্ট"],
-    "assistant commandant": ["সহকারী কমান্ড্যান্ট", "সহকারী কমান্ডেন্ট"],
-    "si": ["এসআই", "এস আই", "সাব-ইন্সপেক্টর", "উপ-পরিদর্শক"],
-    "sub inspector": ["সাব-ইন্সপেক্টর", "এসআই", "এস আই", "উপ-পরিদর্শক"],
-    "asi": ["এএসআই", "এ এস আই", "সহকারী উপ-পরিদর্শক"],
+    "commandant": ["কমান্ড্যান্ট", "কমান্ডেন্ট"],
+    "additional commandant": ["অতিরিক্ত কমান্ড্যান্ট"],
+    "deputy commandant": ["ডেপুটি কমান্ড্যান্ট"],
+    "assistant commandant": ["সহকারী কমান্ড্যান্ট"],
+    "si": ["এসআই", "সাব-ইন্সপেক্টর", "উপ-পরিদর্শক"],
+    "sub inspector": ["সাব-ইন্সপেক্টর", "এসআই", "উপ-পরিদর্শক"],
+    "asi": ["এএসআই", "সহকারী উপ-পরিদর্শক"],
     "sergeant": ["সার্জেন্ট"],
     "driver": ["ড্রাইভার", "চালক"],
     "office": ["অফিস", "কার্যালয়", "কার্যালয়"],
     "current office": ["বর্তমান অফিস", "বর্তমান কার্যালয়", "বর্তমান কার্যালয়", "বর্তমান ঠিকানা"],
     "permanent address": ["স্থায়ী ঠিকানা", "স্থায়ী ঠিকানা"],
-    "address": ["ঠিকানা"],
+    "address": ["ঠিকানা", "ঠিকানা"],
     "mobile": ["মোবাইল", "মোবাইল নম্বর", "মোবাইল নাম্বার"],
     "phone": ["ফোন", "টেলিফোন"],
     "telephone": ["টেলিফোন", "ফোন"],
@@ -1967,7 +1964,7 @@ const OFFLINE_SEARCH_ALIASES = {
     "designation": ["পদবী", "পদবি"],
     "police": ["পুলিশ"],
     "phonebook": ["ফোনবুক", "ফোন বুক"],
-    "favorite": ["ফেভারিট", "প্রিয়"],
+    "favorite": ["ফেভারিট"],
     "header": ["হেডার"],
     "category": ["ক্যাটাগরি", "বিভাগ"],
     "sub category": ["সাব-ক্যাটাগরি", "সাব ক্যাটাগরি"],
@@ -1979,155 +1976,46 @@ const OFFLINE_SEARCH_ALIASES = {
 };
 
 const BENGALI_LATIN_ALIASES = {
-    "জুয়েল": "jewel",
-    "জুয়েল": "jewel",
-    "রানা": "rana",
-    "রহমান": "rahman",
-    "হোসেন": "hossain",
-    "হোসাইন": "hossain",
-    "আহমেদ": "ahmed",
-    "আলী": "ali",
-    "আলম": "alam",
-    "ইসলাম": "islam",
-    "খান": "khan",
-    "মিয়া": "mia",
-    "মিয়া": "mia",
-    "চৌধুরী": "chowdhury",
-    "সাহা": "saha",
-    "দাস": "das",
-    "সরকার": "sarkar",
-    "আক্তার": "aktar",
-    "আক্তার": "akter",
-    "হক": "haque",
-    "কবির": "kabir",
-    "করিম": "karim",
-    "হাসান": "hasan",
-    "হোসেন": "hossain",
-    "মোঃ": "md",
-    "মো.": "md",
-    "মো": "md",
-    "মোছাঃ": "mosammat",
-    "মোছা": "mosammat"
+    "জুয়েল": "jewel", "জুয়েল": "jewel", "রানা": "rana",
+    "রহমান": "rahman", "হোসেন": "hossain", "হোসাইন": "hossain",
+    "আহমেদ": "ahmed", "আলী": "ali", "আলম": "alam", "ইসলাম": "islam",
+    "খান": "khan", "মিয়া": "mia", "মিয়া": "mia", "চৌধুরী": "chowdhury",
+    "সাহা": "saha", "দাস": "das", "সরকার": "sarkar"
 };
-
-const BN_TRANSLIT_CONSONANTS = {
-    "ক":"k","খ":"kh","গ":"g","ঘ":"gh","ঙ":"ng",
-    "চ":"ch","ছ":"chh","জ":"j","ঝ":"jh","ঞ":"n",
-    "ট":"t","ঠ":"th","ড":"d","ঢ":"dh","ণ":"n",
-    "ত":"t","থ":"th","দ":"d","ধ":"dh","ন":"n",
-    "প":"p","ফ":"f","ব":"b","ভ":"bh","ম":"m",
-    "য":"y","র":"r","ল":"l","শ":"sh","ষ":"sh","স":"s","হ":"h",
-    "ড়":"r","ঢ়":"rh","য়":"y","ৎ":"t","ং":"ng","ঃ":"h","ঁ":"n",
-    "ক্ষ":"kkh"
-};
-
-const BN_TRANSLIT_VOWELS = {
-    "া":"a","ি":"i","ী":"i","ু":"u","ূ":"u",
-    "ৃ":"ri","ে":"e","ৈ":"oi","ো":"o","ৌ":"ou"
-};
-
-const BN_TRANSLIT_INDEPENDENT_VOWELS = {
-    "অ":"a","আ":"a","ই":"i","ঈ":"i","উ":"u","ঊ":"u",
-    "ঋ":"ri","এ":"e","ঐ":"oi","ও":"o","ঔ":"ou"
-};
-
-function normalizeSearchText(value) {
-    return String(value ?? "")
-        .normalize("NFC")
-        .toLowerCase()
-        .replace(/[‐‑‒–—―]/g, "-")
-        .replace(/[\u200B-\u200D\uFEFF]/g, "")
-        .replace(/\s+/g, " ")
-        .trim();
-}
-
-function bengaliToSearchLatin(text) {
-    let source = normalizeSearchText(text);
-
-    Object.entries(BENGALI_LATIN_ALIASES)
-        .sort((a, b) => b[0].length - a[0].length)
-        .forEach(([bn, en]) => {
-            source = source.split(bn).join(` ${en} `);
-        });
-
-    let result = "";
-    const chars = Array.from(source);
-
-    for (let i = 0; i < chars.length; i++) {
-        const ch = chars[i];
-
-        if (BN_TRANSLIT_INDEPENDENT_VOWELS[ch]) {
-            result += BN_TRANSLIT_INDEPENDENT_VOWELS[ch];
-            continue;
-        }
-
-        if (ch === "্") {
-            continue;
-        }
-
-        if (BN_TRANSLIT_VOWELS[ch]) {
-            result += BN_TRANSLIT_VOWELS[ch];
-            continue;
-        }
-
-        if (BN_TRANSLIT_CONSONANTS[ch]) {
-            const consonant = BN_TRANSLIT_CONSONANTS[ch];
-            const next = chars[i + 1];
-
-            result += consonant;
-            if (next !== "্" && !BN_TRANSLIT_VOWELS[next]) {
-                result += "a";
-            }
-            continue;
-        }
-
-        result += ch;
-    }
-
-    return result
-        .replace(/a(?=[\s,.;:!?/\\)\]}]|$)/g, "")
-        .replace(/aa+/g, "a")
-        .replace(/\s+/g, " ")
-        .trim();
-}
 
 function getCurrentLanguage() {
     return localStorage.getItem(APP_LANGUAGE_KEY) === "en" ? "en" : "bn";
 }
 
 function setLanguageCookie(lang) {
+    const value = `/bn/${lang}`;
+    document.cookie = `googtrans=${value};path=/;max-age=31536000`;
     try {
-        const value = `/bn/${lang === "en" ? "en" : "bn"}`;
-        document.cookie = `googtrans=${value};path=/;max-age=31536000`;
+        document.cookie = `googtrans=${value};domain=${document.domain};path=/;max-age=31536000`;
     } catch (_) {}
 }
 
 function setLanguage(lang) {
-    const selected = lang === "en" ? "en" : "bn";
-
-    localStorage.setItem(APP_LANGUAGE_KEY, selected);
-    setLanguageCookie(selected);
+    lang = lang === "en" ? "en" : "bn";
+    localStorage.setItem(APP_LANGUAGE_KEY, lang);
+    setLanguageCookie(lang);
 
     try {
-        document.documentElement.lang = selected;
+        document.documentElement.lang = lang === "en" ? "en" : "bn";
     } catch (_) {}
 
     location.reload();
 }
 
-window.setAppLanguage = setLanguage;
-
 function replaceKnownTranslations(text) {
     let result = String(text ?? "");
-
     const keys = Object.keys(OFFLINE_TRANSLATIONS)
-        .filter(key => key && key !== OFFLINE_TRANSLATIONS[key])
+        .filter(k => k && k !== OFFLINE_TRANSLATIONS[k])
         .sort((a, b) => b.length - a.length);
 
     for (const key of keys) {
         result = result.split(key).join(OFFLINE_TRANSLATIONS[key]);
     }
-
     return result;
 }
 
@@ -2139,30 +2027,12 @@ function applyOfflineLanguage(root = document.body) {
         NodeFilter.SHOW_TEXT,
         {
             acceptNode(node) {
-                if (!node.nodeValue || !node.nodeValue.trim()) {
-                    return NodeFilter.FILTER_REJECT;
-                }
-
+                if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
                 const parent = node.parentElement;
                 if (!parent) return NodeFilter.FILTER_REJECT;
-
-                if ([
-                    "SCRIPT",
-                    "STYLE",
-                    "NOSCRIPT",
-                    "TEXTAREA"
-                ].includes(parent.tagName)) {
+                if (["SCRIPT", "STYLE", "NOSCRIPT", "TEXTAREA"].includes(parent.tagName)) {
                     return NodeFilter.FILTER_REJECT;
                 }
-
-                if (
-                    parent.closest?.(
-                        "input, textarea, select, option, script, style"
-                    )
-                ) {
-                    return NodeFilter.FILTER_REJECT;
-                }
-
                 return NodeFilter.FILTER_ACCEPT;
             }
         }
@@ -2170,150 +2040,82 @@ function applyOfflineLanguage(root = document.body) {
 
     const nodes = [];
     let node;
-
-    while ((node = walker.nextNode())) {
-        nodes.push(node);
-    }
+    while ((node = walker.nextNode())) nodes.push(node);
 
     nodes.forEach(textNode => {
         const oldText = textNode.nodeValue;
         const newText = replaceKnownTranslations(oldText);
-
-        if (newText !== oldText) {
-            textNode.nodeValue = newText;
-        }
+        if (newText !== oldText) textNode.nodeValue = newText;
     });
 
-    root.querySelectorAll?.(
-        "[placeholder], [title], [aria-label]"
-    ).forEach(el => {
+    root.querySelectorAll?.("[placeholder], [title], [aria-label]").forEach(el => {
         ["placeholder", "title", "aria-label"].forEach(attr => {
             if (!el.hasAttribute(attr)) return;
-
             const oldValue = el.getAttribute(attr);
             const newValue = replaceKnownTranslations(oldValue);
-
-            if (newValue !== oldValue) {
-                el.setAttribute(attr, newValue);
-            }
+            if (newValue !== oldValue) el.setAttribute(attr, newValue);
         });
     });
 }
 
 function getSearchVariants(query) {
-    const q = normalizeSearchText(query);
+    const q = String(query || "").trim().toLowerCase();
     if (!q) return [];
 
     const variants = new Set([q]);
-
-    const compact = q
-        .replace(/[\s_-]+/g, " ")
-        .trim();
-
+    const compact = q.replace(/[\s_-]+/g, " ").trim();
     variants.add(compact);
 
-    Object.entries(OFFLINE_SEARCH_ALIASES).forEach(
-        ([english, bengaliList]) => {
-            const en = normalizeSearchText(english);
-
-            if (
-                en === q ||
-                en.includes(q) ||
-                q.includes(en)
-            ) {
-                variants.add(en);
-                bengaliList.forEach(v => {
-                    variants.add(normalizeSearchText(v));
-                });
-            }
-
-            bengaliList.forEach(v => {
-                const bn = normalizeSearchText(v);
-
-                if (
-                    bn === q ||
-                    bn.includes(q) ||
-                    q.includes(bn)
-                ) {
-                    variants.add(en);
-                    variants.add(bn);
-                }
-            });
+    Object.entries(OFFLINE_SEARCH_ALIASES).forEach(([english, bengaliList]) => {
+        if (english === q || english.includes(q) || q.includes(english)) {
+            bengaliList.forEach(v => variants.add(String(v).toLowerCase()));
         }
-    );
-
-    q.split(/\s+/)
-        .filter(Boolean)
-        .forEach(token => {
-            Object.entries(OFFLINE_SEARCH_ALIASES).forEach(
-                ([english, bengaliList]) => {
-                    if (normalizeSearchText(english) === token) {
-                        variants.add(normalizeSearchText(english));
-                        bengaliList.forEach(v =>
-                            variants.add(normalizeSearchText(v))
-                        );
-                    }
-                }
-            );
+        bengaliList.forEach(v => {
+            if (String(v).toLowerCase() === q) variants.add(english);
         });
+    });
 
-    const qLatin = bengaliToSearchLatin(q);
+    q.split(/\s+/).filter(Boolean).forEach(token => {
+        if (OFFLINE_SEARCH_ALIASES[token]) {
+            OFFLINE_SEARCH_ALIASES[token].forEach(v => variants.add(String(v).toLowerCase()));
+        }
+    });
 
-    if (qLatin && qLatin !== q) {
-        variants.add(qLatin);
-    }
-
-    return [...variants].filter(Boolean);
+    return [...variants];
 }
 
-function buildSearchIndex(sourceText) {
-    const source = normalizeSearchText(sourceText);
-    if (!source) return "";
-
-    const latin = bengaliToSearchLatin(source);
-
-    return `${source} ${latin}`
-        .replace(/\s+/g, " ")
-        .trim();
+function bengaliToSearchLatin(text) {
+    let result = String(text || "").toLowerCase();
+    Object.entries(BENGALI_LATIN_ALIASES)
+        .sort((a, b) => b[0].length - a[0].length)
+        .forEach(([bn, en]) => {
+            result = result.split(bn).join(en);
+        });
+    return result;
 }
 
 function isMatch(sourceText, query) {
-    if (
-        sourceText === null ||
-        sourceText === undefined ||
-        query === null ||
-        query === undefined
-    ) {
+    if (sourceText === null || sourceText === undefined || query === null || query === undefined) {
         return false;
     }
 
-    const source = normalizeSearchText(sourceText);
-    const q = normalizeSearchText(query);
-
+    const source = String(sourceText).trim();
+    const q = String(query).trim().toLowerCase();
     if (!source || !q) return false;
 
-    const sourceIndex = buildSearchIndex(source);
+    const sourceLower = source.toLowerCase();
+    const sourceLatin = bengaliToSearchLatin(sourceLower);
     const variants = getSearchVariants(q);
 
-    if (
-        variants.some(
-            v => v && sourceIndex.includes(normalizeSearchText(v))
-        )
-    ) {
+    if (variants.some(v => v && (sourceLower.includes(v) || sourceLatin.includes(v)))) {
         return true;
     }
 
-    const words = q
-        .split(/\s+/)
-        .filter(word => word.length > 1);
-
+    const words = q.split(/\s+/).filter(w => w.length > 1);
     if (words.length > 1) {
         return words.every(word => {
             const wordVariants = getSearchVariants(word);
-
-            return wordVariants.some(
-                v => sourceIndex.includes(normalizeSearchText(v))
-            );
+            return wordVariants.some(v => sourceLower.includes(v) || sourceLatin.includes(v));
         });
     }
 
@@ -2322,39 +2124,15 @@ function isMatch(sourceText, query) {
 
 function getDataSearchText(item) {
     if (!item) return "";
-
-    const category = (database.categories || [])
-        .find(c => c.id === item.categoryId);
-
-    const header = (database.headers || [])
-        .find(h => h.id === item.headerId);
+    const category = (database.categories || []).find(c => c.id === item.categoryId);
+    const header = (database.headers || []).find(h => h.id === item.headerId);
 
     return [
-        item.name,
-        item.mobile,
-        item.phone,
-        item.designation,
-        item.email,
-        item.currentOffice,
-        item.permanentAddress,
-        item.adminInfo,
-        item.enName,
-        item.enDesignation,
-        item.enCurrentOffice,
-        item.enPermanentAddress,
-        item.enAdminInfo,
-        category?.name,
-        category?.enName,
-        header?.title,
-        header?.enTitle
-    ]
-        .filter(
-            value =>
-                value !== null &&
-                value !== undefined &&
-                String(value).trim() !== ""
-        )
-        .join(" ");
+        item.name, item.mobile, item.phone, item.designation, item.email,
+        item.currentOffice, item.permanentAddress, item.adminInfo,
+        item.enName, item.enDesignation, item.enCurrentOffice,
+        item.enPermanentAddress, category?.name, header?.title
+    ].filter(v => v !== null && v !== undefined && String(v).trim() !== "").join(" ");
 }
 
 function isDataMatch(item, query) {
@@ -2362,82 +2140,40 @@ function isDataMatch(item, query) {
     return isMatch(getDataSearchText(item), query);
 }
 
-function scheduleOfflineLanguageApply() {
-    if (getCurrentLanguage() !== "en") return;
-
-    if (window.__offlineLanguageApplyTimer) {
-        clearTimeout(window.__offlineLanguageApplyTimer);
-    }
-
-    window.__offlineLanguageApplyTimer = setTimeout(() => {
-        window.__offlineLanguageApplyTimer = null;
-        applyOfflineLanguage(document.body);
-    }, 0);
-}
-
 function initOfflineLanguageSystem() {
     const savedLang = getCurrentLanguage();
 
     try {
-        document.documentElement.lang =
-            savedLang === "en" ? "en" : "bn";
+        document.documentElement.lang = savedLang === "en" ? "en" : "bn";
     } catch (_) {}
 
-    const syncLanguageRadios = () => {
-        document.querySelectorAll(
-            'input[name="appLanguage"]'
-        ).forEach(input => {
-            input.checked =
-                savedLang === "en"
-                    ? input.value === "en"
-                    : input.value !== "en";
-        });
-    };
+    const radioEn = document.getElementById("langEn");
+    const radioBn = document.getElementById("langBn");
+    if (radioEn) radioEn.checked = savedLang === "en";
+    if (radioBn) radioBn.checked = savedLang !== "en";
 
-    syncLanguageRadios();
-
-    if (!window.__offlineLanguageChangeBound) {
-        window.__offlineLanguageChangeBound = true;
-
-        document.addEventListener("change", event => {
-            const input = event.target;
-
-            if (
-                input &&
-                input.matches?.('input[name="appLanguage"]')
-            ) {
-                setLanguage(input.value);
-            }
-        });
-    }
+    document.querySelectorAll('input[name="appLanguage"]').forEach(input => {
+        if (input.dataset.offlineLangBound === "1") return;
+        input.dataset.offlineLangBound = "1";
+        input.addEventListener("change", () => setLanguage(input.value));
+    });
 
     if (savedLang === "en") {
         applyOfflineLanguage(document.body);
 
         if (!window.__offlineLanguageObserver) {
             let timer = null;
+            window.__offlineLanguageObserver = new MutationObserver(() => {
+                if (getCurrentLanguage() !== "en") return;
+                clearTimeout(timer);
+                timer = setTimeout(() => applyOfflineLanguage(document.body), 0);
+            });
 
-            window.__offlineLanguageObserver =
-                new MutationObserver(() => {
-                    if (getCurrentLanguage() !== "en") return;
-
-                    clearTimeout(timer);
-
-                    timer = setTimeout(() => {
-                        applyOfflineLanguage(document.body);
-                    }, 0);
-                });
-
-            window.__offlineLanguageObserver.observe(
-                document.body,
-                {
-                    childList: true,
-                    subtree: true,
-                    characterData: true
-                }
-            );
+            window.__offlineLanguageObserver.observe(document.body, {
+                childList: true,
+                subtree: true,
+                characterData: true
+            });
         }
-
-        scheduleOfflineLanguageApply();
     }
 }
